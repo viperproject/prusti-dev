@@ -65,7 +65,6 @@ use crate::encoder::mir::pure::PureFunctionEncoderInterface;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 use crate::encoder::mir::pure::SpecificationEncoderInterface;
 use crate::encoder::mir::specifications::SpecificationsInterface;
-use super::encoder::SubstMap;
 use super::high::generics::HighGenericsEncoderInterface;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -112,6 +111,9 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     old_ghost_vars: FxHashMap<String, vir::Type>,
     /// For each loop head, the block at whose end the loop invariant holds
     cached_loop_invariant_block: FxHashMap<BasicBlockIndex, BasicBlockIndex>,
+
+    // TODO(tymap): should the ProcedureEncoder struct contain a SubstsRef?
+    // TODO(tymap): do something about all the ty::List::empty() initialised SubstsRefs
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -2042,8 +2044,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         &self.encoder.env().tcx().def_path_str(def_id);
                         // &self.encoder.env().tcx().absolute_item_path_str(def_id);
 
+                    // TODO(tymap): compose own substs with call substs?
                     // FIXME: this is a hack to support generics. See issue #187.
-                    let tymap = SubstMap::build(self.encoder.env(), def_id, substs);
+                    //let tymap = SubstMap::build(self.encoder.env(), def_id, substs);
 
                     match full_func_proc_name {
                         "std::rt::begin_panic"
@@ -2133,8 +2136,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     args,
                                     destination,
                                     vir::BinaryOpKind::EqCmp,
-                                    tymap,
-                                    substs
+                                    substs,
                                 )?
                             );
                         }
@@ -2155,8 +2157,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     args,
                                     destination,
                                     vir::BinaryOpKind::NeCmp,
-                                    tymap,
-                                    substs
+                                    substs,
                                 )?
                             );
                         }
@@ -2173,7 +2174,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         args,
                                         destination,
                                         *cl_def_id,
-                                        tymap,
                                         substs,
                                     )?);
                                 }
@@ -2236,7 +2236,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             if is_pure_function {
                                 let def_id = called_def_id;
                                 let (function_name, _) = self.encoder
-                                    .encode_pure_function_use(def_id, self.proc_def_id, &tymap, substs)
+                                    .encode_pure_function_use(def_id, self.proc_def_id, substs)
                                     .with_default_span(term.source_info.span)?;
                                 debug!("Encoding pure function call '{}'", function_name);
                                 assert!(destination.is_some());
@@ -2253,7 +2253,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         args,
                                         destination,
                                         def_id,
-                                        tymap,
                                         substs,
                                     )?
                                 );
@@ -2265,7 +2264,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         args,
                                         destination,
                                         def_id,
-                                        tymap,
                                         substs,
                                     )?
                                 );
@@ -2467,8 +2465,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let enc_sequence_types = self.encoder.encode_sequence_types(base_seq_ty.peel_refs())?;
 
         let j = vir_local!{ j: Int };
-        let tymap = SubstMap::default();
-        let elem_snap_ty = self.encoder.encode_snapshot_type(enc_sequence_types.elem_ty_rs, &tymap)?;
+        // TODO(tymap): use the ProcedureEncoder one? add an argument to this method?
+        let substs = ty::List::empty();
+        let elem_snap_ty = self.encoder.encode_snapshot_type(enc_sequence_types.elem_ty_rs, &substs)?;
         let rhs_lookup_j = enc_sequence_types.encode_lookup_pure_call(
             self.encoder,
             base_seq_expr.clone(),
@@ -2525,8 +2524,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
 
         let slice_types_lhs = self.encoder.encode_sequence_types(lhs_slice_ty)?;
-        let tymap = SubstMap::default();
-        let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types_lhs.elem_ty_rs, &tymap)?;
+        // TODO(tymap): why defined again?
+        //let tymap = SubstMap::default();
+        let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types_lhs.elem_ty_rs, &substs)?;
 
         // length
         let length = vir_expr!{ [end] - [start] };
@@ -2604,12 +2604,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         bin_op: vir::BinaryOpKind,
-        tymap: SubstMap<'tcx>,
         substs: ty::subst::SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
-        if self.encoder.supports_snapshot_equality(arg_ty, &tymap).with_span(call_site_span)? {
+        if self.encoder.supports_snapshot_equality(arg_ty, &substs).with_span(call_site_span)? {
             let lhs = self.mir_encoder.encode_operand_expr(&args[0])
                 .with_span(call_site_span)?;
             let rhs = self.mir_encoder.encode_operand_expr(&args[1])
@@ -2650,7 +2649,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 args,
                 destination,
                 called_def_id,
-                tymap,
                 substs,
             )
         }
@@ -2701,7 +2699,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         mir_args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
-        tymap: SubstMap<'tcx>,
         substs: ty::subst::SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let full_func_proc_name = &self
@@ -2927,7 +2924,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 called_def_id,
                 &arguments,
                 target_local,
-                tymap.clone(),
                 substs,
             ).with_span(call_site_span)?
         };
@@ -2948,7 +2944,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_mandatory_type_spec,
             pre_invs_spec,
             pre_func_spec,
-        ) = self.encode_precondition_expr(&procedure_contract, &tymap, &substs, fake_expr_spans)?;
+        ) = self.encode_precondition_expr(&procedure_contract, &substs, fake_expr_spans)?;
         let pos = self.register_error(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
         stmts.push(vir::Stmt::Assert( vir::Assert {
             expr: replace_fake_exprs(pre_func_spec),
@@ -3020,7 +3016,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             encoded_target.is_none(),
             loan,
             false,
-            &tymap,
             &substs,
         )?;
         // We inhale the magic wand just before applying it because we need
@@ -3081,10 +3076,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
-        tymap: SubstMap<'tcx>,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id, self.proc_def_id, &tymap, &substs)
+        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id, self.proc_def_id, &substs)
             .with_span(call_site_span)?;
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
@@ -3105,7 +3099,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             arg_exprs,
             return_type,
             called_def_id,
-            tymap,
+            substs,
         )
     }
 
@@ -3120,13 +3114,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         arg_exprs: Vec<vir::Expr>,
         return_type: Type,
         called_def_id: ProcedureDefId,
-        tymap: SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let formal_args: Vec<vir::LocalVar> = args
             .iter()
             .enumerate()
             .map(|(i, arg)| {
-                self.mir_encoder.encode_operand_expr_type(arg, &tymap)
+                self.mir_encoder.encode_operand_expr_type(arg, &substs)
                     .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
             })
             .collect::<Result<_, _>>()
@@ -3134,7 +3128,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let pos = self.register_error(call_site_span, ErrorCtxt::PureFunctionCall);
 
-        let type_arguments = self.encoder.encode_generic_arguments(called_def_id, &tymap).with_span(call_site_span)?;
+        let type_arguments = self.encoder.encode_generic_arguments(called_def_id, &substs).with_span(call_site_span)?;
 
         let func_call = vir::Expr::func_app(
             function_name,
@@ -3348,8 +3342,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
         override_spans: FxHashMap<Local, Span> // spans for fake locals
     ) -> SpannedEncodingResult<(
         vir::Expr,
@@ -3424,7 +3417,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 None,
                 false,
                 self.proc_def_id,
-                tymap,
                 substs,
             )?;
             func_spec.push(value);
@@ -3473,8 +3465,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let encoded_return = self
             .encode_prusti_local(self.procedure_contract().returned_value).into();
 
-        // FIXME: ??? new tymap?
-        let tymap = SubstMap::default();
+        // FIXME: ??? new substs?
         let substs = ty::List::empty();
         debug!("procedure_contract: {:?}", self.procedure_contract());
 
@@ -3492,7 +3483,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     None,
                     false,
                     self.proc_def_id,
-                    &tymap,
                     &substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
@@ -3507,7 +3497,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     None,
                     false,
                     self.proc_def_id,
-                    &tymap,
                     &substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
@@ -3529,7 +3518,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Some(&encoded_return),
                     false,
                     self.proc_def_id,
-                    &tymap,
                     &substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
@@ -3544,7 +3532,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Some(&encoded_return),
                     false,
                     self.proc_def_id,
-                    &tymap,
                     &substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
@@ -3574,14 +3561,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         start_cfg_block: CfgBlockIndex,
         weakening_spec: Option<vir::Expr>,
     ) -> SpannedEncodingResult<()> {
-        let tymap = SubstMap::default();
         let substs = ty::List::empty();
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
         let (type_spec, mandatory_type_spec, invs_spec, func_spec) =
             self.encode_precondition_expr(
                 self.procedure_contract(),
-                &tymap,
                 &substs,
                 FxHashMap::default()
             )?;
@@ -3635,8 +3620,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> EncodingResult<Option<(vir::Expr, vir::Expr)>> {
         let span = if let Some(loc) = location {
             self.mir.source_info(loc).span
@@ -3710,7 +3694,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         Some(&encoded_return),
                         false,
                         self.proc_def_id,
-                        tymap,
                         substs,
                     )?
                 } else {
@@ -3723,7 +3706,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Some(&encoded_return),
                     false,
                     self.proc_def_id,
-                    tymap,
                     substs,
                 )?;
                 assertion_lhs = self.wrap_arguments_into_old(
@@ -3826,8 +3808,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         _diverging: bool,
         loan: Option<facts::Loan>,
         function_end: bool,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(
         vir::Expr,                   // Returned permissions from types.
         Option<vir::Expr>,           // Permission of the return value.
@@ -3900,7 +3881,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             contract,
             pre_label,
             post_label,
-            tymap,
             substs,
         ).with_span(span)? {
             if let Some((location, fake_exprs)) = magic_wand_store_info {
@@ -3912,9 +3892,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
                 lhs = replace_fake_exprs(lhs);
                 rhs = replace_fake_exprs(rhs);
-                lhs = self.encoder.patch_snapshots(lhs, tymap)
+                lhs = self.encoder.patch_snapshots(lhs, substs)
                     .with_span(self.mir.span)?;
-                rhs = self.encoder.patch_snapshots(rhs, tymap)
+                rhs = self.encoder.patch_snapshots(rhs, substs)
                     .with_span(self.mir.span)?;
                 debug!("Insert ({:?} {:?}) at {:?}", lhs, rhs, location);
                 self.magic_wand_at_location
@@ -3944,7 +3924,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 Some(&encoded_return),
                 false,
                 self.proc_def_id,
-                tymap,
                 substs,
             )?;
             let assertion_span = self.encoder.env().tcx().def_span(typed_assertion.to_def_id());
@@ -4053,7 +4032,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         debug!("encode_package_end_of_method '{:?}'", location);
-        let tymap = SubstMap::default();
         let substs = ty::List::empty();
         let mut stmts = Vec::new();
         let span = self.mir.source_info(location).span;
@@ -4064,7 +4042,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.procedure_contract(),
             pre_label,
             post_label,
-            &tymap,
             &substs,
         ).with_span(span)? {
             let pos = self.register_error(self.mir.span, ErrorCtxt::PackageMagicWandForPostcondition);
@@ -4182,7 +4159,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         return_cfg_block: CfgBlockIndex,
         strengthening_spec: Option<vir::Expr>,
     ) -> SpannedEncodingResult<()> {
-        let tymap = SubstMap::default();
         let substs = ty::List::empty();
         // This clone is only due to borrow checker restrictions
         let contract = self.procedure_contract().clone();
@@ -4208,7 +4184,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             false,
             None,
             true,
-            &tymap,
             &substs,
         )?;
 
@@ -4767,7 +4742,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_head,
             spec_blocks
         );
-        let tymap = SubstMap::default();
         let substs = ty::List::empty();
 
         // `body_invariant!(..)` is desugared to a closure with special attributes,
@@ -4785,7 +4759,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             self.mir,
                             bbi,
                             self.proc_def_id,
-                            &tymap,
                             &substs,
                         )?);
                         encoded_spec_spans.push(self.encoder.env().tcx().def_span(spec.invariant.to_def_id()));
@@ -5081,8 +5054,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         //   inhale lookup_pure(array, index) == encoded_rhs
         //   // now we have all the contents as before, just one item updated
 
-        let tymap = SubstMap::default();
-
         let (encoded_array, mut stmts) = self.postprocess_place_encoding(
             base,
             ArrayAccessKind::Shared,  // shouldn't be nested, so doesn't matter[tm]
@@ -5113,7 +5084,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             stmts.push(vir_stmt!{ inhale [len_eq] });
         }
 
-        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &tymap).with_span(span)?;
+        let substs = ty::List::empty();
+        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &substs).with_span(span)?;
 
         // inhale infos about array contents back
         let i_var: vir::Expr = vir_local!{ i: Int }.into();
@@ -5121,8 +5093,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let i_lt_len = vir_expr!{ [ i_var ] < [ sequence_len ] };
         let i_ne_idx = vir_expr!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
         let idx_conditions = vir_expr!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
-        let tymap = SubstMap::default();
-        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &tymap).with_span(span)?;
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &substs).with_span(span)?;
         let lookup_array_i = sequence_types.encode_lookup_pure_call(self.encoder, encoded_array.clone(), i_var.clone(), lookup_ret_ty.clone());
         // FIXME: using `old` here is a work-around for https://github.com/viperproject/prusti-dev/issues/877
         // FIXME: which is due to an issue in Silicon, see https://github.com/viperproject/silicon/issues/603
@@ -5574,7 +5545,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             self.proc_def_id,
                         );
                     }
-                    let substs = SubstMap::default();
+                    let substs = ty::List::empty();
                     let encoded_rhs = self.encoder.encode_discriminant_func_app(
                         encoded_src,
                         *adt_def,
@@ -5686,9 +5657,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             operand,
             dst_ty
         );
-        let tymap = SubstMap::default();
+        let substs = ty::List::empty();
         let span = self.mir_encoder.get_span_of_location(location);
-        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty, span, &tymap)?;
+        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty, span, &substs)?;
         self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
     }
 
@@ -5755,8 +5726,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             expr: vir_expr!{ [slice_len_call] == [sequence_types.len(self.encoder, rhs_expr.clone())] }
         }));
 
-        let tymap = SubstMap::default();
-        let elem_snap_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &tymap).with_span(span)?;
+        let substs = ty::List::empty();
+        let elem_snap_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &substs).with_span(span)?;
 
         let i: vir::Expr = vir_local! { i: Int }.into();
 
@@ -5861,8 +5832,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .with_span(span)?;
         let len: usize = self.encoder.const_eval_intlike(times.val()).with_span(span)?
             .to_u64().unwrap().try_into().unwrap();
-        let tymap = SubstMap::default();
-        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &tymap)
+        let substs = ty::List::empty();
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &substs)
             .with_span(span)?;
 
         let inhaled_operand = if lookup_ret_ty.is_domain() || lookup_ret_ty.is_snapshot() {
@@ -6113,7 +6084,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "[enter] encode_assign_aggregate({:?}, {:?})",
             aggregate, operands
         );
-        let tymap = SubstMap::default();
+        let substs = ty::List::empty();
         let span = self.mir_encoder.get_span_of_location(location);
         let mut stmts = self.encode_havoc_and_initialization(dst);
         // Initialize values
@@ -6173,7 +6144,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // dst was havocked, so it is safe to assume the equality here.
                     let discriminant = self
                         .encoder
-                        .encode_discriminant_func_app(dst.clone(), adt_def, &tymap)?;
+                        .encode_discriminant_func_app(dst.clone(), adt_def, &substs)?;
                     stmts.push(vir::Stmt::Inhale( vir::Inhale {
                         expr: vir::Expr::eq_cmp(discriminant, discr_value),
                     }));
@@ -6230,7 +6201,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::AggregateKind::Array(..) => {
                 let sequence_types = self.encoder.encode_sequence_types(ty).with_span(span)?;
-                let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &tymap)
+                let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &substs)
                     .with_span(span)?;
 
                 for (idx, operand) in operands.iter().enumerate() {
@@ -6312,19 +6283,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         index: vir::Expr,
         sequence_ty: ty::Ty<'tcx>,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
-        let tymap = SubstMap::default();
         let sequence_types = self.encoder.encode_sequence_types(sequence_ty)?;
 
         let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(sequence_types.elem_pred_type.clone()).into();
         let lookup_res_val_field = self.encoder.encode_value_expr(lookup_res.clone(), sequence_types.elem_ty_rs)?;
-        let snap_lookup_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(lookup_res_val_field), &tymap)?;
+        let substs = ty::List::empty();
+        let snap_lookup_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(lookup_res_val_field), &substs)?;
 
-        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &tymap)?;
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &substs)?;
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Shared)?;
         stmts.extend(self.encode_havoc_and_initialization(&lookup_res));
 
-        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &tymap)?;
+        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &substs)?;
 
         let lookup_pure_call = sequence_types.encode_lookup_pure_call(
             self.encoder,
@@ -6352,16 +6323,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         _loan: Option<Borrow>,
         location: mir::Location,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
-        let tymap = SubstMap::default();
+        let substs = ty::List::empty();
         let sequence_types = self.encoder.encode_sequence_types(sequence_ty)?;
 
         let res: vir::Expr = self.cfg_method.add_fresh_local_var(sequence_types.elem_pred_type.clone()).into();
         let res_val_field = self.encoder.encode_value_expr(res.clone(), sequence_types.elem_ty_rs)?;
-        let snap_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(res_val_field.clone()), &tymap)?;
+        let snap_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(res_val_field.clone()), &substs)?;
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Mutable(None, location))?;
 
-        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &tymap)?;
+        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &substs)?;
 
         // var res: Ref := havoc_ref()
         stmts.extend(self.encode_havoc_and_initialization(&res));
@@ -6388,8 +6359,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let old_lhs = |e| { vir::Expr::labelled_old("lhs", e) };
 
         // value of res
-        let tymap = SubstMap::default();
-        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &tymap)?;
+        let substs = ty::List::empty();
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &substs)?;
         let lookup_pure_call = sequence_types.encode_lookup_pure_call(
             self.encoder,
             encoded_base_expr.clone(),
@@ -6436,7 +6407,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             lookup_ret_ty,
         );
         // TODO: old inside snapshot or the other way around?
-        let snap_old_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(res_val_field.clone()), &tymap)?;
+        let snap_old_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(res_val_field.clone()), &substs)?;
         let indexed_updated = vir_expr!{ [ indexed_lookup_pure ] == [ old_lhs(snap_old_res_val_field) ] };
 
         let magic_wand_rhs = vir_expr!{ [all_others_unchanged] && [indexed_updated] };

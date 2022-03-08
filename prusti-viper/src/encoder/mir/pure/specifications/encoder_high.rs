@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::{
-    encoder::SubstMap,
     errors::SpannedEncodingResult,
     mir::{
         pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
@@ -17,6 +16,7 @@ use crate::encoder::{
 use prusti_common::config;
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty;
+use rustc_middle::ty::subst::SubstsRef;
 use rustc_span::Span;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
@@ -29,7 +29,7 @@ fn inline_closure_high<'tcx>(
     _cl_expr: Expression,
     _args: Vec<VariableDecl>,
     _parent_def_id: DefId,
-    _substs_map: &SubstMap<'tcx>,
+    _substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Expression> {
     todo!()
 }
@@ -42,7 +42,7 @@ pub(super) fn inline_spec_item_high<'tcx>(
     target_return: Option<&Expression>,
     targets_are_values: bool,
     parent_def_id: DefId,
-    tymap: &SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Expression> {
     let mir = encoder.env().local_mir(def_id.expect_local());
     assert_eq!(
@@ -73,7 +73,7 @@ pub(super) fn inline_spec_item_high<'tcx>(
         ));
     }
     Ok(encoder
-        .encode_pure_expression_high(def_id, parent_def_id, tymap)?
+        .encode_pure_expression_high(def_id, parent_def_id, substs)?
         .replace_multiple_places(&body_replacements))
 }
 
@@ -84,7 +84,6 @@ pub(super) fn encode_quantifier_high<'tcx>(
     encoded_args: Vec<Expression>,
     is_exists: bool,
     parent_def_id: DefId,
-    tymap: &SubstMap<'tcx>,
 ) -> SpannedEncodingResult<Expression> {
     let tcx = encoder.env().tcx();
 
@@ -145,7 +144,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
                 ),
                 encoded_qvars.clone(),
                 parent_def_id,
-                tymap,
+                substs,
             )?);
         }
         encoded_trigger_sets.push(Trigger::new(encoded_triggers));
@@ -157,7 +156,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
         encoded_args[1].clone(),
         encoded_qvars.clone(),
         parent_def_id,
-        tymap,
+        substs,
     )?;
 
     // TODO: implement cache-friendly qvar renaming

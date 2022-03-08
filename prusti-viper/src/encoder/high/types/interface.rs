@@ -1,5 +1,4 @@
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
     high::lower::{predicates::IntoPredicates, IntoPolymorphic},
     mir::types::MirTypeEncoderInterface,
@@ -10,6 +9,7 @@ use ::log::trace;
 use prusti_common::{config, report::log};
 use rustc_hash::FxHashMap;
 use rustc_middle::ty;
+use rustc_middle::ty::subst::SubstsRef;
 use rustc_span::MultiSpan;
 use std::cell::RefCell;
 use vir_crate::{
@@ -140,7 +140,7 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
     fn decode_type_predicate_type(&self, typ: &vir_poly::Type) -> EncodingResult<ty::Ty<'tcx>>;
     fn type_substitution_polymorphic_type_map(
         &self,
-        tymap: &SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> EncodingResult<FxHashMap<vir_poly::TypeVar, vir_poly::Type>>;
     fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String>;
     fn encode_type_invariant_def(
@@ -258,8 +258,11 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
     }
     fn type_substitution_polymorphic_type_map(
         &self,
-        tymap: &SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> EncodingResult<FxHashMap<vir_poly::TypeVar, vir_poly::Type>> {
+        // TODO(tymap)
+        todo!()
+        /*
         tymap
             .iter()
             .map(|(&typ, &subst)| {
@@ -270,6 +273,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
                 // FIXME: unwrap
             })
             .collect::<Result<_, _>>()
+        */
     }
     fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String> {
         trace!("encode_type_invariant_use: {:?}", ty.kind());

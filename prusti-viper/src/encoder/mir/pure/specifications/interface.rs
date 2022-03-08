@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{SpannedEncodingResult, WithSpan},
     mir::pure::{
         specifications::{
@@ -31,7 +30,6 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         substs: SubstsRef<'tcx>,
         encoded_args: Vec<Expression>,
         parent_def_id: DefId,
-        tymap: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<Expression>;
 
     #[allow(clippy::too_many_arguments)]
@@ -42,7 +40,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         target_args: &[Expression],
         target_return: Option<&Expression>,
         parent_def_id: DefId,
-        tymap: &SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Expression>;
 
     fn encode_prusti_operation(
@@ -52,7 +50,6 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         substs: SubstsRef<'tcx>,
         encoded_args: Vec<vir_crate::polymorphic::Expr>,
         parent_def_id: DefId,
-        tymap: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr>;
 
     #[allow(clippy::too_many_arguments)]
@@ -64,8 +61,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         target_return: Option<&vir_crate::polymorphic::Expr>,
         targets_are_values: bool,
         parent_def_id: DefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr>;
 
     fn encode_invariant(
@@ -73,8 +69,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         mir: &mir::Body<'tcx>, // body of the method containing the loop
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr>;
 }
 
@@ -86,7 +81,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         substs: SubstsRef<'tcx>,
         encoded_args: Vec<Expression>,
         parent_def_id: DefId,
-        tymap: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<Expression> {
         match fn_name {
             "prusti_contracts::forall" | "prusti_contracts::exists" => encode_quantifier_high(
@@ -96,7 +90,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 encoded_args,
                 fn_name == "prusti_contracts::exists",
                 parent_def_id,
-                tymap,
             ),
             _ => unimplemented!(),
         }
@@ -109,7 +102,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         target_args: &[Expression],
         target_return: Option<&Expression>,
         parent_def_id: DefId,
-        tymap: &SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Expression> {
         let encoded_assertion = inline_spec_item_high(
             self,
@@ -118,7 +111,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             target_return,
             false,
             parent_def_id,
-            tymap,
+            substs,
         )?;
         let position = self.error_manager().register_span(
             parent_def_id,
@@ -134,7 +127,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         substs: SubstsRef<'tcx>,
         encoded_args: Vec<vir_crate::polymorphic::Expr>,
         parent_def_id: DefId,
-        tymap: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
         match fn_name {
             "prusti_contracts::forall" | "prusti_contracts::exists" => encode_quantifier(
@@ -144,7 +136,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 encoded_args,
                 fn_name == "prusti_contracts::exists",
                 parent_def_id,
-                tymap,
             ),
             _ => unimplemented!(),
         }
@@ -158,8 +149,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         target_return: Option<&vir_crate::polymorphic::Expr>,
         targets_are_values: bool,
         parent_def_id: DefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
         let mut encoded_assertion = inline_spec_item(
             self,
@@ -168,7 +158,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             target_return,
             targets_are_values,
             parent_def_id,
-            tymap,
             substs,
         )?;
 
@@ -185,7 +174,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
 
         let span = self.env().tcx().def_span(assertion.to_def_id());
         encoded_assertion = self
-            .patch_snapshots(encoded_assertion, tymap)
+            .patch_snapshots(encoded_assertion, substs)
             .with_span(span)?;
         Ok(encoded_assertion
             .set_default_pos(self.error_manager().register_span(parent_def_id, span)))
@@ -196,8 +185,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         mir: &mir::Body<'tcx>, // body of the method containing the loop
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
         // identify previous block: there should only be one
         let predecessors = &mir.predecessors()[invariant_block];
@@ -244,7 +232,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             inv_cl_expr_encoded.try_into_expr().unwrap(),
             vec![],
             parent_def_id,
-            tymap,
             substs,
         )?;
 
@@ -255,7 +242,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             parent_def_id,
             PureEncodingContext::Code,
             parent_def_id,
-            tymap.clone(),
             substs,
         );
         let invariant = run_backward_interpretation_point_to_point(

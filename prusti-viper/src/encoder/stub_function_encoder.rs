@@ -11,6 +11,7 @@ use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use vir_crate::polymorphic as vir;
 use rustc_hir::def_id::DefId;
+use rustc_middle::ty::subst::SubstsRef;
 use rustc_middle::mir;
 use log::{trace, debug};
 
@@ -18,15 +19,12 @@ use crate::encoder::errors::WithSpan;
 
 use crate::encoder::errors::SpannedEncodingResult;
 
-
-use super::encoder::SubstMap;
-
 pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     mir: &'p mir::Body<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     proc_def_id: DefId,
-    tymap: &'p SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
@@ -34,7 +32,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
         mir: &'p mir::Body<'tcx>,
-        tymap: &'p SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> Self {
         trace!("StubFunctionEncoder constructor: {:?}", proc_def_id);
         StubFunctionEncoder {
@@ -42,14 +40,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
             mir,
             mir_encoder: MirEncoder::new(encoder, mir, proc_def_id),
             proc_def_id,
-            tymap,
+            substs,
         }
     }
 
     pub fn encode_function(&self) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode stub function {}", function_name);
-        let substs = &self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(self.mir.span)?;
+        // TODO(tymap)
+        //let substs = &self.encoder.type_substitution_polymorphic_type_map(self.substs).with_span(self.mir.span)?;
 
         let formal_args: Vec<_> = self
             .mir
@@ -57,16 +56,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
             .map(|local| {
                 let var_name = self.mir_encoder.encode_local_var_name(local);
                 let mir_type = self.mir_encoder.get_local_ty(local);
-                self.encoder.encode_snapshot_type(mir_type, self.tymap)
+                self.encoder.encode_snapshot_type(mir_type, self.substs)
                     .map(|var_type| {
-                        let var_type = var_type.patch(substs);
+                        // TODO(tymap)
+                        //let var_type = var_type.patch(substs);
                         vir::LocalVar::new(var_name, var_type)
                     })
             })
             .collect::<Result<_, _>>()
             .with_span(self.mir.span)?;
 
-        let type_arguments = self.encoder.encode_generic_arguments(self.proc_def_id, self.tymap).with_span(self.mir.span)?;
+        let type_arguments = self.encoder.encode_generic_arguments(self.proc_def_id, self.substs).with_span(self.mir.span)?;
 
         let return_type = self.encode_function_return_type()?;
 
@@ -99,6 +99,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         let ty = self.mir.return_ty();
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.mir_encoder.get_local_span(return_local);
-        self.encoder.encode_snapshot_type(ty, self.tymap).with_span(span)
+        self.encoder.encode_snapshot_type(ty, self.substs).with_span(span)
     }
 }

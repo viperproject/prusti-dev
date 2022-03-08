@@ -12,6 +12,7 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_middle::{mir, ty::FnSig};
 use rustc_index::vec::Idx;
 use rustc_middle::ty::{self, Ty, TyCtxt, TyKind};
+use rustc_middle::ty::subst::SubstsRef;
 // use rustc_data_structures::indexed_vec::Idx;
 use rustc_hash::{FxHashMap};
 use std::fmt;
@@ -20,7 +21,6 @@ use prusti_interface::specs::typed;
 use log::{trace};
 use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingResult;
-use prusti_interface::environment::tymap::SubstMap;
 
 
 #[derive(Clone, Debug)]
@@ -419,7 +419,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     env: &Environment<'tcx>,
     specification: typed::SpecificationSet,
-    maybe_tymap: Option<&SubstMap<'tcx>>,
+    maybe_substs: Option<SubstsRef<'tcx>>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>>
 where
     'a: 'p,
@@ -442,7 +442,7 @@ where
         args_ty = (0usize .. fn_sig.inputs().len())
             .map(|i| (mir::Local::from_usize(i + 1), fn_sig.inputs()[i]))
             .collect();
-        return_ty = fn_sig.output(); // FIXME: Shouldn't this also go through maybe_tymap?
+        return_ty = fn_sig.output(); // FIXME: Shouldn't this also go through maybe_substs?
     } else {
         let mir = env.local_mir(proc_def_id.expect_local());
         // local_decls:
@@ -461,11 +461,15 @@ where
 
     for (local, arg_ty) in args_ty {
         fake_mir_args.push(local);
+        // TODO(tymap)
+        fake_mir_args_ty.push(arg_ty);
+        /*
         fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(&arg_ty)) {
             *replaced_arg_ty
         } else {
             arg_ty
         });
+        */
     }
 
     let mut visitor = BorrowInfoCollectingVisitor::new(env.tcx());

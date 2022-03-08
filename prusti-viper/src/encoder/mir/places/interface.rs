@@ -1,5 +1,4 @@
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{
         EncodingError, EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult,
         WithSpan,
@@ -11,6 +10,7 @@ use log::debug;
 use prusti_common::config;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
+use rustc_middle::ty::subst::SubstsRef;
 use rustc_span::Span;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
@@ -112,7 +112,7 @@ pub(crate) trait PlacesEncoderInterface<'tcx> {
         def_id: DefId,
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
-        tymap: &SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression>;
 }
@@ -465,7 +465,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         def_id: DefId,
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
-        tymap: &SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let src_ty = self.get_operand_type(mir, operand)?;
@@ -531,7 +531,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     // Check the cast
                     // FIXME: Should use a high function.
                     let function_name = self
-                        .encode_cast_function_use(src_ty, dst_ty, tymap)
+                        .encode_cast_function_use(src_ty, dst_ty, substs)
                         .with_span(span)?;
                     let position =
                         self.error_manager()
