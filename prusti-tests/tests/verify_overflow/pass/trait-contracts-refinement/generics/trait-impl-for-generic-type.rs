@@ -13,9 +13,6 @@ impl<T> Trait for Foo<T> {
     }
 }
 
-fn verify_instantiations() {
-}
-
 #[requires(arg.foo() == 42)]
 fn verify_in_precondition<T>(arg: &Foo<T>) {
 }
@@ -25,7 +22,7 @@ fn main() {
     assert!(f.foo() == 42);
     verify_in_precondition(&f);
 
-    let f = Foo::<u32>(std::marker::PhantomData);
+    let f = Foo::<i32>(std::marker::PhantomData);
     assert!(f.foo() == 42);
     verify_in_precondition(&f);
 }
