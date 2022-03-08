@@ -26,6 +26,7 @@ use vir_crate::common::identifier::WithIdentifier;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use rustc_middle::ty;
+use rustc_middle::ty::subst::SubstsRef;
 use std::cell::{Cell, RefCell, RefMut, Ref};
 use rustc_hash::FxHashMap;
 use std::io::Write;
@@ -57,7 +58,6 @@ use super::mir::{
     }
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
-pub use prusti_interface::environment::tymap::SubstMap;
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -351,7 +351,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         proc_def_id: ProcedureDefId,
         args: &[places::Local],
         target: places::Local,
-        tymap: SubstMap<'tcx>,// TODO: Simplify these params
         substs: ty::subst::SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         let spec = self.env()
@@ -364,7 +363,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             proc_def_id,
             self.env(),
             typed::SpecificationSet::Procedure(spec),
-            Some(&tymap)
+            Some(&substs)
         )?;
         Ok(contract.to_call_site_contract(args, target))
     }
@@ -404,7 +403,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         place: vir::Expr,
         adt_def: ty::AdtDef<'tcx>,
-        tymap: &SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir::Expr> {
         let typ = place.get_type().clone();
         let mut name = typ.name();
@@ -433,7 +432,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     self.encode_discriminant_postcondition(
                         self_local_var_expr.clone(),
                         vir::Expr::local(result),
-                        tymap
+                        substs,
                     ).unwrap(), // TODO: no unwrap
                 ],
                 body: Some(self_local_var_expr.field(discr_field)),
@@ -479,14 +478,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         builtin_encoder.encode_builtin_method_name(method_kind)
     }
 
-    pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>)
+    pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>, substs: SubstsRef<'tcx>)
         -> EncodingResult<String>
     {
+        // TODO(tymap): the key for casts might need to include substs, if we
+        //   ever cast from/to generic types
         trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
-            let arg = vir_local!{ number: {self.encode_snapshot_type(src_ty, tymap)?} };
-            let result = vir_local!{ __result: {self.encode_snapshot_type(dst_ty, tymap)?} };
+            let arg = vir_local!{ number: {self.encode_snapshot_type(src_ty, substs)?} };
+            let result = vir_local!{ __result: {self.encode_snapshot_type(dst_ty, substs)?} };
             let mut precondition = self.encode_type_bounds(&arg.clone().into(), src_ty);
             precondition.extend(self.encode_type_bounds(&arg.clone().into(), dst_ty));
             let postcondition = self.encode_type_bounds(&result.into(), dst_ty);
@@ -494,7 +495,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 name: function_name.clone(),
                 type_arguments: Vec::new(),
                 formal_args: vec![arg.clone()],
-                return_type: self.encode_snapshot_type(dst_ty, tymap)?,
+                return_type: self.encode_snapshot_type(dst_ty, substs)?,
                 pres: precondition,
                 posts: postcondition,
                 body: Some(arg.into()),
@@ -505,9 +506,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(function_name)
     }
 
-    pub fn encode_unsize_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>)
+    pub fn encode_unsize_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>, substs: SubstsRef<'tcx>)
         -> EncodingResult<String>
     {
+        // TODO(tymap): the key for unsizes might need to include substs
         trace!("encode_unsize_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         // at some point we may want to add support for other types of unsizing calls?
         assert!(matches!(src_ty.kind(), ty::TyKind::Array(..) | ty::TyKind::Slice(..)));
@@ -522,12 +524,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         );
 
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
-            let src_snap_ty = self.encode_snapshot_type(src_ty, tymap)?;
-            let dst_snap_ty = self.encode_snapshot_type(dst_ty, tymap)?;
+            let src_snap_ty = self.encode_snapshot_type(src_ty, substs)?;
+            let dst_snap_ty = self.encode_snapshot_type(dst_ty, substs)?;
             let arg = vir_local!{ array: {src_snap_ty} };
             let arg_expr = vir::Expr::from(arg.clone());
-            let array_uncons = self.encode_snapshot_destructor(src_ty, vec![arg_expr.clone()], tymap)?;
-            let slice_cons = self.encode_snapshot(dst_ty, None, vec![array_uncons.clone()], tymap)?;
+            let array_uncons = self.encode_snapshot_destructor(src_ty, vec![arg_expr.clone()], substs)?;
+            let slice_cons = self.encode_snapshot(dst_ty, None, vec![array_uncons.clone()], substs)?;
             let data_len = vir::Expr::ContainerOp(vir::ContainerOp {
                 op_kind: vir::ContainerOpKind::SeqLen,
                 left: box array_uncons,
@@ -608,9 +610,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         if !self.spec_functions.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
-            let tymap = SubstMap::default(); // TODO: This is probably wrong.
             let substs = ty::List::empty(); // TODO: This is probably wrong.
-            let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, &tymap, &substs);
+            let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, &substs);
             let result = spec_func_encoder.encode()?.into_iter().map(|function| {
                 self.insert_function(function)
             }).collect();
@@ -799,7 +800,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                 // TODO: Make sure that this encoded function does not end up in
                 // the Viper file because that would be unsound.
-                if let Err(error) = self.encode_pure_function_def(proc_def_id, &SubstMap::default(), &ty::List::empty()) {
+                // TODO(tymap): empty substs?
+                if let Err(error) = self.encode_pure_function_def(proc_def_id, &ty::List::empty()) {
                     self.register_encoding_error(error);
                     debug!("Error encoding function: {:?}", proc_def_id);
                     // Skip encoding the function as a method.
@@ -827,7 +829,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// Convert a potential type parameter to a concrete type.
-    pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>) -> ty::Ty<'tcx> {
+    pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>, substs: SubstsRef<'tcx>) -> ty::Ty<'tcx> {
+        // TODO(tymap)
+        todo!()
+        /*
         // TODO: better generics ...
         use rustc_middle::ty::fold::{TypeFolder, TypeFoldable};
         struct Resolver<'a, 'tcx> {
@@ -850,6 +855,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         });
         trace!("Resolving {:?} with map {:?} -> {:?}", ty, tymap, resolved);
         resolved
+        */
     }
 
     pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {

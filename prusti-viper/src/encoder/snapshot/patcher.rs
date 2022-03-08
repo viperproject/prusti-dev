@@ -5,18 +5,18 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{EncodingError, EncodingResult},
     high::types::HighTypeEncoderInterface,
     snapshot::encoder::SnapshotEncoder,
     Encoder,
 };
+use rustc_middle::ty::subst::SubstsRef;
 use vir_crate::polymorphic::{self as vir, ExprFolder, FallibleExprFolder, FallibleStmtFolder};
 
 pub(super) struct SnapshotPatcher<'p, 'v: 'p, 'tcx: 'v> {
     pub(super) snapshot_encoder: &'p mut SnapshotEncoder,
     pub(super) encoder: &'p Encoder<'v, 'tcx>,
-    pub(super) tymap: &'p SubstMap<'tcx>,
+    pub(super) substs: SubstsRef<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> {
@@ -28,7 +28,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
     ) -> Result<vir::Expr, Self::Error> {
         base = self.fallible_fold_boxed(base)?;
         self.snapshot_encoder
-            .snap_app(self.encoder, *base, self.tymap)
+            .snap_app(self.encoder, *base, self.substs)
     }
 
     fn fallible_fold_func_app(
@@ -51,7 +51,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                 // so it could cover up/muddle some type errors in the VIR
                 if *arg.get_type() != formal_arg.typ {
                     self.snapshot_encoder
-                        .snap_app(self.encoder, arg, self.tymap)
+                        .snap_app(self.encoder, arg, self.substs)
                 } else {
                     Ok(arg)
                 }
@@ -83,7 +83,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                 // TODO: same note as for fallible_fold_func_app applies
                 if *folded_arg.get_type() != formal_arg.typ {
                     self.snapshot_encoder
-                        .snap_app(self.encoder, folded_arg, self.tymap)
+                        .snap_app(self.encoder, folded_arg, self.substs)
                 } else {
                     Ok(folded_arg)
                 }
@@ -118,7 +118,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                         *receiver,
                         variant,
                         field,
-                        self.tymap,
+                        self.substs,
                     ),
                     _ => Ok(vir::Expr::Field(vir::FieldExpr {
                         base: box vir::Expr::Variant(vir::Variant {
@@ -142,7 +142,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                             self.encoder,
                             *receiver,
                             field,
-                            self.tymap,
+                            self.substs,
                         ),
                     },
                     _ => Ok(vir::Expr::Field(vir::FieldExpr {
@@ -258,7 +258,7 @@ fn fix_quantifier(
                     &var.name,
                     patcher
                         .snapshot_encoder
-                        .encode_type(patcher.encoder, ty, patcher.tymap)?,
+                        .encode_type(patcher.encoder, ty, patcher.substs)?,
                 );
                 patched_vars.push(patched_var.clone());
                 let mut fixer = QuantifierFixer { var, patched_var };

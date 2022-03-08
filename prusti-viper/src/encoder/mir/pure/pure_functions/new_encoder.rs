@@ -1,7 +1,6 @@
 use super::encoder::FunctionCallInfoHigh;
 use crate::encoder::{
     borrows::ProcedureContractMirDef,
-    encoder::SubstMap,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         generics::MirGenericsEncoderInterface,
@@ -20,6 +19,7 @@ use log::{debug, trace};
 use prusti_common::vir_high_local;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
+use rustc_middle::ty::subst::SubstsRef;
 use rustc_span::Span;
 use vir_crate::{
     common::{expression::ExpressionIterator, position::Positioned},
@@ -31,7 +31,7 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     mir: &'p mir::Body<'tcx>,
     parent_def_id: DefId,
-    tymap: &'p SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::FunctionDecl> {
     let interpreter = ExpressionBackwardInterpreter::new(
         encoder,
@@ -39,14 +39,14 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
         proc_def_id,
         false,
         parent_def_id,
-        tymap.clone(),
+        substs,
     );
     let pure_encoder = PureEncoder {
         encoder,
         proc_def_id,
         mir,
         parent_def_id,
-        tymap,
+        substs,
         interpreter,
     };
     let function_decl = pure_encoder.encode_function_decl()?;
@@ -93,7 +93,7 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     mir: &'p mir::Body<'tcx>,
     parent_def_id: DefId,
-    tymap: &'p SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
     let interpreter = ExpressionBackwardInterpreter::new(
         encoder,
@@ -101,14 +101,14 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
         proc_def_id,
         false,
         parent_def_id,
-        tymap.clone(),
+        substs,
     );
     let encoder = PureEncoder {
         encoder,
         proc_def_id,
         mir,
         parent_def_id,
-        tymap,
+        substs,
         interpreter,
     };
     encoder.encode_pure_expression()
@@ -121,7 +121,7 @@ pub(super) fn encode_function_call_info<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     mir: &'p mir::Body<'tcx>,
     parent_def_id: DefId,
-    tymap: &'p SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<FunctionCallInfoHigh> {
     // FIXME: Refactor code to avoid creating the interpreter because it is unnecessary.
     let interpreter = ExpressionBackwardInterpreter::new(
@@ -130,14 +130,14 @@ pub(super) fn encode_function_call_info<'p, 'v: 'p, 'tcx: 'v>(
         proc_def_id,
         false,
         parent_def_id,
-        tymap.clone(),
+        substs,
     );
     let encoder = PureEncoder {
         encoder,
         proc_def_id,
         mir,
         parent_def_id,
-        tymap,
+        substs,
         interpreter,
     };
     Ok(FunctionCallInfoHigh {
@@ -154,7 +154,7 @@ pub(super) struct PureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     mir: &'p mir::Body<'tcx>,
     interpreter: ExpressionBackwardInterpreter<'p, 'v, 'tcx>,
     parent_def_id: DefId,
-    tymap: &'p SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
@@ -229,7 +229,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
     fn encode_type_arguments(&self) -> SpannedEncodingResult<Vec<vir_high::Type>> {
         self.encoder
-            .encode_generic_arguments_high(self.proc_def_id, self.tymap)
+            .encode_generic_arguments_high(self.proc_def_id, self.substs)
             .with_span(self.mir.span)
     }
 
@@ -307,7 +307,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 &parameter_expressions,
                 None,
                 self.parent_def_id,
-                self.tymap,
+                self.substs,
             )?;
             self.encoder.error_manager().set_error(
                 assertion.position().into(),
@@ -333,7 +333,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 &parameter_expressions,
                 Some(&vir_high::Expression::local_no_pos(encoded_return.clone())),
                 self.parent_def_id,
-                self.tymap,
+                self.substs,
             )?;
             self.encoder.error_manager().set_error(
                 assertion.position().into(),
