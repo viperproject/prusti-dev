@@ -242,9 +242,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mir_span = self.mir.span;
 
         // Retrieve the contract
+        // TODO(tymap): always identity substs? should ProcedureEncoder have its own substs?
+        let substs = ty::List::identity_for_item(self.encoder.env().tcx(), self.proc_def_id);
         let procedure_contract = self.encoder
-                .get_procedure_contract_for_def(self.proc_def_id)
-                .with_span(mir_span)?;
+            .get_procedure_contract_for_def(self.proc_def_id, &substs)
+            .with_span(mir_span)?;
         assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(mir_span)?;
         self.procedure_contract = Some(procedure_contract);
 
@@ -383,7 +385,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         // Patch snapshots
-        self.cfg_method = self.encoder.patch_snapshots_method(self.cfg_method)
+        self.cfg_method = self.encoder.patch_snapshots_method(self.cfg_method, &substs)
             .with_span(mir_span)?;
 
         // Add fold/unfold

@@ -26,6 +26,7 @@ pub(crate) trait SnapshotEncoderInterface<'tcx> {
     fn patch_snapshots_method(
         &self,
         method: vir_poly::CfgMethod,
+        substs: SubstsRef<'tcx>,
     ) -> EncodingResult<vir_poly::CfgMethod>;
     fn patch_snapshots_function(
         &self,
@@ -136,11 +137,12 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
     fn patch_snapshots_method(
         &self,
         method: vir_poly::CfgMethod,
+        substs: SubstsRef<'tcx>,
     ) -> EncodingResult<vir_poly::CfgMethod> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .patch_snapshots_method(self, method)
+            .patch_snapshots_method(self, method, substs)
     }
     fn patch_snapshots_function(
         &self,

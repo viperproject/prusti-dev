@@ -285,14 +285,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.closures_collector.borrow().get_single_instantiation(closure_def_id)
     }
 
-    fn get_procedure_contract(&self, proc_def_id: ProcedureDefId)
-        -> EncodingResult<ProcedureContractMirDef<'tcx>>
-    {
+    fn get_procedure_contract(
+        &self,
+        proc_def_id: ProcedureDefId,
+        substs: ty::subst::SubstsRef<'tcx>,
+    ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
         let spec = typed::SpecificationSet::Procedure(
             self.get_procedure_specs(proc_def_id)
                 .unwrap_or_else(typed::ProcedureSpecification::empty)
         );
-        compute_procedure_contract(proc_def_id, self.env(), spec, None)
+        compute_procedure_contract(proc_def_id, self.env(), spec, substs)
     }
 
     /// Extract scalar value, invoking const evaluation if necessary.
@@ -326,22 +328,24 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn get_mir_procedure_contract_for_def(
         &self,
         proc_def_id: ProcedureDefId,
+        substs: ty::subst::SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
         self.procedure_contracts
             .borrow_mut()
             .entry(proc_def_id)
-            .or_insert_with(|| self.get_procedure_contract(proc_def_id))
+            .or_insert_with(|| self.get_procedure_contract(proc_def_id, substs))
             .clone()
     }
 
     pub fn get_procedure_contract_for_def(
         &self,
         proc_def_id: ProcedureDefId,
+        substs: ty::subst::SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         self.procedure_contracts
             .borrow_mut()
             .entry(proc_def_id)
-            .or_insert_with(|| self.get_procedure_contract(proc_def_id)).as_ref()
+            .or_insert_with(|| self.get_procedure_contract(proc_def_id, substs)).as_ref()
             .map(|contract| contract.to_def_site_contract())
             .map_err(|err| err.clone())
     }
@@ -363,7 +367,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             proc_def_id,
             self.env(),
             typed::SpecificationSet::Procedure(spec),
-            Some(&substs)
+            &substs,
         )?;
         Ok(contract.to_call_site_contract(args, target))
     }
@@ -830,32 +834,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Convert a potential type parameter to a concrete type.
     pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>, substs: SubstsRef<'tcx>) -> ty::Ty<'tcx> {
-        // TODO(tymap)
-        todo!()
-        /*
-        // TODO: better generics ...
-        use rustc_middle::ty::fold::{TypeFolder, TypeFoldable};
-        struct Resolver<'a, 'tcx> {
-            tcx: ty::TyCtxt<'tcx>,
-            tymap: &'a SubstMap<'tcx>,
-        }
-        impl<'a, 'tcx> TypeFolder<'tcx> for Resolver<'a, 'tcx> {
-            fn tcx(&self) -> ty::TyCtxt<'tcx> {
-                self.tcx
-            }
-            fn fold_ty(&mut self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-                let rep = self.tymap.resolve(&ty).unwrap_or(&ty);
-                rep.super_fold_with(self)
-            }
-        }
-        let resolved = ty.fold_with(&mut Resolver {
-            tcx: self.env().tcx(),
-            // TODO: creating each time a current_tymap might be slow. This can be optimized.
-            tymap//: self.current_tymap(),
-        });
-        trace!("Resolving {:?} with map {:?} -> {:?}", ty, tymap, resolved);
-        resolved
-        */
+        // TODO(tymap): this function should not need to exist? or else it can
+        //   just be a convenience wrapper
+        use crate::rustc_middle::ty::subst::Subst;
+        ty.subst(self.env().tcx(), substs)
     }
 
     pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {

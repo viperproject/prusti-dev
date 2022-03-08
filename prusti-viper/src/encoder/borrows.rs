@@ -419,12 +419,14 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     env: &Environment<'tcx>,
     specification: typed::SpecificationSet,
-    maybe_substs: Option<SubstsRef<'tcx>>,
+    substs: SubstsRef<'tcx>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>>
 where
     'a: 'p,
     'tcx: 'a,
 {
+    use crate::rustc_middle::ty::subst::Subst;
+
     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
 
     let args_ty:Vec<(mir::Local, ty::Ty<'tcx>)>;
@@ -442,7 +444,7 @@ where
         args_ty = (0usize .. fn_sig.inputs().len())
             .map(|i| (mir::Local::from_usize(i + 1), fn_sig.inputs()[i]))
             .collect();
-        return_ty = fn_sig.output(); // FIXME: Shouldn't this also go through maybe_substs?
+        return_ty = fn_sig.output();
     } else {
         let mir = env.local_mir(proc_def_id.expect_local());
         // local_decls:
@@ -459,18 +461,12 @@ where
     let mut fake_mir_args = Vec::new();
     let mut fake_mir_args_ty = Vec::new();
 
+    // substitute type parameters
     for (local, arg_ty) in args_ty {
         fake_mir_args.push(local);
-        // TODO(tymap)
-        fake_mir_args_ty.push(arg_ty);
-        /*
-        fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(&arg_ty)) {
-            *replaced_arg_ty
-        } else {
-            arg_ty
-        });
-        */
+        fake_mir_args_ty.push(arg_ty.subst(env.tcx(), substs));
     }
+    let return_ty = return_ty.subst(env.tcx(), substs);
 
     let mut visitor = BorrowInfoCollectingVisitor::new(env.tcx());
     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {

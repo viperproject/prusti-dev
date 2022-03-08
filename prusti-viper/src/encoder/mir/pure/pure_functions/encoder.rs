@@ -210,7 +210,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mir_span = self.encoder.env().tcx().def_span(self.proc_def_id);
         let contract = self
             .encoder
-            .get_procedure_contract_for_def(self.proc_def_id)
+            .get_procedure_contract_for_def(self.proc_def_id, self.substs)
             .with_span(mir_span)?;
         let encoded_args = contract
             .args
@@ -255,14 +255,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         let contract = self
             .encoder
-            .get_procedure_contract_for_def(self.proc_def_id)
+            .get_procedure_contract_for_def(self.proc_def_id, self.substs)
             .with_span(self.mir.span)?;
-        let substs = &self.encode_substs()?;
 
         let (type_precondition, func_precondition) = self.encode_precondition_expr(&contract)?;
-        let patched_type_precondition = type_precondition.patch_types(substs);
 
-        let mut precondition = vec![patched_type_precondition, func_precondition];
+        let mut precondition = vec![type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)?];
 
         let formal_args = self.encode_formal_args()?;
@@ -527,12 +525,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .with_span(span)
     }
 
-    fn encode_substs(&self) -> SpannedEncodingResult<FxHashMap<vir::TypeVar, vir::Type>> {
-        self.encoder
-            .type_substitution_polymorphic_type_map(&self.substs)
-            .with_span(self.mir.span)
-    }
-
     fn encode_type_arguments(&self) -> SpannedEncodingResult<Vec<vir::Type>> {
         self.encoder
             .encode_generic_arguments(self.proc_def_id, &self.substs)
@@ -540,7 +532,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_formal_args(&self) -> SpannedEncodingResult<Vec<vir::LocalVar>> {
-        let substs = self.encode_substs()?;
         let mut formal_args = vec![];
         for local in self.mir.args_iter() {
             let mir_encoder = self.interpreter.mir_encoder();
@@ -558,7 +549,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 .encoder
                 .encode_snapshot_type(mir_type, &self.substs)
                 .with_span(var_span)?;
-            let var_type = var_type.patch(&substs);
+            // TODO(tymap): not needed?
+            // let var_type = var_type.patch(&substs);
             formal_args.push(vir::LocalVar::new(var_name, var_type))
         }
         Ok(formal_args)
