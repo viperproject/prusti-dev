@@ -13,10 +13,10 @@ use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_middle::ty::subst::SubstsRef;
-use rustc_trait_selection::infer::{TyCtxtInferExt, InferCtxtExt};
+use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
 
-use rustc_span::{Span, MultiSpan, symbol::Symbol};
+use rustc_span::{MultiSpan, Span, symbol::Symbol};
 use std::collections::HashSet;
 use log::{debug, trace};
 use std::rc::Rc;
@@ -37,6 +37,7 @@ pub mod polonius_info;
 mod procedure;
 pub mod mir_dump;
 mod traits;
+pub mod tymap;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;

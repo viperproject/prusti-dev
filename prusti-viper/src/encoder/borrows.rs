@@ -20,7 +20,7 @@ use prusti_interface::specs::typed;
 use log::{trace};
 use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingResult;
-
+use prusti_interface::environment::tymap::SubstMap;
 
 
 #[derive(Clone, Debug)]
@@ -420,7 +420,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     env: &Environment<'tcx>,
     specification: typed::SpecificationSet,
-    maybe_tymap: Option<&FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
+    maybe_tymap: Option<&SubstMap<'tcx>>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>>
 where
     'a: 'p,
@@ -462,7 +462,7 @@ where
 
     for (local, arg_ty) in args_ty {
         fake_mir_args.push(local);
-        fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
+        fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(&arg_ty)) {
             replaced_arg_ty
         } else {
             arg_ty
