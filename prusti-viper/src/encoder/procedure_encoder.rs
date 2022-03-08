@@ -2031,26 +2031,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ..
             } => {
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
+                    debug!("Encode function call {:?} with substs {:?}", def_id, substs);
+
                     let def_id = *def_id;
                     let full_func_proc_name: &str =
                         &self.encoder.env().tcx().def_path_str(def_id);
                         // &self.encoder.env().tcx().absolute_item_path_str(def_id);
 
-                    let own_substs =
-                        ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
-
                     // FIXME: this is a hack to support generics. See issue #187.
-                    let mut tymap = FxHashMap::default();
-
-                    for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
-                        if let (
-                            ty::subst::GenericArgKind::Type(ty1),
-                            ty::subst::GenericArgKind::Type(ty2),
-                        ) = (kind1.unpack(), kind2.unpack())
-                        {
-                            tymap.insert(ty1, ty2);
-                        }
-                    }
+                    let tymap = SubstMap::build(self.encoder.env(), def_id, substs);
 
                     match full_func_proc_name {
                         "std::rt::begin_panic"
@@ -2456,7 +2445,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let base_seq_expr = self.encoder.encode_value_expr(base_seq, base_seq_ty)?;
 
         let j = vir_local!{ j: Int };
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let rhs_lookup_j = match base_seq_ty {
             a if a.peel_refs().is_array() => {
                 let enc_array_types = self.encoder.encode_array_types(a.peel_refs())?;
@@ -2540,7 +2529,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
 
         let slice_types_lhs = self.encoder.encode_slice_types(lhs_slice_ty)?;
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types_lhs.elem_ty_rs, &tymap)?;
 
         // length
@@ -2725,7 +2714,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .tcx()
             .def_path_str(called_def_id);
             // .absolute_item_path_str(called_def_id);
-        debug!("Encoding non-pure function call '{}' with args {:?}", full_func_proc_name, mir_args);
+        debug!("Encoding non-pure function call '{}' with args {:?} and substs {:?}", full_func_proc_name, mir_args, substs);
 
         // First we construct the "operands" vector. This construction differs
         // for closure calls, where we need to unpack a tuple into the actual
@@ -3490,7 +3479,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .encode_prusti_local(self.procedure_contract().returned_value).into();
 
         // FIXME: ??? new tymap?
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let substs = ty::List::empty();
         debug!("procedure_contract: {:?}", self.procedure_contract());
 
@@ -3590,7 +3579,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         start_cfg_block: CfgBlockIndex,
         weakening_spec: Option<vir::Expr>,
     ) -> SpannedEncodingResult<()> {
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let substs = ty::List::empty();
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
@@ -4069,7 +4058,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         debug!("encode_package_end_of_method '{:?}'", location);
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let substs = ty::List::empty();
         let mut stmts = Vec::new();
         let span = self.mir.source_info(location).span;
@@ -4198,7 +4187,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         return_cfg_block: CfgBlockIndex,
         strengthening_spec: Option<vir::Expr>,
     ) -> SpannedEncodingResult<()> {
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let substs = ty::List::empty();
         // This clone is only due to borrow checker restrictions
         let contract = self.procedure_contract().clone();
@@ -4783,7 +4772,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_head,
             spec_blocks
         );
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let substs = ty::List::empty();
 
         // `body_invariant!(..)` is desugared to a closure with special attributes,
@@ -5097,7 +5086,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         //   inhale lookup_pure(array, index) == encoded_rhs
         //   // now we have all the contents as before, just one item updated
 
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
 
         let (encoded_array, mut stmts) = self.postprocess_place_encoding(
             base,
@@ -5129,7 +5118,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let i_lt_len = vir_expr!{ [ i_var ] < [ vir::Expr::from(array_types.array_len) ] };
         let i_ne_idx = vir_expr!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
         let idx_conditions = vir_expr!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap).with_span(span)?;
         let lookup_array_i = array_types.encode_lookup_pure_call(self.encoder, encoded_array.clone(), i_var, lookup_ret_ty.clone());
         let lookup_same_as_old = vir_expr!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
@@ -5579,7 +5568,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             self.proc_def_id,
                         );
                     }
-                    let substs = FxHashMap::default();
+                    let substs = SubstMap::default();
                     let encoded_rhs = self.encoder.encode_discriminant_func_app(
                         encoded_src,
                         adt_def,
@@ -5691,7 +5680,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             operand,
             dst_ty
         );
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let span = self.mir_encoder.get_span_of_location(location);
         let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty, span, &tymap)?;
         self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
@@ -5760,7 +5749,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             expr: vir_expr!{ [slice_len_call] == [vir::Expr::from(array_types.array_len)] }
         }));
 
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap).with_span(span)?;
 
         let i: Expr = vir_local! { i: Int }.into();
@@ -5878,7 +5867,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .with_span(span)?;
         let len: usize = self.encoder.const_eval_intlike(&times.val).with_span(span)?
             .to_u64().unwrap().try_into().unwrap();
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap)
             .with_span(span)?;
 
@@ -6130,7 +6119,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "[enter] encode_assign_aggregate({:?}, {:?})",
             aggregate, operands
         );
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let span = self.mir_encoder.get_span_of_location(location);
         let mut stmts = self.encode_havoc_and_initialization(dst);
         // Initialize values
@@ -6334,7 +6323,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(array_types.elem_pred_type.clone()).into();
         let val_field = self.encoder.encode_value_field(array_types.elem_ty_rs)?;
         let lookup_res_val_field = lookup_res.clone().field(val_field);
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap)?;
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Shared)?;
@@ -6368,7 +6357,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         _loan: Option<Borrow>,
         location: mir::Location,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let array_types = self.encoder.encode_array_types(array_ty)?;
 
         let res: vir::Expr = self.cfg_method.add_fresh_local_var(array_types.elem_pred_type.clone()).into();
@@ -6404,7 +6393,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let old_lhs = |e| { vir::Expr::labelled_old("lhs", e) };
 
         // value of res
-        let tymap = FxHashMap::default();
+        let tymap = SubstMap::default();
         let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap)?;
         let lookup_pure_call = array_types.encode_lookup_pure_call(
             self.encoder,
@@ -6496,7 +6485,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let res = vir::Expr::local(self.cfg_method.add_fresh_local_var(slice_types.elem_pred_type.clone()));
                 let val_field = self.encoder.encode_value_field(slice_types.elem_ty_rs)?;
                 let res_val_field = res.clone().field(val_field);
-                let tymap = FxHashMap::default();
+                let tymap = SubstMap::default();
                 let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types.elem_ty_rs, &tymap)?;
 
                 let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base, array_encode_kind)?;
