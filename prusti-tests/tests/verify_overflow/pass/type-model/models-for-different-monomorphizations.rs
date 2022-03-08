@@ -4,12 +4,12 @@ use prusti_contracts::*;
 use std::vec::Vec;
 
 #[model]
-struct Vec<i32> {
+struct Vec<#[concrete] i32> {
     last_pushed: i32,
 }
 
 #[model]
-struct Vec<u32> {
+struct Vec<#[concrete] u32> {
     last_pushed: u32,
 }
 

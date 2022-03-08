@@ -6,13 +6,13 @@ trait MyTrait<T> {
 }
 
 #[extern_spec]
-trait MyTrait<i32> { //~ ERROR: Type parameters in external trait specs must be annotated with exactly one of #[generic] or #[concrete]
+trait MyTrait<i32> { //~ ERROR: Type parameters must be annotated with exactly one of #[generic] or #[concrete]
     #[ensures(true)]
     fn foo(&self) -> i32;
 }
 
 #[extern_spec]
-trait MyTrait<T> { //~ ERROR: Type parameters in external trait specs must be annotated with exactly one of #[generic] or #[concrete]
+trait MyTrait<T> { //~ ERROR: Type parameters must be annotated with exactly one of #[generic] or #[concrete]
 #[ensures(true)]
 fn foo(&self) -> T;
 }
