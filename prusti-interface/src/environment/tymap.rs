@@ -98,27 +98,22 @@ impl<'tcx> SubstMap<'tcx> {
     /// Transitively resolves a type.
     /// In case there are cyclic dependencies, returns the last visited type.
     pub fn resolve(&self, ty: &Key<'tcx>) -> Option<&Value<'tcx>> {
+        let mut result = self.map.get(ty)?;
         trace!("Resolving type {:?} with tymap {:?}", ty, self);
-        let mut result = self.map.get(ty);
 
         // Handle cyclic dependencies with a set of already visited types
         let mut visited: FxHashSet<Key<'tcx>> = FxHashSet::default();
-        while result.is_some() && self.map.contains_key(result.unwrap()) {
-            visited.insert(result.unwrap());
-
-            result = self.map.get(result.unwrap());
-
-            if let Some(result) = result {
-                if visited.contains(result) {
-                    warn!("Type {:?} has cyclic dependency", ty);
-                    return Some(result);
-                }
-                visited.insert(result);
+        while let Some(next_result) = self.map.get(result) {
+            if visited.contains(next_result) {
+                warn!("Type {:?} has cyclic dependency", ty);
+                return Some(result);
             }
+            visited.insert(next_result);
+            result = next_result;
         }
 
         trace!("\t-> {:?}", result);
-        result
+        Some(result)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&Key<'tcx>, &Value<'tcx>)> {
