@@ -143,10 +143,9 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         method: vir::CfgMethod,
-        // TODO(tymap): should take a substs parameter
+        substs: SubstsRef<'tcx>,
     ) -> EncodingResult<vir::CfgMethod> {
         debug!("[snap] method: {:?}", method.name());
-        let substs = &ty::List::empty();
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,

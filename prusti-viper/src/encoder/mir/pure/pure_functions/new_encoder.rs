@@ -205,7 +205,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
         let contract = self
             .encoder
-            .get_mir_procedure_contract_for_def(self.proc_def_id)
+            .get_mir_procedure_contract_for_def(self.proc_def_id, self.substs)
             .with_span(self.mir.span)?;
         let func_precondition = self.encode_precondition_expr(&parameters, &contract)?;
         let func_postcondition = self.encode_postcondition_expr(&parameters, &contract)?;
