@@ -16,6 +16,8 @@ fn selection_sort(a: &mut [i32; 10]) {
 
     while i < a.len() {
         body_invariant!(0 <= i && i < 10);
+
+        // this body invariant is needed in order to trigger the correct quantifiers
         body_invariant!(a[0] <= a[i]);
 
         // sorted below i
