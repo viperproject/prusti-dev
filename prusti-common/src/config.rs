@@ -46,7 +46,7 @@ impl Optimizations {
         Optimizations {
             inline_constant_functions: true,
             delete_unused_predicates: true,
-            optimize_folding: true,
+            optimize_folding: false, // FIXME: the optimization is wrong w.r.t. enums
             remove_empty_if: true,
             purify_vars: true,
             fix_quantifiers: true,
