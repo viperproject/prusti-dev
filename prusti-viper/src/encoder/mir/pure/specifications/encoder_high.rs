@@ -80,10 +80,10 @@ pub(super) fn inline_spec_item_high<'tcx>(
 pub(super) fn encode_quantifier_high<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
     _span: Span, // TODO: use span somehow? or remove arg
-    substs: ty::subst::SubstsRef<'tcx>,
     encoded_args: Vec<Expression>,
     is_exists: bool,
     parent_def_id: DefId,
+    substs: ty::subst::SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Expression> {
     let tcx = encoder.env().tcx();
 

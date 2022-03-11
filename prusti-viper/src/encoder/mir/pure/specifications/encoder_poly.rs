@@ -32,14 +32,14 @@ pub(super) fn inline_closure<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
-    let mir = encoder.env().local_mir(def_id.expect_local());
+    let mir = encoder.env().local_mir_subst(def_id.expect_local(), substs);
     assert_eq!(mir.arg_count, args.len() + 1);
     let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
     let mut body_replacements = vec![];
     for (arg_idx, arg_local) in mir.args_iter().enumerate() {
+        let local_span = mir_encoder.get_local_span(arg_local);
         let local = mir_encoder.encode_local(arg_local).unwrap();
         let local_ty = mir.local_decls[arg_local].ty;
-        let local_span = mir_encoder.get_local_span(arg_local);
         body_replacements.push((
             encoder
                 .encode_value_expr(vir_crate::polymorphic::Expr::local(local), local_ty)
@@ -67,7 +67,7 @@ pub(super) fn inline_spec_item<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
-    let mir = encoder.env().local_mir(def_id.expect_local());
+    let mir = encoder.env().local_mir_subst(def_id.expect_local(), substs);
     assert_eq!(
         mir.arg_count,
         target_args.len() + if target_return.is_some() { 1 } else { 0 }
@@ -76,14 +76,8 @@ pub(super) fn inline_spec_item<'tcx>(
     let mut body_replacements = vec![];
     for (arg_idx, arg_local) in mir.args_iter().enumerate() {
         let local_span = mir_encoder.get_local_span(arg_local);
-        let mut local = mir_encoder.encode_local(arg_local).unwrap();
-        // TODO(tymap)
-        //let local_ty = encoder.resolve_typaram(mir.local_decls[arg_local].ty, tymap);
+        let local = mir_encoder.encode_local(arg_local).unwrap();
         let local_ty = mir.local_decls[arg_local].ty;
-        // FIXME: `local` should be encoded with the substitution already applied
-        //        -> `mir_encoder` should take a `tymep`?
-        //        for now we replace the type of the encoded local
-        local.typ = encoder.encode_type(local_ty).with_span(local_span)?;
         body_replacements.push((
             if targets_are_values {
                 encoder
@@ -107,10 +101,10 @@ pub(super) fn inline_spec_item<'tcx>(
 pub(super) fn encode_quantifier<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
     _span: Span,
-    substs: ty::subst::SubstsRef<'tcx>,
     encoded_args: Vec<vir_crate::polymorphic::Expr>,
     is_exists: bool,
     parent_def_id: DefId,
+    substs: ty::subst::SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
     let tcx = encoder.env().tcx();
 

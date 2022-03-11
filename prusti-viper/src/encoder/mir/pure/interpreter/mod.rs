@@ -419,16 +419,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         span: Span,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
-        if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
+        if let ty::TyKind::FnDef(def_id, call_substs) = ty.kind() {
             let def_id = *def_id;
             let full_func_proc_name: &str = &self.encoder.env().tcx().def_path_str(def_id);
             let func_proc_name = &self.encoder.env().get_item_name(def_id);
-            // TODO(tymap): compose substs
-            let substs = substs;
-            //let tymap = self
-            //    .encoder
-            //    .update_substitution_map(self.tymap.clone(), def_id, substs)
-            //    .with_span(span)?;
+
+            // compose substitutions
+            // TODO(tymap): do we need this?
+            use crate::rustc_middle::ty::subst::Subst;
+            let substs = call_substs.subst(self.encoder.env().tcx(), self.substs);
 
             let state = if let Some((lhs_place, target_block)) = destination {
                 let encoded_lhs = self.encode_place(*lhs_place).with_span(span)?;
@@ -504,9 +503,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                         let expr = self.encoder.encode_prusti_operation_high(
                             full_func_proc_name,
                             span,
-                            substs,
                             encoded_args,
                             self.caller_def_id,
+                            substs,
                         )?;
                         let mut state = states[target_block].clone();
                         state.substitute_value(&encoded_lhs, expr);

@@ -53,6 +53,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     ) -> Self {
         trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
 
+        assert_eq!(substs.len(), encoder.env().identity_substs(proc_def_id).len());
+
         // TODO(tymap): do this with substs somehow?
 
         /*
@@ -130,13 +132,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             "Pure function body {} has been encoded with expr: {}",
             function_name, body_expr
         );
-        // TODO(tymap): just use self.substs?
-        //let substs = &self
-        //    .encoder
-        //    .type_substitution_polymorphic_type_map(&self.tymap)
-        //    .with_span(self.mir.span)?;
-        //let patched_body_expr = body_expr.patch_types(self.substs);
-        //Ok(patched_body_expr)
+
         Ok(body_expr)
     }
 
@@ -177,7 +173,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         if self.encode_function_return_type()?.is_snapshot() {
             let ty = self
                 .encoder
-                .resolve_typaram(self.mir.return_ty(), &self.substs);
+                .env()
+                .resolve_ty(self.mir.return_ty(), &self.substs);
             let return_span = self.get_local_span(mir::RETURN_PLACE);
 
             let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
@@ -506,7 +503,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
         let ty = self
             .encoder
-            .resolve_typaram(self.mir.return_ty(), &self.substs);
+            .env()
+            .resolve_ty(self.mir.return_ty(), &self.substs);
         let return_span = self.get_local_span(mir::RETURN_PLACE);
 
         // Return an error for unsupported return types
@@ -547,10 +545,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             }
             let var_type = self
                 .encoder
-                .encode_snapshot_type(mir_type, &self.substs)
+                .encode_snapshot_type(mir_type, self.substs)
                 .with_span(var_span)?;
-            // TODO(tymap): not needed?
-            // let var_type = var_type.patch(&substs);
             formal_args.push(vir::LocalVar::new(var_name, var_type))
         }
         Ok(formal_args)

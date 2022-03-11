@@ -804,8 +804,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                 // TODO: Make sure that this encoded function does not end up in
                 // the Viper file because that would be unsound.
-                // TODO(tymap): empty substs?
-                if let Err(error) = self.encode_pure_function_def(proc_def_id, &ty::List::empty()) {
+                let identity_substs = self.env().identity_substs(proc_def_id);
+                if let Err(error) = self.encode_pure_function_def(proc_def_id, &identity_substs) {
                     self.register_encoding_error(error);
                     debug!("Error encoding function: {:?}", proc_def_id);
                     // Skip encoding the function as a method.
@@ -830,14 +830,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 }
             }
         }
-    }
-
-    /// Convert a potential type parameter to a concrete type.
-    pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>, substs: SubstsRef<'tcx>) -> ty::Ty<'tcx> {
-        // TODO(tymap): this function should not need to exist? or else it can
-        //   just be a convenience wrapper
-        use crate::rustc_middle::ty::subst::Subst;
-        ty.subst(self.env().tcx(), substs)
     }
 
     pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {
