@@ -461,7 +461,7 @@ where
 
     for (local, arg_ty) in args_ty {
         fake_mir_args.push(local);
-        fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
+        fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(&arg_ty)) {
             *replaced_arg_ty
         } else {
             arg_ty
