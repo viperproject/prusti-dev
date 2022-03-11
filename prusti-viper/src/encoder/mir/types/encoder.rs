@@ -147,7 +147,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Type::array(array_len, self.encoder.encode_type_high(*elem_ty)?)
             }
 
-            ty::TyKind::Slice(elem_ty) => vir::Type::slice(self.encoder.encode_type_high(*elem_ty)?),
+            ty::TyKind::Slice(elem_ty) => {
+                vir::Type::slice(self.encoder.encode_type_high(*elem_ty)?)
+            }
 
             ty::TyKind::Closure(def_id, _substs) => vir::Type::closure(
                 self.encode_closure_name(*def_id),

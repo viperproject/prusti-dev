@@ -154,7 +154,9 @@ pub(super) fn encode_quantifier<'tcx>(
     }
 
     let mut encoded_trigger_sets = vec![];
-    for (trigger_set_idx, ty_trigger_set) in substs.type_at(0).tuple_fields().into_iter().enumerate() {
+    for (trigger_set_idx, ty_trigger_set) in
+        substs.type_at(0).tuple_fields().into_iter().enumerate()
+    {
         let mut encoded_triggers = vec![];
         let mut set_spans = vec![];
         for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {

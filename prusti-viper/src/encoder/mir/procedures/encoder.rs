@@ -442,8 +442,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             TerminatorKind::Call {
                 func:
                     mir::Operand::Constant(box mir::Constant {
-                        literal:
-                            mir::ConstantKind::Ty(ty::Const(func_ty_val)),
+                        literal: mir::ConstantKind::Ty(ty::Const(func_ty_val)),
                         ..
                     }),
                 args,
