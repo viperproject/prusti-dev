@@ -128,7 +128,7 @@ impl<'tcx> SubstMap<'tcx> {
                 warn!("Type {:?} has cyclic dependency", ty);
                 return Some(result);
             }
-            visited.insert(next_result);
+            visited.insert(*next_result);
             result = next_result;
         }
 

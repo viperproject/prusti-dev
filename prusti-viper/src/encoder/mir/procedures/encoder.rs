@@ -423,7 +423,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 targets,
                 discr,
                 switch_ty,
-            } => self.encode_terminator_switch_int(span, targets, discr, switch_ty)?,
+            } => self.encode_terminator_switch_int(span, targets, discr, *switch_ty)?,
             TerminatorKind::Resume => SuccessorBuilder::exit_resume_panic(),
             // TerminatorKind::Abort => {
             //     graph.add_exit_edge(bb, "abort");
@@ -442,11 +442,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             TerminatorKind::Call {
                 func:
                     mir::Operand::Constant(box mir::Constant {
-                        literal:
-                            mir::ConstantKind::Ty(ty::Const {
-                                ty,
-                                val: func_const_val,
-                            }),
+                        literal: mir::ConstantKind::Ty(ty::Const(func_ty_val)),
                         ..
                     }),
                 args,
@@ -457,8 +453,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             } => self.encode_terminator_call(
                 block_builder,
                 span,
-                ty,
-                func_const_val,
+                func_ty_val.ty,
+                func_ty_val.val,
                 args,
                 destination,
                 cleanup,
@@ -558,7 +554,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         block_builder: &mut BasicBlockBuilder,
         span: Span,
         ty: ty::Ty<'tcx>,
-        _func_const_val: &ty::ConstKind<'tcx>,
+        _func_const_val: ty::ConstKind<'tcx>,
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
         cleanup: &Option<mir::BasicBlock>,

@@ -258,7 +258,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     self.mir,
                     self.caller_def_id,
                     operand,
-                    dst_ty,
+                    *dst_ty,
                     &self.tymap,
                     span,
                 )?;
@@ -298,7 +298,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let encoded_operand = self.encode_operand(operand, span)?;
                 let len: usize = self
                     .encoder
-                    .const_eval_intlike(&times.val)
+                    .const_eval_intlike(times.val())
                     .with_span(span)?
                     .to_u64()
                     .unwrap()
@@ -751,7 +751,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 switch_ty,
                 discr,
                 targets,
-            } => self.apply_switch_int_terminator(switch_ty, discr, targets, states, span)?,
+            } => self.apply_switch_int_terminator(*switch_ty, discr, targets, states, span)?,
 
             TerminatorKind::DropAndReplace { .. } => unimplemented!(),
 
@@ -760,11 +760,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 destination,
                 func:
                     mir::Operand::Constant(box mir::Constant {
-                        literal: mir::ConstantKind::Ty(ty::Const { ty, val: _ }),
+                        literal: mir::ConstantKind::Ty(ty::Const(ty_val)),
                         ..
                     }),
                 ..
-            } => self.apply_call_terminator(args, destination, ty, states, span)?,
+            } => self.apply_call_terminator(args, destination, ty_val.ty, states, span)?,
 
             TerminatorKind::Call { .. } => {
                 return Err(SpannedEncodingError::unsupported(

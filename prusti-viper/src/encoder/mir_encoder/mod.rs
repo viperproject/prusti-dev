@@ -107,7 +107,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 match base_ty.kind() {
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
-                        let field_ty = elems[field.index()].expect_ty();
+                        let field_ty = elems[field.index()];
                         let encoded_field = self.encoder()
                             .encode_raw_ref_field(field_name, field_ty)?;
                         let encoded_projection = encoded_base.field(encoded_field);
@@ -269,10 +269,10 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             PlaceEncoding::ArrayAccess {
                                 base: box encoded_base,
                                 index,
-                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                                encoded_elem_ty: self.encoder().encode_type(*elem_ty)?,
                                 rust_array_ty: base_ty,
                             },
-                            elem_ty,
+                            *elem_ty,
                             None,
                         )
                     },
@@ -281,10 +281,10 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             PlaceEncoding::SliceAccess {
                                 base: box encoded_base,
                                 index,
-                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                                encoded_elem_ty: self.encoder().encode_type(*elem_ty)?,
                                 rust_slice_ty: base_ty,
                             },
-                            elem_ty,
+                            *elem_ty,
                             None,
                         )
                     },
@@ -315,10 +315,10 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     encoded_base.get_parent().unwrap()
                 } else {
                     let ref_field = self.encoder()
-                        .encode_dereference_field(ty)?;
+                        .encode_dereference_field(*ty)?;
                     encoded_base.field(ref_field)
                 };
-                (access, ty, None)
+                (access, *ty, None)
             }
             ty::TyKind::Adt(adt_def, _subst) if adt_def.is_box() => {
                 let access = if encoded_base.is_addr_of() {
@@ -443,13 +443,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
             mir::Operand::Constant(box mir::Constant {
-                literal: mir::ConstantKind::Ty(ty::Const { ty, val }),
+                literal: mir::ConstantKind::Ty(ty::Const(ty_val)),
                 ..
-            }) => self.encoder.encode_const_expr(ty, val)?,
+            }) => self.encoder.encode_const_expr(ty_val.ty, ty_val.val)?,
             mir::Operand::Constant(box mir::Constant {
                 literal: mir::ConstantKind::Val(val, ty),
                 ..
-            }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(*val))?,
+            }) => self.encoder.encode_const_expr(*ty, ty::ConstKind::Value(*val))?,
             mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
