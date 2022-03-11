@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-0.1.30/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-0.1.32/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1163,6 +1163,10 @@
 <span id="1156">1156</span>
 <span id="1157">1157</span>
 <span id="1158">1158</span>
+<span id="1159">1159</span>
+<span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A scoped, structured logging and diagnostics system.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Overview</span>
@@ -1184,6 +1188,7 @@
 <span class="doccomment">//! The `tracing` crate provides the APIs necessary for instrumenting libraries</span>
 <span class="doccomment">//! and applications to emit trace data.</span>
 <span class="doccomment">//!</span>
+<span class="doccomment">//! *Compiler support: [requires `rustc` 1.49+][msrv]*</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [msrv]: #supported-rust-versions</span>
 <span class="doccomment">//! # Core Concepts</span>
@@ -1907,6 +1912,8 @@
 <span class="doccomment">//!  - [`tracing-fluent-assertions`] provides a fluent assertions-style testing</span>
 <span class="doccomment">//!    framework for validating the behavior of `tracing` spans.</span>
 <span class="doccomment">//!  - [`sentry-tracing`] provides a layer for reporting events and traces to [Sentry].</span>
+<span class="doccomment">//!  - [`tracing-forest`] provides a subscriber that preserves contextual coherence by</span>
+<span class="doccomment">//!    grouping together logs from the same spans during writing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! If you&#39;re the maintainer of a `tracing` ecosystem crate not listed above,</span>
 <span class="doccomment">//! please let us know! We&#39;d love to add your project to the list!</span>
@@ -1940,6 +1947,7 @@
 <span class="doccomment">//! [`tracing-fluent-assertions`]: https://crates.io/crates/tracing-fluent-assertions</span>
 <span class="doccomment">//! [`sentry-tracing`]: https://crates.io/crates/sentry-tracing</span>
 <span class="doccomment">//! [Sentry]: https://sentry.io/welcome/</span>
+<span class="doccomment">//! [`tracing-forest`]: https://crates.io/crates/tracing-forest</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
 <span class="doccomment">//!     &lt;strong&gt;Note&lt;/strong&gt;: Some of these ecosystem crates are currently</span>
@@ -1970,7 +1978,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//!   ```toml</span>
 <span class="doccomment">//!   [dependencies]</span>
-<span class="doccomment">//!   tracing = { version = &quot;0.1.30&quot;, default-features = false }</span>
+<span class="doccomment">//!   tracing = { version = &quot;0.1.32&quot;, default-features = false }</span>
 <span class="doccomment">//!   ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! &lt;pre class=&quot;ignore&quot; style=&quot;white-space:normal;font:inherit;&quot;&gt;</span>
@@ -2012,7 +2020,7 @@
 <span class="doccomment">//! ## Supported Rust Versions</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Tracing is built against the latest stable release. The minimum supported</span>
-<span class="doccomment">//! version is 1.42. The current Tracing version is not guaranteed to build on</span>
+<span class="doccomment">//! version is 1.49. The current Tracing version is not guaranteed to build on</span>
 <span class="doccomment">//! Rust versions earlier than the minimum supported version.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Tracing follows the same compiler support policies as the rest of the Tokio</span>
@@ -2053,7 +2061,7 @@
 <span class="doccomment">//! [flags]: #crate-feature-flags</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">feature</span>(<span class="ident">doc_cfg</span>), <span class="ident">deny</span>(<span class="ident">rustdoc::broken_intra_doc_links</span>))]</span>
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/tracing/0.1.30&quot;</span>)]</span>
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/tracing/0.1.32&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">doc</span>(
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png&quot;</span>,
     <span class="ident">issue_tracker_base_url</span> <span class="op">=</span> <span class="string">&quot;https://github.com/tokio-rs/tracing/issues/&quot;</span>
@@ -2123,7 +2131,7 @@
 <span class="doccomment">/// Attach a span to a `std::future::Future`.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/tracing/instrument.rs.html#1-370">instrument</a>;
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/tracing/level_filters.rs.html#1-94">level_filters</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/tracing/span.rs.html#1-1633">span</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/tracing/span.rs.html#1-1635">span</a>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../src/tracing/stdlib.rs.html#1-55">stdlib</a>;
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/tracing/subscriber.rs.html#1-68">subscriber</a>;
 
@@ -2152,7 +2160,7 @@
         <span class="ident">registration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a>,
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../src/tracing/lib.rs.html#984-988">MacroCallsite</a> {
+    <span class="kw">impl</span> <a class="ident" href="../../src/tracing/lib.rs.html#988-992">MacroCallsite</a> {
         <span class="doccomment">/// Returns a new `MacroCallsite` with the specified `Metadata`.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// /!\ WARNING: This is *not* a stable API! /!\</span>
@@ -2164,7 +2172,7 @@
         <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">meta</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
             <span class="self">Self</span> {
                 <span class="ident">interest</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0xDEADFACED</span>),
-                <a class="ident" href="../../src/tracing/lib.rs.html#999">meta</a>,
+                <a class="ident" href="../../src/tracing/lib.rs.html#1003">meta</a>,
                 <span class="ident">registration</span>: <span class="ident">Once::new</span>(),
             }
         }
@@ -2183,9 +2191,9 @@
         <span class="comment">// This only happens once (or if the cached interest value was corrupted).</span>
         <span class="attribute">#[<span class="ident">cold</span>]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../tracing/subscriber/struct.Interest.html">Interest</a> {
-            <a class="self" href="../../src/tracing/lib.rs.html#1020">self</a>.<span class="ident">registration</span>
-                .<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::callsite::register</span>(<a class="self" href="../../src/tracing/lib.rs.html#1020">self</a>));
-            <span class="kw">match</span> <a class="self" href="../../src/tracing/lib.rs.html#1020">self</a>.<span class="ident">interest</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
+            <a class="self" href="../../src/tracing/lib.rs.html#1024">self</a>.<span class="ident">registration</span>
+                .<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::callsite::register</span>(<a class="self" href="../../src/tracing/lib.rs.html#1024">self</a>));
+            <span class="kw">match</span> <a class="self" href="../../src/tracing/lib.rs.html#1024">self</a>.<span class="ident">interest</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
                 <span class="number">0</span> =&gt; <span class="ident">Interest::never</span>(),
                 <span class="number">2</span> =&gt; <span class="ident">Interest::always</span>(),
                 <span class="kw">_</span> =&gt; <span class="ident">Interest::sometimes</span>(),
@@ -2203,23 +2211,23 @@
         <span class="doccomment">/// without warning.</span>
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interest</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../tracing/subscriber/struct.Interest.html">Interest</a> {
-            <span class="kw">match</span> <a class="self" href="../../src/tracing/lib.rs.html#1040">self</a>.<span class="ident">interest</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
+            <span class="kw">match</span> <a class="self" href="../../src/tracing/lib.rs.html#1044">self</a>.<span class="ident">interest</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
                 <span class="number">0</span> =&gt; <span class="ident">Interest::never</span>(),
                 <span class="number">1</span> =&gt; <span class="ident">Interest::sometimes</span>(),
                 <span class="number">2</span> =&gt; <span class="ident">Interest::always</span>(),
-                <span class="kw">_</span> =&gt; <a class="self" href="../../src/tracing/lib.rs.html#1040">self</a>.<a class="ident" href="../../src/tracing/lib.rs.html#1020">register</a>(),
+                <span class="kw">_</span> =&gt; <a class="self" href="../../src/tracing/lib.rs.html#1044">self</a>.<a class="ident" href="../../src/tracing/lib.rs.html#1024">register</a>(),
             }
         }
 
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../tracing/subscriber/struct.Interest.html">Interest</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <a class="ident" href="../../src/tracing/lib.rs.html#1049">interest</a>.<span class="ident">is_always</span>()
-                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../tracing/dispatcher/fn.get_default.html"><span class="kw">crate</span>::dispatcher::get_default</a>(<span class="op">|</span><span class="ident">default</span><span class="op">|</span> <a class="ident" href="../../src/tracing/lib.rs.html#1051">default</a>.<span class="ident">enabled</span>(<a class="self" href="../../src/tracing/lib.rs.html#1049">self</a>.<span class="ident">meta</span>))
+            <a class="ident" href="../../src/tracing/lib.rs.html#1053">interest</a>.<span class="ident">is_always</span>()
+                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../tracing/dispatcher/fn.get_default.html"><span class="kw">crate</span>::dispatcher::get_default</a>(<span class="op">|</span><span class="ident">default</span><span class="op">|</span> <a class="ident" href="../../src/tracing/lib.rs.html#1055">default</a>.<span class="ident">enabled</span>(<a class="self" href="../../src/tracing/lib.rs.html#1053">self</a>.<span class="ident">meta</span>))
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;log&quot;</span>)]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disabled_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing/span.rs.html#348-358"><span class="kw">crate</span>::Span</a> {
-            <span class="ident"><span class="kw">crate</span>::Span::new_disabled</span>(<a class="self" href="../../src/tracing/lib.rs.html#1056">self</a>.<span class="ident">meta</span>)
+            <span class="ident"><span class="kw">crate</span>::Span::new_disabled</span>(<a class="self" href="../../src/tracing/lib.rs.html#1060">self</a>.<span class="ident">meta</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2229,28 +2237,28 @@
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../tracing_core/callsite/trait.Callsite.html">Callsite</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/lib.rs.html#984-988">MacroCallsite</a> {
+    <span class="kw">impl</span> <a class="ident" href="../../tracing_core/callsite/trait.Callsite.html">Callsite</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/lib.rs.html#988-992">MacroCallsite</a> {
         <span class="kw">fn</span> <span class="ident">set_interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../tracing/subscriber/struct.Interest.html">Interest</a>) {
             <span class="kw">let</span> <span class="ident">interest</span> <span class="op">=</span> <span class="kw">match</span> () {
-                <span class="kw">_</span> <span class="kw">if</span> <a class="ident" href="../../src/tracing/lib.rs.html#1068">interest</a>.<span class="ident">is_never</span>() =&gt; <span class="number">0</span>,
-                <span class="kw">_</span> <span class="kw">if</span> <a class="ident" href="../../src/tracing/lib.rs.html#1068">interest</a>.<span class="ident">is_always</span>() =&gt; <span class="number">2</span>,
+                <span class="kw">_</span> <span class="kw">if</span> <a class="ident" href="../../src/tracing/lib.rs.html#1072">interest</a>.<span class="ident">is_never</span>() =&gt; <span class="number">0</span>,
+                <span class="kw">_</span> <span class="kw">if</span> <a class="ident" href="../../src/tracing/lib.rs.html#1072">interest</a>.<span class="ident">is_always</span>() =&gt; <span class="number">2</span>,
                 <span class="kw">_</span> =&gt; <span class="number">1</span>,
             };
-            <a class="self" href="../../src/tracing/lib.rs.html#1068">self</a>.<span class="ident">interest</span>.<span class="ident">store</span>(<a class="ident" href="../../src/tracing/lib.rs.html#1069">interest</a>, <span class="ident">Ordering::SeqCst</span>);
+            <a class="self" href="../../src/tracing/lib.rs.html#1072">self</a>.<span class="ident">interest</span>.<span class="ident">store</span>(<a class="ident" href="../../src/tracing/lib.rs.html#1073">interest</a>, <span class="ident">Ordering::SeqCst</span>);
         }
 
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
         <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-            <a class="self" href="../../src/tracing/lib.rs.html#1078">self</a>.<span class="ident">meta</span>
+            <a class="self" href="../../src/tracing/lib.rs.html#1082">self</a>.<span class="ident">meta</span>
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/lib.rs.html#984-988">MacroCallsite</a> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/lib.rs.html#988-992">MacroCallsite</a> {
         <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <a class="ident" href="../../src/tracing/lib.rs.html#1084">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;MacroCallsite&quot;</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;interest&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/lib.rs.html#1084">self</a>.<span class="ident">interest</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;meta&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/lib.rs.html#1084">self</a>.<span class="ident">meta</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;registration&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/lib.rs.html#1084">self</a>.<span class="ident">registration</span>)
+            <a class="ident" href="../../src/tracing/lib.rs.html#1088">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;MacroCallsite&quot;</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;interest&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/lib.rs.html#1088">self</a>.<span class="ident">interest</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;meta&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/lib.rs.html#1088">self</a>.<span class="ident">meta</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;registration&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/lib.rs.html#1088">self</a>.<span class="ident">registration</span>)
                 .<span class="ident">finish</span>()
         }
     }
@@ -2273,13 +2281,13 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;log&quot;</span>)]</span>
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">LogValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visit</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/lib.rs.html#1122-1126">LogVisitor</a> {
-                <a class="ident" href="../../src/tracing/lib.rs.html#1110">f</a>,
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visit</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/lib.rs.html#1126-1130">LogVisitor</a> {
+                <a class="ident" href="../../src/tracing/lib.rs.html#1114">f</a>,
                 <span class="ident">is_first</span>: <span class="bool-val">true</span>,
                 <span class="ident">result</span>: <span class="prelude-val">Ok</span>(()),
             };
-            <a class="self" href="../../src/tracing/lib.rs.html#1110">self</a>.<span class="number">0</span>.<span class="ident">record</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tracing/lib.rs.html#1111">visit</a>);
-            <a class="ident" href="../../src/tracing/lib.rs.html#1111">visit</a>.<span class="ident">result</span>
+            <a class="self" href="../../src/tracing/lib.rs.html#1114">self</a>.<span class="number">0</span>.<span class="ident">record</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/tracing/lib.rs.html#1115">visit</a>);
+            <a class="ident" href="../../src/tracing/lib.rs.html#1115">visit</a>.<span class="ident">result</span>
         }
     }
 
@@ -2293,26 +2301,26 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;log&quot;</span>)]</span>
     <span class="kw">impl</span> <a class="ident" href="../../tracing/field/trait.Visit.html">Visit</a> <span class="kw">for</span> <span class="ident">LogVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">record_debug</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../tracing/field/struct.Field.html">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>) {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/tracing/lib.rs.html#1130">self</a>.<span class="ident">is_first</span> {
-                <a class="self" href="../../src/tracing/lib.rs.html#1130">self</a>.<span class="ident">is_first</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                <span class="kw">if</span> <a class="ident" href="../../src/tracing/lib.rs.html#1130">field</a>.<span class="ident">name</span>() <span class="op">==</span> <span class="string">&quot;message&quot;</span> {
-                    <span class="macro">write!</span>(<a class="self" href="../../src/tracing/lib.rs.html#1130">self</a>.<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/tracing/lib.rs.html#1130">value</a>)
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/tracing/lib.rs.html#1134">self</a>.<span class="ident">is_first</span> {
+                <a class="self" href="../../src/tracing/lib.rs.html#1134">self</a>.<span class="ident">is_first</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                <span class="kw">if</span> <a class="ident" href="../../src/tracing/lib.rs.html#1134">field</a>.<span class="ident">name</span>() <span class="op">==</span> <span class="string">&quot;message&quot;</span> {
+                    <span class="macro">write!</span>(<a class="self" href="../../src/tracing/lib.rs.html#1134">self</a>.<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/tracing/lib.rs.html#1134">value</a>)
                 } <span class="kw">else</span> {
-                    <span class="macro">write!</span>(<a class="self" href="../../src/tracing/lib.rs.html#1130">self</a>.<span class="ident">f</span>, <span class="string">&quot;{}={:?}&quot;</span>, <a class="ident" href="../../src/tracing/lib.rs.html#1130">field</a>.<span class="ident">name</span>(), <a class="ident" href="../../src/tracing/lib.rs.html#1130">value</a>)
+                    <span class="macro">write!</span>(<a class="self" href="../../src/tracing/lib.rs.html#1134">self</a>.<span class="ident">f</span>, <span class="string">&quot;{}={:?}&quot;</span>, <a class="ident" href="../../src/tracing/lib.rs.html#1134">field</a>.<span class="ident">name</span>(), <a class="ident" href="../../src/tracing/lib.rs.html#1134">value</a>)
                 }
             } <span class="kw">else</span> {
-                <span class="macro">write!</span>(<a class="self" href="../../src/tracing/lib.rs.html#1130">self</a>.<span class="ident">f</span>, <span class="string">&quot; {}={:?}&quot;</span>, <a class="ident" href="../../src/tracing/lib.rs.html#1130">field</a>.<span class="ident">name</span>(), <a class="ident" href="../../src/tracing/lib.rs.html#1130">value</a>)
+                <span class="macro">write!</span>(<a class="self" href="../../src/tracing/lib.rs.html#1134">self</a>.<span class="ident">f</span>, <span class="string">&quot; {}={:?}&quot;</span>, <a class="ident" href="../../src/tracing/lib.rs.html#1134">field</a>.<span class="ident">name</span>(), <a class="ident" href="../../src/tracing/lib.rs.html#1134">value</a>)
             };
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/lib.rs.html#1131">res</a> {
-                <a class="self" href="../../src/tracing/lib.rs.html#1130">self</a>.<span class="ident">result</span> <span class="op">=</span> <a class="self" href="../../src/tracing/lib.rs.html#1130">self</a>.<span class="ident">result</span>.<span class="ident">and</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/tracing/lib.rs.html#1141">err</a>));
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/lib.rs.html#1135">res</a> {
+                <a class="self" href="../../src/tracing/lib.rs.html#1134">self</a>.<span class="ident">result</span> <span class="op">=</span> <a class="self" href="../../src/tracing/lib.rs.html#1134">self</a>.<span class="ident">result</span>.<span class="ident">and</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/tracing/lib.rs.html#1145">err</a>));
             }
         }
 
         <span class="kw">fn</span> <span class="ident">record_str</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../tracing/field/struct.Field.html">Field</a>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-            <span class="kw">if</span> <a class="ident" href="../../src/tracing/lib.rs.html#1146">field</a>.<span class="ident">name</span>() <span class="op">==</span> <span class="string">&quot;message&quot;</span> {
-                <a class="self" href="../../src/tracing/lib.rs.html#1146">self</a>.<a class="ident" href="../../tracing/field/trait.Visit.html">record_debug</a>(<a class="ident" href="../../src/tracing/lib.rs.html#1146">field</a>, <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/tracing/lib.rs.html#1146">value</a>))
+            <span class="kw">if</span> <a class="ident" href="../../src/tracing/lib.rs.html#1150">field</a>.<span class="ident">name</span>() <span class="op">==</span> <span class="string">&quot;message&quot;</span> {
+                <a class="self" href="../../src/tracing/lib.rs.html#1150">self</a>.<a class="ident" href="../../tracing/field/trait.Visit.html">record_debug</a>(<a class="ident" href="../../src/tracing/lib.rs.html#1150">field</a>, <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/tracing/lib.rs.html#1150">value</a>))
             } <span class="kw">else</span> {
-                <a class="self" href="../../src/tracing/lib.rs.html#1146">self</a>.<a class="ident" href="../../tracing/field/trait.Visit.html">record_debug</a>(<a class="ident" href="../../src/tracing/lib.rs.html#1146">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/lib.rs.html#1146">value</a>)
+                <a class="self" href="../../src/tracing/lib.rs.html#1150">self</a>.<a class="ident" href="../../tracing/field/trait.Visit.html">record_debug</a>(<a class="ident" href="../../src/tracing/lib.rs.html#1150">field</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/lib.rs.html#1150">value</a>)
             }
         }
     }
@@ -2322,5 +2330,5 @@
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sealed</span> {}
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-5.1.2/src/str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.0/src/str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -497,24 +497,69 @@
 <span id="492">492</span>
 <span id="493">493</span>
 <span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-  <span class="kw">use</span> <span class="kw">crate</span>::{<span class="prelude-val">Err</span>, <span class="ident">error::ErrorKind</span>, <span class="ident">IResult</span>};
+  <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+  <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">branch::alt</span>, <span class="ident">bytes::complete::tag_no_case</span>, <span class="ident">combinator::recognize</span>, <span class="ident">multi::many1</span>};
+  <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">bytes::complete</span>::{<span class="ident">is_a</span>, <span class="ident">is_not</span>, <span class="ident">tag</span>, <span class="ident">take</span>, <span class="ident">take_till</span>, <span class="ident">take_until</span>},
+    <span class="ident">error</span>::{<span class="self">self</span>, <span class="ident">ErrorKind</span>},
+    <span class="prelude-val">Err</span>, <span class="ident">IResult</span>,
+  };
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">tagtr_succeed</span>() {
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello World!&quot;</span>;
     <span class="kw">const</span> <span class="ident">TAG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello&quot;</span>;
     <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="macro">tag!</span>(<span class="ident">input</span>, <span class="ident">TAG</span>)
+      <span class="ident">tag</span>(<span class="ident">TAG</span>)(<span class="ident">input</span>)
     }
 
     <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
       <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
-        <span class="macro">assert!</span>(
-          <span class="ident">extra</span> <span class="op">==</span> <span class="string">&quot; World!&quot;</span>,
-          <span class="string">&quot;Parser `tag` consumed leftover input.&quot;</span>
-        );
+        <span class="macro">assert!</span>(<span class="ident">extra</span> <span class="op">==</span> <span class="string">&quot; World!&quot;</span>, <span class="string">&quot;Parser `tag` consumed leftover input.&quot;</span>);
         <span class="macro">assert!</span>(
           <span class="ident">output</span> <span class="op">==</span> <span class="ident">TAG</span>,
           <span class="string">&quot;Parser `tag` doesn&#39;t return the tag it matched on success. \
@@ -533,10 +578,12 @@
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">tagtr_incomplete</span>() {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::tag</span>;
+
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello&quot;</span>;
     <span class="kw">const</span> <span class="ident">TAG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello World!&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>,<span class="kw">_</span>,(<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="macro">tag!</span>(<span class="ident">INPUT</span>, <span class="ident">TAG</span>);
+    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">error::Error</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">tag</span>(<span class="ident">TAG</span>)(<span class="ident">INPUT</span>);
     <span class="kw">match</span> <span class="ident">res</span> {
       <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="kw">_</span>)) =&gt; (),
       <span class="ident">other</span> =&gt; {
@@ -554,7 +601,7 @@
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello World!&quot;</span>;
     <span class="kw">const</span> <span class="ident">TAG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Random&quot;</span>; <span class="comment">// TAG must be closer than INPUT.</span>
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>,<span class="kw">_</span>,(<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="macro">tag!</span>(<span class="ident">INPUT</span>, <span class="ident">TAG</span>);
+    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">error::Error</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">tag</span>(<span class="ident">TAG</span>)(<span class="ident">INPUT</span>);
     <span class="kw">match</span> <span class="ident">res</span> {
       <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="kw">_</span>)) =&gt; (),
       <span class="ident">other</span> =&gt; {
@@ -572,7 +619,7 @@
     <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
     <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>,<span class="kw">_</span>,(<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="macro">take!</span>(<span class="ident">INPUT</span>, <span class="number">9</span>);
+    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">error::Error</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take</span>(<span class="number">9_usize</span>)(<span class="ident">INPUT</span>);
     <span class="kw">match</span> <span class="ident">res</span> {
       <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
         <span class="macro">assert!</span>(
@@ -582,7 +629,7 @@
         );
         <span class="macro">assert!</span>(
           <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
-          <span class="string">&quot;Parser `take_s` doens&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
+          <span class="string">&quot;Parser `take_s` doesn&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
           <span class="ident">CONSUMED</span>,
           <span class="ident">output</span>
         );
@@ -602,7 +649,7 @@
     <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřè&quot;</span>;
     <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;ÂßÇ∂áƒƭèř&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>,<span class="kw">_</span>,(<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="macro">take_until!</span>(<span class="ident">INPUT</span>, <span class="ident">FIND</span>);
+    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take_until</span>(<span class="ident">FIND</span>)(<span class="ident">INPUT</span>);
     <span class="kw">match</span> <span class="ident">res</span> {
       <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
         <span class="macro">assert!</span>(
@@ -614,7 +661,7 @@
         <span class="macro">assert!</span>(
           <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
           <span class="string">&quot;Parser `take_until`\
-           doens&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
+           doesn&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
           <span class="ident">CONSUMED</span>,
           <span class="ident">output</span>
         );
@@ -629,9 +676,11 @@
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">take_s_incomplete</span>() {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::take</span>;
+
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇá&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>,<span class="kw">_</span>,(<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="macro">take!</span>(<span class="ident">INPUT</span>, <span class="number">13</span>);
+    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take</span>(<span class="number">13_usize</span>)(<span class="ident">INPUT</span>);
     <span class="kw">match</span> <span class="ident">res</span> {
       <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="kw">_</span>)) =&gt; (),
       <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
@@ -650,28 +699,36 @@
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">take_while</span>() {
-    <span class="macro">named!</span>(<span class="ident">f</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>,<span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="macro">take_while!</span>(<span class="ident">is_alphabetic</span>));
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::take_while</span>;
+
+    <span class="kw">fn</span> <span class="ident">f</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+      <span class="ident">take_while</span>(<span class="ident">is_alphabetic</span>)(<span class="ident">i</span>)
+    }
     <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>;
     <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="string">&quot;abcd&quot;</span>;
     <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="string">&quot;abcd123&quot;</span>;
     <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="string">&quot;123&quot;</span>;
 
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::Size</span>(<span class="number">1</span>))));
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::Size</span>(<span class="number">1</span>))));
+    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::new</span>(<span class="number">1</span>))));
+    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::new</span>(<span class="number">1</span>))));
     <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">d</span>[..], <span class="kw-2">&amp;</span><span class="ident">b</span>[..])));
     <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">d</span>[..], <span class="kw-2">&amp;</span><span class="ident">a</span>[..])));
   }
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">take_while1</span>() {
-    <span class="macro">named!</span>(<span class="ident">f</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>,<span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="macro">take_while1!</span>(<span class="ident">is_alphabetic</span>));
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::take_while1</span>;
+
+    <span class="kw">fn</span> <span class="ident">f</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+      <span class="ident">take_while1</span>(<span class="ident">is_alphabetic</span>)(<span class="ident">i</span>)
+    }
     <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>;
     <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="string">&quot;abcd&quot;</span>;
     <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="string">&quot;abcd123&quot;</span>;
     <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="string">&quot;123&quot;</span>;
 
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::Size</span>(<span class="number">1</span>))));
-    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::Size</span>(<span class="number">1</span>))));
+    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::new</span>(<span class="number">1</span>))));
+    <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>[..]), <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="ident">Needed::new</span>(<span class="number">1</span>))));
     <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="string">&quot;123&quot;</span>[..], <span class="kw-2">&amp;</span><span class="ident">b</span>[..])));
     <span class="macro">assert_eq!</span>(
       <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>[..]),
@@ -688,7 +745,7 @@
       <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;á&#39;</span>
     }
     <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="macro">take_till!</span>(<span class="ident">input</span>, <span class="ident">till_s</span>)
+      <span class="ident">take_till</span>(<span class="ident">till_s</span>)(<span class="ident">input</span>)
     }
     <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
       <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
@@ -714,6 +771,8 @@
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">take_while_succeed_none</span>() {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::complete::take_while</span>;
+
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
     <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>;
     <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
@@ -721,7 +780,7 @@
       <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;9&#39;</span>
     }
     <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="macro">take_while!</span>(<span class="ident">input</span>, <span class="ident">while_s</span>)
+      <span class="ident">take_while</span>(<span class="ident">while_s</span>)(<span class="ident">input</span>)
     }
     <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
       <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
@@ -752,7 +811,7 @@
     <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
     <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
     <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="macro">is_not!</span>(<span class="ident">input</span>, <span class="ident">AVOID</span>)
+      <span class="ident">is_not</span>(<span class="ident">AVOID</span>)(<span class="ident">input</span>)
     }
     <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
       <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
@@ -763,7 +822,7 @@
         );
         <span class="macro">assert!</span>(
           <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
-          <span class="string">&quot;Parser `is_not` doens&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
+          <span class="string">&quot;Parser `is_not` doesn&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
           <span class="ident">CONSUMED</span>,
           <span class="ident">output</span>
         );
@@ -778,14 +837,24 @@
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">take_while_succeed_some</span>() {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::complete::take_while</span>;
+
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
     <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
     <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
     <span class="kw">fn</span> <span class="ident">while_s</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
-      <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;β&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ƒ&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ô&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ř&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Â&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ß&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Ç&#39;</span>
+      <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;β&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ƒ&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ô&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ř&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Â&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ß&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Ç&#39;</span>
     }
     <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="macro">take_while!</span>(<span class="ident">input</span>, <span class="ident">while_s</span>)
+      <span class="ident">take_while</span>(<span class="ident">while_s</span>)(<span class="ident">input</span>)
     }
     <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
       <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
@@ -814,7 +883,7 @@
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
     <span class="kw">const</span> <span class="ident">AVOID</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βúçƙ¥&quot;</span>;
     <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="macro">is_not!</span>(<span class="ident">input</span>, <span class="ident">AVOID</span>)
+      <span class="ident">is_not</span>(<span class="ident">AVOID</span>)(<span class="ident">input</span>)
     }
     <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
       <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="kw">_</span>)) =&gt; (),
@@ -827,14 +896,24 @@
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">take_while1_succeed</span>() {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::complete::take_while1</span>;
+
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
     <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
     <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
     <span class="kw">fn</span> <span class="ident">while1_s</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
-      <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;β&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ƒ&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ô&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ř&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Â&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ß&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Ç&#39;</span>
+      <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;β&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ƒ&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ô&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ř&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;è&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Â&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;ß&#39;</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;Ç&#39;</span>
     }
     <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="macro">take_while1!</span>(<span class="ident">input</span>, <span class="ident">while1_s</span>)
+      <span class="ident">take_while1</span>(<span class="ident">while1_s</span>)(<span class="ident">input</span>)
     }
     <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
       <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
@@ -860,10 +939,12 @@
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">take_until_incomplete</span>() {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::take_until</span>;
+
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřè&quot;</span>;
     <span class="kw">const</span> <span class="ident">FIND</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>,<span class="kw">_</span>,(<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="macro">take_until!</span>(<span class="ident">INPUT</span>, <span class="ident">FIND</span>);
+    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take_until</span>(<span class="ident">FIND</span>)(<span class="ident">INPUT</span>);
     <span class="kw">match</span> <span class="ident">res</span> {
       <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="kw">_</span>)) =&gt; (),
       <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
@@ -881,7 +962,7 @@
     <span class="kw">const</span> <span class="ident">CONSUMED</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇ&quot;</span>;
     <span class="kw">const</span> <span class="ident">LEFTOVER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;áƒƭèř&quot;</span>;
     <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="macro">is_a!</span>(<span class="ident">input</span>, <span class="ident">MATCH</span>)
+      <span class="ident">is_a</span>(<span class="ident">MATCH</span>)(<span class="ident">input</span>)
     }
     <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
       <span class="prelude-val">Ok</span>((<span class="ident">extra</span>, <span class="ident">output</span>)) =&gt; {
@@ -892,7 +973,7 @@
         );
         <span class="macro">assert!</span>(
           <span class="ident">output</span> <span class="op">==</span> <span class="ident">CONSUMED</span>,
-          <span class="string">&quot;Parser `is_a` doens&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
+          <span class="string">&quot;Parser `is_a` doesn&#39;t return the string it consumed on success. Expected `{}`, got `{}`.&quot;</span>,
           <span class="ident">CONSUMED</span>,
           <span class="ident">output</span>
         );
@@ -907,12 +988,14 @@
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">take_while1_fail</span>() {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::complete::take_while1</span>;
+
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
     <span class="kw">fn</span> <span class="ident">while1_s</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
       <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;9&#39;</span>
     }
     <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="macro">take_while1!</span>(<span class="ident">input</span>, <span class="ident">while1_s</span>)
+      <span class="ident">take_while1</span>(<span class="ident">while1_s</span>)(<span class="ident">input</span>)
     }
     <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
       <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="kw">_</span>)) =&gt; (),
@@ -929,7 +1012,7 @@
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
     <span class="kw">const</span> <span class="ident">MATCH</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Ûñℓúçƙ¥&quot;</span>;
     <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-      <span class="macro">is_a!</span>(<span class="ident">input</span>, <span class="ident">MATCH</span>)
+      <span class="ident">is_a</span>(<span class="ident">MATCH</span>)(<span class="ident">input</span>)
     }
     <span class="kw">match</span> <span class="ident">test</span>(<span class="ident">INPUT</span>) {
       <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="kw">_</span>)) =&gt; (),
@@ -942,10 +1025,12 @@
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">take_until_error</span>() {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bytes::streaming::take_until</span>;
+
     <span class="kw">const</span> <span class="ident">INPUT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;βèƒôřèÂßÇáƒƭèř&quot;</span>;
     <span class="kw">const</span> <span class="ident">FIND</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Ráñδô₥&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>,<span class="kw">_</span>,(<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="macro">take_until!</span>(<span class="ident">INPUT</span>, <span class="ident">FIND</span>);
+    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">take_until</span>(<span class="ident">FIND</span>)(<span class="ident">INPUT</span>);
     <span class="kw">match</span> <span class="ident">res</span> {
       <span class="prelude-val">Err</span>(<span class="ident">Err::Incomplete</span>(<span class="kw">_</span>)) =&gt; (),
       <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(
@@ -962,7 +1047,9 @@
     <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="string">&quot;aabbab&quot;</span>;
     <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="string">&quot;ababcd&quot;</span>;
 
-    <span class="macro">named!</span>(<span class="ident">f</span> <span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>,<span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="macro">recognize!</span>(<span class="macro">many1!</span>(<span class="macro">complete!</span>(<span class="macro">alt!</span>( <span class="macro">tag!</span>(<span class="string">&quot;a&quot;</span>) <span class="op">|</span> <span class="macro">tag!</span>(<span class="string">&quot;b&quot;</span>) )))));
+    <span class="kw">fn</span> <span class="ident">f</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+      <span class="ident">recognize</span>(<span class="ident">many1</span>(<span class="ident">alt</span>((<span class="ident">tag</span>(<span class="string">&quot;a&quot;</span>), <span class="ident">tag</span>(<span class="string">&quot;b&quot;</span>)))))(<span class="ident">i</span>)
+    }
 
     <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">a</span>[<span class="number">6</span>..], <span class="kw-2">&amp;</span><span class="ident">a</span>[..])));
     <span class="macro">assert_eq!</span>(<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">b</span>[<span class="number">4</span>..], <span class="kw-2">&amp;</span><span class="ident">b</span>[..<span class="number">4</span>])));
@@ -970,9 +1057,9 @@
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">utf8_indexing</span>() {
-    <span class="macro">named!</span>(<span class="ident">dot</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="macro">tag!</span>(<span class="string">&quot;.&quot;</span>)
-      );
+    <span class="kw">fn</span> <span class="ident">dot</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+      <span class="ident">tag</span>(<span class="string">&quot;.&quot;</span>)(<span class="ident">i</span>)
+    }
 
     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">dot</span>(<span class="string">&quot;點&quot;</span>);
   }
@@ -980,17 +1067,14 @@
   <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">case_insensitive</span>() {
-    <span class="macro">named!</span>(<span class="ident">test</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>,<span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="macro">tag_no_case!</span>(<span class="string">&quot;ABcd&quot;</span>));
+    <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+      <span class="ident">tag_no_case</span>(<span class="string">&quot;ABcd&quot;</span>)(<span class="ident">i</span>)
+    }
     <span class="macro">assert_eq!</span>(<span class="ident">test</span>(<span class="string">&quot;aBCdefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;aBCd&quot;</span>)));
     <span class="macro">assert_eq!</span>(<span class="ident">test</span>(<span class="string">&quot;abcdefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;abcd&quot;</span>)));
     <span class="macro">assert_eq!</span>(<span class="ident">test</span>(<span class="string">&quot;ABCDefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;ABCD&quot;</span>)));
-
-    <span class="macro">named!</span>(<span class="ident">test2</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>,<span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="macro">tag_no_case!</span>(<span class="string">&quot;ABcd&quot;</span>));
-    <span class="macro">assert_eq!</span>(<span class="ident">test2</span>(<span class="string">&quot;aBCdefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;aBCd&quot;</span>)));
-    <span class="macro">assert_eq!</span>(<span class="ident">test2</span>(<span class="string">&quot;abcdefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;abcd&quot;</span>)));
-    <span class="macro">assert_eq!</span>(<span class="ident">test2</span>(<span class="string">&quot;ABCDefgh&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;efgh&quot;</span>, <span class="string">&quot;ABCD&quot;</span>)));
   }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
 </body></html>

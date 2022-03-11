@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.16.1/src/util/slab.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>slab.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.17.0/src/util/slab.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>slab.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -844,6 +844,20 @@
 <span id="839">839</span>
 <span id="840">840</span>
 <span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rt&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>))]</span>
 
 <span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
@@ -1003,6 +1017,12 @@
 
     <span class="doccomment">/// Next entry in the free list.</span>
     <span class="ident">next</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+
+    <span class="doccomment">/// Makes miri happy by making mutable references not take exclusive access.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Could probably also be fixed by replacing `slots` with a raw-pointer</span>
+    <span class="doccomment">/// based equivalent.</span>
+    <span class="ident">_pin</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">std::marker::PhantomPinned</a>,
 }
 
 <span class="doccomment">/// Value paired with a reference to the page.</span>
@@ -1031,22 +1051,22 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#101">PAGE_INITIAL_SIZE</a>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
 
-        <span class="kw">for</span> <span class="ident">page</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#180">slab</a>.<span class="ident">pages</span> {
-            <span class="kw">let</span> <span class="ident">page</span> <span class="op">=</span> <span class="ident">Arc::get_mut</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#188">page</a>).<span class="ident">unwrap</span>();
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#189">page</a>.<span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#185">len</a>;
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#189">page</a>.<span class="ident">prev_len</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#186">prev_len</a>;
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#185">len</a> <span class="kw-2">*</span><span class="op">=</span> <span class="number">2</span>;
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#186">prev_len</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#189">page</a>.<span class="ident">len</span>;
+        <span class="kw">for</span> <span class="ident">page</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#186">slab</a>.<span class="ident">pages</span> {
+            <span class="kw">let</span> <span class="ident">page</span> <span class="op">=</span> <span class="ident">Arc::get_mut</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#194">page</a>).<span class="ident">unwrap</span>();
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#195">page</a>.<span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#191">len</a>;
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#195">page</a>.<span class="ident">prev_len</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#192">prev_len</a>;
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#191">len</a> <span class="kw-2">*</span><span class="op">=</span> <span class="number">2</span>;
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#192">prev_len</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#195">page</a>.<span class="ident">len</span>;
 
             <span class="comment">// Ensure we don&#39;t exceed the max address space.</span>
             <span class="macro">debug_assert!</span>(
-                <a class="ident" href="../../../src/tokio/util/slab.rs.html#189">page</a>.<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#189">page</a>.<span class="ident">prev_len</span> <span class="op">&lt;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>),
+                <a class="ident" href="../../../src/tokio/util/slab.rs.html#195">page</a>.<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#195">page</a>.<span class="ident">prev_len</span> <span class="op">&lt;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>),
                 <span class="string">&quot;max = {:b}&quot;</span>,
-                <a class="ident" href="../../../src/tokio/util/slab.rs.html#189">page</a>.<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#189">page</a>.<span class="ident">prev_len</span>
+                <a class="ident" href="../../../src/tokio/util/slab.rs.html#195">page</a>.<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#195">page</a>.<span class="ident">prev_len</span>
             );
         }
 
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#180">slab</a>
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#186">slab</a>
     }
 
     <span class="doccomment">/// Returns a new `Allocator`.</span>
@@ -1054,7 +1074,7 @@
     <span class="doccomment">/// The `Allocator` supports concurrent allocation of objects.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">allocator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Allocator</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/tokio/util/slab.rs.html#67-73">Allocator</a> {
-            <span class="ident">pages</span>: <a class="self" href="../../../src/tokio/util/slab.rs.html#209">self</a>.<span class="ident">pages</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">pages</span>: <a class="self" href="../../../src/tokio/util/slab.rs.html#215">self</a>.<span class="ident">pages</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 
@@ -1062,19 +1082,19 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `&amp;mut self` is used as the call may update internal cached state.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">addr</span>: <a class="ident" href="../../../src/tokio/util/slab.rs.html#84">Address</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">page_idx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#218">addr</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#589">page</a>();
-        <span class="kw">let</span> <span class="ident">slot_idx</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#218">self</a>.<span class="ident">pages</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#219">page_idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#454">slot</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#218">addr</a>);
+        <span class="kw">let</span> <span class="ident">page_idx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#224">addr</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#593">page</a>();
+        <span class="kw">let</span> <span class="ident">slot_idx</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#224">self</a>.<span class="ident">pages</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#225">page_idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#461">slot</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#224">addr</a>);
 
         <span class="comment">// If the address references a slot that was last seen as uninitialized,</span>
         <span class="comment">// the `CachedPage` is updated. This requires acquiring the page lock</span>
         <span class="comment">// and updating the slot pointer and initialized offset.</span>
-        <span class="kw">if</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#218">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#219">page_idx</a>].<span class="ident">init</span> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#220">slot_idx</a> {
-            <a class="self" href="../../../src/tokio/util/slab.rs.html#218">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#219">page_idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#496">refresh</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#218">self</a>.<span class="ident">pages</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#219">page_idx</a>]);
+        <span class="kw">if</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#224">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#225">page_idx</a>].<span class="ident">init</span> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#226">slot_idx</a> {
+            <a class="self" href="../../../src/tokio/util/slab.rs.html#224">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#225">page_idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#503">refresh</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#224">self</a>.<span class="ident">pages</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#225">page_idx</a>]);
         }
 
         <span class="comment">// If the address **still** references an uninitialized slot, then the</span>
         <span class="comment">// address is invalid and `None` is returned.</span>
-        <span class="kw">if</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#218">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#219">page_idx</a>].<span class="ident">init</span> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#220">slot_idx</a> {
+        <span class="kw">if</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#224">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#225">page_idx</a>].<span class="ident">init</span> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#226">slot_idx</a> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
@@ -1085,7 +1105,7 @@
         <span class="comment">//</span>
         <span class="comment">// The referenced data is never mutated. Only `&amp;self` references are</span>
         <span class="comment">// used and the data is `Sync`.</span>
-        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/tokio/util/slab.rs.html#218">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#219">page_idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#506">get</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#220">slot_idx</a>))
+        <span class="prelude-val">Some</span>(<a class="self" href="../../../src/tokio/util/slab.rs.html#224">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#225">page_idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#513">get</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#226">slot_idx</a>))
     }
 
     <span class="doccomment">/// Calls the given function with a reference to each slot in the slab. The</span>
@@ -1094,7 +1114,7 @@
     <span class="doccomment">/// This is used by the I/O driver during the shutdown process to notify</span>
     <span class="doccomment">/// each pending task.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">for_each</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>)) {
-        <span class="kw">for</span> <span class="ident">page_idx</span> <span class="kw">in</span> <span class="number">0</span>..<a class="self" href="../../../src/tokio/util/slab.rs.html#250">self</a>.<span class="ident">pages</span>.<span class="ident">len</span>() {
+        <span class="kw">for</span> <span class="ident">page_idx</span> <span class="kw">in</span> <span class="number">0</span>..<a class="self" href="../../../src/tokio/util/slab.rs.html#256">self</a>.<span class="ident">pages</span>.<span class="ident">len</span>() {
             <span class="comment">// It is required to avoid holding the lock when calling the</span>
             <span class="comment">// provided function. The function may attempt to acquire the lock</span>
             <span class="comment">// itself. If we hold the lock here while calling `f`, a deadlock</span>
@@ -1103,10 +1123,10 @@
             <span class="comment">// Instead of iterating the slots directly in `page`, which would</span>
             <span class="comment">// require holding the lock, the cache is updated and the slots are</span>
             <span class="comment">// iterated from the cache.</span>
-            <a class="self" href="../../../src/tokio/util/slab.rs.html#250">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#251">page_idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#496">refresh</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#250">self</a>.<span class="ident">pages</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#251">page_idx</a>]);
+            <a class="self" href="../../../src/tokio/util/slab.rs.html#256">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#257">page_idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#503">refresh</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#256">self</a>.<span class="ident">pages</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#257">page_idx</a>]);
 
-            <span class="kw">for</span> <span class="ident">slot_idx</span> <span class="kw">in</span> <span class="number">0</span>..<a class="self" href="../../../src/tokio/util/slab.rs.html#250">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#251">page_idx</a>].<span class="ident">init</span> {
-                <a class="ident" href="../../../src/tokio/util/slab.rs.html#250">f</a>(<a class="self" href="../../../src/tokio/util/slab.rs.html#250">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#251">page_idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#506">get</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#262">slot_idx</a>));
+            <span class="kw">for</span> <span class="ident">slot_idx</span> <span class="kw">in</span> <span class="number">0</span>..<a class="self" href="../../../src/tokio/util/slab.rs.html#256">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#257">page_idx</a>].<span class="ident">init</span> {
+                <a class="ident" href="../../../src/tokio/util/slab.rs.html#256">f</a>(<a class="self" href="../../../src/tokio/util/slab.rs.html#256">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#257">page_idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#513">get</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#268">slot_idx</a>));
             }
         }
     }
@@ -1118,55 +1138,55 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">compact</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// Iterate each page except the very first one. The very first page is</span>
         <span class="comment">// never freed.</span>
-        <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">page</span>) <span class="kw">in</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#272">self</a>.<span class="ident">pages</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>) {
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#275">page</a>.<span class="ident">used</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#275">page</a>.<span class="ident">allocated</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) {
+        <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">page</span>) <span class="kw">in</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#278">self</a>.<span class="ident">pages</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<span class="number">1</span>) {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#281">page</a>.<span class="ident">used</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#281">page</a>.<span class="ident">allocated</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) {
                 <span class="comment">// If the page has slots in use or the memory has not been</span>
                 <span class="comment">// allocated then it cannot be compacted.</span>
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slots</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#275">page</a>.<span class="ident">slots</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#24">try_lock</a>() {
-                <span class="prelude-val">Some</span>(<span class="ident">slots</span>) =&gt; <a class="ident" href="../../../src/tokio/util/slab.rs.html#283">slots</a>,
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slots</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#281">page</a>.<span class="ident">slots</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#24">try_lock</a>() {
+                <span class="prelude-val">Some</span>(<span class="ident">slots</span>) =&gt; <a class="ident" href="../../../src/tokio/util/slab.rs.html#289">slots</a>,
                 <span class="comment">// If the lock cannot be acquired due to being held by another</span>
                 <span class="comment">// thread, don&#39;t try to compact the page.</span>
                 <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
             };
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#282">slots</a>.<span class="ident">used</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#282">slots</a>.<span class="ident">slots</span>.<span class="ident">capacity</span>() <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#288">slots</a>.<span class="ident">used</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#288">slots</a>.<span class="ident">slots</span>.<span class="ident">capacity</span>() <span class="op">==</span> <span class="number">0</span> {
                 <span class="comment">// The page is in use or it has not yet been allocated. Either</span>
                 <span class="comment">// way, there is no more work to do.</span>
                 <span class="kw">continue</span>;
             }
 
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#275">page</a>.<span class="ident">allocated</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Relaxed</span>);
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#281">page</a>.<span class="ident">allocated</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Relaxed</span>);
 
             <span class="comment">// Remove the slots vector from the page. This is done so that the</span>
             <span class="comment">// freeing process is done outside of the lock&#39;s critical section.</span>
-            <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#282">slots</a>.<span class="ident">slots</span>);
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#282">slots</a>.<span class="ident">head</span> <span class="op">=</span> <span class="number">0</span>;
+            <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#288">slots</a>.<span class="ident">slots</span>);
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#288">slots</a>.<span class="ident">head</span> <span class="op">=</span> <span class="number">0</span>;
 
             <span class="comment">// Drop the lock so we can drop the vector outside the lock below.</span>
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#282">slots</a>);
+            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#288">slots</a>);
 
             <span class="macro">debug_assert!</span>(
-                <a class="self" href="../../../src/tokio/util/slab.rs.html#272">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#275">idx</a>].<span class="ident">slots</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#272">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#275">idx</a>].<span class="ident">slots</span> <span class="op">==</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#299">vec</a>.<span class="ident">as_ptr</span>(),
+                <a class="self" href="../../../src/tokio/util/slab.rs.html#278">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#281">idx</a>].<span class="ident">slots</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#278">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#281">idx</a>].<span class="ident">slots</span> <span class="op">==</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#305">vec</a>.<span class="ident">as_ptr</span>(),
                 <span class="string">&quot;cached = {:?}; actual = {:?}&quot;</span>,
-                <a class="self" href="../../../src/tokio/util/slab.rs.html#272">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#275">idx</a>].<span class="ident">slots</span>,
-                <a class="ident" href="../../../src/tokio/util/slab.rs.html#299">vec</a>.<span class="ident">as_ptr</span>(),
+                <a class="self" href="../../../src/tokio/util/slab.rs.html#278">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#281">idx</a>].<span class="ident">slots</span>,
+                <a class="ident" href="../../../src/tokio/util/slab.rs.html#305">vec</a>.<span class="ident">as_ptr</span>(),
             );
 
             <span class="comment">// Clear cache</span>
-            <a class="self" href="../../../src/tokio/util/slab.rs.html#272">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#275">idx</a>].<span class="ident">slots</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="self" href="../../../src/tokio/util/slab.rs.html#272">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#275">idx</a>].<span class="ident">init</span> <span class="op">=</span> <span class="number">0</span>;
+            <a class="self" href="../../../src/tokio/util/slab.rs.html#278">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#281">idx</a>].<span class="ident">slots</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
+            <a class="self" href="../../../src/tokio/util/slab.rs.html#278">self</a>.<span class="ident">cached</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#281">idx</a>].<span class="ident">init</span> <span class="op">=</span> <span class="number">0</span>;
 
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#299">vec</a>);
+            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#305">vec</a>);
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Slab</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#612">debug</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#322">fmt</a>, <span class="string">&quot;Slab&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#322">self</a>.<span class="ident">pages</span>[..])
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#616">debug</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#328">fmt</a>, <span class="string">&quot;Slab&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#328">self</a>.<span class="ident">pages</span>[..])
     }
 }
 
@@ -1179,9 +1199,9 @@
     <span class="doccomment">/// Returns `None` if the slab is full.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">allocate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#84">Address</a>, <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="comment">// Find the first available slot.</span>
-        <span class="kw">for</span> <span class="ident">page</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#334">self</a>.<span class="ident">pages</span>[..] {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">addr</span>, <span class="ident">val</span>)) <span class="op">=</span> <span class="ident">Page::allocate</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#336">page</a>) {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/tokio/util/slab.rs.html#337">addr</a>, <a class="ident" href="../../../src/tokio/util/slab.rs.html#337">val</a>));
+        <span class="kw">for</span> <span class="ident">page</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#340">self</a>.<span class="ident">pages</span>[..] {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">addr</span>, <span class="ident">val</span>)) <span class="op">=</span> <span class="ident">Page::allocate</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#342">page</a>) {
+                <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/tokio/util/slab.rs.html#343">addr</a>, <a class="ident" href="../../../src/tokio/util/slab.rs.html#343">val</a>));
             }
         }
 
@@ -1191,7 +1211,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Allocator</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#612">debug</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#347">fmt</a>, <span class="string">&quot;slab::Allocator&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#347">self</a>.<span class="ident">pages</span>[..])
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#616">debug</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#353">fmt</a>, <span class="string">&quot;slab::Allocator&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#353">self</a>.<span class="ident">pages</span>[..])
     }
 }
 
@@ -1201,7 +1221,7 @@
     <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="comment">// Safety: `&amp;mut` is never handed out to the underlying value. The page</span>
         <span class="comment">// is not freed until all `Ref` values are dropped.</span>
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="self" href="../../../src/tokio/util/slab.rs.html#355">self</a>.<span class="ident">value</span>).<span class="ident">value</span> }
+        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="self" href="../../../src/tokio/util/slab.rs.html#361">self</a>.<span class="ident">value</span>).<span class="ident">value</span> }
     }
 }
 
@@ -1209,13 +1229,13 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// Safety: `&amp;mut` is never handed out to the underlying value. The page</span>
         <span class="comment">// is not freed until all `Ref` values are dropped.</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="self" href="../../../src/tokio/util/slab.rs.html#363">self</a>.<span class="ident">value</span>).<a class="ident" href="../../../src/tokio/util/slab.rs.html#580">release</a>() };
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="self" href="../../../src/tokio/util/slab.rs.html#369">self</a>.<span class="ident">value</span>).<a class="ident" href="../../../src/tokio/util/slab.rs.html#584">release</a>() };
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/util/slab.rs.html#371">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#371">fmt</a>)
+        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../../src/tokio/util/slab.rs.html#377">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#377">fmt</a>)
     }
 }
 
@@ -1226,70 +1246,71 @@
     <span class="comment">// loom `Arc`.</span>
     <span class="kw">fn</span> <span class="ident">allocate</span>(<span class="ident">me</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#84">Address</a>, <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="comment">// Before acquiring the lock, use the `used` hint.</span>
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>.<span class="ident">used</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) <span class="op">==</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>.<span class="ident">len</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>.<span class="ident">used</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) <span class="op">==</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>.<span class="ident">len</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
         <span class="comment">// Allocating objects requires synchronization</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locked</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>.<span class="ident">slots</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locked</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>.<span class="ident">slots</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">head</span> <span class="op">&lt;</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">slots</span>.<span class="ident">len</span>() {
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">head</span> <span class="op">&lt;</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">slots</span>.<span class="ident">len</span>() {
             <span class="comment">// Re-use an already initialized slot.</span>
             <span class="comment">//</span>
             <span class="comment">// Help out the borrow checker</span>
-            <span class="kw">let</span> <span class="ident">locked</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>;
+            <span class="kw">let</span> <span class="ident">locked</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>;
 
             <span class="comment">// Get the index of the slot at the head of the free stack. This is</span>
             <span class="comment">// the slot that will be reused.</span>
-            <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">head</span>;
-            <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">slots</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#398">idx</a>];
+            <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#400">locked</a>.<span class="ident">head</span>;
+            <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#400">locked</a>.<span class="ident">slots</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#404">idx</a>];
 
             <span class="comment">// Update the free stack head to point to the next slot.</span>
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">head</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#399">slot</a>.<span class="ident">next</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#400">locked</a>.<span class="ident">head</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#405">slot</a>.<span class="ident">next</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
             <span class="comment">// Increment the number of used slots</span>
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">used</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>.<span class="ident">used</span>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">used</span>, <span class="ident">Relaxed</span>);
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#400">locked</a>.<span class="ident">used</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>.<span class="ident">used</span>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#400">locked</a>.<span class="ident">used</span>, <span class="ident">Relaxed</span>);
 
             <span class="comment">// Reset the slot</span>
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#399">slot</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#409">ptr</a>).<span class="ident">value</span>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#89">reset</a>() });
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#405">slot</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#415">ptr</a>).<span class="ident">value</span>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#89">reset</a>() });
 
             <span class="comment">// Return a reference to the slot</span>
-            <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#459">addr</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#398">idx</a>), <a class="ident" href="../../../src/tokio/util/slab.rs.html#399">slot</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#565">gen_ref</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>)))
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>.<span class="ident">len</span> <span class="op">==</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">slots</span>.<span class="ident">len</span>() {
+            <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#466">addr</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#404">idx</a>), <a class="ident" href="../../../src/tokio/util/slab.rs.html#400">locked</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#570">gen_ref</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#404">idx</a>, <a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>)))
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>.<span class="ident">len</span> <span class="op">==</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">slots</span>.<span class="ident">len</span>() {
             <span class="comment">// The page is full</span>
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
             <span class="comment">// No initialized slots are available, but the page has more</span>
             <span class="comment">// capacity. Initialize a new slot.</span>
-            <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">slots</span>.<span class="ident">len</span>();
+            <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">slots</span>.<span class="ident">len</span>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#419">idx</a> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#425">idx</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="comment">// The page has not yet been allocated. Allocate the storage for</span>
                 <span class="comment">// all page slots.</span>
-                <a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">slots</span>.<span class="ident">reserve_exact</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>.<span class="ident">len</span>);
+                <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">slots</span>.<span class="ident">reserve_exact</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>.<span class="ident">len</span>);
             }
 
             <span class="comment">// Initialize a new slot</span>
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">slots</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#154-160">Slot</a> {
-                <span class="ident">value</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#163-171">Value</a> {
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">slots</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#154-166">Slot</a> {
+                <span class="ident">value</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#169-177">Value</a> {
                     <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
-                    <span class="ident">page</span>: <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
+                    <span class="ident">page</span>: <span class="ident">Arc::as_ptr</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>),
                 }),
                 <span class="ident">next</span>: <span class="number">0</span>,
+                <span class="ident">_pin</span>: <span class="ident">std::marker::PhantomPinned</span>,
             });
 
             <span class="comment">// Increment the head to indicate the free stack is empty</span>
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">head</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">head</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
             <span class="comment">// Increment the number of used slots</span>
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">used</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>.<span class="ident">used</span>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">used</span>, <span class="ident">Relaxed</span>);
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>.<span class="ident">allocated</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Relaxed</span>);
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">used</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>.<span class="ident">used</span>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">used</span>, <span class="ident">Relaxed</span>);
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>.<span class="ident">allocated</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Relaxed</span>);
 
-            <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">slots</span>.<span class="ident">len</span>(), <a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">head</span>);
+            <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">slots</span>.<span class="ident">len</span>(), <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<span class="ident">head</span>);
 
-            <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#459">addr</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#419">idx</a>), <a class="ident" href="../../../src/tokio/util/slab.rs.html#388">locked</a>.<span class="ident">slots</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#419">idx</a>].<a class="ident" href="../../../src/tokio/util/slab.rs.html#565">gen_ref</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#381">me</a>)))
+            <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#466">addr</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#425">idx</a>), <a class="ident" href="../../../src/tokio/util/slab.rs.html#394">locked</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#570">gen_ref</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#425">idx</a>, <a class="ident" href="../../../src/tokio/util/slab.rs.html#387">me</a>)))
         }
     }
 }
@@ -1298,12 +1319,12 @@
     <span class="doccomment">/// Returns the slot index within the current page referenced by the given</span>
     <span class="doccomment">/// address.</span>
     <span class="kw">fn</span> <span class="ident">slot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">addr</span>: <a class="ident" href="../../../src/tokio/util/slab.rs.html#84">Address</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#454">addr</a>.<span class="number">0</span> <span class="op">-</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#454">self</a>.<span class="ident">prev_len</span>
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#461">addr</a>.<span class="number">0</span> <span class="op">-</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#461">self</a>.<span class="ident">prev_len</span>
     }
 
     <span class="doccomment">/// Returns the address for the given slot.</span>
     <span class="kw">fn</span> <span class="ident">addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">slot</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/tokio/util/slab.rs.html#84">Address</a> {
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#84">Address</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#459">slot</a> <span class="op">+</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#459">self</a>.<span class="ident">prev_len</span>)
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#84">Address</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#466">slot</a> <span class="op">+</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#466">self</a>.<span class="ident">prev_len</span>)
     }
 }
 
@@ -1326,31 +1347,31 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Page</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Release a slot into the page&#39;s free list.</span>
     <span class="kw">fn</span> <span class="ident">release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">*const</span> <span class="ident">Value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locked</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#482">self</a>.<span class="ident">slots</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locked</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#489">self</a>.<span class="ident">slots</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#483">locked</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#544">index_for</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#482">value</a>);
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#483">locked</a>.<span class="ident">slots</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#485">idx</a>].<span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#483">locked</a>.<span class="ident">head</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#483">locked</a>.<span class="ident">head</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#485">idx</a>;
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#483">locked</a>.<span class="ident">used</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#490">locked</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#551">index_for</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#489">value</a>);
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#490">locked</a>.<span class="ident">slots</span>[<a class="ident" href="../../../src/tokio/util/slab.rs.html#492">idx</a>].<span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#490">locked</a>.<span class="ident">head</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#490">locked</a>.<span class="ident">head</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#492">idx</a>;
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#490">locked</a>.<span class="ident">used</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
 
-        <a class="self" href="../../../src/tokio/util/slab.rs.html#482">self</a>.<span class="ident">used</span>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#483">locked</a>.<span class="ident">used</span>, <span class="ident">Relaxed</span>);
+        <a class="self" href="../../../src/tokio/util/slab.rs.html#489">self</a>.<span class="ident">used</span>.<span class="ident">store</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#490">locked</a>.<span class="ident">used</span>, <span class="ident">Relaxed</span>);
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">CachedPage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Refreshes the cache.</span>
     <span class="kw">fn</span> <span class="ident">refresh</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">page</span>: <span class="kw-2">&amp;</span><span class="ident">Page</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">slots</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#496">page</a>.<span class="ident">slots</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let</span> <span class="ident">slots</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#503">page</a>.<span class="ident">slots</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#497">slots</a>.<span class="ident">slots</span>.<span class="ident">is_empty</span>() {
-            <a class="self" href="../../../src/tokio/util/slab.rs.html#496">self</a>.<span class="ident">slots</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#497">slots</a>.<span class="ident">slots</span>.<span class="ident">as_ptr</span>();
-            <a class="self" href="../../../src/tokio/util/slab.rs.html#496">self</a>.<span class="ident">init</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#497">slots</a>.<span class="ident">slots</span>.<span class="ident">len</span>();
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#504">slots</a>.<span class="ident">slots</span>.<span class="ident">is_empty</span>() {
+            <a class="self" href="../../../src/tokio/util/slab.rs.html#503">self</a>.<span class="ident">slots</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#504">slots</a>.<span class="ident">slots</span>.<span class="ident">as_ptr</span>();
+            <a class="self" href="../../../src/tokio/util/slab.rs.html#503">self</a>.<span class="ident">init</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#504">slots</a>.<span class="ident">slots</span>.<span class="ident">len</span>();
         }
     }
 
     <span class="doccomment">/// Gets a value by index.</span>
     <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#506">idx</a> <span class="op">&lt;</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#506">self</a>.<span class="ident">init</span>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#513">idx</a> <span class="op">&lt;</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#513">self</a>.<span class="ident">init</span>);
 
         <span class="comment">// Safety: Pages are allocated concurrently, but are only ever</span>
         <span class="comment">// **deallocated** by `Slab`. `Slab` will always have a more</span>
@@ -1359,10 +1380,10 @@
         <span class="comment">// until `compact()` is called. The `compact()` function also updates</span>
         <span class="comment">// `CachedPage`.</span>
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#506">self</a>.<span class="ident">slots</span>.<span class="ident">add</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#506">idx</a>);
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#516">slot</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+            <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#513">self</a>.<span class="ident">slots</span>.<span class="ident">add</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#513">idx</a>);
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#523">slot</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 
-            <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#517">value</a>).<span class="ident">value</span>
+            <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#524">value</a>).<span class="ident">value</span>
         }
     }
 }
@@ -1390,34 +1411,31 @@
     <span class="kw">fn</span> <span class="ident">index_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">slot</span>: <span class="kw-2">*const</span> <span class="ident">Value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
-        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#544">self</a>.<span class="ident">slots</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/util/slab.rs.html#551">self</a>.<span class="ident">slots</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#547">base</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>, <span class="string">&quot;page is unallocated&quot;</span>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#554">base</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>, <span class="string">&quot;page is unallocated&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#544">slot</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#551">slot</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="kw">let</span> <span class="ident">width</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#551">slot</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#547">base</a>, <span class="string">&quot;unexpected pointer&quot;</span>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#558">slot</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#554">base</a>, <span class="string">&quot;unexpected pointer&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> (<a class="ident" href="../../../src/tokio/util/slab.rs.html#551">slot</a> <span class="op">-</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#547">base</a>) <span class="op">/</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#552">width</a>;
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#556">idx</a> <span class="op">&lt;</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#544">self</a>.<span class="ident">slots</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> (<a class="ident" href="../../../src/tokio/util/slab.rs.html#558">slot</a> <span class="op">-</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#554">base</a>) <span class="op">/</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#559">width</a>;
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#563">idx</a> <span class="op">&lt;</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#551">self</a>.<span class="ident">slots</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#556">idx</a>
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#563">idx</a>
     }
-}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/tokio/util/slab.rs.html#87-90">Entry</a><span class="op">&gt;</span> <span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Generates a `Ref` for the slot. This involves bumping the page&#39;s ref count.</span>
-    <span class="kw">fn</span> <span class="ident">gen_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">page</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="comment">// The ref holds a ref on the page. The `Arc` is forgotten here and is</span>
-        <span class="comment">// resurrected in `release` when the `Ref` is dropped. By avoiding to</span>
-        <span class="comment">// hold on to an explicit `Arc` value, the struct size of `Ref` is</span>
-        <span class="comment">// reduced.</span>
-        <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#565">page</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#565">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#571">slot</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Generates a `Ref` for the slot at the given index. This involves bumping the page&#39;s ref count.</span>
+    <span class="kw">fn</span> <span class="ident">gen_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">page</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#570">idx</a> <span class="op">&lt;</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#570">self</a>.<span class="ident">slots</span>.<span class="ident">len</span>());
+        <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#570">page</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#93-95">Ref</a> { <a class="ident" href="../../../src/tokio/util/slab.rs.html#572">value</a> }
+        <span class="kw">let</span> <span class="ident">vec_ptr</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/util/slab.rs.html#570">self</a>.<span class="ident">slots</span>.<span class="ident">as_ptr</span>();
+        <span class="kw">let</span> <span class="ident">slot</span>: <span class="kw-2">*const</span> <span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/util/slab.rs.html#574">vec_ptr</a>.<span class="ident">add</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#570">idx</a>) };
+        <span class="kw">let</span> <span class="ident">value</span>: <span class="kw-2">*const</span> <span class="ident">Value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#575">slot</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#93-95">Ref</a> { <a class="ident" href="../../../src/tokio/util/slab.rs.html#576">value</a> }
     }
 }
 
@@ -1425,9 +1443,9 @@
     <span class="doccomment">/// Releases the slot, returning the `Arc&lt;Page&lt;T&gt;&gt;` logically owned by the ref.</span>
     <span class="kw">fn</span> <span class="ident">release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Safety: called by `Ref`, which owns an `Arc&lt;Page&lt;T&gt;&gt;` instance.</span>
-        <span class="kw">let</span> <span class="ident">page</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Arc::from_raw</span>(<a class="self" href="../../../src/tokio/util/slab.rs.html#580">self</a>.<span class="ident">page</span>) };
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#582">page</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#482">release</a>(<a class="self" href="../../../src/tokio/util/slab.rs.html#580">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>);
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#582">page</a>
+        <span class="kw">let</span> <span class="ident">page</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Arc::from_raw</span>(<a class="self" href="../../../src/tokio/util/slab.rs.html#584">self</a>.<span class="ident">page</span>) };
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#586">page</a>.<a class="ident" href="../../../src/tokio/util/slab.rs.html#489">release</a>(<a class="self" href="../../../src/tokio/util/slab.rs.html#584">self</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>);
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#586">page</a>
     }
 }
 
@@ -1442,16 +1460,16 @@
         <span class="comment">// of leading zeros (unused twos places) in the number&#39;s binary</span>
         <span class="comment">// representation, and subtracting that count from the total number of</span>
         <span class="comment">// bits in a word.</span>
-        <span class="kw">let</span> <span class="ident">slot_shifted</span> <span class="op">=</span> (<a class="self" href="../../../src/tokio/util/slab.rs.html#589">self</a>.<span class="number">0</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#101">PAGE_INITIAL_SIZE</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#102">PAGE_INDEX_SHIFT</a>;
-        (<a class="ident" href="../../../src/tokio/util/bit.rs.html#64">bit::pointer_width</a>() <span class="op">-</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#599">slot_shifted</a>.<span class="ident">leading_zeros</span>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+        <span class="kw">let</span> <span class="ident">slot_shifted</span> <span class="op">=</span> (<a class="self" href="../../../src/tokio/util/slab.rs.html#593">self</a>.<span class="number">0</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#101">PAGE_INITIAL_SIZE</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#102">PAGE_INDEX_SHIFT</a>;
+        (<a class="ident" href="../../../src/tokio/util/bit.rs.html#64">bit::pointer_width</a>() <span class="op">-</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#603">slot_shifted</a>.<span class="ident">leading_zeros</span>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_usize</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/tokio/util/slab.rs.html#603">self</a>.<span class="number">0</span>
+        <a class="self" href="../../../src/tokio/util/slab.rs.html#607">self</a>.<span class="number">0</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">src</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/tokio/util/slab.rs.html#84">Address</a> {
-        <a class="ident" href="../../../src/tokio/util/slab.rs.html#84">Address</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#607">src</a>)
+        <a class="ident" href="../../../src/tokio/util/slab.rs.html#84">Address</a>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#611">src</a>)
     }
 }
 
@@ -1459,16 +1477,16 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">capacity</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
 
-    <span class="kw">for</span> <span class="ident">page</span> <span class="kw">in</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#612">pages</a> {
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#616">page</a>.<span class="ident">allocated</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) {
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#613">capacity</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#616">page</a>.<span class="ident">len</span>;
-            <a class="ident" href="../../../src/tokio/util/slab.rs.html#614">len</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#616">page</a>.<span class="ident">used</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>);
+    <span class="kw">for</span> <span class="ident">page</span> <span class="kw">in</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#616">pages</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#620">page</a>.<span class="ident">allocated</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) {
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#617">capacity</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#620">page</a>.<span class="ident">len</span>;
+            <a class="ident" href="../../../src/tokio/util/slab.rs.html#618">len</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/tokio/util/slab.rs.html#620">page</a>.<span class="ident">used</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>);
         }
     }
 
-    <a class="ident" href="../../../src/tokio/util/slab.rs.html#612">fmt</a>.<span class="ident">debug_struct</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#612">name</a>)
-        .<span class="ident">field</span>(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#614">len</a>)
-        .<span class="ident">field</span>(<span class="string">&quot;capacity&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#613">capacity</a>)
+    <a class="ident" href="../../../src/tokio/util/slab.rs.html#616">fmt</a>.<span class="ident">debug_struct</span>(<a class="ident" href="../../../src/tokio/util/slab.rs.html#616">name</a>)
+        .<span class="ident">field</span>(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#618">len</a>)
+        .<span class="ident">field</span>(<span class="string">&quot;capacity&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/util/slab.rs.html#617">capacity</a>)
         .<span class="ident">finish</span>()
 }
 
@@ -1537,11 +1555,13 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">insert_many</span>() {
+        <span class="kw">const</span> <span class="ident">MANY</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">normal_or_miri</span>(<span class="number">10_000</span>, <span class="number">50</span>);
+
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slab</span> <span class="op">=</span> <span class="ident">Slab</span>::<span class="op">&lt;</span><span class="ident">Foo</span><span class="op">&gt;</span><span class="ident">::new</span>();
         <span class="kw">let</span> <span class="ident">alloc</span> <span class="op">=</span> <span class="ident">slab</span>.<span class="ident">allocator</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10_000</span> {
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">MANY</span> {
             <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">val</span>) <span class="op">=</span> <span class="ident">alloc</span>.<span class="ident">allocate</span>().<span class="ident">unwrap</span>();
             <span class="ident">val</span>.<span class="ident">id</span>.<span class="ident">store</span>(<span class="ident">i</span>, <span class="ident">SeqCst</span>);
             <span class="ident">entries</span>.<span class="ident">push</span>((<span class="ident">addr</span>, <span class="ident">val</span>));
@@ -1554,15 +1574,15 @@
 
         <span class="ident">entries</span>.<span class="ident">clear</span>();
 
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10_000</span> {
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">MANY</span> {
             <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">val</span>) <span class="op">=</span> <span class="ident">alloc</span>.<span class="ident">allocate</span>().<span class="ident">unwrap</span>();
-            <span class="ident">val</span>.<span class="ident">id</span>.<span class="ident">store</span>(<span class="number">10_000</span> <span class="op">-</span> <span class="ident">i</span>, <span class="ident">SeqCst</span>);
+            <span class="ident">val</span>.<span class="ident">id</span>.<span class="ident">store</span>(<span class="ident">MANY</span> <span class="op">-</span> <span class="ident">i</span>, <span class="ident">SeqCst</span>);
             <span class="ident">entries</span>.<span class="ident">push</span>((<span class="ident">addr</span>, <span class="ident">val</span>));
         }
 
         <span class="kw">for</span> (<span class="ident">i</span>, (<span class="ident">addr</span>, <span class="ident">v</span>)) <span class="kw">in</span> <span class="ident">entries</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="macro">assert_eq!</span>(<span class="number">10_000</span> <span class="op">-</span> <span class="ident">i</span>, <span class="ident">v</span>.<span class="ident">id</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>));
-            <span class="macro">assert_eq!</span>(<span class="number">10_000</span> <span class="op">-</span> <span class="ident">i</span>, <span class="ident">slab</span>.<span class="ident">get</span>(<span class="kw-2">*</span><span class="ident">addr</span>).<span class="ident">unwrap</span>().<span class="ident">id</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>));
+            <span class="macro">assert_eq!</span>(<span class="ident">MANY</span> <span class="op">-</span> <span class="ident">i</span>, <span class="ident">v</span>.<span class="ident">id</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>));
+            <span class="macro">assert_eq!</span>(<span class="ident">MANY</span> <span class="op">-</span> <span class="ident">i</span>, <span class="ident">slab</span>.<span class="ident">get</span>(<span class="kw-2">*</span><span class="ident">addr</span>).<span class="ident">unwrap</span>().<span class="ident">id</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>));
         }
     }
 
@@ -1572,7 +1592,7 @@
         <span class="kw">let</span> <span class="ident">alloc</span> <span class="op">=</span> <span class="ident">slab</span>.<span class="ident">allocator</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10_000</span> {
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">normal_or_miri</span>(<span class="number">10_000</span>, <span class="number">100</span>) {
             <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">val</span>) <span class="op">=</span> <span class="ident">alloc</span>.<span class="ident">allocate</span>().<span class="ident">unwrap</span>();
             <span class="ident">val</span>.<span class="ident">id</span>.<span class="ident">store</span>(<span class="ident">i</span>, <span class="ident">SeqCst</span>);
             <span class="ident">entries</span>.<span class="ident">push</span>((<span class="ident">addr</span>, <span class="ident">val</span>));
@@ -1580,7 +1600,7 @@
 
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10</span> {
             <span class="comment">// Drop 1000 in reverse</span>
-            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1_000</span> {
+            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">normal_or_miri</span>(<span class="number">1_000</span>, <span class="number">10</span>) {
                 <span class="ident">entries</span>.<span class="ident">pop</span>();
             }
 
@@ -1599,7 +1619,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries1</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries2</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10_000</span> {
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">normal_or_miri</span>(<span class="number">10_000</span>, <span class="number">100</span>) {
             <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">val</span>) <span class="op">=</span> <span class="ident">alloc</span>.<span class="ident">allocate</span>().<span class="ident">unwrap</span>();
             <span class="ident">val</span>.<span class="ident">id</span>.<span class="ident">store</span>(<span class="ident">i</span>, <span class="ident">SeqCst</span>);
 
@@ -1617,6 +1637,14 @@
         }
     }
 
+    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">normal_or_miri</span>(<span class="ident">normal</span>: <span class="ident">usize</span>, <span class="ident">miri</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
+        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">miri</span>) {
+            <span class="ident">miri</span>
+        } <span class="kw">else</span> {
+            <span class="ident">normal</span>
+        }
+    }
+
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">compact_all</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slab</span> <span class="op">=</span> <span class="ident">Slab</span>::<span class="op">&lt;</span><span class="ident">Foo</span><span class="op">&gt;</span><span class="ident">::new</span>();
@@ -1626,7 +1654,7 @@
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">2</span> {
             <span class="ident">entries</span>.<span class="ident">clear</span>();
 
-            <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10_000</span> {
+            <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">normal_or_miri</span>(<span class="number">10_000</span>, <span class="number">100</span>) {
                 <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">val</span>) <span class="op">=</span> <span class="ident">alloc</span>.<span class="ident">allocate</span>().<span class="ident">unwrap</span>();
                 <span class="ident">val</span>.<span class="ident">id</span>.<span class="ident">store</span>(<span class="ident">i</span>, <span class="ident">SeqCst</span>);
 
@@ -1654,7 +1682,7 @@
         <span class="kw">let</span> <span class="ident">alloc</span> <span class="op">=</span> <span class="ident">slab</span>.<span class="ident">allocator</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">5</span> {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">normal_or_miri</span>(<span class="number">5</span>, <span class="number">2</span>) {
             <span class="ident">entries</span>.<span class="ident">clear</span>();
 
             <span class="comment">// Allocate a few pages + 1</span>
@@ -1686,5 +1714,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
 </body></html>

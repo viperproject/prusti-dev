@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.7.14/src/net/tcp/listener.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>listener.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.1/src/net/tcp/listener.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>listener.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -212,16 +212,61 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::net</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/net/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">std::os::wasi::io</span>::{<span class="ident">AsRawFd</span>, <span class="ident">FromRawFd</span>, <span class="ident">IntoRawFd</span>, <span class="ident">RawFd</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::os::windows::io</span>::{<span class="ident">AsRawSocket</span>, <span class="ident">FromRawSocket</span>, <span class="ident">IntoRawSocket</span>, <span class="ident">RawSocket</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/mio/net/tcp/socket.rs.html#21-23">TcpSocket</a>, <a class="ident" href="../../../../src/mio/net/tcp/stream.rs.html#45-47">TcpStream</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../src/mio/io_source.rs.html#62-67"><span class="kw">crate</span>::io_source::IoSource</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/mio/lib.rs.html#54">event</a>, <a class="ident" href="../../../../src/mio/lib.rs.html#50">sys</a>, <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>, <a class="ident" href="../../../../src/mio/poll.rs.html#209-211">Registry</a>, <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>};
+<span class="kw">use</span> <a class="ident" href="../../../../src/mio/net/tcp/stream.rs.html#48-50"><span class="kw">crate</span>::net::TcpStream</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
+<span class="kw">use</span> <a class="ident" href="../../../../src/mio/sys/unix/tcp.rs.html#42"><span class="kw">crate</span>::sys::tcp::set_reuseaddr</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sys::tcp</span>::{<a class="ident" href="../../../../src/mio/sys/unix/tcp.rs.html#17">bind</a>, <a class="ident" href="../../../../src/mio/sys/unix/tcp.rs.html#36">listen</a>, <a class="ident" href="../../../../src/mio/sys/unix/tcp.rs.html#9">new_for_addr</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/mio/lib.rs.html#54">event</a>, <a class="ident" href="../../../../src/mio/lib.rs.html#49">sys</a>, <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>, <a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>, <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>};
 
 <span class="doccomment">/// A structure representing a socket server</span>
 <span class="doccomment">///</span>
@@ -253,7 +298,7 @@
     <span class="ident">inner</span>: <span class="ident">IoSource</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#38-40">TcpListener</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#44-46">TcpListener</a> {
     <span class="doccomment">/// Convenience method to bind a new TCP listener to the specified address</span>
     <span class="doccomment">/// to receive new connections.</span>
     <span class="doccomment">///</span>
@@ -263,8 +308,13 @@
     <span class="doccomment">/// 2. Set the `SO_REUSEADDR` option on the socket on Unix.</span>
     <span class="doccomment">/// 3. Bind the socket to the specified address.</span>
     <span class="doccomment">/// 4. Calls `listen` on the socket to prepare it to receive new connections.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(<span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#38-40">TcpListener</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">TcpSocket::new_for_addr</span>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#52">addr</a>)<span class="question-mark">?</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(<span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#44-46">TcpListener</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <a class="ident" href="../../../../src/mio/sys/unix/tcp.rs.html#9">new_for_addr</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#59">addr</a>)<span class="question-mark">?</span>;
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
+        <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">TcpListener::from_raw_fd</span>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#60">socket</a>) };
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
+        <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">TcpListener::from_raw_socket</span>(<span class="ident">socket</span> <span class="kw">as</span> <span class="kw">_</span>) };
 
         <span class="comment">// On platforms with Berkeley-derived sockets, this allows to quickly</span>
         <span class="comment">// rebind a socket, without needing to wait for the OS to clean up the</span>
@@ -274,10 +324,11 @@
         <span class="comment">// which allows “socket hijacking”, so we explicitly don&#39;t set it here.</span>
         <span class="comment">// https://docs.microsoft.com/en-us/windows/win32/winsock/using-so-reuseaddr-and-so-exclusiveaddruse</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">windows</span>))]</span>
-        <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#53">socket</a>.<a class="ident" href="../../../../src/mio/net/tcp/socket.rs.html#100">set_reuseaddr</a>(<span class="bool-val">true</span>)<span class="question-mark">?</span>;
+        <a class="ident" href="../../../../src/mio/sys/unix/tcp.rs.html#42">set_reuseaddr</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#62">listener</a>.<span class="ident">inner</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
-        <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#53">socket</a>.<a class="ident" href="../../../../src/mio/net/tcp/socket.rs.html#72">bind</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#52">addr</a>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#53">socket</a>.<a class="ident" href="../../../../src/mio/net/tcp/socket.rs.html#91">listen</a>(<span class="number">1024</span>)
+        <a class="ident" href="../../../../src/mio/sys/unix/tcp.rs.html#17">bind</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#62">listener</a>.<span class="ident">inner</span>, <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#59">addr</a>)<span class="question-mark">?</span>;
+        <a class="ident" href="../../../../src/mio/sys/unix/tcp.rs.html#36">listen</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#62">listener</a>.<span class="ident">inner</span>, <span class="number">1024</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#62">listener</a>)
     }
 
     <span class="doccomment">/// Creates a new `TcpListener` from a standard `net::TcpListener`.</span>
@@ -286,9 +337,9 @@
     <span class="doccomment">/// standard library in the Mio equivalent. The conversion assumes nothing</span>
     <span class="doccomment">/// about the underlying listener; ; it is left up to the user to set it</span>
     <span class="doccomment">/// in non-blocking mode.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_std</span>(<span class="ident">listener</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a>) -&gt; <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#38-40">TcpListener</a> {
-        <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#38-40">TcpListener</a> {
-            <span class="ident">inner</span>: <span class="ident">IoSource::new</span>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#75">listener</a>),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_std</span>(<span class="ident">listener</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpListener.html">net::TcpListener</a>) -&gt; <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#44-46">TcpListener</a> {
+        <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#44-46">TcpListener</a> {
+            <span class="ident">inner</span>: <span class="ident">IoSource::new</span>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#87">listener</a>),
         }
     }
 
@@ -300,15 +351,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If an accepted stream is returned, the remote address of the peer is</span>
     <span class="doccomment">/// returned along with it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../../src/mio/net/tcp/stream.rs.html#45-47">TcpStream</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#89">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> {
-            <a class="ident" href="../../../../src/mio/sys/unix/tcp.rs.html#425">sys::tcp::accept</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#90">inner</a>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">stream</span>, <span class="ident">addr</span>)<span class="op">|</span> (<span class="ident">TcpStream::from_std</span>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#91">stream</a>), <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#91">addr</a>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../../src/mio/net/tcp/stream.rs.html#48-50">TcpStream</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>)<span class="op">&gt;</span> {
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#101">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> {
+            <a class="ident" href="../../../../src/mio/sys/unix/tcp.rs.html#54">sys::tcp::accept</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#102">inner</a>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">stream</span>, <span class="ident">addr</span>)<span class="op">|</span> (<span class="ident">TcpStream::from_std</span>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#103">stream</a>), <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#103">addr</a>))
         })
     }
 
     <span class="doccomment">/// Returns the local socket address of this listener.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#96">self</a>.<span class="ident">inner</span>.<span class="ident">local_addr</span>()
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#108">self</a>.<span class="ident">inner</span>.<span class="ident">local_addr</span>()
     }
 
     <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.</span>
@@ -316,7 +367,7 @@
     <span class="doccomment">/// This value sets the time-to-live field that is used in every packet sent</span>
     <span class="doccomment">/// from this socket.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ttl</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#104">self</a>.<span class="ident">inner</span>.<span class="ident">set_ttl</span>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#104">ttl</a>)
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#116">self</a>.<span class="ident">inner</span>.<span class="ident">set_ttl</span>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#116">ttl</a>)
     }
 
     <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.</span>
@@ -325,7 +376,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [link]: #method.set_ttl</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#113">self</a>.<span class="ident">inner</span>.<span class="ident">ttl</span>()
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#125">self</a>.<span class="ident">inner</span>.<span class="ident">ttl</span>()
     }
 
     <span class="doccomment">/// Get the value of the `SO_ERROR` option on this socket.</span>
@@ -334,64 +385,64 @@
     <span class="doccomment">/// the field in the process. This can be useful for checking errors between</span>
     <span class="doccomment">/// calls.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#122">self</a>.<span class="ident">inner</span>.<span class="ident">take_error</span>()
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#134">self</a>.<span class="ident">inner</span>.<span class="ident">take_error</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/mio/event/source.rs.html#75-112">event::Source</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#38-40">TcpListener</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/mio/event/source.rs.html#75-112">event::Source</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#44-46">TcpListener</a> {
     <span class="kw">fn</span> <span class="ident">register</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#209-211">Registry</a>,
+        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>,
         <span class="ident">token</span>: <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>,
         <span class="ident">interests</span>: <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>,
     ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#129">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#83-88">register</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#130">registry</a>, <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#131">token</a>, <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#132">interests</a>)
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#141">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#83-88">register</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#142">registry</a>, <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#143">token</a>, <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#144">interests</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">reregister</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#209-211">Registry</a>,
+        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>,
         <span class="ident">token</span>: <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>,
         <span class="ident">interests</span>: <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>,
     ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#138">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#139">registry</a>, <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#140">token</a>, <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#141">interests</a>)
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#150">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#151">registry</a>, <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#152">token</a>, <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#153">interests</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#209-211">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#146">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#111">deregister</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#146">registry</a>)
+    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#158">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#111">deregister</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#158">registry</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#38-40">TcpListener</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#44-46">TcpListener</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#152">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#152">f</a>)
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#164">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#164">f</a>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#38-40">TcpListener</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#44-46">TcpListener</a> {
     <span class="kw">fn</span> <span class="ident">into_raw_fd</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#159">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/io_source.rs.html#105">into_inner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#171">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/io_source.rs.html#105">into_inner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#38-40">TcpListener</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#44-46">TcpListener</a> {
     <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#166">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+        <a class="self" href="../../../../src/mio/net/tcp/listener.rs.html#178">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#38-40">TcpListener</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#44-46">TcpListener</a> {
     <span class="doccomment">/// Converts a `RawFd` to a `TcpListener`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Notes</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The caller is responsible for ensuring that the socket is in</span>
     <span class="doccomment">/// non-blocking mode.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#38-40">TcpListener</a> {
-        <span class="ident">TcpListener::from_std</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd::from_raw_fd</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#179">fd</a>))
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#44-46">TcpListener</a> {
+        <span class="ident">TcpListener::from_std</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd::from_raw_fd</a>(<a class="ident" href="../../../../src/mio/net/tcp/listener.rs.html#191">fd</a>))
     }
 }
 
@@ -421,6 +472,33 @@
         <span class="ident">TcpListener::from_std</span>(<span class="ident">FromRawSocket::from_raw_socket</span>(<span class="ident">socket</span>))
     }
 }
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">IntoRawFd</span> <span class="kw">for</span> <span class="ident">TcpListener</span> {
+    <span class="kw">fn</span> <span class="ident">into_raw_fd</span>(<span class="self">self</span>) -&gt; <span class="ident">RawFd</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">into_inner</span>().<span class="ident">into_raw_fd</span>()
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">AsRawFd</span> <span class="kw">for</span> <span class="ident">TcpListener</span> {
+    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawFd</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_fd</span>()
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">FromRawFd</span> <span class="kw">for</span> <span class="ident">TcpListener</span> {
+    <span class="doccomment">/// Converts a `RawFd` to a `TcpListener`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Notes</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The caller is responsible for ensuring that the socket is in</span>
+    <span class="doccomment">/// non-blocking mode.</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>) -&gt; <span class="ident">TcpListener</span> {
+        <span class="ident">TcpListener::from_std</span>(<span class="ident">FromRawFd::from_raw_fd</span>(<span class="ident">fd</span>))
+    }
+}
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
 </body></html>

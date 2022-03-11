@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["tag","generates a parser taking `count` bits and comparing them to `pattern`"],["take","generates a parser taking `count` bits"]]});
+initSidebarItems({"fn":[["tag","Generates a parser taking `count` bits and comparing them to `pattern`"],["take","Generates a parser taking `count` bits"]]});

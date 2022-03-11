@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/config-0.11.0/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/config-0.12.0/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../config/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -468,15 +468,21 @@
 <span id="463">463</span>
 <span id="464">464</span>
 <span id="465">465</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/config/config.rs.html#43-48">config::Config</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/config/lib.rs.html#57">error</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="../../serde/de/index.html">serde::de</a>;
-<span class="kw">use</span> <span class="ident">std::collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">VecDeque</a>};
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/adapters/enumerate/struct.Enumerate.html">std::iter::Enumerate</a>;
-<span class="kw">use</span> <span class="ident">value</span>::{<a class="ident" href="../../src/config/value.rs.html#20">Table</a>, <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a>};
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#36-80">ConfigError</a>;
+<span class="kw">use</span> <a class="ident" href="../../serde/de/index.html">serde::de</a>;
+
+<span class="kw">use</span> <a class="ident" href="../../src/config/config.rs.html#18-25"><span class="kw">crate</span>::config::Config</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use</span> <a class="ident" href="../../src/config/map.rs.html#2"><span class="kw">crate</span>::map::Map</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::value</span>::{<a class="ident" href="../../src/config/value.rs.html#29">Table</a>, <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a>};
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a> {
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
@@ -484,87 +490,90 @@
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="comment">// Deserialize based on the underlying type</span>
-        <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#12">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <a class="ident" href="../../src/config/de.rs.html#12">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_unit</a>(),
-            <a class="ident" href="../../src/config/value.rs.html#12">ValueKind::Integer</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#12">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a class="ident" href="../../src/config/de.rs.html#19">i</a>),
-            <a class="ident" href="../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<span class="ident">b</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#12">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_bool</a>(<a class="ident" href="../../src/config/de.rs.html#20">b</a>),
-            <a class="ident" href="../../src/config/value.rs.html#13">ValueKind::Float</a>(<span class="ident">f</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#12">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a class="ident" href="../../src/config/de.rs.html#21">f</a>),
-            <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#12">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="ident" href="../../src/config/de.rs.html#22">s</a>),
-            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Array</a>(<span class="ident">values</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#12">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_seq</a>(<span class="ident">SeqAccess::new</span>(<a class="ident" href="../../src/config/de.rs.html#23">values</a>)),
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="ident">map</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#12">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_map</a>(<span class="ident">MapAccess::new</span>(<a class="ident" href="../../src/config/de.rs.html#24">map</a>)),
+        <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#15">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <a class="ident" href="../../src/config/de.rs.html#15">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_unit</a>(),
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#15">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a class="ident" href="../../src/config/de.rs.html#22">i</a>),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#15">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i128</a>(<a class="ident" href="../../src/config/de.rs.html#23">i</a>),
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#15">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u64</a>(<a class="ident" href="../../src/config/de.rs.html#24">i</a>),
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#15">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u128</a>(<a class="ident" href="../../src/config/de.rs.html#25">i</a>),
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">b</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#15">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_bool</a>(<a class="ident" href="../../src/config/de.rs.html#26">b</a>),
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">f</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#15">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a class="ident" href="../../src/config/de.rs.html#27">f</a>),
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#15">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="ident" href="../../src/config/de.rs.html#28">s</a>),
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="ident">values</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#15">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_seq</a>(<span class="ident">SeqAccess::new</span>(<a class="ident" href="../../src/config/de.rs.html#29">values</a>)),
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="ident">map</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#15">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_map</a>(<span class="ident">MapAccess::new</span>(<a class="ident" href="../../src/config/de.rs.html#30">map</a>)),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_bool</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#29">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_bool</a>(<a class="self" href="../../src/config/de.rs.html#29">self</a>.<a class="ident" href="../../src/config/value.rs.html#160">into_bool</a>()<span class="question-mark">?</span>)
+        <a class="ident" href="../../src/config/de.rs.html#35">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_bool</a>(<a class="self" href="../../src/config/de.rs.html#35">self</a>.<a class="ident" href="../../src/config/value.rs.html#220">into_bool</a>()<span class="question-mark">?</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_i8</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#34">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i8</a>(<a class="self" href="../../src/config/de.rs.html#34">self</a>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>)
+        <a class="ident" href="../../src/config/de.rs.html#40">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i8</a>(<a class="self" href="../../src/config/de.rs.html#40">self</a>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_i16</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#40">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i16</a>(<a class="self" href="../../src/config/de.rs.html#40">self</a>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>)
+        <a class="ident" href="../../src/config/de.rs.html#46">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i16</a>(<a class="self" href="../../src/config/de.rs.html#46">self</a>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_i32</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#46">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i32</a>(<a class="self" href="../../src/config/de.rs.html#46">self</a>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)
+        <a class="ident" href="../../src/config/de.rs.html#52">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i32</a>(<a class="self" href="../../src/config/de.rs.html#52">self</a>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_i64</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#52">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a class="self" href="../../src/config/de.rs.html#52">self</a>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span>)
+        <a class="ident" href="../../src/config/de.rs.html#58">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a class="self" href="../../src/config/de.rs.html#58">self</a>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_u8</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#57">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u8</a>(<a class="self" href="../../src/config/de.rs.html#57">self</a>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+        <a class="ident" href="../../src/config/de.rs.html#63">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u8</a>(<a class="self" href="../../src/config/de.rs.html#63">self</a>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_u16</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#63">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u16</a>(<a class="self" href="../../src/config/de.rs.html#63">self</a>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
+        <a class="ident" href="../../src/config/de.rs.html#69">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u16</a>(<a class="self" href="../../src/config/de.rs.html#69">self</a>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_u32</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#69">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u32</a>(<a class="self" href="../../src/config/de.rs.html#69">self</a>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+        <a class="ident" href="../../src/config/de.rs.html#75">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u32</a>(<a class="self" href="../../src/config/de.rs.html#75">self</a>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_u64</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#75">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u64</a>(<a class="self" href="../../src/config/de.rs.html#75">self</a>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+        <a class="ident" href="../../src/config/de.rs.html#81">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u64</a>(<a class="self" href="../../src/config/de.rs.html#81">self</a>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_f32</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#81">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f32</a>(<a class="self" href="../../src/config/de.rs.html#81">self</a>.<a class="ident" href="../../src/config/value.rs.html#246">into_float</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>)
+        <a class="ident" href="../../src/config/de.rs.html#87">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f32</a>(<a class="self" href="../../src/config/de.rs.html#87">self</a>.<a class="ident" href="../../src/config/value.rs.html#490">into_float</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_f64</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#86">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a class="self" href="../../src/config/de.rs.html#86">self</a>.<a class="ident" href="../../src/config/value.rs.html#246">into_float</a>()<span class="question-mark">?</span>)
+        <a class="ident" href="../../src/config/de.rs.html#92">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a class="self" href="../../src/config/de.rs.html#92">self</a>.<a class="ident" href="../../src/config/value.rs.html#490">into_float</a>()<span class="question-mark">?</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_str</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#91">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="self" href="../../src/config/de.rs.html#91">self</a>.<a class="ident" href="../../src/config/value.rs.html#291">into_str</a>()<span class="question-mark">?</span>)
+        <a class="ident" href="../../src/config/de.rs.html#97">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="self" href="../../src/config/de.rs.html#97">self</a>.<a class="ident" href="../../src/config/value.rs.html#538">into_string</a>()<span class="question-mark">?</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_string</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#96">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="self" href="../../src/config/de.rs.html#96">self</a>.<a class="ident" href="../../src/config/value.rs.html#291">into_str</a>()<span class="question-mark">?</span>)
+        <a class="ident" href="../../src/config/de.rs.html#102">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="self" href="../../src/config/de.rs.html#102">self</a>.<a class="ident" href="../../src/config/value.rs.html#538">into_string</a>()<span class="question-mark">?</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -573,9 +582,9 @@
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="comment">// Match an explicit nil as None and everything else as Some</span>
-        <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#101">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <a class="ident" href="../../src/config/de.rs.html#101">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_none</a>(),
-            <span class="kw">_</span> =&gt; <a class="ident" href="../../src/config/de.rs.html#101">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="../../src/config/de.rs.html#101">self</a>),
+        <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#107">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <a class="ident" href="../../src/config/de.rs.html#107">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_none</a>(),
+            <span class="kw">_</span> =&gt; <a class="ident" href="../../src/config/de.rs.html#107">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="../../src/config/de.rs.html#107">self</a>),
         }
     }
 
@@ -583,7 +592,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../src/config/de.rs.html#112">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="../../src/config/de.rs.html#112">self</a>)
+        <a class="ident" href="../../src/config/de.rs.html#118">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="../../src/config/de.rs.html#118">self</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_enum</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
@@ -595,14 +604,14 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../src/config/de.rs.html#123">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_enum</a>(<a class="ident" href="../../src/config/de.rs.html#239-243">EnumAccess</a> {
-            <span class="ident">value</span>: <a class="self" href="../../src/config/de.rs.html#120">self</a>,
-            <a class="ident" href="../../src/config/de.rs.html#121">name</a>,
-            <a class="ident" href="../../src/config/de.rs.html#122">variants</a>,
+        <a class="ident" href="../../src/config/de.rs.html#129">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_enum</a>(<a class="ident" href="../../src/config/de.rs.html#239-243">EnumAccess</a> {
+            <span class="ident">value</span>: <a class="self" href="../../src/config/de.rs.html#126">self</a>,
+            <a class="ident" href="../../src/config/de.rs.html#127">name</a>,
+            <a class="ident" href="../../src/config/de.rs.html#128">variants</a>,
         })
     }
 
-    <span class="macro">forward_to_deserialize_any!</span> {
+    <span class="macro">serde::forward_to_deserialize_any!</span> {
         <span class="ident">char</span> <span class="ident">seq</span>
         <span class="ident">bytes</span> <span class="ident">byte_buf</span> <span class="ident">map</span> <span class="kw">struct</span> <span class="ident">unit</span>
         <span class="ident">identifier</span> <span class="ident">ignored_any</span> <span class="ident">unit_struct</span> <span class="ident">tuple_struct</span> <span class="ident">tuple</span>
@@ -611,21 +620,15 @@
 
 <span class="kw">struct</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/config/de.rs.html#142">StrDeserializer</a>(<a class="ident" href="../../src/config/de.rs.html#145">key</a>)
-    }
-}
-
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#36-80">ConfigError</a>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/config/de.rs.html#154">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_str</a>(<a class="self" href="../../src/config/de.rs.html#154">self</a>.<span class="number">0</span>)
     }
 
-    <span class="macro">forward_to_deserialize_any!</span> {
+    <span class="macro">serde::forward_to_deserialize_any!</span> {
         <span class="ident">bool</span> <span class="ident">u8</span> <span class="ident">u16</span> <span class="ident">u32</span> <span class="ident">u64</span> <span class="ident">i8</span> <span class="ident">i16</span> <span class="ident">i32</span> <span class="ident">i64</span> <span class="ident">f32</span> <span class="ident">f64</span> <span class="ident">char</span> <span class="ident">str</span> <span class="ident">string</span> <span class="ident">seq</span>
         <span class="ident">bytes</span> <span class="ident">byte_buf</span> <span class="ident">map</span> <span class="kw">struct</span> <span class="ident">unit</span> <span class="kw">enum</span> <span class="ident">newtype_struct</span>
         <span class="ident">identifier</span> <span class="ident">ignored_any</span> <span class="ident">unit_struct</span> <span class="ident">tuple_struct</span> <span class="ident">tuple</span> <span class="ident">option</span>
@@ -633,19 +636,19 @@
 }
 
 <span class="kw">struct</span> <span class="ident">SeqAccess</span> {
-    <span class="ident">elements</span>: <span class="ident">Enumerate</span><span class="op">&lt;</span><span class="ident">::std::vec::IntoIter</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">elements</span>: <span class="ident">Enumerate</span><span class="op">&lt;</span><span class="ident">::std::vec::IntoIter</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/config/de.rs.html#165-167">SeqAccess</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/config/de.rs.html#165-167">SeqAccess</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
             <span class="ident">elements</span>: <a class="ident" href="../../src/config/de.rs.html#170">elements</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>(),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::SeqAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/de.rs.html#165-167">SeqAccess</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#36-80">ConfigError</a>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a>;
 
     <span class="kw">fn</span> <span class="ident">next_element_seed</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::Value</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -655,7 +658,7 @@
             <span class="prelude-val">Some</span>((<span class="ident">idx</span>, <span class="ident">value</span>)) =&gt; <a class="ident" href="../../src/config/de.rs.html#180">seed</a>
                 .<a class="ident" href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a class="ident" href="../../src/config/de.rs.html#185">value</a>)
                 .<span class="ident">map</span>(<span class="prelude-val">Some</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="ident" href="../../src/config/de.rs.html#188">e</a>.<a class="ident" href="../../src/config/error.rs.html#149">prepend_index</a>(<a class="ident" href="../../src/config/de.rs.html#185">idx</a>)),
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="ident" href="../../src/config/de.rs.html#188">e</a>.<a class="ident" href="../../src/config/error.rs.html#170">prepend_index</a>(<a class="ident" href="../../src/config/de.rs.html#185">idx</a>)),
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
@@ -669,19 +672,19 @@
 }
 
 <span class="kw">struct</span> <span class="ident">MapAccess</span> {
-    <span class="ident">elements</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>)<span class="op">&gt;</span>,
+    <span class="ident">elements</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>)<span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/config/de.rs.html#201-203">MapAccess</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">table</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/config/de.rs.html#201-203">MapAccess</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">table</span>: <span class="ident">Map</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
             <span class="ident">elements</span>: <a class="ident" href="../../src/config/de.rs.html#206">table</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::MapAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/de.rs.html#201-203">MapAccess</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#36-80">ConfigError</a>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a>;
 
     <span class="kw">fn</span> <span class="ident">next_key_seed</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">K</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">K::Value</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -702,26 +705,26 @@
         <span class="ident">V</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span> <a class="self" href="../../src/config/de.rs.html#230">self</a>.<span class="ident">elements</span>.<span class="ident">pop_front</span>().<span class="ident">unwrap</span>();
-        <a class="ident" href="../../serde/de/trait.DeserializeSeed.html">de::DeserializeSeed::deserialize</a>(<a class="ident" href="../../src/config/de.rs.html#230">seed</a>, <a class="ident" href="../../src/config/de.rs.html#234">value</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="ident" href="../../src/config/de.rs.html#235">e</a>.<a class="ident" href="../../src/config/error.rs.html#145">prepend_key</a>(<a class="ident" href="../../src/config/de.rs.html#234">key</a>))
+        <a class="ident" href="../../serde/de/trait.DeserializeSeed.html">de::DeserializeSeed::deserialize</a>(<a class="ident" href="../../src/config/de.rs.html#230">seed</a>, <a class="ident" href="../../src/config/de.rs.html#234">value</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="ident" href="../../src/config/de.rs.html#235">e</a>.<a class="ident" href="../../src/config/error.rs.html#165">prepend_key</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/config/de.rs.html#234">key</a>))
     }
 }
 
 <span class="kw">struct</span> <span class="ident">EnumAccess</span> {
-    <span class="ident">value</span>: <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>,
+    <span class="ident">value</span>: <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>,
     <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     <span class="ident">variants</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>],
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/config/de.rs.html#239-243">EnumAccess</a> {
-    <span class="kw">fn</span> <span class="ident">variant_deserializer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/de.rs.html#142">StrDeserializer</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">variant_deserializer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/de.rs.html#148">StrDeserializer</a><span class="op">&gt;</span> {
         <a class="self" href="../../src/config/de.rs.html#246">self</a>.<span class="ident">variants</span>
             .<span class="ident">iter</span>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="op">&amp;&amp;</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../src/config/de.rs.html#249">s</a> <span class="op">==</span> <a class="ident" href="../../src/config/de.rs.html#246">name</a>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../src/config/de.rs.html#142">StrDeserializer</a>(<a class="ident" href="../../src/config/de.rs.html#250">s</a>))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../src/config/de.rs.html#148">StrDeserializer</a>(<a class="ident" href="../../src/config/de.rs.html#250">s</a>))
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../src/config/de.rs.html#246">self</a>.<a class="ident" href="../../src/config/de.rs.html#262">no_constructor_error</a>(<a class="ident" href="../../src/config/de.rs.html#246">name</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">table_deserializer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">table</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/config/value.rs.html#20">Table</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/de.rs.html#142">StrDeserializer</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">table_deserializer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">table</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/config/value.rs.html#29">Table</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/de.rs.html#148">StrDeserializer</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <a class="ident" href="../../src/config/de.rs.html#254">table</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <a class="self" href="../../src/config/de.rs.html#254">self</a>.<a class="ident" href="../../src/config/de.rs.html#246">variant_deserializer</a>(<a class="ident" href="../../src/config/de.rs.html#254">table</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>().<span class="number">0</span>)
         } <span class="kw">else</span> {
@@ -729,15 +732,15 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">no_constructor_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">supposed_variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="../../src/config/error.rs.html#36-80">ConfigError</a> {
-        <a class="ident" href="../../src/config/error.rs.html#76">ConfigError::Message</a>(<span class="macro">format!</span>(
+    <span class="kw">fn</span> <span class="ident">no_constructor_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">supposed_variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a> {
+        <a class="ident" href="../../src/config/error.rs.html#81">ConfigError::Message</a>(<span class="macro">format!</span>(
             <span class="string">&quot;enum {} does not have variant constructor {}&quot;</span>,
             <a class="self" href="../../src/config/de.rs.html#262">self</a>.<span class="ident">name</span>, <a class="ident" href="../../src/config/de.rs.html#262">supposed_variant</a>
         ))
     }
 
-    <span class="kw">fn</span> <span class="ident">structural_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/config/error.rs.html#36-80">ConfigError</a> {
-        <a class="ident" href="../../src/config/error.rs.html#76">ConfigError::Message</a>(<span class="macro">format!</span>(
+    <span class="kw">fn</span> <span class="ident">structural_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a> {
+        <a class="ident" href="../../src/config/error.rs.html#81">ConfigError::Message</a>(<span class="macro">format!</span>(
             <span class="string">&quot;value of enum {} should be represented by either string or table with exactly one key&quot;</span>,
             <a class="self" href="../../src/config/de.rs.html#269">self</a>.<span class="ident">name</span>
         ))
@@ -745,7 +748,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::EnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/de.rs.html#239-243">EnumAccess</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#36-80">ConfigError</a>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a>;
     <span class="kw">type</span> <span class="ident">Variant</span> <span class="op">=</span> <span class="self">Self</span>;
 
     <span class="kw">fn</span> <span class="ident">variant_seed</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">V::Value</span>, <span class="ident"><span class="self">Self</span>::Variant</span>)<span class="op">&gt;</span>
@@ -754,8 +757,8 @@
     {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">deserializer</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#281">self</a>.<span class="ident">value</span>.<span class="ident">kind</span> {
-                <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <a class="self" href="../../src/config/de.rs.html#281">self</a>.<a class="ident" href="../../src/config/de.rs.html#246">variant_deserializer</a>(<a class="ident" href="../../src/config/de.rs.html#287">s</a>),
-                <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="kw-2">ref</span> <span class="ident">t</span>) =&gt; <a class="self" href="../../src/config/de.rs.html#281">self</a>.<a class="ident" href="../../src/config/de.rs.html#254">table_deserializer</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/config/de.rs.html#288">t</a>),
+                <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <a class="self" href="../../src/config/de.rs.html#281">self</a>.<a class="ident" href="../../src/config/de.rs.html#246">variant_deserializer</a>(<a class="ident" href="../../src/config/de.rs.html#287">s</a>),
+                <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="kw-2">ref</span> <span class="ident">t</span>) =&gt; <a class="self" href="../../src/config/de.rs.html#281">self</a>.<a class="ident" href="../../src/config/de.rs.html#254">table_deserializer</a>(<a class="ident" href="../../src/config/de.rs.html#288">t</a>),
                 <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<a class="self" href="../../src/config/de.rs.html#281">self</a>.<a class="ident" href="../../src/config/de.rs.html#269">structural_error</a>()),
             }<span class="question-mark">?</span>;
             <a class="ident" href="../../src/config/de.rs.html#281">seed</a>.<a class="ident" href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a class="ident" href="../../src/config/de.rs.html#286">deserializer</a>)<span class="question-mark">?</span>
@@ -766,7 +769,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::VariantAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/de.rs.html#239-243">EnumAccess</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#36-80">ConfigError</a>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a>;
 
     <span class="kw">fn</span> <span class="ident">unit_variant</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
@@ -777,7 +780,7 @@
         <span class="ident">T</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#305">self</a>.<span class="ident">value</span>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#305">seed</a>.<a class="ident" href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a class="ident" href="../../src/config/de.rs.html#310">t</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>().<span class="number">1</span>),
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#305">seed</a>.<a class="ident" href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a class="ident" href="../../src/config/de.rs.html#310">t</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>().<span class="number">1</span>),
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
@@ -787,7 +790,7 @@
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#315">self</a>.<span class="ident">value</span>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="ident">t</span>) =&gt; {
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="ident">t</span>) =&gt; {
                 <a class="ident" href="../../serde/de/trait.Deserializer.html">de::Deserializer::deserialize_seq</a>(<a class="ident" href="../../src/config/de.rs.html#320">t</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>().<span class="number">1</span>, <a class="ident" href="../../src/config/de.rs.html#315">visitor</a>)
             }
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
@@ -799,7 +802,7 @@
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#327">self</a>.<span class="ident">value</span>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="ident">t</span>) =&gt; {
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="ident">t</span>) =&gt; {
                 <a class="ident" href="../../serde/de/trait.Deserializer.html">de::Deserializer::deserialize_map</a>(<a class="ident" href="../../src/config/de.rs.html#332">t</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>().<span class="number">1</span>, <a class="ident" href="../../src/config/de.rs.html#327">visitor</a>)
             }
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
@@ -807,8 +810,8 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/config.rs.html#43-48">Config</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#36-80">ConfigError</a>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/config.rs.html#18-25">Config</a> {
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
@@ -817,86 +820,89 @@
     {
         <span class="comment">// Deserialize based on the underlying type</span>
         <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#344">self</a>.<span class="ident">cache</span>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_unit</a>(),
-            <a class="ident" href="../../src/config/value.rs.html#12">ValueKind::Integer</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a class="ident" href="../../src/config/de.rs.html#351">i</a>),
-            <a class="ident" href="../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<span class="ident">b</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_bool</a>(<a class="ident" href="../../src/config/de.rs.html#352">b</a>),
-            <a class="ident" href="../../src/config/value.rs.html#13">ValueKind::Float</a>(<span class="ident">f</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a class="ident" href="../../src/config/de.rs.html#353">f</a>),
-            <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="ident" href="../../src/config/de.rs.html#354">s</a>),
-            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Array</a>(<span class="ident">values</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_seq</a>(<span class="ident">SeqAccess::new</span>(<a class="ident" href="../../src/config/de.rs.html#355">values</a>)),
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="ident">map</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_map</a>(<span class="ident">MapAccess::new</span>(<a class="ident" href="../../src/config/de.rs.html#356">map</a>)),
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_unit</a>(),
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a class="ident" href="../../src/config/de.rs.html#351">i</a>),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i128</a>(<a class="ident" href="../../src/config/de.rs.html#352">i</a>),
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u64</a>(<a class="ident" href="../../src/config/de.rs.html#353">i</a>),
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u128</a>(<a class="ident" href="../../src/config/de.rs.html#354">i</a>),
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">b</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_bool</a>(<a class="ident" href="../../src/config/de.rs.html#355">b</a>),
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">f</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a class="ident" href="../../src/config/de.rs.html#356">f</a>),
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="ident" href="../../src/config/de.rs.html#357">s</a>),
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="ident">values</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_seq</a>(<span class="ident">SeqAccess::new</span>(<a class="ident" href="../../src/config/de.rs.html#358">values</a>)),
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="ident">map</span>) =&gt; <a class="ident" href="../../src/config/de.rs.html#344">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_map</a>(<span class="ident">MapAccess::new</span>(<a class="ident" href="../../src/config/de.rs.html#359">map</a>)),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_bool</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#361">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_bool</a>(<a class="self" href="../../src/config/de.rs.html#361">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#160">into_bool</a>()<span class="question-mark">?</span>)
+        <a class="ident" href="../../src/config/de.rs.html#364">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_bool</a>(<a class="self" href="../../src/config/de.rs.html#364">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#220">into_bool</a>()<span class="question-mark">?</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_i8</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#366">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i8</a>(<a class="self" href="../../src/config/de.rs.html#366">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>)
+        <a class="ident" href="../../src/config/de.rs.html#369">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i8</a>(<a class="self" href="../../src/config/de.rs.html#369">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_i16</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#372">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i16</a>(<a class="self" href="../../src/config/de.rs.html#372">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>)
+        <a class="ident" href="../../src/config/de.rs.html#375">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i16</a>(<a class="self" href="../../src/config/de.rs.html#375">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_i32</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#378">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i32</a>(<a class="self" href="../../src/config/de.rs.html#378">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)
+        <a class="ident" href="../../src/config/de.rs.html#381">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i32</a>(<a class="self" href="../../src/config/de.rs.html#381">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_i64</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#384">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a class="self" href="../../src/config/de.rs.html#384">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span>)
+        <a class="ident" href="../../src/config/de.rs.html#387">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a class="self" href="../../src/config/de.rs.html#387">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_u8</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#389">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u8</a>(<a class="self" href="../../src/config/de.rs.html#389">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+        <a class="ident" href="../../src/config/de.rs.html#392">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u8</a>(<a class="self" href="../../src/config/de.rs.html#392">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_u16</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#395">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u16</a>(<a class="self" href="../../src/config/de.rs.html#395">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
+        <a class="ident" href="../../src/config/de.rs.html#398">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u16</a>(<a class="self" href="../../src/config/de.rs.html#398">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_u32</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#401">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u32</a>(<a class="self" href="../../src/config/de.rs.html#401">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+        <a class="ident" href="../../src/config/de.rs.html#404">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u32</a>(<a class="self" href="../../src/config/de.rs.html#404">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_u64</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should *fail* if the value does not fit in the requets integer type</span>
-        <a class="ident" href="../../src/config/de.rs.html#407">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u64</a>(<a class="self" href="../../src/config/de.rs.html#407">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#201">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+        <a class="ident" href="../../src/config/de.rs.html#410">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u64</a>(<a class="self" href="../../src/config/de.rs.html#410">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#264">into_int</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_f32</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#413">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f32</a>(<a class="self" href="../../src/config/de.rs.html#413">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#246">into_float</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>)
+        <a class="ident" href="../../src/config/de.rs.html#416">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f32</a>(<a class="self" href="../../src/config/de.rs.html#416">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#490">into_float</a>()<span class="question-mark">?</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_f64</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#418">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a class="self" href="../../src/config/de.rs.html#418">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#246">into_float</a>()<span class="question-mark">?</span>)
+        <a class="ident" href="../../src/config/de.rs.html#421">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a class="self" href="../../src/config/de.rs.html#421">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#490">into_float</a>()<span class="question-mark">?</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_str</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#423">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="self" href="../../src/config/de.rs.html#423">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#291">into_str</a>()<span class="question-mark">?</span>)
+        <a class="ident" href="../../src/config/de.rs.html#426">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="self" href="../../src/config/de.rs.html#426">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#538">into_string</a>()<span class="question-mark">?</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_string</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/config/de.rs.html#428">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="self" href="../../src/config/de.rs.html#428">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#291">into_str</a>()<span class="question-mark">?</span>)
+        <a class="ident" href="../../src/config/de.rs.html#431">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="self" href="../../src/config/de.rs.html#431">self</a>.<span class="ident">cache</span>.<a class="ident" href="../../src/config/value.rs.html#538">into_string</a>()<span class="question-mark">?</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -905,9 +911,9 @@
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="comment">// Match an explicit nil as None and everything else as Some</span>
-        <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#433">self</a>.<span class="ident">cache</span>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <a class="ident" href="../../src/config/de.rs.html#433">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_none</a>(),
-            <span class="kw">_</span> =&gt; <a class="ident" href="../../src/config/de.rs.html#433">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="../../src/config/de.rs.html#433">self</a>),
+        <span class="kw">match</span> <a class="self" href="../../src/config/de.rs.html#436">self</a>.<span class="ident">cache</span>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <a class="ident" href="../../src/config/de.rs.html#436">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_none</a>(),
+            <span class="kw">_</span> =&gt; <a class="ident" href="../../src/config/de.rs.html#436">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="../../src/config/de.rs.html#436">self</a>),
         }
     }
 
@@ -920,19 +926,19 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../src/config/de.rs.html#448">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_enum</a>(<a class="ident" href="../../src/config/de.rs.html#239-243">EnumAccess</a> {
-            <span class="ident">value</span>: <a class="self" href="../../src/config/de.rs.html#445">self</a>.<span class="ident">cache</span>,
-            <a class="ident" href="../../src/config/de.rs.html#446">name</a>,
-            <a class="ident" href="../../src/config/de.rs.html#447">variants</a>,
+        <a class="ident" href="../../src/config/de.rs.html#451">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_enum</a>(<a class="ident" href="../../src/config/de.rs.html#239-243">EnumAccess</a> {
+            <span class="ident">value</span>: <a class="self" href="../../src/config/de.rs.html#448">self</a>.<span class="ident">cache</span>,
+            <a class="ident" href="../../src/config/de.rs.html#449">name</a>,
+            <a class="ident" href="../../src/config/de.rs.html#450">variants</a>,
         })
     }
 
-    <span class="macro">forward_to_deserialize_any!</span> {
+    <span class="macro">serde::forward_to_deserialize_any!</span> {
         <span class="ident">char</span> <span class="ident">seq</span>
         <span class="ident">bytes</span> <span class="ident">byte_buf</span> <span class="ident">map</span> <span class="kw">struct</span> <span class="ident">unit</span> <span class="ident">newtype_struct</span>
         <span class="ident">identifier</span> <span class="ident">ignored_any</span> <span class="ident">unit_struct</span> <span class="ident">tuple_struct</span> <span class="ident">tuple</span>
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="config" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="config" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
 </body></html>

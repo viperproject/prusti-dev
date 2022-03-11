@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["complete","parsers recognizing bytes streams, complete input version"],["streaming","parsers recognizing bytes streams, streaming version"]]});
+initSidebarItems({"mod":[["complete","Parsers recognizing bytes streams, complete input version"],["streaming","Parsers recognizing bytes streams, streaming version"]]});

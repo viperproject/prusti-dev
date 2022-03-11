@@ -3,8 +3,8 @@
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"><a href="#">Module process</a></h2><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li></ul></div><div id="sidebar-vars" data-name="process" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tokio/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Module <a href="../index.html">tokio</a>::<wbr><a class="mod" href="#">process</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/tokio/process/mod.rs.html#1-1481">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>An implementation of asynchronous process management for Tokio.</p>
+        </a><h2 class="location"><a href="#">Module process</a></h2><div class="sidebar-elems"><section><div class="block"><ul><li><a href="#structs">Structs</a></li></ul></div></section><div id="sidebar-vars" data-name="process" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tokio/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Module <a href="../index.html">tokio</a>::<wbr><a class="mod" href="#">process</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/tokio/process/mod.rs.html#1-1534">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>An implementation of asynchronous process management for Tokio.</p>
 <p>This module provides a <a href="struct.Command.html"><code>Command</code></a> struct that imitates the interface of the
 <a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html"><code>std::process::Command</code></a> type in the standard library, but provides asynchronous versions of
 functions that create processes. These functions (<code>spawn</code>, <code>status</code>, <code>output</code> and their
@@ -88,6 +88,56 @@ for it complete.</p>
 
     <span class="prelude-val">Ok</span>(())
 }</code></pre></div>
+<p>Here is another example using <code>sort</code> writing into the child process
+standard input, capturing the output of the sorted text.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">tokio::io::AsyncWriteExt</span>;
+<span class="kw">use</span> <span class="ident">tokio::process::Command</span>;
+
+<span class="kw">use</span> <span class="ident">std::process::Stdio</span>;
+
+<span class="attribute">#[<span class="ident">tokio::main</span>]</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="string">&quot;sort&quot;</span>);
+
+    <span class="comment">// Specifying that we want pipe both the output and the input.</span>
+    <span class="comment">// Similarily to capturing the output, by configuring the pipe</span>
+    <span class="comment">// to stdin it can now be used as an asynchronous writer.</span>
+    <span class="ident">cmd</span>.<span class="ident">stdout</span>(<span class="ident">Stdio::piped</span>());
+    <span class="ident">cmd</span>.<span class="ident">stdin</span>(<span class="ident">Stdio::piped</span>());
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">child</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">spawn</span>().<span class="ident">expect</span>(<span class="string">&quot;failed to spawn command&quot;</span>);
+
+    <span class="comment">// These are the animals we want to sort</span>
+    <span class="kw">let</span> <span class="ident">animals</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="string">&quot;dog&quot;</span>, <span class="string">&quot;bird&quot;</span>, <span class="string">&quot;frog&quot;</span>, <span class="string">&quot;cat&quot;</span>, <span class="string">&quot;fish&quot;</span>];
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stdin</span> <span class="op">=</span> <span class="ident">child</span>
+        .<span class="ident">stdin</span>
+        .<span class="ident">take</span>()
+        .<span class="ident">expect</span>(<span class="string">&quot;child did not have a handle to stdin&quot;</span>);
+
+    <span class="comment">// Write our animals to the child process</span>
+    <span class="comment">// Note that the behavior of `sort` is to buffer _all input_ before writing any output.</span>
+    <span class="comment">// In the general sense, it is recommended to write to the child in a separate task as</span>
+    <span class="comment">// awaiting its exit (or output) to avoid deadlocks (for example, the child tries to write</span>
+    <span class="comment">// some output but gets stuck waiting on the parent to read from it, meanwhile the parent</span>
+    <span class="comment">// is stuck waiting to write its input completely before reading the output).</span>
+    <span class="ident">stdin</span>
+        .<span class="ident">write</span>(<span class="ident">animals</span>.<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>).<span class="ident">as_bytes</span>())
+        .<span class="kw">await</span>
+        .<span class="ident">expect</span>(<span class="string">&quot;could not write to stdin&quot;</span>);
+
+    <span class="comment">// We drop the handle here which signals EOF to the child process.</span>
+    <span class="comment">// This tells the child process that it there is no more data on the pipe.</span>
+    <span class="ident">drop</span>(<span class="ident">stdin</span>);
+
+    <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">wait_with_output</span>().<span class="kw">await</span><span class="question-mark">?</span>;
+
+    <span class="comment">// Results should come back in sorted order</span>
+    <span class="macro">assert_eq!</span>(<span class="ident">op</span>.<span class="ident">stdout</span>, <span class="string">&quot;bird\ncat\ndog\nfish\nfrog\n&quot;</span>.<span class="ident">as_bytes</span>());
+
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
 <p>With some coordination, we can also pipe the output of one command into
 another.</p>
 
@@ -158,5 +208,5 @@ fully <code>await</code>ed if stricter cleanup guarantees are required.</p>
 replaces functions that create a process with an asynchronous variant. The main provided
 asynchronous functions are <a href="struct.Command.html#method.spawn">spawn</a>, <a href="struct.Command.html#method.status">status</a>, and
 <a href="struct.Command.html#method.output">output</a>.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
 </body></html>

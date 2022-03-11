@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-5.1.2/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.0/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -779,226 +779,412 @@
 <span id="774">774</span>
 <span id="775">775</span>
 <span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error management</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Parsers are generic over their error type, requiring that it implements</span>
 <span class="doccomment">//! the `error::ParseError&lt;Input&gt;` trait.</span>
 
-<span class="doccomment">/// this trait must be implemented by the error type of a nom parser</span>
+<span class="kw">use</span> <a class="ident" href="../../src/nom/internal.rs.html#241-318"><span class="kw">crate</span>::internal::Parser</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html"><span class="kw">crate</span>::lib::std::fmt</a>;
+
+<span class="doccomment">/// This trait must be implemented by the error type of a nom parser.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// There are already implementations of it for `(Input, ErrorKind)`</span>
 <span class="doccomment">/// and `VerboseError&lt;Input&gt;`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// It provides methods to create an error from some combinators,</span>
-<span class="doccomment">/// and combine existing errors in combinators like `alt`</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>: <a class="ident" href="../../nom/lib/std/prelude/v1/rust_2021/trait.Sized.html">Sized</a> {
-  <span class="doccomment">/// creates an error from the input position and an [ErrorKind]</span>
-  <span class="kw">fn</span> <span class="ident">from_error_kind</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>) -&gt; <span class="self">Self</span>;
+<span class="doccomment">/// and combine existing errors in combinators like `alt`.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+  <span class="doccomment">/// Creates an error from the input position and an [ErrorKind]</span>
+  <span class="kw">fn</span> <span class="ident">from_error_kind</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) -&gt; <span class="self">Self</span>;
 
-  <span class="doccomment">/// combines an existing error with a new one created from the input</span>
+  <span class="doccomment">/// Combines an existing error with a new one created from the input</span>
   <span class="doccomment">/// position and an [ErrorKind]. This is useful when backtracking</span>
   <span class="doccomment">/// through a parse tree, accumulating error context on the way</span>
-  <span class="kw">fn</span> <span class="ident">append</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+  <span class="kw">fn</span> <span class="ident">append</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 
-  <span class="doccomment">/// creates an error from an input position and an expected character</span>
+  <span class="doccomment">/// Creates an error from an input position and an expected character</span>
   <span class="kw">fn</span> <span class="ident">from_char</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="kw">_</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="self">Self</span> {
-    <span class="ident"><span class="self">Self</span>::from_error_kind</span>(<a class="ident" href="../../src/nom/error.rs.html#23">input</a>, <a class="ident" href="../../src/nom/error.rs.html#264">ErrorKind::Char</a>)
+    <span class="ident"><span class="self">Self</span>::from_error_kind</span>(<a class="ident" href="../../src/nom/error.rs.html#26">input</a>, <a class="ident" href="../../src/nom/error.rs.html#395">ErrorKind::Char</a>)
   }
 
-  <span class="doccomment">/// combines two existing error. This function is used to compare errors</span>
-  <span class="doccomment">/// generated in various branches of [alt]</span>
+  <span class="doccomment">/// Combines two existing errors. This function is used to compare errors</span>
+  <span class="doccomment">/// generated in various branches of `alt`.</span>
   <span class="kw">fn</span> <span class="ident">or</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-    <a class="ident" href="../../src/nom/error.rs.html#29">other</a>
-  }
-
-  <span class="doccomment">/// create a new error from an input position, a static string and an existing error.</span>
-  <span class="doccomment">/// This is used mainly in the [context] combinator, to add user friendly information</span>
-  <span class="doccomment">/// to errors when backtracking through a parse tree</span>
-  <span class="kw">fn</span> <span class="ident">add_context</span>(<span class="ident">_input</span>: <span class="ident">I</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-    <a class="ident" href="../../src/nom/error.rs.html#36">other</a>
+    <a class="ident" href="../../src/nom/error.rs.html#32">other</a>
   }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> (<span class="ident">I</span>, <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>) {
-  <span class="kw">fn</span> <span class="ident">from_error_kind</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>) -&gt; <span class="self">Self</span> {
-    (<a class="ident" href="../../src/nom/error.rs.html#42">input</a>, <a class="ident" href="../../src/nom/error.rs.html#42">kind</a>)
+<span class="doccomment">/// This trait is required by the `context` combinator to add a static string</span>
+<span class="doccomment">/// to an existing error</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ContextError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+  <span class="doccomment">/// Creates a new error from an input position, a static string and an existing error.</span>
+  <span class="doccomment">/// This is used mainly in the [context] combinator, to add user friendly information</span>
+  <span class="doccomment">/// to errors when backtracking through a parse tree</span>
+  <span class="kw">fn</span> <span class="ident">add_context</span>(<span class="ident">_input</span>: <span class="ident">I</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+    <a class="ident" href="../../src/nom/error.rs.html#43">other</a>
+  }
+}
+
+<span class="doccomment">/// This trait is required by the `map_res` combinator to integrate</span>
+<span class="doccomment">/// error types from external functions, like [std::str::FromStr]</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FromExternalError</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+  <span class="doccomment">/// Creates a new error from an input position, an [ErrorKind] indicating the</span>
+  <span class="doccomment">/// wrapping parser, and an external error</span>
+  <span class="kw">fn</span> <span class="ident">from_external_error</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <span class="self">Self</span>;
+}
+
+<span class="doccomment">/// default error type, only contains the error&#39; location and code</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+  <span class="doccomment">/// position of the error in the input data</span>
+  <span class="kw">pub</span> <span class="ident">input</span>: <span class="ident">I</span>,
+  <span class="doccomment">/// nom error code</span>
+  <span class="kw">pub</span> <span class="ident">code</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+  <span class="doccomment">/// creates a new basic error</span>
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">code</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) -&gt; <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+    <a class="ident" href="../../src/nom/error.rs.html#58-63">Error</a> { <a class="ident" href="../../src/nom/error.rs.html#67">input</a>, <a class="ident" href="../../src/nom/error.rs.html#67">code</a> }
+  }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">from_error_kind</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) -&gt; <span class="self">Self</span> {
+    <a class="ident" href="../../src/nom/error.rs.html#58-63">Error</a> { <a class="ident" href="../../src/nom/error.rs.html#73">input</a>, <span class="ident">code</span>: <a class="ident" href="../../src/nom/error.rs.html#73">kind</a> }
   }
 
-  <span class="kw">fn</span> <span class="ident">append</span>(<span class="kw">_</span>: <span class="ident">I</span>, <span class="kw">_</span>: <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-    <a class="ident" href="../../src/nom/error.rs.html#46">other</a>
+  <span class="kw">fn</span> <span class="ident">append</span>(<span class="kw">_</span>: <span class="ident">I</span>, <span class="kw">_</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+    <a class="ident" href="../../src/nom/error.rs.html#77">other</a>
+  }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">ContextError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">FromExternalError</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+  <span class="doccomment">/// Create a new error from an input position and an external error</span>
+  <span class="kw">fn</span> <span class="ident">from_external_error</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="ident">_e</span>: <span class="ident">E</span>) -&gt; <span class="self">Self</span> {
+    <a class="ident" href="../../src/nom/error.rs.html#58-63">Error</a> { <a class="ident" href="../../src/nom/error.rs.html#86">input</a>, <span class="ident">code</span>: <a class="ident" href="../../src/nom/error.rs.html#86">kind</a> }
+  }
+}
+
+<span class="doccomment">/// The Display implementation allows the std::error::Error implementation</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="macro">write!</span>(<a class="ident" href="../../src/nom/error.rs.html#93">f</a>, <span class="string">&quot;error {:?} at: {}&quot;</span>, <a class="self" href="../../src/nom/error.rs.html#93">self</a>.<span class="ident">code</span>, <a class="self" href="../../src/nom/error.rs.html#93">self</a>.<span class="ident">input</span>)
+  }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {}
+
+<span class="comment">// for backward compatibility, keep those trait implementations</span>
+<span class="comment">// for the previously used error type</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> (<span class="ident">I</span>, <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) {
+  <span class="kw">fn</span> <span class="ident">from_error_kind</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) -&gt; <span class="self">Self</span> {
+    (<a class="ident" href="../../src/nom/error.rs.html#104">input</a>, <a class="ident" href="../../src/nom/error.rs.html#104">kind</a>)
+  }
+
+  <span class="kw">fn</span> <span class="ident">append</span>(<span class="kw">_</span>: <span class="ident">I</span>, <span class="kw">_</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+    <a class="ident" href="../../src/nom/error.rs.html#108">other</a>
+  }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">ContextError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> (<span class="ident">I</span>, <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) {}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">FromExternalError</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> (<span class="ident">I</span>, <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) {
+  <span class="kw">fn</span> <span class="ident">from_external_error</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="ident">_e</span>: <span class="ident">E</span>) -&gt; <span class="self">Self</span> {
+    (<a class="ident" href="../../src/nom/error.rs.html#116">input</a>, <a class="ident" href="../../src/nom/error.rs.html#116">kind</a>)
   }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> () {
-  <span class="kw">fn</span> <span class="ident">from_error_kind</span>(<span class="kw">_</span>: <span class="ident">I</span>, <span class="kw">_</span>: <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>) -&gt; <span class="self">Self</span> {}
+  <span class="kw">fn</span> <span class="ident">from_error_kind</span>(<span class="kw">_</span>: <span class="ident">I</span>, <span class="kw">_</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) -&gt; <span class="self">Self</span> {}
 
-  <span class="kw">fn</span> <span class="ident">append</span>(<span class="kw">_</span>: <span class="ident">I</span>, <span class="kw">_</span>: <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>, <span class="kw">_</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {}
+  <span class="kw">fn</span> <span class="ident">append</span>(<span class="kw">_</span>: <span class="ident">I</span>, <span class="kw">_</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="kw">_</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {}
 }
 
-<span class="doccomment">/// creates an error from the input position and an [ErrorKind]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_error</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>) -&gt; <span class="ident">E</span> {
-  <span class="ident">E::from_error_kind</span>(<a class="ident" href="../../src/nom/error.rs.html#58">input</a>, <a class="ident" href="../../src/nom/error.rs.html#58">kind</a>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">ContextError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> () {}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">FromExternalError</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> () {
+  <span class="kw">fn</span> <span class="ident">from_external_error</span>(<span class="ident">_input</span>: <span class="ident">I</span>, <span class="ident">_kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="ident">_e</span>: <span class="ident">E</span>) -&gt; <span class="self">Self</span> {}
 }
 
-<span class="doccomment">/// combines an existing error with a new one created from the input</span>
+<span class="doccomment">/// Creates an error from the input position and an [ErrorKind]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_error</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) -&gt; <span class="ident">E</span> {
+  <span class="ident">E::from_error_kind</span>(<a class="ident" href="../../src/nom/error.rs.html#134">input</a>, <a class="ident" href="../../src/nom/error.rs.html#134">kind</a>)
+}
+
+<span class="doccomment">/// Combines an existing error with a new one created from the input</span>
 <span class="doccomment">/// position and an [ErrorKind]. This is useful when backtracking</span>
 <span class="doccomment">/// through a parse tree, accumulating error context on the way</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_error</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>, <span class="ident">other</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
-  <span class="ident">E::append</span>(<a class="ident" href="../../src/nom/error.rs.html#65">input</a>, <a class="ident" href="../../src/nom/error.rs.html#65">kind</a>, <a class="ident" href="../../src/nom/error.rs.html#65">other</a>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_error</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="ident">other</span>: <span class="ident">E</span>) -&gt; <span class="ident">E</span> {
+  <span class="ident">E::append</span>(<a class="ident" href="../../src/nom/error.rs.html#141">input</a>, <a class="ident" href="../../src/nom/error.rs.html#141">kind</a>, <a class="ident" href="../../src/nom/error.rs.html#141">other</a>)
 }
 
-<span class="doccomment">/// this error type accumulates errors and their position when backtracking</span>
+<span class="doccomment">/// This error type accumulates errors and their position when backtracking</span>
 <span class="doccomment">/// through a parse tree. With some post processing (cf `examples/json.rs`),</span>
 <span class="doccomment">/// it can be used to display user friendly error messages</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;docsrs&quot;</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-  <span class="doccomment">/// list of errors accumulated by `VerboseError`, containing the affected</span>
+  <span class="doccomment">/// List of errors accumulated by `VerboseError`, containing the affected</span>
   <span class="doccomment">/// part of input data, and some context</span>
-  <span class="kw">pub</span> <span class="ident">errors</span>: <span class="ident"><span class="kw">crate</span>::lib::std::vec::Vec</span><span class="op">&lt;</span>(<span class="ident">I</span>, <a class="ident" href="../../src/nom/error.rs.html#83-90">VerboseErrorKind</a>)<span class="op">&gt;</span>,
+  <span class="kw">pub</span> <span class="ident">errors</span>: <span class="ident"><span class="kw">crate</span>::lib::std::vec::Vec</span><span class="op">&lt;</span>(<span class="ident">I</span>, <a class="ident" href="../../src/nom/error.rs.html#161-168">VerboseErrorKind</a>)<span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;docsrs&quot;</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="doccomment">/// error context for `VerboseError`</span>
+<span class="doccomment">/// Error context for `VerboseError`</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VerboseErrorKind</span> {
-  <span class="doccomment">/// static string added by the `context` function</span>
+  <span class="doccomment">/// Static string added by the `context` function</span>
   <span class="ident">Context</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
-  <span class="doccomment">/// indicates which character was expected by the `char` function</span>
+  <span class="doccomment">/// Indicates which character was expected by the `char` function</span>
   <span class="ident">Char</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
-  <span class="doccomment">/// error kind given by various nom parsers</span>
-  <span class="ident">Nom</span>(<a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>),
+  <span class="doccomment">/// Error kind given by various nom parsers</span>
+  <span class="ident">Nom</span>(<a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>),
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;docsrs&quot;</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-  <span class="kw">fn</span> <span class="ident">from_error_kind</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>) -&gt; <span class="self">Self</span> {
-    <a class="ident" href="../../src/nom/error.rs.html#74-78">VerboseError</a> {
-      <span class="ident">errors</span>: <span class="macro">vec!</span>[(<a class="ident" href="../../src/nom/error.rs.html#94">input</a>, <a class="ident" href="../../src/nom/error.rs.html#89">VerboseErrorKind::Nom</a>(<a class="ident" href="../../src/nom/error.rs.html#94">kind</a>))],
+  <span class="kw">fn</span> <span class="ident">from_error_kind</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) -&gt; <span class="self">Self</span> {
+    <a class="ident" href="../../src/nom/error.rs.html#151-155">VerboseError</a> {
+      <span class="ident">errors</span>: <span class="macro">vec!</span>[(<a class="ident" href="../../src/nom/error.rs.html#173">input</a>, <a class="ident" href="../../src/nom/error.rs.html#167">VerboseErrorKind::Nom</a>(<a class="ident" href="../../src/nom/error.rs.html#173">kind</a>))],
     }
   }
 
-  <span class="kw">fn</span> <span class="ident">append</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>, <span class="kw-2">mut</span> <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-    <a class="ident" href="../../src/nom/error.rs.html#100">other</a>.<span class="ident">errors</span>.<span class="ident">push</span>((<a class="ident" href="../../src/nom/error.rs.html#100">input</a>, <a class="ident" href="../../src/nom/error.rs.html#89">VerboseErrorKind::Nom</a>(<a class="ident" href="../../src/nom/error.rs.html#100">kind</a>)));
-    <a class="ident" href="../../src/nom/error.rs.html#100">other</a>
+  <span class="kw">fn</span> <span class="ident">append</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="kw-2">mut</span> <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+    <a class="ident" href="../../src/nom/error.rs.html#179">other</a>.<span class="ident">errors</span>.<span class="ident">push</span>((<a class="ident" href="../../src/nom/error.rs.html#179">input</a>, <a class="ident" href="../../src/nom/error.rs.html#167">VerboseErrorKind::Nom</a>(<a class="ident" href="../../src/nom/error.rs.html#179">kind</a>)));
+    <a class="ident" href="../../src/nom/error.rs.html#179">other</a>
   }
 
   <span class="kw">fn</span> <span class="ident">from_char</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="self">Self</span> {
-    <a class="ident" href="../../src/nom/error.rs.html#74-78">VerboseError</a> {
-      <span class="ident">errors</span>: <span class="macro">vec!</span>[(<a class="ident" href="../../src/nom/error.rs.html#105">input</a>, <a class="ident" href="../../src/nom/error.rs.html#87">VerboseErrorKind::Char</a>(<a class="ident" href="../../src/nom/error.rs.html#105">c</a>))],
+    <a class="ident" href="../../src/nom/error.rs.html#151-155">VerboseError</a> {
+      <span class="ident">errors</span>: <span class="macro">vec!</span>[(<a class="ident" href="../../src/nom/error.rs.html#184">input</a>, <a class="ident" href="../../src/nom/error.rs.html#165">VerboseErrorKind::Char</a>(<a class="ident" href="../../src/nom/error.rs.html#184">c</a>))],
     }
   }
+}
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;docsrs&quot;</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">ContextError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
   <span class="kw">fn</span> <span class="ident">add_context</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">mut</span> <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-    <a class="ident" href="../../src/nom/error.rs.html#111">other</a>.<span class="ident">errors</span>.<span class="ident">push</span>((<a class="ident" href="../../src/nom/error.rs.html#111">input</a>, <a class="ident" href="../../src/nom/error.rs.html#85">VerboseErrorKind::Context</a>(<a class="ident" href="../../src/nom/error.rs.html#111">ctx</a>)));
-    <a class="ident" href="../../src/nom/error.rs.html#111">other</a>
+    <a class="ident" href="../../src/nom/error.rs.html#194">other</a>.<span class="ident">errors</span>.<span class="ident">push</span>((<a class="ident" href="../../src/nom/error.rs.html#194">input</a>, <a class="ident" href="../../src/nom/error.rs.html#163">VerboseErrorKind::Context</a>(<a class="ident" href="../../src/nom/error.rs.html#194">ctx</a>)));
+    <a class="ident" href="../../src/nom/error.rs.html#194">other</a>
   }
 }
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::internal</span>::{<span class="prelude-val">Err</span>, <a class="ident" href="../../src/nom/internal.rs.html#13">IResult</a>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;docsrs&quot;</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">FromExternalError</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+  <span class="doccomment">/// Create a new error from an input position and an external error</span>
+  <span class="kw">fn</span> <span class="ident">from_external_error</span>(<span class="ident">input</span>: <span class="ident">I</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>, <span class="ident">_e</span>: <span class="ident">E</span>) -&gt; <span class="self">Self</span> {
+    <span class="ident"><span class="self">Self</span>::from_error_kind</span>(<a class="ident" href="../../src/nom/error.rs.html#204">input</a>, <a class="ident" href="../../src/nom/error.rs.html#204">kind</a>)
+  }
+}
 
-<span class="doccomment">/// create a new error from an input position, a static string and an existing error.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="macro">writeln!</span>(<a class="ident" href="../../src/nom/error.rs.html#211">f</a>, <span class="string">&quot;Parse error:&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">for</span> (<span class="ident">input</span>, <span class="ident">error</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/nom/error.rs.html#211">self</a>.<span class="ident">errors</span> {
+      <span class="kw">match</span> <a class="ident" href="../../src/nom/error.rs.html#213">error</a> {
+        <a class="ident" href="../../src/nom/error.rs.html#167">VerboseErrorKind::Nom</a>(<span class="ident">e</span>) =&gt; <span class="macro">writeln!</span>(<a class="ident" href="../../src/nom/error.rs.html#211">f</a>, <span class="string">&quot;{:?} at: {}&quot;</span>, <a class="ident" href="../../src/nom/error.rs.html#215">e</a>, <a class="ident" href="../../src/nom/error.rs.html#213">input</a>)<span class="question-mark">?</span>,
+        <a class="ident" href="../../src/nom/error.rs.html#165">VerboseErrorKind::Char</a>(<span class="ident">c</span>) =&gt; <span class="macro">writeln!</span>(<a class="ident" href="../../src/nom/error.rs.html#211">f</a>, <span class="string">&quot;expected &#39;{}&#39; at: {}&quot;</span>, <a class="ident" href="../../src/nom/error.rs.html#216">c</a>, <a class="ident" href="../../src/nom/error.rs.html#213">input</a>)<span class="question-mark">?</span>,
+        <a class="ident" href="../../src/nom/error.rs.html#163">VerboseErrorKind::Context</a>(<span class="ident">s</span>) =&gt; <span class="macro">writeln!</span>(<a class="ident" href="../../src/nom/error.rs.html#211">f</a>, <span class="string">&quot;in section &#39;{}&#39;, at: {}&quot;</span>, <a class="ident" href="../../src/nom/error.rs.html#217">s</a>, <a class="ident" href="../../src/nom/error.rs.html#213">input</a>)<span class="question-mark">?</span>,
+      }
+    }
+
+    <span class="prelude-val">Ok</span>(())
+  }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {}
+
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::internal</span>::{<span class="prelude-val">Err</span>, <a class="ident" href="../../src/nom/internal.rs.html#18">IResult</a>};
+
+<span class="doccomment">/// Create a new error from an input position, a static string and an existing error.</span>
 <span class="doccomment">/// This is used mainly in the [context] combinator, to add user friendly information</span>
 <span class="doccomment">/// to errors when backtracking through a parse tree</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span><span class="op">&lt;</span><span class="ident">I</span>: <a class="ident" href="../../nom/lib/std/prelude/v1/rust_2021/trait.Clone.html">Clone</a>, <span class="ident">E</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>, <span class="ident">F</span>, <span class="ident">O</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">I</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span><span class="op">&lt;</span><span class="ident">I</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>, <span class="ident">E</span>: <span class="ident">ContextError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>, <span class="ident">F</span>, <span class="ident">O</span><span class="op">&gt;</span>(
+  <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+  <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>,
+) -&gt; <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="ident">I</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-  <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">I</span>) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+  <span class="ident">F</span>: <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>,
 {
-  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">I</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/nom/error.rs.html#122">f</a>(<a class="ident" href="../../src/nom/error.rs.html#126">i</a>.<a class="ident" href="../../nom/lib/std/prelude/v1/rust_2021/trait.Clone.html">clone</a>()) {
-    <span class="prelude-val">Ok</span>(<span class="ident">o</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nom/error.rs.html#127">o</a>),
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#57">Err::Incomplete</a>(<span class="ident">i</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#57">Err::Incomplete</a>(<a class="ident" href="../../src/nom/error.rs.html#128">i</a>)),
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#59">Err::Error</a>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#59">Err::Error</a>(<span class="ident">E::add_context</span>(<a class="ident" href="../../src/nom/error.rs.html#126">i</a>, <a class="ident" href="../../src/nom/error.rs.html#122">context</a>, <a class="ident" href="../../src/nom/error.rs.html#129">e</a>))),
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#63">Err::Failure</a>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#63">Err::Failure</a>(<span class="ident">E::add_context</span>(<a class="ident" href="../../src/nom/error.rs.html#126">i</a>, <a class="ident" href="../../src/nom/error.rs.html#122">context</a>, <a class="ident" href="../../src/nom/error.rs.html#130">e</a>))),
+  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="ident">I</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/nom/error.rs.html#235">f</a>.<a class="ident" href="../../src/nom/internal.rs.html#244">parse</a>(<a class="ident" href="../../src/nom/error.rs.html#240">i</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
+    <span class="prelude-val">Ok</span>(<span class="ident">o</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nom/error.rs.html#241">o</a>),
+    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<span class="ident">i</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#99">Err::Incomplete</a>(<a class="ident" href="../../src/nom/error.rs.html#242">i</a>)),
+    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#101">Err::Error</a>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#101">Err::Error</a>(<span class="ident">E::add_context</span>(<a class="ident" href="../../src/nom/error.rs.html#240">i</a>, <a class="ident" href="../../src/nom/error.rs.html#234">context</a>, <a class="ident" href="../../src/nom/error.rs.html#243">e</a>))),
+    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#105">Err::Failure</a>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/internal.rs.html#105">Err::Failure</a>(<span class="ident">E::add_context</span>(<a class="ident" href="../../src/nom/error.rs.html#240">i</a>, <a class="ident" href="../../src/nom/error.rs.html#234">context</a>, <a class="ident" href="../../src/nom/error.rs.html#244">e</a>))),
   }
 }
 
-<span class="doccomment">/// transforms a `VerboseError` into a trace with input position information</span>
+<span class="doccomment">/// Transforms a `VerboseError` into a trace with input position information</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_error</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">e</span>: <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../nom/lib/std/string/struct.String.html"><span class="kw">crate</span>::lib::std::string::String</a> {
-  <span class="kw">use</span> <a class="ident" href="../../nom/lib/std/fmt/trait.Write.html"><span class="kw">crate</span>::lib::std::fmt::Write</a>;
-  <span class="kw">use</span> <a class="ident" href="../../src/nom/traits.rs.html#51-54"><span class="kw">crate</span>::traits::Offset</a>;
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;docsrs&quot;</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_error</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">core::ops::Deref</span><span class="op">&lt;</span><span class="ident">Target</span> <span class="op">=</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+  <span class="ident">input</span>: <span class="ident">I</span>,
+  <span class="ident">e</span>: <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
+) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html"><span class="kw">crate</span>::lib::std::string::String</a> {
+  <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html"><span class="kw">crate</span>::lib::std::fmt::Write</a>;
+  <span class="kw">use</span> <a class="ident" href="../../src/nom/traits.rs.html#48-51"><span class="kw">crate</span>::traits::Offset</a>;
 
   <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::lib::std::string::String::new</span>();
 
-  <span class="kw">for</span> (<span class="ident">i</span>, (<span class="ident">substring</span>, <span class="ident">kind</span>)) <span class="kw">in</span> <a class="ident" href="../../src/nom/error.rs.html#136">e</a>.<span class="ident">errors</span>.<span class="ident">iter</span>().<a class="ident" href="../../nom/lib/std/iter/trait.Iterator.html">enumerate</a>() {
-    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#136">input</a>.<a class="ident" href="../../src/nom/traits.rs.html#53">offset</a>(<a class="ident" href="../../src/nom/error.rs.html#142">substring</a>);
+  <span class="kw">for</span> (<span class="ident">i</span>, (<span class="ident">substring</span>, <span class="ident">kind</span>)) <span class="kw">in</span> <a class="ident" href="../../src/nom/error.rs.html#253">e</a>.<span class="ident">errors</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#252">input</a>.<a class="ident" href="../../src/nom/traits.rs.html#50">offset</a>(<a class="ident" href="../../src/nom/error.rs.html#260">substring</a>);
 
-    <span class="kw">if</span> <a class="ident" href="../../src/nom/error.rs.html#136">input</a>.<span class="ident">is_empty</span>() {
-      <span class="kw">match</span> <a class="ident" href="../../src/nom/error.rs.html#142">kind</a> {
-        <a class="ident" href="../../src/nom/error.rs.html#87">VerboseErrorKind::Char</a>(<span class="ident">c</span>) =&gt; <span class="macro">write!</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#140">result</a>, <span class="string">&quot;{}: expected &#39;{}&#39;, got empty input\n\n&quot;</span>, <a class="ident" href="../../src/nom/error.rs.html#142">i</a>, <a class="ident" href="../../src/nom/error.rs.html#147">c</a>),
-        <a class="ident" href="../../src/nom/error.rs.html#85">VerboseErrorKind::Context</a>(<span class="ident">s</span>) =&gt; <span class="macro">write!</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#140">result</a>, <span class="string">&quot;{}: in {}, got empty input\n\n&quot;</span>, <a class="ident" href="../../src/nom/error.rs.html#142">i</a>, <a class="ident" href="../../src/nom/error.rs.html#148">s</a>),
-        <a class="ident" href="../../src/nom/error.rs.html#89">VerboseErrorKind::Nom</a>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#140">result</a>, <span class="string">&quot;{}: in {:?}, got empty input\n\n&quot;</span>, <a class="ident" href="../../src/nom/error.rs.html#142">i</a>, <a class="ident" href="../../src/nom/error.rs.html#149">e</a>),
+    <span class="kw">if</span> <a class="ident" href="../../src/nom/error.rs.html#252">input</a>.<span class="ident">is_empty</span>() {
+      <span class="kw">match</span> <a class="ident" href="../../src/nom/error.rs.html#260">kind</a> {
+        <a class="ident" href="../../src/nom/error.rs.html#165">VerboseErrorKind::Char</a>(<span class="ident">c</span>) =&gt; {
+          <span class="macro">write!</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#258">result</a>, <span class="string">&quot;{}: expected &#39;{}&#39;, got empty input\n\n&quot;</span>, <a class="ident" href="../../src/nom/error.rs.html#260">i</a>, <a class="ident" href="../../src/nom/error.rs.html#265">c</a>)
+        }
+        <a class="ident" href="../../src/nom/error.rs.html#163">VerboseErrorKind::Context</a>(<span class="ident">s</span>) =&gt; <span class="macro">write!</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#258">result</a>, <span class="string">&quot;{}: in {}, got empty input\n\n&quot;</span>, <a class="ident" href="../../src/nom/error.rs.html#260">i</a>, <a class="ident" href="../../src/nom/error.rs.html#268">s</a>),
+        <a class="ident" href="../../src/nom/error.rs.html#167">VerboseErrorKind::Nom</a>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#258">result</a>, <span class="string">&quot;{}: in {:?}, got empty input\n\n&quot;</span>, <a class="ident" href="../../src/nom/error.rs.html#260">i</a>, <a class="ident" href="../../src/nom/error.rs.html#269">e</a>),
       }
     } <span class="kw">else</span> {
-      <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/nom/error.rs.html#136">input</a>.<span class="ident">as_bytes</span>()[..<a class="ident" href="../../src/nom/error.rs.html#143">offset</a>];
+      <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/nom/error.rs.html#252">input</a>.<span class="ident">as_bytes</span>()[..<a class="ident" href="../../src/nom/error.rs.html#261">offset</a>];
 
       <span class="comment">// Count the number of newlines in the first `offset` bytes of input</span>
-      <span class="kw">let</span> <span class="ident">line_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#152">prefix</a>.<span class="ident">iter</span>().<a class="ident" href="../../nom/lib/std/iter/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="op">&amp;&amp;</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/nom/error.rs.html#155">b</a> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span>).<a class="ident" href="../../nom/lib/std/iter/trait.Iterator.html">count</a>() <span class="op">+</span> <span class="number">1</span>;
+      <span class="kw">let</span> <span class="ident">line_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#272">prefix</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="op">&amp;&amp;</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/nom/error.rs.html#275">b</a> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>() <span class="op">+</span> <span class="number">1</span>;
 
       <span class="comment">// Find the line that includes the subslice:</span>
       <span class="comment">// Find the *last* newline before the substring starts</span>
-      <span class="kw">let</span> <span class="ident">line_begin</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#152">prefix</a>.<span class="ident">iter</span>().<a class="ident" href="../../nom/lib/std/iter/trait.Iterator.html">rev</a>().<a class="ident" href="../../nom/lib/std/iter/trait.Iterator.html">position</a>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/nom/error.rs.html#159">b</a> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <a class="ident" href="../../src/nom/error.rs.html#143">offset</a> <span class="op">-</span> <a class="ident" href="../../src/nom/error.rs.html#159">pos</a>).<span class="ident">unwrap_or</span>(<span class="number">0</span>);
+      <span class="kw">let</span> <span class="ident">line_begin</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#272">prefix</a>
+        .<span class="ident">iter</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <a class="ident" href="../../src/nom/error.rs.html#282">b</a> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span>)
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <a class="ident" href="../../src/nom/error.rs.html#261">offset</a> <span class="op">-</span> <a class="ident" href="../../src/nom/error.rs.html#283">pos</a>)
+        .<span class="ident">unwrap_or</span>(<span class="number">0</span>);
 
       <span class="comment">// Find the full line after that newline</span>
-      <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#136">input</a>[<a class="ident" href="../../src/nom/error.rs.html#159">line_begin</a>..].<span class="ident">lines</span>().<a class="ident" href="../../nom/lib/std/iter/trait.Iterator.html">next</a>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/nom/error.rs.html#136">input</a>[<a class="ident" href="../../src/nom/error.rs.html#159">line_begin</a>..]).<span class="ident">trim_end</span>();
+      <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#252">input</a>[<a class="ident" href="../../src/nom/error.rs.html#279">line_begin</a>..]
+        .<span class="ident">lines</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/nom/error.rs.html#252">input</a>[<a class="ident" href="../../src/nom/error.rs.html#279">line_begin</a>..])
+        .<span class="ident">trim_end</span>();
 
       <span class="comment">// The (1-indexed) column number is the offset of our substring into that line</span>
-      <span class="kw">let</span> <span class="ident">column_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#162">line</a>.<a class="ident" href="../../src/nom/traits.rs.html#53">offset</a>(<a class="ident" href="../../src/nom/error.rs.html#142">substring</a>) <span class="op">+</span> <span class="number">1</span>;
+      <span class="kw">let</span> <span class="ident">column_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#287">line</a>.<a class="ident" href="../../src/nom/traits.rs.html#50">offset</a>(<a class="ident" href="../../src/nom/error.rs.html#260">substring</a>) <span class="op">+</span> <span class="number">1</span>;
 
-      <span class="kw">match</span> <a class="ident" href="../../src/nom/error.rs.html#142">kind</a> {
-        <a class="ident" href="../../src/nom/error.rs.html#87">VerboseErrorKind::Char</a>(<span class="ident">c</span>) =&gt; <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">actual</span>) <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#142">substring</a>.<span class="ident">chars</span>().<a class="ident" href="../../nom/lib/std/iter/trait.Iterator.html">next</a>() {
-          <span class="macro">write!</span>(
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#140">result</a>,
-            <span class="string">&quot;{i}: at line {line_number}:\n\
+      <span class="kw">match</span> <a class="ident" href="../../src/nom/error.rs.html#260">kind</a> {
+        <a class="ident" href="../../src/nom/error.rs.html#165">VerboseErrorKind::Char</a>(<span class="ident">c</span>) =&gt; {
+          <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">actual</span>) <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#260">substring</a>.<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="macro">write!</span>(
+              <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#258">result</a>,
+              <span class="string">&quot;{i}: at line {line_number}:\n\
                {line}\n\
                {caret:&gt;column$}\n\
                expected &#39;{expected}&#39;, found {actual}\n\n&quot;</span>,
-            <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#142">i</a>,
-            <span class="ident">line_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#155">line_number</a>,
-            <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#162">line</a>,
-            <span class="ident">caret</span> <span class="op">=</span> <span class="string">&#39;^&#39;</span>,
-            <span class="ident">column</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#165">column_number</a>,
-            <span class="ident">expected</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#168">c</a>,
-            <span class="ident">actual</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#168">actual</a>,
-          )
-        } <span class="kw">else</span> {
-          <span class="macro">write!</span>(
-            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#140">result</a>,
-            <span class="string">&quot;{i}: at line {line_number}:\n\
+              <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#260">i</a>,
+              <span class="ident">line_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#275">line_number</a>,
+              <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#287">line</a>,
+              <span class="ident">caret</span> <span class="op">=</span> <span class="string">&#39;^&#39;</span>,
+              <span class="ident">column</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#294">column_number</a>,
+              <span class="ident">expected</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#297">c</a>,
+              <span class="ident">actual</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#298">actual</a>,
+            )
+          } <span class="kw">else</span> {
+            <span class="macro">write!</span>(
+              <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#258">result</a>,
+              <span class="string">&quot;{i}: at line {line_number}:\n\
                {line}\n\
                {caret:&gt;column$}\n\
                expected &#39;{expected}&#39;, got end of input\n\n&quot;</span>,
-            <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#142">i</a>,
-            <span class="ident">line_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#155">line_number</a>,
-            <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#162">line</a>,
-            <span class="ident">caret</span> <span class="op">=</span> <span class="string">&#39;^&#39;</span>,
-            <span class="ident">column</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#165">column_number</a>,
-            <span class="ident">expected</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#168">c</a>,
-          )
-        },
-        <a class="ident" href="../../src/nom/error.rs.html#85">VerboseErrorKind::Context</a>(<span class="ident">s</span>) =&gt; <span class="macro">write!</span>(
-          <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#140">result</a>,
+              <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#260">i</a>,
+              <span class="ident">line_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#275">line_number</a>,
+              <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#287">line</a>,
+              <span class="ident">caret</span> <span class="op">=</span> <span class="string">&#39;^&#39;</span>,
+              <span class="ident">column</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#294">column_number</a>,
+              <span class="ident">expected</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#297">c</a>,
+            )
+          }
+        }
+        <a class="ident" href="../../src/nom/error.rs.html#163">VerboseErrorKind::Context</a>(<span class="ident">s</span>) =&gt; <span class="macro">write!</span>(
+          <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#258">result</a>,
           <span class="string">&quot;{i}: at line {line_number}, in {context}:\n\
              {line}\n\
              {caret:&gt;column$}\n\n&quot;</span>,
-          <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#142">i</a>,
-          <span class="ident">line_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#155">line_number</a>,
-          <span class="ident">context</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#198">s</a>,
-          <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#162">line</a>,
+          <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#260">i</a>,
+          <span class="ident">line_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#275">line_number</a>,
+          <span class="ident">context</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#329">s</a>,
+          <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#287">line</a>,
           <span class="ident">caret</span> <span class="op">=</span> <span class="string">&#39;^&#39;</span>,
-          <span class="ident">column</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#165">column_number</a>,
+          <span class="ident">column</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#294">column_number</a>,
         ),
-        <a class="ident" href="../../src/nom/error.rs.html#89">VerboseErrorKind::Nom</a>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(
-          <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#140">result</a>,
+        <a class="ident" href="../../src/nom/error.rs.html#167">VerboseErrorKind::Nom</a>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(
+          <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/nom/error.rs.html#258">result</a>,
           <span class="string">&quot;{i}: at line {line_number}, in {nom_err:?}:\n\
              {line}\n\
              {caret:&gt;column$}\n\n&quot;</span>,
-          <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#142">i</a>,
-          <span class="ident">line_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#155">line_number</a>,
-          <span class="ident">nom_err</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#210">e</a>,
-          <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#162">line</a>,
+          <span class="ident">i</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#260">i</a>,
+          <span class="ident">line_number</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#275">line_number</a>,
+          <span class="ident">nom_err</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#341">e</a>,
+          <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#287">line</a>,
           <span class="ident">caret</span> <span class="op">=</span> <span class="string">&#39;^&#39;</span>,
-          <span class="ident">column</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#165">column_number</a>,
+          <span class="ident">column</span> <span class="op">=</span> <a class="ident" href="../../src/nom/error.rs.html#294">column_number</a>,
         ),
       }
     }
@@ -1006,11 +1192,11 @@
     .<span class="ident">unwrap</span>();
   }
 
-  <a class="ident" href="../../src/nom/error.rs.html#140">result</a>
+  <a class="ident" href="../../src/nom/error.rs.html#258">result</a>
 }
 
-<span class="doccomment">/// indicates which parser returned an error</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
+<span class="doccomment">/// Indicates which parser returned an error</span>
+<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>,<span class="ident">PartialEq</span>,<span class="ident">Eq</span>,<span class="ident">Hash</span>,<span class="ident">Clone</span>,<span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>,<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ErrorKind</span> {
@@ -1061,136 +1247,139 @@
   <span class="ident">Verify</span>,
   <span class="ident">TakeTill1</span>,
   <span class="ident">TakeWhileMN</span>,
-  <span class="ident">ParseTo</span>,
   <span class="ident">TooLarge</span>,
   <span class="ident">Many0Count</span>,
   <span class="ident">Many1Count</span>,
   <span class="ident">Float</span>,
+  <span class="ident">Satisfy</span>,
+  <span class="ident">Fail</span>,
 }
 
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
+<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-<span class="doccomment">/// converts an ErrorKind to a number</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error_to_u32</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-  <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/nom/error.rs.html#293">e</a> {
-    <a class="ident" href="../../src/nom/error.rs.html#236">ErrorKind::Tag</a>                       =&gt; <span class="number">1</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#237">ErrorKind::MapRes</a>                    =&gt; <span class="number">2</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#238">ErrorKind::MapOpt</a>                    =&gt; <span class="number">3</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#239">ErrorKind::Alt</a>                       =&gt; <span class="number">4</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#240">ErrorKind::IsNot</a>                     =&gt; <span class="number">5</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#241">ErrorKind::IsA</a>                       =&gt; <span class="number">6</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#242">ErrorKind::SeparatedList</a>             =&gt; <span class="number">7</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#243">ErrorKind::SeparatedNonEmptyList</a>     =&gt; <span class="number">8</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#245">ErrorKind::Many1</a>                     =&gt; <span class="number">9</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#247">ErrorKind::Count</a>                     =&gt; <span class="number">10</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#248">ErrorKind::TakeUntil</a>                 =&gt; <span class="number">12</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#249">ErrorKind::LengthValue</a>               =&gt; <span class="number">15</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#250">ErrorKind::TagClosure</a>                =&gt; <span class="number">16</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#251">ErrorKind::Alpha</a>                     =&gt; <span class="number">17</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#252">ErrorKind::Digit</a>                     =&gt; <span class="number">18</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#255">ErrorKind::AlphaNumeric</a>              =&gt; <span class="number">19</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#256">ErrorKind::Space</a>                     =&gt; <span class="number">20</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#257">ErrorKind::MultiSpace</a>                =&gt; <span class="number">21</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#258">ErrorKind::LengthValueFn</a>             =&gt; <span class="number">22</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#259">ErrorKind::Eof</a>                       =&gt; <span class="number">23</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#260">ErrorKind::Switch</a>                    =&gt; <span class="number">27</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#261">ErrorKind::TagBits</a>                   =&gt; <span class="number">28</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#262">ErrorKind::OneOf</a>                     =&gt; <span class="number">29</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#263">ErrorKind::NoneOf</a>                    =&gt; <span class="number">30</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#264">ErrorKind::Char</a>                      =&gt; <span class="number">40</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#265">ErrorKind::CrLf</a>                      =&gt; <span class="number">41</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#266">ErrorKind::RegexpMatch</a>               =&gt; <span class="number">42</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#267">ErrorKind::RegexpMatches</a>             =&gt; <span class="number">43</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#268">ErrorKind::RegexpFind</a>                =&gt; <span class="number">44</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#269">ErrorKind::RegexpCapture</a>             =&gt; <span class="number">45</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#270">ErrorKind::RegexpCaptures</a>            =&gt; <span class="number">46</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#271">ErrorKind::TakeWhile1</a>                =&gt; <span class="number">47</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#272">ErrorKind::Complete</a>                  =&gt; <span class="number">48</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#273">ErrorKind::Fix</a>                       =&gt; <span class="number">49</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#274">ErrorKind::Escaped</a>                   =&gt; <span class="number">50</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#275">ErrorKind::EscapedTransform</a>          =&gt; <span class="number">51</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#276">ErrorKind::NonEmpty</a>                  =&gt; <span class="number">56</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#277">ErrorKind::ManyMN</a>                    =&gt; <span class="number">57</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#253">ErrorKind::HexDigit</a>                  =&gt; <span class="number">59</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#254">ErrorKind::OctDigit</a>                  =&gt; <span class="number">61</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#244">ErrorKind::Many0</a>                     =&gt; <span class="number">62</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#278">ErrorKind::Not</a>                       =&gt; <span class="number">63</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#279">ErrorKind::Permutation</a>               =&gt; <span class="number">64</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#246">ErrorKind::ManyTill</a>                  =&gt; <span class="number">65</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#280">ErrorKind::Verify</a>                    =&gt; <span class="number">66</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#281">ErrorKind::TakeTill1</a>                 =&gt; <span class="number">67</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#282">ErrorKind::TakeWhileMN</a>               =&gt; <span class="number">69</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#283">ErrorKind::ParseTo</a>                   =&gt; <span class="number">70</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#284">ErrorKind::TooLarge</a>                  =&gt; <span class="number">71</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#285">ErrorKind::Many0Count</a>                =&gt; <span class="number">72</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#286">ErrorKind::Many1Count</a>                =&gt; <span class="number">73</span>,
-    <a class="ident" href="../../src/nom/error.rs.html#287">ErrorKind::Float</a>                     =&gt; <span class="number">74</span>,
+<span class="doccomment">/// Converts an ErrorKind to a number</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error_to_u32</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+  <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/nom/error.rs.html#425">e</a> {
+    <a class="ident" href="../../src/nom/error.rs.html#367">ErrorKind::Tag</a>                       =&gt; <span class="number">1</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#368">ErrorKind::MapRes</a>                    =&gt; <span class="number">2</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#369">ErrorKind::MapOpt</a>                    =&gt; <span class="number">3</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#370">ErrorKind::Alt</a>                       =&gt; <span class="number">4</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#371">ErrorKind::IsNot</a>                     =&gt; <span class="number">5</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#372">ErrorKind::IsA</a>                       =&gt; <span class="number">6</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#373">ErrorKind::SeparatedList</a>             =&gt; <span class="number">7</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#374">ErrorKind::SeparatedNonEmptyList</a>     =&gt; <span class="number">8</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#376">ErrorKind::Many1</a>                     =&gt; <span class="number">9</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#378">ErrorKind::Count</a>                     =&gt; <span class="number">10</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#379">ErrorKind::TakeUntil</a>                 =&gt; <span class="number">12</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#380">ErrorKind::LengthValue</a>               =&gt; <span class="number">15</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#381">ErrorKind::TagClosure</a>                =&gt; <span class="number">16</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#382">ErrorKind::Alpha</a>                     =&gt; <span class="number">17</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#383">ErrorKind::Digit</a>                     =&gt; <span class="number">18</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#386">ErrorKind::AlphaNumeric</a>              =&gt; <span class="number">19</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#387">ErrorKind::Space</a>                     =&gt; <span class="number">20</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#388">ErrorKind::MultiSpace</a>                =&gt; <span class="number">21</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#389">ErrorKind::LengthValueFn</a>             =&gt; <span class="number">22</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#390">ErrorKind::Eof</a>                       =&gt; <span class="number">23</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#391">ErrorKind::Switch</a>                    =&gt; <span class="number">27</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#392">ErrorKind::TagBits</a>                   =&gt; <span class="number">28</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#393">ErrorKind::OneOf</a>                     =&gt; <span class="number">29</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#394">ErrorKind::NoneOf</a>                    =&gt; <span class="number">30</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#395">ErrorKind::Char</a>                      =&gt; <span class="number">40</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#396">ErrorKind::CrLf</a>                      =&gt; <span class="number">41</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#397">ErrorKind::RegexpMatch</a>               =&gt; <span class="number">42</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#398">ErrorKind::RegexpMatches</a>             =&gt; <span class="number">43</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#399">ErrorKind::RegexpFind</a>                =&gt; <span class="number">44</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#400">ErrorKind::RegexpCapture</a>             =&gt; <span class="number">45</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#401">ErrorKind::RegexpCaptures</a>            =&gt; <span class="number">46</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#402">ErrorKind::TakeWhile1</a>                =&gt; <span class="number">47</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#403">ErrorKind::Complete</a>                  =&gt; <span class="number">48</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#404">ErrorKind::Fix</a>                       =&gt; <span class="number">49</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#405">ErrorKind::Escaped</a>                   =&gt; <span class="number">50</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#406">ErrorKind::EscapedTransform</a>          =&gt; <span class="number">51</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#407">ErrorKind::NonEmpty</a>                  =&gt; <span class="number">56</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#408">ErrorKind::ManyMN</a>                    =&gt; <span class="number">57</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#384">ErrorKind::HexDigit</a>                  =&gt; <span class="number">59</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#385">ErrorKind::OctDigit</a>                  =&gt; <span class="number">61</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#375">ErrorKind::Many0</a>                     =&gt; <span class="number">62</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#409">ErrorKind::Not</a>                       =&gt; <span class="number">63</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#410">ErrorKind::Permutation</a>               =&gt; <span class="number">64</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#377">ErrorKind::ManyTill</a>                  =&gt; <span class="number">65</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#411">ErrorKind::Verify</a>                    =&gt; <span class="number">66</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#412">ErrorKind::TakeTill1</a>                 =&gt; <span class="number">67</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>               =&gt; <span class="number">69</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#414">ErrorKind::TooLarge</a>                  =&gt; <span class="number">70</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#415">ErrorKind::Many0Count</a>                =&gt; <span class="number">71</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#416">ErrorKind::Many1Count</a>                =&gt; <span class="number">72</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#417">ErrorKind::Float</a>                     =&gt; <span class="number">73</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#418">ErrorKind::Satisfy</a>                   =&gt; <span class="number">74</span>,
+    <a class="ident" href="../../src/nom/error.rs.html#419">ErrorKind::Fail</a>                      =&gt; <span class="number">75</span>,
   }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/nom/error.rs.html#235-288">ErrorKind</a> {
-  <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
+<span class="kw">impl</span> <a class="ident" href="../../src/nom/error.rs.html#366-420">ErrorKind</a> {
+  <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-  <span class="doccomment">/// converts an ErrorKind to a text description</span>
+  <span class="doccomment">/// Converts an ErrorKind to a text description</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/nom/error.rs.html#354">self</a> {
-      <a class="ident" href="../../src/nom/error.rs.html#236">ErrorKind::Tag</a>                       =&gt; <span class="string">&quot;Tag&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#237">ErrorKind::MapRes</a>                    =&gt; <span class="string">&quot;Map on Result&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#238">ErrorKind::MapOpt</a>                    =&gt; <span class="string">&quot;Map on Option&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#239">ErrorKind::Alt</a>                       =&gt; <span class="string">&quot;Alternative&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#240">ErrorKind::IsNot</a>                     =&gt; <span class="string">&quot;IsNot&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#241">ErrorKind::IsA</a>                       =&gt; <span class="string">&quot;IsA&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#242">ErrorKind::SeparatedList</a>             =&gt; <span class="string">&quot;Separated list&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#243">ErrorKind::SeparatedNonEmptyList</a>     =&gt; <span class="string">&quot;Separated non empty list&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#244">ErrorKind::Many0</a>                     =&gt; <span class="string">&quot;Many0&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#245">ErrorKind::Many1</a>                     =&gt; <span class="string">&quot;Many1&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#247">ErrorKind::Count</a>                     =&gt; <span class="string">&quot;Count&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#248">ErrorKind::TakeUntil</a>                 =&gt; <span class="string">&quot;Take until&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#249">ErrorKind::LengthValue</a>               =&gt; <span class="string">&quot;Length followed by value&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#250">ErrorKind::TagClosure</a>                =&gt; <span class="string">&quot;Tag closure&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#251">ErrorKind::Alpha</a>                     =&gt; <span class="string">&quot;Alphabetic&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#252">ErrorKind::Digit</a>                     =&gt; <span class="string">&quot;Digit&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#255">ErrorKind::AlphaNumeric</a>              =&gt; <span class="string">&quot;AlphaNumeric&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#256">ErrorKind::Space</a>                     =&gt; <span class="string">&quot;Space&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#257">ErrorKind::MultiSpace</a>                =&gt; <span class="string">&quot;Multiple spaces&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#258">ErrorKind::LengthValueFn</a>             =&gt; <span class="string">&quot;LengthValueFn&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#259">ErrorKind::Eof</a>                       =&gt; <span class="string">&quot;End of file&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#260">ErrorKind::Switch</a>                    =&gt; <span class="string">&quot;Switch&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#261">ErrorKind::TagBits</a>                   =&gt; <span class="string">&quot;Tag on bitstream&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#262">ErrorKind::OneOf</a>                     =&gt; <span class="string">&quot;OneOf&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#263">ErrorKind::NoneOf</a>                    =&gt; <span class="string">&quot;NoneOf&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#264">ErrorKind::Char</a>                      =&gt; <span class="string">&quot;Char&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#265">ErrorKind::CrLf</a>                      =&gt; <span class="string">&quot;CrLf&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#266">ErrorKind::RegexpMatch</a>               =&gt; <span class="string">&quot;RegexpMatch&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#267">ErrorKind::RegexpMatches</a>             =&gt; <span class="string">&quot;RegexpMatches&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#268">ErrorKind::RegexpFind</a>                =&gt; <span class="string">&quot;RegexpFind&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#269">ErrorKind::RegexpCapture</a>             =&gt; <span class="string">&quot;RegexpCapture&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#270">ErrorKind::RegexpCaptures</a>            =&gt; <span class="string">&quot;RegexpCaptures&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#271">ErrorKind::TakeWhile1</a>                =&gt; <span class="string">&quot;TakeWhile1&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#272">ErrorKind::Complete</a>                  =&gt; <span class="string">&quot;Complete&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#273">ErrorKind::Fix</a>                       =&gt; <span class="string">&quot;Fix&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#274">ErrorKind::Escaped</a>                   =&gt; <span class="string">&quot;Escaped&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#275">ErrorKind::EscapedTransform</a>          =&gt; <span class="string">&quot;EscapedTransform&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#276">ErrorKind::NonEmpty</a>                  =&gt; <span class="string">&quot;NonEmpty&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#277">ErrorKind::ManyMN</a>                    =&gt; <span class="string">&quot;Many(m, n)&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#253">ErrorKind::HexDigit</a>                  =&gt; <span class="string">&quot;Hexadecimal Digit&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#254">ErrorKind::OctDigit</a>                  =&gt; <span class="string">&quot;Octal digit&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#278">ErrorKind::Not</a>                       =&gt; <span class="string">&quot;Negation&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#279">ErrorKind::Permutation</a>               =&gt; <span class="string">&quot;Permutation&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#246">ErrorKind::ManyTill</a>                  =&gt; <span class="string">&quot;ManyTill&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#280">ErrorKind::Verify</a>                    =&gt; <span class="string">&quot;predicate verification&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#281">ErrorKind::TakeTill1</a>                 =&gt; <span class="string">&quot;TakeTill1&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#282">ErrorKind::TakeWhileMN</a>               =&gt; <span class="string">&quot;TakeWhileMN&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#283">ErrorKind::ParseTo</a>                   =&gt; <span class="string">&quot;Parse string to the specified type&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#284">ErrorKind::TooLarge</a>                  =&gt; <span class="string">&quot;Needed data size is too large&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#285">ErrorKind::Many0Count</a>                =&gt; <span class="string">&quot;Count occurrence of &gt;=0 patterns&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#286">ErrorKind::Many1Count</a>                =&gt; <span class="string">&quot;Count occurrence of &gt;=1 patterns&quot;</span>,
-      <a class="ident" href="../../src/nom/error.rs.html#287">ErrorKind::Float</a>                     =&gt; <span class="string">&quot;Float&quot;</span>,
+    <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/nom/error.rs.html#487">self</a> {
+      <a class="ident" href="../../src/nom/error.rs.html#367">ErrorKind::Tag</a>                       =&gt; <span class="string">&quot;Tag&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#368">ErrorKind::MapRes</a>                    =&gt; <span class="string">&quot;Map on Result&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#369">ErrorKind::MapOpt</a>                    =&gt; <span class="string">&quot;Map on Option&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#370">ErrorKind::Alt</a>                       =&gt; <span class="string">&quot;Alternative&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#371">ErrorKind::IsNot</a>                     =&gt; <span class="string">&quot;IsNot&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#372">ErrorKind::IsA</a>                       =&gt; <span class="string">&quot;IsA&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#373">ErrorKind::SeparatedList</a>             =&gt; <span class="string">&quot;Separated list&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#374">ErrorKind::SeparatedNonEmptyList</a>     =&gt; <span class="string">&quot;Separated non empty list&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#375">ErrorKind::Many0</a>                     =&gt; <span class="string">&quot;Many0&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#376">ErrorKind::Many1</a>                     =&gt; <span class="string">&quot;Many1&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#378">ErrorKind::Count</a>                     =&gt; <span class="string">&quot;Count&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#379">ErrorKind::TakeUntil</a>                 =&gt; <span class="string">&quot;Take until&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#380">ErrorKind::LengthValue</a>               =&gt; <span class="string">&quot;Length followed by value&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#381">ErrorKind::TagClosure</a>                =&gt; <span class="string">&quot;Tag closure&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#382">ErrorKind::Alpha</a>                     =&gt; <span class="string">&quot;Alphabetic&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#383">ErrorKind::Digit</a>                     =&gt; <span class="string">&quot;Digit&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#386">ErrorKind::AlphaNumeric</a>              =&gt; <span class="string">&quot;AlphaNumeric&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#387">ErrorKind::Space</a>                     =&gt; <span class="string">&quot;Space&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#388">ErrorKind::MultiSpace</a>                =&gt; <span class="string">&quot;Multiple spaces&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#389">ErrorKind::LengthValueFn</a>             =&gt; <span class="string">&quot;LengthValueFn&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#390">ErrorKind::Eof</a>                       =&gt; <span class="string">&quot;End of file&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#391">ErrorKind::Switch</a>                    =&gt; <span class="string">&quot;Switch&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#392">ErrorKind::TagBits</a>                   =&gt; <span class="string">&quot;Tag on bitstream&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#393">ErrorKind::OneOf</a>                     =&gt; <span class="string">&quot;OneOf&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#394">ErrorKind::NoneOf</a>                    =&gt; <span class="string">&quot;NoneOf&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#395">ErrorKind::Char</a>                      =&gt; <span class="string">&quot;Char&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#396">ErrorKind::CrLf</a>                      =&gt; <span class="string">&quot;CrLf&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#397">ErrorKind::RegexpMatch</a>               =&gt; <span class="string">&quot;RegexpMatch&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#398">ErrorKind::RegexpMatches</a>             =&gt; <span class="string">&quot;RegexpMatches&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#399">ErrorKind::RegexpFind</a>                =&gt; <span class="string">&quot;RegexpFind&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#400">ErrorKind::RegexpCapture</a>             =&gt; <span class="string">&quot;RegexpCapture&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#401">ErrorKind::RegexpCaptures</a>            =&gt; <span class="string">&quot;RegexpCaptures&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#402">ErrorKind::TakeWhile1</a>                =&gt; <span class="string">&quot;TakeWhile1&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#403">ErrorKind::Complete</a>                  =&gt; <span class="string">&quot;Complete&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#404">ErrorKind::Fix</a>                       =&gt; <span class="string">&quot;Fix&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#405">ErrorKind::Escaped</a>                   =&gt; <span class="string">&quot;Escaped&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#406">ErrorKind::EscapedTransform</a>          =&gt; <span class="string">&quot;EscapedTransform&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#407">ErrorKind::NonEmpty</a>                  =&gt; <span class="string">&quot;NonEmpty&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#408">ErrorKind::ManyMN</a>                    =&gt; <span class="string">&quot;Many(m, n)&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#384">ErrorKind::HexDigit</a>                  =&gt; <span class="string">&quot;Hexadecimal Digit&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#385">ErrorKind::OctDigit</a>                  =&gt; <span class="string">&quot;Octal digit&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#409">ErrorKind::Not</a>                       =&gt; <span class="string">&quot;Negation&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#410">ErrorKind::Permutation</a>               =&gt; <span class="string">&quot;Permutation&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#377">ErrorKind::ManyTill</a>                  =&gt; <span class="string">&quot;ManyTill&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#411">ErrorKind::Verify</a>                    =&gt; <span class="string">&quot;predicate verification&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#412">ErrorKind::TakeTill1</a>                 =&gt; <span class="string">&quot;TakeTill1&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#413">ErrorKind::TakeWhileMN</a>               =&gt; <span class="string">&quot;TakeWhileMN&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#414">ErrorKind::TooLarge</a>                  =&gt; <span class="string">&quot;Needed data size is too large&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#415">ErrorKind::Many0Count</a>                =&gt; <span class="string">&quot;Count occurrence of &gt;=0 patterns&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#416">ErrorKind::Many1Count</a>                =&gt; <span class="string">&quot;Count occurrence of &gt;=1 patterns&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#417">ErrorKind::Float</a>                     =&gt; <span class="string">&quot;Float&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#418">ErrorKind::Satisfy</a>                   =&gt; <span class="string">&quot;Satisfy&quot;</span>,
+      <a class="ident" href="../../src/nom/error.rs.html#419">ErrorKind::Fail</a>                      =&gt; <span class="string">&quot;Fail&quot;</span>,
     }
   }
 }
 
-<span class="doccomment">/// creates a parse error from a `nom::ErrorKind`</span>
+<span class="doccomment">/// Creates a parse error from a `nom::ErrorKind`</span>
 <span class="doccomment">/// and the position in the input</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
@@ -1200,9 +1389,9 @@
   });
 );
 
-<span class="doccomment">/// creates a parse error from a `nom::ErrorKind`,</span>
+<span class="doccomment">/// Creates a parse error from a `nom::ErrorKind`,</span>
 <span class="doccomment">/// the position in the input and the next error in</span>
-<span class="doccomment">/// the parsing tree.</span>
+<span class="doccomment">/// the parsing tree</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">error_node_position</span>(
@@ -1211,124 +1400,45 @@
   });
 );
 
-<span class="comment">/*
-
-#[cfg(feature = &quot;std&quot;)]
-use $crate::lib::std::any::Any;
-#[cfg(feature = &quot;std&quot;)]
-use $crate::lib::std::{error,fmt};
-#[cfg(feature = &quot;std&quot;)]
-impl&lt;E: fmt::Debug+Any&gt; error::Error for Err&lt;E&gt; {
-  fn description(&amp;self) -&gt; &amp;str {
-    self.description()
-  }
-}
-
-#[cfg(feature = &quot;std&quot;)]
-impl&lt;E: fmt::Debug&gt; fmt::Display for Err&lt;E&gt; {
-  fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {
-    write!(f, &quot;{}&quot;, self.description())
-  }
-}
-*/</span>
-
-<span class="comment">//FIXME: error rewrite</span>
-<span class="doccomment">/// translate parser result from IResult&lt;I,O,u32&gt; to IResult&lt;I,O,E&gt; with a custom type</span>
+<span class="doccomment">/// Prints a message and the input if the parser fails.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # //FIXME</span>
-<span class="doccomment">/// # #[macro_use] extern crate nom;</span>
-<span class="doccomment">/// # use nom::IResult;</span>
-<span class="doccomment">/// # use std::convert::From;</span>
-<span class="doccomment">/// # use nom::Err;</span>
-<span class="doccomment">/// # use nom::error::ErrorKind;</span>
-<span class="doccomment">/// # fn main() {</span>
-<span class="doccomment">/// #    /*</span>
-<span class="doccomment">/// #    // will add a Custom(42) error to the error chain</span>
-<span class="doccomment">/// #    named!(err_test, add_return_error!(ErrorKind::Custom(42u32), tag!(&quot;abcd&quot;)));</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// #    #[derive(Debug,Clone,PartialEq)]</span>
-<span class="doccomment">/// #    pub struct ErrorStr(String);</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// #    // Convert to IResult&lt;&amp;[u8], &amp;[u8], ErrorStr&gt;</span>
-<span class="doccomment">/// #    impl From&lt;u32&gt; for ErrorStr {</span>
-<span class="doccomment">/// #      fn from(i: u32) -&gt; Self {</span>
-<span class="doccomment">/// #        ErrorStr(format!(&quot;custom error code: {}&quot;, i))</span>
-<span class="doccomment">/// #      }</span>
-<span class="doccomment">/// #    }</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// #    named!(parser&lt;&amp;[u8], &amp;[u8], ErrorStr&gt;,</span>
-<span class="doccomment">/// #        fix_error!(ErrorStr, err_test)</span>
-<span class="doccomment">/// #      );</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// #    let a = &amp;b&quot;efghblah&quot;[..];</span>
-<span class="doccomment">/// #    assert_eq!(parser(a), Err(Err::Error(Context::Code(a, ErrorKind::Custom(ErrorStr(&quot;custom error code: 42&quot;.to_string()))))));</span>
-<span class="doccomment">/// # */</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
-<span class="macro">macro_rules!</span> <span class="ident">fix_error</span> (
-  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">submac</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="op">*</span> )) =&gt; (
-    {
-      <span class="kw">use</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::lib::std::result::Result</span>::<span class="kw-2">*</span>;
-      <span class="kw">use</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Err</span>;
-
-      <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro">submac!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) {
-        <span class="prelude-val">Ok</span>((<span class="ident">i</span>,<span class="ident">o</span>)) =&gt; <span class="prelude-val">Ok</span>((<span class="ident">i</span>,<span class="ident">o</span>)),
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-          <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">e</span> {
-            <span class="ident">Err::Error</span>(<span class="ident">err</span>) =&gt; {
-              <span class="ident">Err::Error</span>(<span class="ident">err</span>.<span class="ident">into</span>())
-            },
-            <span class="ident">Err::Failure</span>(<span class="ident">err</span>) =&gt; {
-              <span class="ident">Err::Failure</span>(<span class="ident">err</span>.<span class="ident">into</span>())
-            },
-            <span class="ident">Err::Incomplete</span>(<span class="ident">e</span>) =&gt; <span class="ident">Err::Incomplete</span>(<span class="ident">e</span>),
-          };
-          <span class="prelude-val">Err</span>(<span class="ident">e2</span>)
-        }
-      }
-    }
-  );
-  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">expr</span>) =&gt; (
-    <span class="macro">fix_error!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="macro">call!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>));
-  );
-);
-
-<span class="doccomment">/// `flat_map!(R -&gt; IResult&lt;R,S&gt;, S -&gt; IResult&lt;S,T&gt;) =&gt; R -&gt; IResult&lt;R, T&gt;`</span>
+<span class="doccomment">/// The message prints the `Error` or `Incomplete`</span>
+<span class="doccomment">/// and the parser&#39;s calling code.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// combines a parser R -&gt; IResult&lt;R,S&gt; and</span>
-<span class="doccomment">/// a parser S -&gt; IResult&lt;S,T&gt; to return another</span>
-<span class="doccomment">/// parser R -&gt; IResult&lt;R,T&gt;</span>
+<span class="doccomment">/// It also displays the input in hexdump format</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # #[macro_use] extern crate nom;</span>
-<span class="doccomment">/// # use nom::{Err, error::ErrorKind};</span>
-<span class="doccomment">/// use nom::number::complete::recognize_float;</span>
+<span class="doccomment">/// use nom::{IResult, error::dbg_dmp, bytes::complete::tag};</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// named!(parser&lt;&amp;str, f64&gt;, flat_map!(recognize_float, parse_to!(f64)));</span>
+<span class="doccomment">/// fn f(i: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {</span>
+<span class="doccomment">///   dbg_dmp(tag(&quot;abcd&quot;), &quot;tag&quot;)(i)</span>
+<span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;123.45;&quot;), Ok((&quot;;&quot;, 123.45)));</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;abc&quot;), Err(Err::Error((&quot;abc&quot;, ErrorKind::Char))));</span>
+<span class="doccomment">///   let a = &amp;b&quot;efghijkl&quot;[..];</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // Will print the following message:</span>
+<span class="doccomment">/// // Error(Position(0, [101, 102, 103, 104, 105, 106, 107, 108])) at l.5 by &#39; tag ! ( &quot;abcd&quot; ) &#39;</span>
+<span class="doccomment">/// // 00000000        65 66 67 68 69 6a 6b 6c         efghijkl</span>
+<span class="doccomment">/// f(a);</span>
 <span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
-<span class="macro">macro_rules!</span> <span class="ident">flat_map</span>(
-  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">submac</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="op">*</span> ), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">submac2</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args2</span>:<span class="ident">tt</span>)<span class="op">*</span> )) =&gt; (
-    <span class="macro">flat_map!</span>(<span class="ident">__impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>, <span class="macro-nonterminal">$</span><span class="macro">submac!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>), <span class="macro-nonterminal">$</span><span class="macro">submac2!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args2</span>)<span class="kw-2">*</span>));
-  );
-  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">submac</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="op">*</span> ), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">g</span>:<span class="ident">expr</span>) =&gt; (
-    <span class="macro">flat_map!</span>(<span class="ident">__impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>, <span class="macro-nonterminal">$</span><span class="macro">submac!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>), <span class="macro">call!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">g</span>));
-  );
-  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">submac</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="op">*</span> )) =&gt; (
-    <span class="macro">flat_map!</span>(<span class="ident">__impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>, <span class="macro">call!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>), <span class="macro-nonterminal">$</span><span class="macro">submac!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>));
-  );
-  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">g</span>:<span class="ident">expr</span>) =&gt; (
-    <span class="macro">flat_map!</span>(<span class="ident">__impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>, <span class="macro">call!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>), <span class="macro">call!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">g</span>));
-  );
-  (<span class="ident">__impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">submac</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="op">*</span> ), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">submac2</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args2</span>:<span class="ident">tt</span>)<span class="op">*</span> )) =&gt; (
-    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::combinator::map_parserc</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span><span class="op">|</span> {<span class="macro-nonterminal">$</span><span class="macro">submac!</span>(<span class="macro-nonterminal">i</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>)}, <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span><span class="op">|</span> {<span class="macro-nonterminal">$</span><span class="macro">submac2!</span>(<span class="macro-nonterminal">i</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args2</span>)<span class="kw-2">*</span>)})
-  );
-);
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;docsrs&quot;</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dbg_dmp</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span>, <span class="ident">O</span>, <span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a><span class="op">&gt;</span>(
+  <span class="ident">f</span>: <span class="ident">F</span>,
+  <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+  <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+{
+  <span class="kw">use</span> <a class="ident" href="../../src/nom/traits.rs.html#1324-1332"><span class="kw">crate</span>::HexDisplay</a>;
+  <span class="kw">move</span> <span class="op">|</span><span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/nom/error.rs.html#591">f</a>(<a class="ident" href="../../src/nom/error.rs.html#598">i</a>) {
+    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
+      <span class="macro">println!</span>(<span class="string">&quot;{}: Error({:?}) at:\n{}&quot;</span>, <a class="ident" href="../../src/nom/error.rs.html#592">context</a>, <a class="ident" href="../../src/nom/error.rs.html#599">e</a>, <a class="ident" href="../../src/nom/error.rs.html#598">i</a>.<a class="ident" href="../../src/nom/traits.rs.html#1327">to_hex</a>(<span class="number">8</span>));
+      <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nom/error.rs.html#599">e</a>)
+    }
+    <span class="ident">a</span> =&gt; <a class="ident" href="../../src/nom/error.rs.html#603">a</a>,
+  }
+}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
@@ -1340,7 +1450,7 @@ impl&lt;E: fmt::Debug&gt; fmt::Display for Err&lt;E&gt; {
   <span class="kw">fn</span> <span class="ident">convert_error_panic</span>() {
     <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">char</span>(<span class="string">&#39;x&#39;</span>)(<span class="ident">input</span>);
+    <span class="kw">let</span> <span class="ident">_result</span>: <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">char</span>(<span class="string">&#39;x&#39;</span>)(<span class="ident">input</span>);
   }
 }
 
@@ -1556,5 +1666,5 @@ pub fn print_offsets(input: &amp;[u8], from: usize, offsets: &amp;[(ErrorKind, u
 }
 */</span>
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
 </body></html>

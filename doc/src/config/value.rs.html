@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/config-0.11.0/src/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/config-0.12.0/src/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../config/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -547,117 +547,497 @@
 <span id="542">542</span>
 <span id="543">543</span>
 <span id="544">544</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/config/lib.rs.html#57">error</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">serde::de</span>::{<a class="ident" href="../../serde/de/trait.Deserialize.html">Deserialize</a>, <a class="ident" href="../../serde/de/trait.Deserializer.html">Deserializer</a>, <a class="ident" href="../../serde/de/trait.Visitor.html">Visitor</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a>;
 
+<span class="kw">use</span> <span class="ident">serde::de</span>::{<a class="ident" href="../../serde/de/trait.Deserialize.html">Deserialize</a>, <a class="ident" href="../../serde/de/trait.Deserializer.html">Deserializer</a>, <a class="ident" href="../../serde/de/trait.Visitor.html">Visitor</a>};
+
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../src/config/error.rs.html#41-85">ConfigError</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../src/config/error.rs.html#9-20">Unexpected</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/config/map.rs.html#2"><span class="kw">crate</span>::map::Map</a>;
+
 <span class="doccomment">/// Underlying kind of the configuration value.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Standard operations on a `Value` by users of this crate do not require</span>
+<span class="doccomment">/// knowledge of `ValueKind`. Introspection of underlying kind is only required</span>
+<span class="doccomment">/// when the configuration values are unstructured or do not have known types.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ValueKind</span> {
     <span class="ident">Nil</span>,
     <span class="ident">Boolean</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>),
-    <span class="ident">Integer</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
+    <span class="ident">I64</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
+    <span class="ident">I128</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>),
+    <span class="ident">U64</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
+    <span class="ident">U128</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>),
     <span class="ident">Float</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>),
     <span class="ident">String</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
-    <span class="ident">Table</span>(<a class="ident" href="../../src/config/value.rs.html#20">Table</a>),
-    <span class="ident">Array</span>(<a class="ident" href="../../src/config/value.rs.html#19">Array</a>),
+    <span class="ident">Table</span>(<a class="ident" href="../../src/config/value.rs.html#29">Table</a>),
+    <span class="ident">Array</span>(<a class="ident" href="../../src/config/value.rs.html#28">Array</a>),
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Array</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Table</span> <span class="op">=</span> <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Array</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Table</span> <span class="op">=</span> <span class="ident">Map</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a><span class="op">&gt;</span>;
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a>
+        <span class="ident"><span class="self">Self</span>::Nil</span>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#32">value</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../src/config/value.rs.html#34">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a>,
+        <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#41">value</a> {
+            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../src/config/value.rs.html#43">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <span class="prelude-val">None</span> =&gt; <span class="ident"><span class="self">Self</span>::Nil</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<a class="ident" href="../../src/config/value.rs.html#41">value</a>)
+        <span class="ident"><span class="self">Self</span>::String</span>(<a class="ident" href="../../src/config/value.rs.html#50">value</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<a class="ident" href="../../src/config/value.rs.html#47">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <span class="ident"><span class="self">Self</span>::String</span>(<a class="ident" href="../../src/config/value.rs.html#56">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::I64</span>(<a class="ident" href="../../src/config/value.rs.html#62">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::I64</span>(<a class="ident" href="../../src/config/value.rs.html#68">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::I64</span>(<a class="ident" href="../../src/config/value.rs.html#74">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/config/value.rs.html#12">ValueKind::Integer</a>(<a class="ident" href="../../src/config/value.rs.html#53">value</a>)
+        <span class="ident"><span class="self">Self</span>::I64</span>(<a class="ident" href="../../src/config/value.rs.html#80">value</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::I128</span>(<a class="ident" href="../../src/config/value.rs.html#86">value</a>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::U64</span>(<a class="ident" href="../../src/config/value.rs.html#92">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::U64</span>(<a class="ident" href="../../src/config/value.rs.html#98">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::U64</span>(<a class="ident" href="../../src/config/value.rs.html#104">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::U64</span>(<a class="ident" href="../../src/config/value.rs.html#110">value</a>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::U128</span>(<a class="ident" href="../../src/config/value.rs.html#116">value</a>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/config/value.rs.html#13">ValueKind::Float</a>(<a class="ident" href="../../src/config/value.rs.html#59">value</a>)
+        <span class="ident"><span class="self">Self</span>::Float</span>(<a class="ident" href="../../src/config/value.rs.html#122">value</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<a class="ident" href="../../src/config/value.rs.html#65">value</a>)
+        <span class="ident"><span class="self">Self</span>::Boolean</span>(<a class="ident" href="../../src/config/value.rs.html#128">value</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Map</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">values</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-
-        <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <a class="ident" href="../../src/config/value.rs.html#74">values</a> {
-            <a class="ident" href="../../src/config/value.rs.html#75">r</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/config/value.rs.html#77">k</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../src/config/value.rs.html#77">v</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        }
-
-        <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<a class="ident" href="../../src/config/value.rs.html#75">r</a>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">values</span>: <span class="ident">Map</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <a class="ident" href="../../src/config/value.rs.html#137">values</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> (<a class="ident" href="../../src/config/value.rs.html#138">k</a>, <a class="ident" href="../../src/config/value.rs.html#138">v</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="ident"><span class="self">Self</span>::Table</span>(<a class="ident" href="../../src/config/value.rs.html#138">t</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-
-        <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <a class="ident" href="../../src/config/value.rs.html#89">values</a> {
-            <a class="ident" href="../../src/config/value.rs.html#90">l</a>.<span class="ident">push</span>(<a class="ident" href="../../src/config/value.rs.html#92">v</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        }
-
-        <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Array</a>(<a class="ident" href="../../src/config/value.rs.html#90">l</a>)
+        <span class="ident"><span class="self">Self</span>::Array</span>(<a class="ident" href="../../src/config/value.rs.html#147">values</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="ident">T::into</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/config/value.rs.html#101">self</a> {
-            <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#101">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#103">value</a>),
-            <a class="ident" href="../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#101">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#104">value</a>),
-            <a class="ident" href="../../src/config/value.rs.html#12">ValueKind::Integer</a>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#101">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#105">value</a>),
-            <a class="ident" href="../../src/config/value.rs.html#13">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#101">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#106">value</a>),
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#101">f</a>, <span class="string">&quot;nil&quot;</span>),
-
-            <span class="comment">// TODO: Figure out a nice Display for these</span>
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="kw-2">ref</span> <span class="ident">table</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#101">f</a>, <span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#110">table</a>),
-            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Array</a>(<span class="kw-2">ref</span> <span class="ident">array</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#101">f</a>, <span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#111">array</a>),
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/config/value.rs.html#153">self</a> {
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#153">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#155">value</a>),
+            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#153">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#156">value</a>),
+            <span class="ident"><span class="self">Self</span>::I64</span>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#153">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#157">value</a>),
+            <span class="ident"><span class="self">Self</span>::I128</span>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#153">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#158">value</a>),
+            <span class="ident"><span class="self">Self</span>::U64</span>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#153">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#159">value</a>),
+            <span class="ident"><span class="self">Self</span>::U128</span>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#153">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#160">value</a>),
+            <span class="ident"><span class="self">Self</span>::Float</span>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#153">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/config/value.rs.html#161">value</a>),
+            <span class="ident"><span class="self">Self</span>::Nil</span> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#153">f</a>, <span class="string">&quot;nil&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Table</span>(<span class="kw-2">ref</span> <span class="ident">table</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#153">f</a>, <span class="string">&quot;{{ {} }}&quot;</span>, {
+                <a class="ident" href="../../src/config/value.rs.html#163">table</a>
+                    .<span class="ident">iter</span>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{} =&gt; {}, &quot;</span>, <a class="ident" href="../../src/config/value.rs.html#166">k</a>, <a class="ident" href="../../src/config/value.rs.html#166">v</a>))
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>()
+            }),
+            <span class="ident"><span class="self">Self</span>::Array</span>(<span class="kw-2">ref</span> <span class="ident">array</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#153">f</a>, <span class="string">&quot;{:?}&quot;</span>, {
+                <a class="ident" href="../../src/config/value.rs.html#169">array</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}, &quot;</span>, <a class="ident" href="../../src/config/value.rs.html#170">e</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>()
+            }),
         }
     }
 }
@@ -684,62 +1064,65 @@
     <span class="ident">origin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Underlying kind of the configuration value.</span>
-    <span class="kw">pub</span> <span class="ident">kind</span>: <a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a>,
+    <span class="kw">pub</span> <span class="ident">kind</span>: <a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a> {
     <span class="doccomment">/// Create a new value instance that will remember its source uri.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">origin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>, <span class="ident">kind</span>: <span class="ident">V</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a><span class="op">&gt;</span>,
+        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a><span class="op">&gt;</span>,
     {
-        <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a> {
-            <span class="ident">origin</span>: <a class="ident" href="../../src/config/value.rs.html#143">origin</a>.<span class="ident">cloned</span>(),
-            <span class="ident">kind</span>: <a class="ident" href="../../src/config/value.rs.html#143">kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        <span class="self">Self</span> {
+            <span class="ident">origin</span>: <a class="ident" href="../../src/config/value.rs.html#203">origin</a>.<span class="ident">cloned</span>(),
+            <span class="ident">kind</span>: <a class="ident" href="../../src/config/value.rs.html#203">kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         }
     }
 
     <span class="doccomment">/// Attempt to deserialize this value into the requested type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_into</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span>: <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">T::deserialize</span>(<a class="self" href="../../src/config/value.rs.html#154">self</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span>: <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">T::deserialize</span>(<a class="self" href="../../src/config/value.rs.html#214">self</a>)
     }
 
     <span class="doccomment">/// Returns `self` as a bool, if possible.</span>
     <span class="comment">// FIXME: Should this not be `try_into_*` ?</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_bool</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#160">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#162">value</a>),
-            <a class="ident" href="../../src/config/value.rs.html#12">ValueKind::Integer</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#163">value</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>),
-            <a class="ident" href="../../src/config/value.rs.html#13">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#164">value</a> <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span>),
+        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#220">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#222">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#223">value</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#224">value</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>),
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#225">value</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>),
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#226">value</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>),
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#227">value</a> <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span>),
 
-            <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">value</span>) =&gt; {
-                <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#166">value</a>.<span class="ident">to_lowercase</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">value</span>) =&gt; {
+                <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#229">value</a>.<span class="ident">to_lowercase</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
                     <span class="string">&quot;1&quot;</span> <span class="op">|</span> <span class="string">&quot;true&quot;</span> <span class="op">|</span> <span class="string">&quot;on&quot;</span> <span class="op">|</span> <span class="string">&quot;yes&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
                     <span class="string">&quot;0&quot;</span> <span class="op">|</span> <span class="string">&quot;false&quot;</span> <span class="op">|</span> <span class="string">&quot;off&quot;</span> <span class="op">|</span> <span class="string">&quot;no&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
 
                     <span class="comment">// Unexpected string value</span>
                     <span class="ident">s</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                        <a class="self" href="../../src/config/value.rs.html#160">self</a>.<span class="ident">origin</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a class="ident" href="../../src/config/error.rs.html#14">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#172">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        <a class="self" href="../../src/config/value.rs.html#220">self</a>.<span class="ident">origin</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#235">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                         <span class="string">&quot;a boolean&quot;</span>,
                     )),
                 }
             }
 
             <span class="comment">// Unexpected type</span>
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#160">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#15">Unexpected::Unit</a>,
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#220">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Unit</a>,
                 <span class="string">&quot;a boolean&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#160">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Map</a>,
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#220">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#19">Unexpected::Map</a>,
                 <span class="string">&quot;a boolean&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#160">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Seq</a>,
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#220">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#18">Unexpected::Seq</a>,
                 <span class="string">&quot;a boolean&quot;</span>,
             )),
         }
@@ -748,19 +1131,34 @@
     <span class="doccomment">/// Returns `self` into an i64, if possible.</span>
     <span class="comment">// FIXME: Should this not be `try_into_*` ?</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_int</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#201">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#12">ValueKind::Integer</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#203">value</a>),
+        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#264">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#266">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#264">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#12">Unexpected::I128</a>(<a class="ident" href="../../src/config/value.rs.html#267">value</a>),
+                <span class="string">&quot;an signed 64 bit or less integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#264">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#13">Unexpected::U64</a>(<a class="ident" href="../../src/config/value.rs.html#272">value</a>),
+                <span class="string">&quot;an signed 64 bit or less integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#264">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#14">Unexpected::U128</a>(<a class="ident" href="../../src/config/value.rs.html#277">value</a>),
+                <span class="string">&quot;an signed 64 bit or less integer&quot;</span>,
+            )),
 
-            <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; {
-                <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#205">s</a>.<span class="ident">to_lowercase</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; {
+                <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#283">s</a>.<span class="ident">to_lowercase</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
                     <span class="string">&quot;true&quot;</span> <span class="op">|</span> <span class="string">&quot;on&quot;</span> <span class="op">|</span> <span class="string">&quot;yes&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">1</span>),
                     <span class="string">&quot;false&quot;</span> <span class="op">|</span> <span class="string">&quot;off&quot;</span> <span class="op">|</span> <span class="string">&quot;no&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
                     <span class="kw">_</span> =&gt; {
-                        <a class="ident" href="../../src/config/value.rs.html#205">s</a>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <a class="ident" href="../../src/config/value.rs.html#283">s</a>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                             <span class="comment">// Unexpected string</span>
                             <span class="ident">ConfigError::invalid_type</span>(
-                                <a class="self" href="../../src/config/value.rs.html#201">self</a>.<span class="ident">origin</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                                <a class="ident" href="../../src/config/error.rs.html#14">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#205">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                                <a class="self" href="../../src/config/value.rs.html#264">self</a>.<span class="ident">origin</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#283">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
                                 <span class="string">&quot;an integer&quot;</span>,
                             )
                         })
@@ -768,23 +1166,189 @@
                 }
             }
 
-            <a class="ident" href="../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if</span> <a class="ident" href="../../src/config/value.rs.html#222">value</a> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> }),
-            <a class="ident" href="../../src/config/value.rs.html#13">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#223">value</a>.<span class="ident">round</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if</span> <a class="ident" href="../../src/config/value.rs.html#300">value</a> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> }),
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#301">value</a>.<span class="ident">round</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
 
             <span class="comment">// Unexpected type</span>
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#201">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#15">Unexpected::Unit</a>,
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#264">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Unit</a>,
                 <span class="string">&quot;an integer&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#201">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Map</a>,
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#264">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#19">Unexpected::Map</a>,
                 <span class="string">&quot;an integer&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#201">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Seq</a>,
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#264">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#18">Unexpected::Seq</a>,
+                <span class="string">&quot;an integer&quot;</span>,
+            )),
+        }
+    }
+
+    <span class="doccomment">/// Returns `self` into an i128, if possible.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_int128</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#323">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#325">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#326">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#327">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#323">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#14">Unexpected::U128</a>(<a class="ident" href="../../src/config/value.rs.html#328">value</a>),
+                <span class="string">&quot;an signed 128 bit integer&quot;</span>,
+            )),
+
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; {
+                <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#334">s</a>.<span class="ident">to_lowercase</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+                    <span class="string">&quot;true&quot;</span> <span class="op">|</span> <span class="string">&quot;on&quot;</span> <span class="op">|</span> <span class="string">&quot;yes&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">1</span>),
+                    <span class="string">&quot;false&quot;</span> <span class="op">|</span> <span class="string">&quot;off&quot;</span> <span class="op">|</span> <span class="string">&quot;no&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+                    <span class="kw">_</span> =&gt; {
+                        <a class="ident" href="../../src/config/value.rs.html#334">s</a>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                            <span class="comment">// Unexpected string</span>
+                            <span class="ident">ConfigError::invalid_type</span>(
+                                <a class="self" href="../../src/config/value.rs.html#323">self</a>.<span class="ident">origin</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#334">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                                <span class="string">&quot;an integer&quot;</span>,
+                            )
+                        })
+                    }
+                }
+            }
+
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if</span> <a class="ident" href="../../src/config/value.rs.html#351">value</a> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> }),
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#352">value</a>.<span class="ident">round</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>),
+
+            <span class="comment">// Unexpected type</span>
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#323">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Unit</a>,
+                <span class="string">&quot;an integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#323">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#19">Unexpected::Map</a>,
+                <span class="string">&quot;an integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#323">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#18">Unexpected::Seq</a>,
+                <span class="string">&quot;an integer&quot;</span>,
+            )),
+        }
+    }
+
+    <span class="doccomment">/// Returns `self` into an u64, if possible.</span>
+    <span class="comment">// FIXME: Should this not be `try_into_*` ?</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_uint</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#375">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#377">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#375">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#14">Unexpected::U128</a>(<a class="ident" href="../../src/config/value.rs.html#378">value</a>),
+                <span class="string">&quot;an unsigned 64 bit or less integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#375">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#11">Unexpected::I64</a>(<a class="ident" href="../../src/config/value.rs.html#383">value</a>),
+                <span class="string">&quot;an unsigned 64 bit or less integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#375">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#12">Unexpected::I128</a>(<a class="ident" href="../../src/config/value.rs.html#388">value</a>),
+                <span class="string">&quot;an unsigned 64 bit or less integer&quot;</span>,
+            )),
+
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; {
+                <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#394">s</a>.<span class="ident">to_lowercase</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+                    <span class="string">&quot;true&quot;</span> <span class="op">|</span> <span class="string">&quot;on&quot;</span> <span class="op">|</span> <span class="string">&quot;yes&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">1</span>),
+                    <span class="string">&quot;false&quot;</span> <span class="op">|</span> <span class="string">&quot;off&quot;</span> <span class="op">|</span> <span class="string">&quot;no&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+                    <span class="kw">_</span> =&gt; {
+                        <a class="ident" href="../../src/config/value.rs.html#394">s</a>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                            <span class="comment">// Unexpected string</span>
+                            <span class="ident">ConfigError::invalid_type</span>(
+                                <a class="self" href="../../src/config/value.rs.html#375">self</a>.<span class="ident">origin</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#394">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                                <span class="string">&quot;an integer&quot;</span>,
+                            )
+                        })
+                    }
+                }
+            }
+
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if</span> <a class="ident" href="../../src/config/value.rs.html#411">value</a> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> }),
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#412">value</a>.<span class="ident">round</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
+
+            <span class="comment">// Unexpected type</span>
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#375">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Unit</a>,
+                <span class="string">&quot;an integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#375">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#19">Unexpected::Map</a>,
+                <span class="string">&quot;an integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#375">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#18">Unexpected::Seq</a>,
+                <span class="string">&quot;an integer&quot;</span>,
+            )),
+        }
+    }
+
+    <span class="doccomment">/// Returns `self` into an u128, if possible.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_uint128</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#434">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#436">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#437">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#434">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#11">Unexpected::I64</a>(<a class="ident" href="../../src/config/value.rs.html#438">value</a>),
+                <span class="string">&quot;an unsigned 128 bit or less integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#434">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#12">Unexpected::I128</a>(<a class="ident" href="../../src/config/value.rs.html#443">value</a>),
+                <span class="string">&quot;an unsigned 128 bit or less integer&quot;</span>,
+            )),
+
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; {
+                <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#449">s</a>.<span class="ident">to_lowercase</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+                    <span class="string">&quot;true&quot;</span> <span class="op">|</span> <span class="string">&quot;on&quot;</span> <span class="op">|</span> <span class="string">&quot;yes&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">1</span>),
+                    <span class="string">&quot;false&quot;</span> <span class="op">|</span> <span class="string">&quot;off&quot;</span> <span class="op">|</span> <span class="string">&quot;no&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+                    <span class="kw">_</span> =&gt; {
+                        <a class="ident" href="../../src/config/value.rs.html#449">s</a>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                            <span class="comment">// Unexpected string</span>
+                            <span class="ident">ConfigError::invalid_type</span>(
+                                <a class="self" href="../../src/config/value.rs.html#434">self</a>.<span class="ident">origin</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#449">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                                <span class="string">&quot;an integer&quot;</span>,
+                            )
+                        })
+                    }
+                }
+            }
+
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if</span> <a class="ident" href="../../src/config/value.rs.html#466">value</a> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> }),
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#467">value</a>.<span class="ident">round</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>),
+
+            <span class="comment">// Unexpected type</span>
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#434">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Unit</a>,
+                <span class="string">&quot;an integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#434">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#19">Unexpected::Map</a>,
+                <span class="string">&quot;an integer&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#434">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#18">Unexpected::Seq</a>,
                 <span class="string">&quot;an integer&quot;</span>,
             )),
         }
@@ -793,19 +1357,19 @@
     <span class="doccomment">/// Returns `self` into a f64, if possible.</span>
     <span class="comment">// FIXME: Should this not be `try_into_*` ?</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_float</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#246">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#13">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#248">value</a>),
+        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#490">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#492">value</a>),
 
-            <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; {
-                <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#250">s</a>.<span class="ident">to_lowercase</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; {
+                <span class="kw">match</span> <a class="ident" href="../../src/config/value.rs.html#494">s</a>.<span class="ident">to_lowercase</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
                     <span class="string">&quot;true&quot;</span> <span class="op">|</span> <span class="string">&quot;on&quot;</span> <span class="op">|</span> <span class="string">&quot;yes&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">1.0</span>),
                     <span class="string">&quot;false&quot;</span> <span class="op">|</span> <span class="string">&quot;off&quot;</span> <span class="op">|</span> <span class="string">&quot;no&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0.0</span>),
                     <span class="kw">_</span> =&gt; {
-                        <a class="ident" href="../../src/config/value.rs.html#250">s</a>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <a class="ident" href="../../src/config/value.rs.html#494">s</a>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                             <span class="comment">// Unexpected string</span>
                             <span class="ident">ConfigError::invalid_type</span>(
-                                <a class="self" href="../../src/config/value.rs.html#246">self</a>.<span class="ident">origin</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                                <a class="ident" href="../../src/config/error.rs.html#14">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#250">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                                <a class="self" href="../../src/config/value.rs.html#490">self</a>.<span class="ident">origin</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#494">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
                                 <span class="string">&quot;a floating point&quot;</span>,
                             )
                         })
@@ -813,52 +1377,58 @@
                 }
             }
 
-            <a class="ident" href="../../src/config/value.rs.html#12">ValueKind::Integer</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#267">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>),
-            <a class="ident" href="../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if</span> <a class="ident" href="../../src/config/value.rs.html#268">value</a> { <span class="number">1.0</span> } <span class="kw">else</span> { <span class="number">0.0</span> }),
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#511">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#512">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>),
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#513">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>),
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#514">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>),
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if</span> <a class="ident" href="../../src/config/value.rs.html#515">value</a> { <span class="number">1.0</span> } <span class="kw">else</span> { <span class="number">0.0</span> }),
 
             <span class="comment">// Unexpected type</span>
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#246">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#15">Unexpected::Unit</a>,
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#490">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Unit</a>,
                 <span class="string">&quot;a floating point&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#246">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Map</a>,
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#490">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#19">Unexpected::Map</a>,
                 <span class="string">&quot;a floating point&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#246">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Seq</a>,
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#490">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#18">Unexpected::Seq</a>,
                 <span class="string">&quot;a floating point&quot;</span>,
             )),
         }
     }
 
-    <span class="doccomment">/// Returns `self` into a str, if possible.</span>
+    <span class="doccomment">/// Returns `self` into a string, if possible.</span>
     <span class="comment">// FIXME: Should this not be `try_into_*` ?</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_str</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#291">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#293">value</a>),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_string</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#538">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#540">value</a>),
 
-            <a class="ident" href="../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#295">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
-            <a class="ident" href="../../src/config/value.rs.html#12">ValueKind::Integer</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#296">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
-            <a class="ident" href="../../src/config/value.rs.html#13">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#297">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#542">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#543">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#544">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#545">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#546">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#547">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
 
             <span class="comment">// Cannot convert</span>
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#291">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#15">Unexpected::Unit</a>,
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#538">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Unit</a>,
                 <span class="string">&quot;a string&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#291">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Map</a>,
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#538">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#19">Unexpected::Map</a>,
                 <span class="string">&quot;a string&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#291">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Seq</a>,
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#538">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#18">Unexpected::Seq</a>,
                 <span class="string">&quot;a string&quot;</span>,
             )),
         }
@@ -866,39 +1436,54 @@
 
     <span class="doccomment">/// Returns `self` into an array, if possible</span>
     <span class="comment">// FIXME: Should this not be `try_into_*` ?</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_array</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#320">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Array</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#322">value</a>),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_array</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#570">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#572">value</a>),
 
             <span class="comment">// Cannot convert</span>
-            <a class="ident" href="../../src/config/value.rs.html#13">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#320">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#13">Unexpected::Float</a>(<a class="ident" href="../../src/config/value.rs.html#325">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#570">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#15">Unexpected::Float</a>(<a class="ident" href="../../src/config/value.rs.html#575">value</a>),
                 <span class="string">&quot;an array&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#320">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#14">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#330">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#570">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#580">value</a>),
                 <span class="string">&quot;an array&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#12">ValueKind::Integer</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#320">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#12">Unexpected::Integer</a>(<a class="ident" href="../../src/config/value.rs.html#335">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#570">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#11">Unexpected::I64</a>(<a class="ident" href="../../src/config/value.rs.html#585">value</a>),
                 <span class="string">&quot;an array&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#320">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#11">Unexpected::Bool</a>(<a class="ident" href="../../src/config/value.rs.html#340">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#570">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#12">Unexpected::I128</a>(<a class="ident" href="../../src/config/value.rs.html#590">value</a>),
                 <span class="string">&quot;an array&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#320">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#15">Unexpected::Unit</a>,
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#570">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#13">Unexpected::U64</a>(<a class="ident" href="../../src/config/value.rs.html#595">value</a>),
                 <span class="string">&quot;an array&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#320">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Map</a>,
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#570">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#14">Unexpected::U128</a>(<a class="ident" href="../../src/config/value.rs.html#600">value</a>),
+                <span class="string">&quot;an array&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#570">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#10">Unexpected::Bool</a>(<a class="ident" href="../../src/config/value.rs.html#605">value</a>),
+                <span class="string">&quot;an array&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#570">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Unit</a>,
+                <span class="string">&quot;an array&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#570">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#19">Unexpected::Map</a>,
                 <span class="string">&quot;an array&quot;</span>,
             )),
         }
@@ -906,191 +1491,246 @@
 
     <span class="doccomment">/// If the `Value` is a Table, returns the associated Map.</span>
     <span class="comment">// FIXME: Should this not be `try_into_*` ?</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_table</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#360">self</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/config/value.rs.html#15">ValueKind::Table</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#362">value</a>),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_table</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Map</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../src/config/value.rs.html#625">self</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/config/value.rs.html#24">ValueKind::Table</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#627">value</a>),
 
             <span class="comment">// Cannot convert</span>
-            <a class="ident" href="../../src/config/value.rs.html#13">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#360">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#13">Unexpected::Float</a>(<a class="ident" href="../../src/config/value.rs.html#365">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#22">ValueKind::Float</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#625">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#15">Unexpected::Float</a>(<a class="ident" href="../../src/config/value.rs.html#630">value</a>),
                 <span class="string">&quot;a map&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#14">ValueKind::String</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#360">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#14">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#370">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#23">ValueKind::String</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#625">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Str</a>(<a class="ident" href="../../src/config/value.rs.html#635">value</a>),
                 <span class="string">&quot;a map&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#12">ValueKind::Integer</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#360">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#12">Unexpected::Integer</a>(<a class="ident" href="../../src/config/value.rs.html#375">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#18">ValueKind::I64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#625">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#11">Unexpected::I64</a>(<a class="ident" href="../../src/config/value.rs.html#640">value</a>),
                 <span class="string">&quot;a map&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#11">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#360">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#11">Unexpected::Bool</a>(<a class="ident" href="../../src/config/value.rs.html#380">value</a>),
+            <a class="ident" href="../../src/config/value.rs.html#19">ValueKind::I128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#625">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#12">Unexpected::I128</a>(<a class="ident" href="../../src/config/value.rs.html#645">value</a>),
                 <span class="string">&quot;a map&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#360">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#15">Unexpected::Unit</a>,
+            <a class="ident" href="../../src/config/value.rs.html#20">ValueKind::U64</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#625">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#13">Unexpected::U64</a>(<a class="ident" href="../../src/config/value.rs.html#650">value</a>),
                 <span class="string">&quot;a map&quot;</span>,
             )),
-            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
-                <a class="self" href="../../src/config/value.rs.html#360">self</a>.<span class="ident">origin</span>,
-                <a class="ident" href="../../src/config/error.rs.html#16">Unexpected::Seq</a>,
+            <a class="ident" href="../../src/config/value.rs.html#21">ValueKind::U128</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#625">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#14">Unexpected::U128</a>(<a class="ident" href="../../src/config/value.rs.html#655">value</a>),
+                <span class="string">&quot;a map&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#17">ValueKind::Boolean</a>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#625">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#10">Unexpected::Bool</a>(<a class="ident" href="../../src/config/value.rs.html#660">value</a>),
+                <span class="string">&quot;a map&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#625">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#17">Unexpected::Unit</a>,
+                <span class="string">&quot;a map&quot;</span>,
+            )),
+            <a class="ident" href="../../src/config/value.rs.html#25">ValueKind::Array</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConfigError::invalid_type</span>(
+                <a class="self" href="../../src/config/value.rs.html#625">self</a>.<span class="ident">origin</span>,
+                <a class="ident" href="../../src/config/error.rs.html#18">Unexpected::Seq</a>,
                 <span class="string">&quot;a map&quot;</span>,
             )),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">struct</span> <span class="ident">ValueVisitor</span>;
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#405">ValueVisitor</a> {
-            <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>;
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#685">ValueVisitor</a> {
+            <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>;
 
             <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-                <a class="ident" href="../../src/config/value.rs.html#410">formatter</a>.<span class="ident">write_str</span>(<span class="string">&quot;any valid configuration value&quot;</span>)
+                <a class="ident" href="../../src/config/value.rs.html#690">formatter</a>.<span class="ident">write_str</span>(<span class="string">&quot;any valid configuration value&quot;</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_bool</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#415">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="kw">fn</span> <span class="ident">visit_bool</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#695">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_i8</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/config/value.rs.html#420">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="kw">fn</span> <span class="ident">visit_i8</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>((<span class="ident">i64::from</span>(<a class="ident" href="../../src/config/value.rs.html#700">value</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_i16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/config/value.rs.html#425">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="kw">fn</span> <span class="ident">visit_i16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>((<span class="ident">i64::from</span>(<a class="ident" href="../../src/config/value.rs.html#705">value</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_i32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/config/value.rs.html#430">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="kw">fn</span> <span class="ident">visit_i32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>((<span class="ident">i64::from</span>(<a class="ident" href="../../src/config/value.rs.html#710">value</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_i64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#435">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="kw">fn</span> <span class="ident">visit_i64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#715">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_u8</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/config/value.rs.html#440">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="kw">fn</span> <span class="ident">visit_i128</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#720">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_u16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/config/value.rs.html#445">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="kw">fn</span> <span class="ident">visit_u8</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>((<span class="ident">i64::from</span>(<a class="ident" href="../../src/config/value.rs.html#725">value</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_u32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/config/value.rs.html#450">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="kw">fn</span> <span class="ident">visit_u16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>((<span class="ident">i64::from</span>(<a class="ident" href="../../src/config/value.rs.html#730">value</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_u64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">visit_u32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>((<span class="ident">i64::from</span>(<a class="ident" href="../../src/config/value.rs.html#735">value</a>)).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            }
+
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="ident">visit_u64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
                 <span class="comment">// FIXME: This is bad</span>
-                <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/config/value.rs.html#455">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/config/value.rs.html#740">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_f64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#461">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="kw">fn</span> <span class="ident">visit_u128</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="comment">// FIXME: This is bad</span>
+                <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/config/value.rs.html#746">value</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_f64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#752">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            }
+
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">E</span>: <a class="ident" href="../../serde/de/trait.Error.html">::serde::de::Error</a>,
             {
-                <a class="self" href="../../src/config/value.rs.html#466">self</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<span class="ident">String::from</span>(<a class="ident" href="../../src/config/value.rs.html#466">value</a>))
+                <a class="self" href="../../src/config/value.rs.html#757">self</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<span class="ident">String::from</span>(<a class="ident" href="../../src/config/value.rs.html#757">value</a>))
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_string</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#474">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            <span class="kw">fn</span> <span class="ident">visit_string</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#765">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_none</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">Value::new</span>(<span class="prelude-val">None</span>, <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a>))
+            <span class="kw">fn</span> <span class="ident">visit_none</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">Value::new</span>(<span class="prelude-val">None</span>, <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a>))
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_some</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_some</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">D::Error</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
             {
-                <a class="ident" href="../../serde/de/trait.Deserialize.html">Deserialize::deserialize</a>(<a class="ident" href="../../src/config/value.rs.html#484">deserializer</a>)
+                <a class="ident" href="../../serde/de/trait.Deserialize.html">Deserialize::deserialize</a>(<a class="ident" href="../../src/config/value.rs.html#775">deserializer</a>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_unit</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">Value::new</span>(<span class="prelude-val">None</span>, <a class="ident" href="../../src/config/value.rs.html#10">ValueKind::Nil</a>))
+            <span class="kw">fn</span> <span class="ident">visit_unit</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">E</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">Value::new</span>(<span class="prelude-val">None</span>, <a class="ident" href="../../src/config/value.rs.html#16">ValueKind::Nil</a>))
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_seq</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">V::Error</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_seq</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">V::Error</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">V</span>: <span class="ident">::serde::de::SeqAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
             {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vec</span> <span class="op">=</span> <span class="ident">Array::new</span>();
 
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">elem</span>) <span class="op">=</span> <a class="ident" href="../../src/config/value.rs.html#497">visitor</a>.<a class="ident" href="../../serde/de/trait.SeqAccess.html">next_element</a>()<span class="question-mark">?</span> {
-                    <a class="ident" href="../../src/config/value.rs.html#501">vec</a>.<span class="ident">push</span>(<a class="ident" href="../../src/config/value.rs.html#503">elem</a>);
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">elem</span>) <span class="op">=</span> <a class="ident" href="../../src/config/value.rs.html#788">visitor</a>.<a class="ident" href="../../serde/de/trait.SeqAccess.html">next_element</a>()<span class="question-mark">?</span> {
+                    <a class="ident" href="../../src/config/value.rs.html#792">vec</a>.<span class="ident">push</span>(<a class="ident" href="../../src/config/value.rs.html#794">elem</a>);
                 }
 
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#501">vec</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#792">vec</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_map</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>, <span class="ident">V::Error</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_map</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="ident">::std::result::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>, <span class="ident">V::Error</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">V</span>: <span class="ident">::serde::de::MapAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
             {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">Table::new</span>();
 
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">value</span>)) <span class="op">=</span> <a class="ident" href="../../src/config/value.rs.html#510">visitor</a>.<a class="ident" href="../../serde/de/trait.MapAccess.html">next_entry</a>()<span class="question-mark">?</span> {
-                    <a class="ident" href="../../src/config/value.rs.html#514">values</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/config/value.rs.html#516">key</a>, <a class="ident" href="../../src/config/value.rs.html#516">value</a>);
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">value</span>)) <span class="op">=</span> <a class="ident" href="../../src/config/value.rs.html#801">visitor</a>.<a class="ident" href="../../serde/de/trait.MapAccess.html">next_entry</a>()<span class="question-mark">?</span> {
+                    <a class="ident" href="../../src/config/value.rs.html#805">values</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/config/value.rs.html#807">key</a>, <a class="ident" href="../../src/config/value.rs.html#807">value</a>);
                 }
 
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#514">values</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/config/value.rs.html#805">values</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
         }
 
-        <a class="ident" href="../../src/config/value.rs.html#401">deserializer</a>.<a class="ident" href="../../serde/de/trait.Deserializer.html">deserialize_any</a>(<a class="ident" href="../../src/config/value.rs.html#405">ValueVisitor</a>)
+        <a class="ident" href="../../src/config/value.rs.html#681">deserializer</a>.<a class="ident" href="../../serde/de/trait.Deserializer.html">deserialize_any</a>(<a class="ident" href="../../src/config/value.rs.html#685">ValueVisitor</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#9-17">ValueKind</a><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/config/value.rs.html#15-26">ValueKind</a><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a> {
+        <span class="self">Self</span> {
             <span class="ident">origin</span>: <span class="prelude-val">None</span>,
-            <span class="ident">kind</span>: <a class="ident" href="../../src/config/value.rs.html#532">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <span class="ident">kind</span>: <a class="ident" href="../../src/config/value.rs.html#823">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#118-139">Value</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for</span> <a class="ident" href="../../src/config/value.rs.html#178-199">Value</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#541">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/config/value.rs.html#541">self</a>.<span class="ident">kind</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../src/config/value.rs.html#832">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/config/value.rs.html#832">self</a>.<span class="ident">kind</span>)
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ValueKind</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Config</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::File</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::FileFormat</span>;
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_i64</span>() {
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Config::builder</span>()
+            .<span class="ident">add_source</span>(<span class="ident">File::new</span>(<span class="string">&quot;tests/types/i64.toml&quot;</span>, <span class="ident">FileFormat::Toml</span>))
+            .<span class="ident">build</span>()
+            .<span class="ident">unwrap</span>();
+
+        <span class="macro">assert!</span>(<span class="macro">std::matches!</span>(<span class="ident">c</span>.<span class="ident">cache</span>.<span class="ident">kind</span>, <span class="ident">ValueKind::Table</span>(<span class="kw">_</span>)));
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">cache</span>.<span class="ident">kind</span> {
+            <span class="ident">ValueKind::Table</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>,
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+        };
+
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">get</span>(<span class="string">&quot;value&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert!</span>(
+            <span class="macro">std::matches!</span>(<span class="ident">value</span>.<span class="ident">kind</span>, <span class="ident">ValueKind::I64</span>(<span class="number">120</span>)),
+            <span class="string">&quot;Is not a i64(120): {:?}&quot;</span>,
+            <span class="ident">value</span>.<span class="ident">kind</span>
+        );
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="config" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="config" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
 </body></html>

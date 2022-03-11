@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ItemWrapperSpec",""]],"macro":[["constructor",""],["constructor",""],["java_class",""],["java_class",""],["method",""],["method",""],["object_getter",""],["object_getter",""]],"mod":[["errors",""]],"struct":[["ClassWrapperSpec",""],["WrapperGenerator",""]]});
+initSidebarItems({"enum":[["ItemWrapperSpec",""]],"macro":[["constructor",""],["java_class",""],["method",""],["object_getter",""]],"mod":[["errors",""]],"struct":[["ClassWrapperSpec",""],["WrapperGenerator",""]]});

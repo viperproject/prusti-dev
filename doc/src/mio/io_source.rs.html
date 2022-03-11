@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.7.14/src/io_source.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>io_source.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.1/src/io_source.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>io_source.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -295,19 +295,61 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::ops</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">std::os::unix::io::AsRawFd</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">std::os::wasi::io::AsRawFd</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::os::windows::io::AsRawSocket</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
 <span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">unix</span>, <span class="ident">debug_assertions</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../src/mio/lib.rs.html#49"><span class="kw">crate</span>::poll</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/mio/sys/unix/mod.rs.html#39"><span class="kw">crate</span>::sys::IoSourceState</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/mio/lib.rs.html#54">event</a>, <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>, <a class="ident" href="../../src/mio/poll.rs.html#209-211">Registry</a>, <a class="ident" href="../../src/mio/token.rs.html#132">Token</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/mio/lib.rs.html#54">event</a>, <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>, <a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a>, <a class="ident" href="../../src/mio/token.rs.html#132">Token</a>};
 
 <span class="doccomment">/// Adapter for a [`RawFd`] or [`RawSocket`] providing an [`event::Source`]</span>
 <span class="doccomment">/// implementation.</span>
@@ -360,7 +402,7 @@
     <span class="ident">state</span>: <a class="ident" href="../../src/mio/sys/unix/mod.rs.html#39">IoSourceState</a>,
     <span class="ident">inner</span>: <span class="ident">T</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-    <span class="ident">selector_id</span>: <a class="ident" href="../../src/mio/io_source.rs.html#213-215">SelectorId</a>,
+    <span class="ident">selector_id</span>: <a class="ident" href="../../src/mio/io_source.rs.html#255-257">SelectorId</a>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">IoSource</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -433,30 +475,34 @@
 {
     <span class="kw">fn</span> <span class="ident">register</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#209-211">Registry</a>,
+        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a>,
         <span class="ident">token</span>: <a class="ident" href="../../src/mio/token.rs.html#132">Token</a>,
         <span class="ident">interests</span>: <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>,
     ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <a class="self" href="../../src/mio/io_source.rs.html#138">self</a>.<span class="ident">selector_id</span>.<a class="ident" href="../../src/mio/io_source.rs.html#232">associate</a>(<a class="ident" href="../../src/mio/io_source.rs.html#139">registry</a>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/mio/poll.rs.html#647">poll::selector</a>(<a class="ident" href="../../src/mio/io_source.rs.html#139">registry</a>).<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#81">register</a>(<a class="self" href="../../src/mio/io_source.rs.html#138">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a class="ident" href="../../src/mio/io_source.rs.html#140">token</a>, <a class="ident" href="../../src/mio/io_source.rs.html#141">interests</a>)
+        <a class="self" href="../../src/mio/io_source.rs.html#138">self</a>.<span class="ident">selector_id</span>.<a class="ident" href="../../src/mio/io_source.rs.html#274">associate</a>(<a class="ident" href="../../src/mio/io_source.rs.html#139">registry</a>)<span class="question-mark">?</span>;
+        <a class="ident" href="../../src/mio/io_source.rs.html#139">registry</a>
+            .<a class="ident" href="../../src/mio/poll.rs.html#657">selector</a>()
+            .<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#81">register</a>(<a class="self" href="../../src/mio/io_source.rs.html#138">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a class="ident" href="../../src/mio/io_source.rs.html#140">token</a>, <a class="ident" href="../../src/mio/io_source.rs.html#141">interests</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">reregister</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#209-211">Registry</a>,
+        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a>,
         <span class="ident">token</span>: <a class="ident" href="../../src/mio/token.rs.html#132">Token</a>,
         <span class="ident">interests</span>: <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>,
     ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <a class="self" href="../../src/mio/io_source.rs.html#149">self</a>.<span class="ident">selector_id</span>.<a class="ident" href="../../src/mio/io_source.rs.html#249">check_association</a>(<a class="ident" href="../../src/mio/io_source.rs.html#150">registry</a>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/mio/poll.rs.html#647">poll::selector</a>(<a class="ident" href="../../src/mio/io_source.rs.html#150">registry</a>).<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#90">reregister</a>(<a class="self" href="../../src/mio/io_source.rs.html#149">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a class="ident" href="../../src/mio/io_source.rs.html#151">token</a>, <a class="ident" href="../../src/mio/io_source.rs.html#152">interests</a>)
+        <a class="self" href="../../src/mio/io_source.rs.html#151">self</a>.<span class="ident">selector_id</span>.<a class="ident" href="../../src/mio/io_source.rs.html#291">check_association</a>(<a class="ident" href="../../src/mio/io_source.rs.html#152">registry</a>)<span class="question-mark">?</span>;
+        <a class="ident" href="../../src/mio/io_source.rs.html#152">registry</a>
+            .<a class="ident" href="../../src/mio/poll.rs.html#657">selector</a>()
+            .<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#90">reregister</a>(<a class="self" href="../../src/mio/io_source.rs.html#151">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a class="ident" href="../../src/mio/io_source.rs.html#153">token</a>, <a class="ident" href="../../src/mio/io_source.rs.html#154">interests</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#209-211">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <a class="self" href="../../src/mio/io_source.rs.html#159">self</a>.<span class="ident">selector_id</span>.<a class="ident" href="../../src/mio/io_source.rs.html#270">remove_association</a>(<a class="ident" href="../../src/mio/io_source.rs.html#159">registry</a>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../src/mio/poll.rs.html#647">poll::selector</a>(<a class="ident" href="../../src/mio/io_source.rs.html#159">registry</a>).<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#99">deregister</a>(<a class="self" href="../../src/mio/io_source.rs.html#159">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>())
+        <a class="self" href="../../src/mio/io_source.rs.html#163">self</a>.<span class="ident">selector_id</span>.<a class="ident" href="../../src/mio/io_source.rs.html#312">remove_association</a>(<a class="ident" href="../../src/mio/io_source.rs.html#163">registry</a>)<span class="question-mark">?</span>;
+        <a class="ident" href="../../src/mio/io_source.rs.html#163">registry</a>.<a class="ident" href="../../src/mio/poll.rs.html#657">selector</a>().<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#99">deregister</a>(<a class="self" href="../../src/mio/io_source.rs.html#163">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>())
     }
 }
 
@@ -495,12 +541,50 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">event::Source</span> <span class="kw">for</span> <span class="ident">IoSource</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">AsRawFd</span>,
+{
+    <span class="kw">fn</span> <span class="ident">register</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><span class="ident">Registry</span>,
+        <span class="ident">token</span>: <span class="ident">Token</span>,
+        <span class="ident">interests</span>: <span class="ident">Interest</span>,
+    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+        <span class="self">self</span>.<span class="ident">selector_id</span>.<span class="ident">associate</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>;
+        <span class="ident">registry</span>
+            .<span class="ident">selector</span>()
+            .<span class="ident">register</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_fd</span>() <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">token</span>, <span class="ident">interests</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">reregister</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><span class="ident">Registry</span>,
+        <span class="ident">token</span>: <span class="ident">Token</span>,
+        <span class="ident">interests</span>: <span class="ident">Interest</span>,
+    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+        <span class="self">self</span>.<span class="ident">selector_id</span>.<span class="ident">check_association</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>;
+        <span class="ident">registry</span>
+            .<span class="ident">selector</span>()
+            .<span class="ident">reregister</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_fd</span>() <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">token</span>, <span class="ident">interests</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><span class="ident">Registry</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+        <span class="self">self</span>.<span class="ident">selector_id</span>.<span class="ident">remove_association</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>;
+        <span class="ident">registry</span>.<span class="ident">selector</span>().<span class="ident">deregister</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_fd</span>() <span class="kw">as</span> <span class="kw">_</span>)
+    }
+}
+
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">IoSource</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../src/mio/io_source.rs.html#205">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../src/mio/io_source.rs.html#205">f</a>)
+        <a class="self" href="../../src/mio/io_source.rs.html#247">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../src/mio/io_source.rs.html#247">f</a>)
     }
 }
 
@@ -512,25 +596,25 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/mio/io_source.rs.html#213-215">SelectorId</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/mio/io_source.rs.html#255-257">SelectorId</a> {
     <span class="doccomment">/// Value of `id` if `SelectorId` is not associated with any</span>
     <span class="doccomment">/// `sys::Selector`. Valid selector ids start at 1.</span>
     <span class="kw">const</span> <span class="ident">UNASSOCIATED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
 
     <span class="doccomment">/// Create a new `SelectorId`.</span>
-    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/mio/io_source.rs.html#213-215">SelectorId</a> {
-        <a class="ident" href="../../src/mio/io_source.rs.html#213-215">SelectorId</a> {
+    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/mio/io_source.rs.html#255-257">SelectorId</a> {
+        <a class="ident" href="../../src/mio/io_source.rs.html#255-257">SelectorId</a> {
             <span class="ident">id</span>: <span class="ident">AtomicUsize::new</span>(<span class="ident"><span class="self">Self</span>::UNASSOCIATED</span>),
         }
     }
 
     <span class="doccomment">/// Associate an I/O source with `registry`, returning an error if its</span>
     <span class="doccomment">/// already registered.</span>
-    <span class="kw">fn</span> <span class="ident">associate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#209-211">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">registry_id</span> <span class="op">=</span> <a class="ident" href="../../src/mio/poll.rs.html#647">poll::selector</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/io_source.rs.html#232">registry</a>).<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#112">id</a>();
-        <span class="kw">let</span> <span class="ident">previous_id</span> <span class="op">=</span> <a class="self" href="../../src/mio/io_source.rs.html#232">self</a>.<span class="ident">id</span>.<span class="ident">swap</span>(<a class="ident" href="../../src/mio/io_source.rs.html#233">registry_id</a>, <span class="ident">Ordering::AcqRel</span>);
+    <span class="kw">fn</span> <span class="ident">associate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">registry_id</span> <span class="op">=</span> <a class="ident" href="../../src/mio/io_source.rs.html#274">registry</a>.<a class="ident" href="../../src/mio/poll.rs.html#657">selector</a>().<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#112">id</a>();
+        <span class="kw">let</span> <span class="ident">previous_id</span> <span class="op">=</span> <a class="self" href="../../src/mio/io_source.rs.html#274">self</a>.<span class="ident">id</span>.<span class="ident">swap</span>(<a class="ident" href="../../src/mio/io_source.rs.html#275">registry_id</a>, <span class="ident">Ordering::AcqRel</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../src/mio/io_source.rs.html#234">previous_id</a> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::UNASSOCIATED</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/mio/io_source.rs.html#276">previous_id</a> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::UNASSOCIATED</span> {
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
@@ -543,13 +627,13 @@
     <span class="doccomment">/// Check the association of an I/O source with `registry`, returning an</span>
     <span class="doccomment">/// error if its registered with a different `Registry` or not registered at</span>
     <span class="doccomment">/// all.</span>
-    <span class="kw">fn</span> <span class="ident">check_association</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#209-211">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">registry_id</span> <span class="op">=</span> <a class="ident" href="../../src/mio/poll.rs.html#647">poll::selector</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/io_source.rs.html#249">registry</a>).<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#112">id</a>();
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="self" href="../../src/mio/io_source.rs.html#249">self</a>.<span class="ident">id</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+    <span class="kw">fn</span> <span class="ident">check_association</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">registry_id</span> <span class="op">=</span> <a class="ident" href="../../src/mio/io_source.rs.html#291">registry</a>.<a class="ident" href="../../src/mio/poll.rs.html#657">selector</a>().<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#112">id</a>();
+        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="self" href="../../src/mio/io_source.rs.html#291">self</a>.<span class="ident">id</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../src/mio/io_source.rs.html#251">id</a> <span class="op">==</span> <a class="ident" href="../../src/mio/io_source.rs.html#250">registry_id</a> {
+        <span class="kw">if</span> <a class="ident" href="../../src/mio/io_source.rs.html#293">id</a> <span class="op">==</span> <a class="ident" href="../../src/mio/io_source.rs.html#292">registry_id</a> {
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/mio/io_source.rs.html#251">id</a> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::UNASSOCIATED</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/mio/io_source.rs.html#293">id</a> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::UNASSOCIATED</span> {
             <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                 <span class="ident">io::ErrorKind::NotFound</span>,
                 <span class="string">&quot;I/O source not registered with `Registry`&quot;</span>,
@@ -564,11 +648,11 @@
 
     <span class="doccomment">/// Remove a previously made association from `registry`, returns an error</span>
     <span class="doccomment">/// if it was not previously associated with `registry`.</span>
-    <span class="kw">fn</span> <span class="ident">remove_association</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#209-211">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">registry_id</span> <span class="op">=</span> <a class="ident" href="../../src/mio/poll.rs.html#647">poll::selector</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/io_source.rs.html#270">registry</a>).<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#112">id</a>();
-        <span class="kw">let</span> <span class="ident">previous_id</span> <span class="op">=</span> <a class="self" href="../../src/mio/io_source.rs.html#270">self</a>.<span class="ident">id</span>.<span class="ident">swap</span>(<span class="ident"><span class="self">Self</span>::UNASSOCIATED</span>, <span class="ident">Ordering::AcqRel</span>);
+    <span class="kw">fn</span> <span class="ident">remove_association</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">registry_id</span> <span class="op">=</span> <a class="ident" href="../../src/mio/io_source.rs.html#312">registry</a>.<a class="ident" href="../../src/mio/poll.rs.html#657">selector</a>().<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#112">id</a>();
+        <span class="kw">let</span> <span class="ident">previous_id</span> <span class="op">=</span> <a class="self" href="../../src/mio/io_source.rs.html#312">self</a>.<span class="ident">id</span>.<span class="ident">swap</span>(<span class="ident"><span class="self">Self</span>::UNASSOCIATED</span>, <span class="ident">Ordering::AcqRel</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../src/mio/io_source.rs.html#272">previous_id</a> <span class="op">==</span> <a class="ident" href="../../src/mio/io_source.rs.html#271">registry_id</a> {
+        <span class="kw">if</span> <a class="ident" href="../../src/mio/io_source.rs.html#314">previous_id</a> <span class="op">==</span> <a class="ident" href="../../src/mio/io_source.rs.html#313">registry_id</a> {
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
@@ -580,13 +664,13 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/io_source.rs.html#213-215">SelectorId</a> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/mio/io_source.rs.html#213-215">SelectorId</a> {
-        <a class="ident" href="../../src/mio/io_source.rs.html#213-215">SelectorId</a> {
-            <span class="ident">id</span>: <span class="ident">AtomicUsize::new</span>(<a class="self" href="../../src/mio/io_source.rs.html#287">self</a>.<span class="ident">id</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>)),
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/io_source.rs.html#255-257">SelectorId</a> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/mio/io_source.rs.html#255-257">SelectorId</a> {
+        <a class="ident" href="../../src/mio/io_source.rs.html#255-257">SelectorId</a> {
+            <span class="ident">id</span>: <span class="ident">AtomicUsize::new</span>(<a class="self" href="../../src/mio/io_source.rs.html#329">self</a>.<span class="ident">id</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>)),
         }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
 </body></html>

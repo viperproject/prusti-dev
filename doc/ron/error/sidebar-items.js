@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ErrorCode",""]],"struct":[["Error","This type represents all possible errors that can occur when serializing or deserializing RON data."],["Position",""]],"type":[["Result",""]]});

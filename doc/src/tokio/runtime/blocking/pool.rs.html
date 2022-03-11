@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.16.1/src/runtime/blocking/pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.17.0/src/runtime/blocking/pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -399,16 +399,10 @@
 <span id="394">394</span>
 <span id="395">395</span>
 <span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
-<span id="401">401</span>
-<span id="402">402</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Thread pool for blocking operations</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::loom::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>, <a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#6">Mutex</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mod.rs.html#96-109"><span class="kw">crate</span>::loom::thread</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mod.rs.html#97-108"><span class="kw">crate</span>::loom::thread</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/schedule.rs.html#9"><span class="kw">crate</span>::runtime::blocking::schedule::NoopSchedule</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/mod.rs.html#14"><span class="kw">crate</span>::runtime::blocking::shutdown</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/builder.rs.html#83"><span class="kw">crate</span>::runtime::builder::ThreadNameFn</a>;
@@ -495,13 +489,13 @@
     }
 
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#90">self</a>.<span class="ident">task</span>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#369">run</a>();
+        <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#90">self</a>.<span class="ident">task</span>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#373">run</a>();
     }
 
     <span class="kw">fn</span> <span class="ident">shutdown_or_run_if_mandatory</span>(<span class="self">self</span>) {
         <span class="kw">match</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#94">self</a>.<span class="ident">mandatory</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#82">Mandatory::NonMandatory</a> =&gt; <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#94">self</a>.<span class="ident">task</span>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#385">shutdown</a>(),
-            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#81">Mandatory::Mandatory</a> =&gt; <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#94">self</a>.<span class="ident">task</span>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#369">run</a>(),
+            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#82">Mandatory::NonMandatory</a> =&gt; <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#94">self</a>.<span class="ident">task</span>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#389">shutdown</a>(),
+            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#81">Mandatory::Mandatory</a> =&gt; <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#94">self</a>.<span class="ident">task</span>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#373">run</a>(),
         }
     }
 }
@@ -627,54 +621,48 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#22-24">Spawner</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#73-76">Task</a>, <span class="ident">rt</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/handle.rs.html#17-48">Handle</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">shutdown_tx</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">self</a>.<span class="ident">inner</span>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">self</a>.<span class="ident">inner</span>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#224">shared</a>.<span class="ident">shutdown</span> {
-                <span class="comment">// Shutdown the task: it&#39;s fine to shutdown this task (even if</span>
-                <span class="comment">// mandatory) because it was scheduled after the shutdown of the</span>
-                <span class="comment">// runtime began.</span>
-                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">task</a>.<span class="ident">task</span>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#385">shutdown</a>();
+        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">shutdown</span> {
+            <span class="comment">// Shutdown the task: it&#39;s fine to shutdown this task (even if</span>
+            <span class="comment">// mandatory) because it was scheduled after the shutdown of the</span>
+            <span class="comment">// runtime began.</span>
+            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">task</a>.<span class="ident">task</span>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#389">shutdown</a>();
 
-                <span class="comment">// no need to even push this task; it would never get picked up</span>
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(());
-            }
+            <span class="comment">// no need to even push this task; it would never get picked up</span>
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(());
+        }
 
-            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#224">shared</a>.<span class="ident">queue</span>.<span class="ident">push_back</span>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">task</a>);
+        <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">queue</span>.<span class="ident">push_back</span>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">task</a>);
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#224">shared</a>.<span class="ident">num_idle</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="comment">// No threads are able to process the task.</span>
+        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">num_idle</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="comment">// No threads are able to process the task.</span>
 
-                <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#224">shared</a>.<span class="ident">num_th</span> <span class="op">==</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">self</a>.<span class="ident">inner</span>.<span class="ident">thread_cap</span> {
-                    <span class="comment">// At max number of threads</span>
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#224">shared</a>.<span class="ident">num_th</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                    <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#224">shared</a>.<span class="ident">shutdown_tx</span>.<span class="ident">is_some</span>());
-                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#224">shared</a>.<span class="ident">shutdown_tx</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-                }
+            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">num_th</span> <span class="op">==</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">self</a>.<span class="ident">inner</span>.<span class="ident">thread_cap</span> {
+                <span class="comment">// At max number of threads</span>
             } <span class="kw">else</span> {
-                <span class="comment">// Notify an idle worker thread. The notification counter</span>
-                <span class="comment">// is used to count the needed amount of notifications</span>
-                <span class="comment">// exactly. Thread libraries may generate spurious</span>
-                <span class="comment">// wakeups, this counter is used to keep us in a</span>
-                <span class="comment">// consistent state.</span>
-                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#224">shared</a>.<span class="ident">num_idle</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#224">shared</a>.<span class="ident">num_notify</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">self</a>.<span class="ident">inner</span>.<span class="ident">condvar</span>.<span class="ident">notify_one</span>();
-                <span class="prelude-val">None</span>
+                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">num_th</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">shutdown_tx</span>.<span class="ident">is_some</span>());
+                <span class="kw">let</span> <span class="ident">shutdown_tx</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">shutdown_tx</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">shutdown_tx</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#245">shutdown_tx</a> {
+                    <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">worker_thread_index</span>;
+                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">worker_thread_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+
+                    <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">self</a>.<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#270-275">spawn_thread</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#247">shutdown_tx</a>, <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">rt</a>, <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#248">id</a>);
+
+                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">worker_threads</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#248">id</a>, <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#251">handle</a>);
+                }
             }
-        };
-
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">shutdown_tx</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shutdown_tx</a> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">self</a>.<span class="ident">inner</span>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
-
-            <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#263">shared</a>.<span class="ident">worker_thread_index</span>;
-            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#263">shared</a>.<span class="ident">worker_thread_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-
-            <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">self</a>.<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#276-281">spawn_thread</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#262">shutdown_tx</a>, <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">rt</a>, <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#265">id</a>);
-
-            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#263">shared</a>.<span class="ident">worker_threads</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#265">id</a>, <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#268">handle</a>);
+        } <span class="kw">else</span> {
+            <span class="comment">// Notify an idle worker thread. The notification counter</span>
+            <span class="comment">// is used to count the needed amount of notifications</span>
+            <span class="comment">// exactly. Thread libraries may generate spurious</span>
+            <span class="comment">// wakeups, this counter is used to keep us in a</span>
+            <span class="comment">// consistent state.</span>
+            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">num_idle</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#223">shared</a>.<span class="ident">num_notify</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#222">self</a>.<span class="ident">inner</span>.<span class="ident">condvar</span>.<span class="ident">notify_one</span>();
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -686,20 +674,20 @@
         <span class="ident">rt</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/handle.rs.html#17-48">Handle</a>,
         <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <span class="ident">thread::JoinHandle</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">thread::Builder::new</span>().<span class="ident">name</span>((<a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#277">self</a>.<span class="ident">inner</span>.<span class="ident">thread_name</span>)());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">thread::Builder::new</span>().<span class="ident">name</span>((<a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#271">self</a>.<span class="ident">inner</span>.<span class="ident">thread_name</span>)());
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stack_size</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#277">self</a>.<span class="ident">inner</span>.<span class="ident">stack_size</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#282">builder</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#282">builder</a>.<span class="ident">stack_size</span>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#284">stack_size</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stack_size</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#271">self</a>.<span class="ident">inner</span>.<span class="ident">stack_size</span> {
+            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#276">builder</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#276">builder</a>.<span class="ident">stack_size</span>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#278">stack_size</a>);
         }
 
-        <span class="kw">let</span> <span class="ident">rt</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#279">rt</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let</span> <span class="ident">rt</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#273">rt</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-        <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#282">builder</a>
+        <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#276">builder</a>
             .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
                 <span class="comment">// Only the reference should be moved into the closure</span>
-                <span class="kw">let</span> <span class="ident">_enter</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/context.rs.html#83"><span class="kw">crate</span>::runtime::context::enter</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#288">rt</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#288">rt</a>.<span class="ident">blocking_spawner</span>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">run</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#280">id</a>);
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#278">shutdown_tx</a>);
+                <span class="kw">let</span> <span class="ident">_enter</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/context.rs.html#83"><span class="kw">crate</span>::runtime::context::enter</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#282">rt</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#282">rt</a>.<span class="ident">blocking_spawner</span>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#296">run</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#274">id</a>);
+                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#272">shutdown_tx</a>);
             })
             .<span class="ident">expect</span>(<span class="string">&quot;OS can&#39;t spawn a new worker thread&quot;</span>)
     }
@@ -707,47 +695,47 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#26-50">Inner</a> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">worker_thread_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">self</a>.<span class="ident">after_start</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#303">f</a>()
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#296">self</a>.<span class="ident">after_start</span> {
+            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#297">f</a>()
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#296">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">join_on_thread</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
         <span class="lifetime">&#39;main</span>: <span class="kw">loop</span> {
             <span class="comment">// BUSY</span>
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">queue</span>.<span class="ident">pop_front</span>() {
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>);
-                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#312">task</a>.<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#90">run</a>();
+            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">queue</span>.<span class="ident">pop_front</span>() {
+                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>);
+                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#306">task</a>.<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#90">run</a>();
 
-                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#296">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
             }
 
             <span class="comment">// IDLE</span>
-            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">num_idle</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">num_idle</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
-            <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">shutdown</span> {
-                <span class="kw">let</span> <span class="ident">lock_result</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">self</a>.<span class="ident">condvar</span>.<span class="ident">wait_timeout</span>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>, <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">self</a>.<span class="ident">keep_alive</span>).<span class="ident">unwrap</span>();
+            <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">shutdown</span> {
+                <span class="kw">let</span> <span class="ident">lock_result</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#296">self</a>.<span class="ident">condvar</span>.<span class="ident">wait_timeout</span>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>, <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#296">self</a>.<span class="ident">keep_alive</span>).<span class="ident">unwrap</span>();
 
-                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#323">lock_result</a>.<span class="number">0</span>;
-                <span class="kw">let</span> <span class="ident">timeout_result</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#323">lock_result</a>.<span class="number">1</span>;
+                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#317">lock_result</a>.<span class="number">0</span>;
+                <span class="kw">let</span> <span class="ident">timeout_result</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#317">lock_result</a>.<span class="number">1</span>;
 
-                <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">num_notify</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">num_notify</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="comment">// We have received a legitimate wakeup,</span>
                     <span class="comment">// acknowledge it by decrementing the counter</span>
                     <span class="comment">// and transition to the BUSY state.</span>
-                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">num_notify</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">num_notify</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="kw">break</span>;
                 }
 
                 <span class="comment">// Even if the condvar &quot;timed out&quot;, if the pool is entering the</span>
                 <span class="comment">// shutdown phase, we want to perform the cleanup logic.</span>
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">shutdown</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#326">timeout_result</a>.<span class="ident">timed_out</span>() {
+                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">shutdown</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#320">timeout_result</a>.<span class="ident">timed_out</span>() {
                     <span class="comment">// We&#39;ll join the prior timed-out thread&#39;s JoinHandle after dropping the lock.</span>
                     <span class="comment">// This isn&#39;t done when shutting down, because the thread calling shutdown will</span>
                     <span class="comment">// handle joining everything.</span>
-                    <span class="kw">let</span> <span class="ident">my_handle</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">worker_threads</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">worker_thread_id</a>);
-                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#308">join_on_thread</a> <span class="op">=</span> <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">last_exiting_thread</span>, <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#342">my_handle</a>);
+                    <span class="kw">let</span> <span class="ident">my_handle</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">worker_threads</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#296">worker_thread_id</a>);
+                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">join_on_thread</a> <span class="op">=</span> <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">last_exiting_thread</span>, <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#336">my_handle</a>);
 
                     <span class="kw">break</span> <span class="lifetime">&#39;main</span>;
                 }
@@ -755,20 +743,20 @@
                 <span class="comment">// Spurious wakeup detected, go back to sleep.</span>
             }
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">shutdown</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">shutdown</span> {
                 <span class="comment">// Drain the queue</span>
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">queue</span>.<span class="ident">pop_front</span>() {
-                    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>);
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">queue</span>.<span class="ident">pop_front</span>() {
+                    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>);
 
-                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#353">task</a>.<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#94">shutdown_or_run_if_mandatory</a>();
+                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#347">task</a>.<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#94">shutdown_or_run_if_mandatory</a>();
 
-                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+                    <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#296">self</a>.<span class="ident">shared</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
                 }
 
                 <span class="comment">// Work was produced, and we &quot;took&quot; it (by decrementing num_notify).</span>
                 <span class="comment">// This means that num_idle was decremented once for our wakeup.</span>
                 <span class="comment">// But, since we are exiting, we need to &quot;undo&quot; that, as we&#39;ll stay idle.</span>
-                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">num_idle</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">num_idle</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="comment">// NOTE: Technically we should also do num_notify++ and notify again,</span>
                 <span class="comment">// but since we&#39;re shutting down anyway, that won&#39;t be necessary.</span>
                 <span class="kw">break</span>;
@@ -776,37 +764,37 @@
         }
 
         <span class="comment">// Thread exit</span>
-        <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">num_th</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+        <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">num_th</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
 
         <span class="comment">// num_idle should now be tracked exactly, panic</span>
         <span class="comment">// with a descriptive message if it is not the</span>
         <span class="comment">// case.</span>
-        <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">num_idle</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>
+        <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">num_idle</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>
             .<span class="ident">num_idle</span>
             .<span class="ident">checked_sub</span>(<span class="number">1</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;num_idle underflowed on thread exit&quot;</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">shutdown</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>.<span class="ident">num_th</span> <span class="op">==</span> <span class="number">0</span> {
-            <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">self</a>.<span class="ident">condvar</span>.<span class="ident">notify_one</span>();
+        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">shutdown</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>.<span class="ident">num_th</span> <span class="op">==</span> <span class="number">0</span> {
+            <a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#296">self</a>.<span class="ident">condvar</span>.<span class="ident">notify_one</span>();
         }
 
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#307">shared</a>);
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#301">shared</a>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">self</a>.<span class="ident">before_stop</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#388">f</a>()
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/blocking/pool.rs.html#296">self</a>.<span class="ident">before_stop</span> {
+            <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#382">f</a>()
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#308">join_on_thread</a> {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#392">handle</a>.<span class="ident">join</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#302">join_on_thread</a> {
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#386">handle</a>.<span class="ident">join</span>();
         }
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#22-24">Spawner</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#399">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;blocking::Spawner&quot;</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../../../src/tokio/runtime/blocking/pool.rs.html#393">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;blocking::Spawner&quot;</span>).<span class="ident">finish</span>()
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (c5c610aad 2022-02-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
 </body></html>
