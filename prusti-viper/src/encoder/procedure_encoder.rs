@@ -1141,7 +1141,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::NullaryOp(op, op_ty) => {
                 self.encode_assign_nullary_op(
                     *op,
-                    op_ty,
+                    *op_ty,
                     encoded_lhs,
                     ty,
                     location
@@ -1167,7 +1167,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
                 self.encode_cast(
                     operand,
-                    dst_ty,
+                    *dst_ty,
                     encoded_lhs,
                     ty,
                     location,
@@ -1185,7 +1185,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.encode_assign_array_repeat_initializer(
                     encoded_lhs,
                     operand,
-                    times,
+                    *times,
                     ty,
                     location,
                 )?
@@ -1203,7 +1203,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.encode_assign_slice(
                         encoded_lhs,
                         operand,
-                        ty,
+                        *ty,
                         location,
                     )?
                 } else {
@@ -1229,7 +1229,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             mir::Rvalue::ShallowInitBox(_, op_ty) => {
                 self.encode_assign_box(
-                    op_ty,
+                    *op_ty,
                     encoded_lhs,
                     ty,
                     location,
@@ -1356,7 +1356,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     if is_str(ty) {
                         None
                     } else {
-                        Some(self.encoder.encode_const_expr(ty, &val).unwrap())
+                        Some(self.encoder.encode_const_expr(ty, val).unwrap())
                     };
 
                 (expiring_base, restored, false, stmts)
@@ -2021,15 +2021,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 func:
                     mir::Operand::Constant(box mir::Constant {
                         literal: mir::ConstantKind::Ty(
-                            ty::Const {
-                                ty,
-                                val: func_const_val
-                            },
+                            ty::Const(func_ty_val),
                         ),
                         ..
                     }),
                 ..
             } => {
+                let ty = &func_ty_val.ty;
+                let func_const_val = &func_ty_val.val;
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
                     debug!("Encode function call {:?} with substs {:?}", def_id, substs);
 
@@ -2369,7 +2368,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let slice_ty_ref = self.mir_encoder.get_operand_ty(&args[0]);
         let slice_ty = if let ty::TyKind::Ref(_, slice_ty, _) = slice_ty_ref.kind() { slice_ty } else { unreachable!() };
-        let slice_types = self.encoder.encode_slice_types(slice_ty).with_span(span)?;
+        let slice_types = self.encoder.encode_slice_types(*slice_ty).with_span(span)?;
 
         let rhs = slice_types.encode_slice_len_call(self.encoder, slice_operand);
 
@@ -2747,9 +2746,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ));
 
             let arg_tuple_ty = self.mir_encoder.get_operand_ty(&mir_args[1]);
-            if let ty::TyKind::Tuple(substs) = arg_tuple_ty.kind() {
-                for (field_num, ty) in substs.iter().enumerate() {
-                    let arg_ty = ty.expect_ty();
+            if let ty::TyKind::Tuple(arg_types) = arg_tuple_ty.kind() {
+                for (field_num, arg_ty) in arg_types.into_iter().enumerate() {
                     let arg = self.locals.get_fresh(arg_ty);
                     let value_field = self
                         .encoder
@@ -3270,7 +3268,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )
                 | (Some(ref place), ty::TyKind::Ref(_, inner_ty, _)) => {
                     let ref_field = self.encoder
-                        .encode_dereference_field(inner_ty)
+                        .encode_dereference_field(*inner_ty)
                         .with_span(span)?;
                     let ref_place = place.clone().field(ref_field);
                     stmts.extend(self.encode_transfer_permissions(
@@ -3323,7 +3321,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // Use unfolded references.
                 let encoded_local = self.encode_prusti_local(local);
                 let span = override_span.unwrap_or_else(|| self.mir_encoder.get_local_span(local.into()));
-                let field = self.encoder.encode_dereference_field(ty)
+                let field = self.encoder.encode_dereference_field(*ty)
                     .with_span(span)?;
                 let place = vir::Expr::from(encoded_local).field(field);
                 let perm_amount = match mutability {
@@ -4625,7 +4623,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     mir_place, mutbl, drop_read_references
                                 );
                                 // Use unfolded references.
-                                let field = self.encoder.encode_dereference_field(ty)?;
+                                let field = self.encoder.encode_dereference_field(*ty)?;
                                 let field_place = encoded_place.field(field);
                                 permissions.push(vir::Expr::acc_permission(
                                     field_place.clone(),
@@ -5263,7 +5261,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         if !is_str(ty) {
                             // Initialize the constant
                             let const_val = self.encoder
-                                .encode_const_expr(ty, &val)
+                                .encode_const_expr(ty, val)
                                 .with_span(span)?;
                             // Initialize value of lhs
                             stmts.push(vir::Stmt::Assign( vir::Assign {
@@ -5363,11 +5361,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             op,
             encoded_left.clone(),
             encoded_right.clone(),
-            operand_ty.expect_ty(),
+            operand_ty,
         ).with_span(span)?;
         let encoded_check =
             self.mir_encoder
-                .encode_bin_op_check(op, encoded_left, encoded_right, operand_ty.expect_ty())
+                .encode_bin_op_check(op, encoded_left, encoded_right, operand_ty)
                 .with_span(span)?;
         let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind() {
             x
@@ -5376,14 +5374,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
         let value_field = self
             .encoder
-            .encode_raw_ref_field("tuple_0".to_string(), field_types[0].expect_ty())
+            .encode_raw_ref_field("tuple_0".to_string(), field_types[0])
             .with_span(span)?;
-        let value_field_value = self.encoder.encode_value_field(field_types[0].expect_ty()).with_span(span)?;
+        let value_field_value = self.encoder.encode_value_field(field_types[0]).with_span(span)?;
         let check_field = self
             .encoder
-            .encode_raw_ref_field("tuple_1".to_string(), field_types[1].expect_ty())
+            .encode_raw_ref_field("tuple_1".to_string(), field_types[1])
             .with_span(span)?;
-        let check_field_value = self.encoder.encode_value_field(field_types[1].expect_ty()).with_span(span)?;
+        let check_field_value = self.encoder.encode_value_field(field_types[1]).with_span(span)?;
         let mut stmts = if !self
             .init_info
             .is_vir_place_accessible(&encoded_lhs, location)
@@ -5707,7 +5705,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         } else {
             unreachable!("encode_assign_slice on a non-ref?!")
         };
-        let slice_types = self.encoder.encode_slice_types(slice_ty).with_span(span)?;
+        let slice_types = self.encoder.encode_slice_types(*slice_ty).with_span(span)?;
 
         stmts.extend(self.encode_havoc(&encoded_lhs));
         let val_ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
@@ -5741,7 +5739,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let val_ref_field = self.encoder.encode_value_field(rhs_ty).with_span(span)?;
         let rhs_expr = rhs_place.field(val_ref_field);
-        let array_types = self.encoder.encode_array_types(rhs_array_ty).with_span(span)?;
+        let array_types = self.encoder.encode_array_types(*rhs_array_ty).with_span(span)?;
 
         let slice_len_call = slice_types.encode_slice_len_call(self.encoder, slice_expr.clone());
 
@@ -5856,7 +5854,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         encoded_lhs: vir::Expr,
         operand: &mir::Operand<'tcx>,
-        times: &ty::Const<'tcx>,
+        times: ty::Const<'tcx>,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
@@ -5865,7 +5863,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let encoded_operand = self.mir_encoder.encode_operand_expr(operand)
             .with_span(span)?;
-        let len: usize = self.encoder.const_eval_intlike(&times.val).with_span(span)?
+        let len: usize = self.encoder.const_eval_intlike(times.val()).with_span(span)?
             .to_u64().unwrap().try_into().unwrap();
         let tymap = SubstMap::default();
         let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap)
@@ -5879,7 +5877,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let mut stmts = self.encode_havoc_and_initialization(&encoded_lhs);
         let idx: Expr = vir_local! { i: Int }.into();
-        let indices = vir_expr! { ([Expr::from(0)] <= [idx]) && ([idx] < [Expr::from(len)]) };
+        let indices = vir_expr! { ([Expr::from(0usize)] <= [idx]) && ([idx] < [Expr::from(len)]) };
         let lookup_pure_call = array_types.encode_lookup_pure_call(
             self.encoder,
             encoded_lhs,
@@ -6134,7 +6132,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let field_name = format!("tuple_{}", field_num);
                     let encoded_field = self
                         .encoder
-                        .encode_raw_ref_field(field_name, field_types[field_num].expect_ty())
+                        .encode_raw_ref_field(field_name, field_types[field_num])
                         .with_span(span)?;
                     stmts.extend(self.encode_assign_operand(
                         &dst.clone().field(encoded_field),
@@ -6537,15 +6535,15 @@ fn assert_one_magic_wand(len: usize) -> EncodingResult<()> {
 
 fn mir_constantkind_to_ty_val(literal: mir::ConstantKind) -> (ty::Ty, ty::ConstKind) {
     match literal {
-        mir::ConstantKind::Ty(&ty::Const { ty, val }) => (ty, val),
+        mir::ConstantKind::Ty(ty::Const(ty_val)) => (ty_val.ty, ty_val.val),
         mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(val)),
     }
 }
 
 // Checks if a type is a reference to a string, or a reference to a reference to a string, etc.
-fn is_str(ty: &ty::TyS<'_>) -> bool {
+fn is_str(ty: ty::Ty<'_>) -> bool {
     match ty.kind() {
-        ty::TyKind::Ref(_, inner, _) => inner.is_str() || is_str(inner),
+        ty::TyKind::Ref(_, inner, _) => inner.is_str() || is_str(*inner),
         _ => false
     }
 }

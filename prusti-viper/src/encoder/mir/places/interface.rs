@@ -111,7 +111,7 @@ pub(crate) trait PlacesEncoderInterface<'tcx> {
         mir: &mir::Body<'tcx>,
         def_id: DefId,
         operand: &mir::Operand<'tcx>,
-        dst_ty: &ty::Ty<'tcx>,
+        dst_ty: ty::Ty<'tcx>,
         tymap: &SubstMap<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression>;
@@ -464,7 +464,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         mir: &mir::Body<'tcx>,
         def_id: DefId,
         operand: &mir::Operand<'tcx>,
-        dst_ty: &ty::Ty<'tcx>,
+        dst_ty: ty::Ty<'tcx>,
         tymap: &SubstMap<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression> {

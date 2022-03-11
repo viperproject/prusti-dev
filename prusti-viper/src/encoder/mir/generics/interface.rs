@@ -54,7 +54,7 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
         tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<FxHashMap<vir_high::ty::TypeVar, vir_high::Type>> {
         let mut encoded_tymap = FxHashMap::default();
-        for (ty, subst) in tymap.iter() {
+        for (&ty, &subst) in tymap.iter() {
             if let vir_high::Type::TypeVar(type_var) = self.encode_type_high(ty)? {
                 let encoded_substitution = self.encode_type_high(subst)?;
                 encoded_tymap.insert(type_var, encoded_substitution);
@@ -103,7 +103,7 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
 
             let maybe_subst = tymap.resolve(&type_var_type);
             let argument = if let Some(subst) = maybe_subst {
-                self.encode_type_high(subst)?
+                self.encode_type_high(*subst)?
             } else {
                 vir_high::ty::Type::TypeVar(self.encode_param(name, index))
             };

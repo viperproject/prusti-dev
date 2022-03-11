@@ -298,7 +298,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Extract scalar value, invoking const evaluation if necessary.
     pub fn const_eval_intlike(
         &self,
-        value: &ty::ConstKind<'tcx>,
+        value: ty::ConstKind<'tcx>,
     ) -> EncodingResult<mir::interpret::Scalar> {
         let opt_scalar_value = match value {
             ty::ConstKind::Value(ref const_value) => {
@@ -307,7 +307,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::ConstKind::Unevaluated(ct) => {
                 let tcx = self.env().tcx();
                 let param_env = tcx.param_env(ct.def.did);
-                tcx.const_eval_resolve(param_env, *ct, None)
+                tcx.const_eval_resolve(param_env, ct, None)
                     .ok()
                     .and_then(|const_value| const_value.try_to_scalar())
             }
@@ -645,8 +645,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_const_expr(
         &self,
-        ty: &ty::TyS<'tcx>,
-        value: &ty::ConstKind<'tcx>
+        ty: ty::Ty<'tcx>,
+        value: ty::ConstKind<'tcx>
     ) -> EncodingResult<vir::Expr> {
         trace!("encode_const_expr {:?}", value);
         let scalar_value = self.const_eval_intlike(value)?;

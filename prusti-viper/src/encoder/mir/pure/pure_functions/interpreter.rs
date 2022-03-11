@@ -410,13 +410,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             TerminatorKind::Call {
                 ref args,
                 ref destination,
-                func:
-                    mir::Operand::Constant(box mir::Constant {
-                        literal: mir::ConstantKind::Ty(ty::Const { ty, val: _ }),
-                        ..
-                    }),
+                func: mir::Operand::Constant(ref const_func),
                 ..
             } => {
+                let ty = const_func.ty();
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
                     trace!(
                         "apply_terminator for function call {:?} with substs {:?}",
@@ -918,14 +915,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     let field_name = format!("tuple_{}", field_num);
                                     let field_ty = field_types[field_num];
                                     let encoded_field = self.encoder
-                                        .encode_raw_ref_field(field_name, field_ty.expect_ty())
+                                        .encode_raw_ref_field(field_name, field_ty)
                                         .with_span(span)?;
                                     let field_place = encoded_lhs.clone().field(encoded_field);
 
                                     let (encoded_rhs, is_value) = self.encode_operand(operand).with_span(span)?;
                                     if is_value {
                                         state.substitute_value(
-                                            &self.encoder.encode_value_expr(field_place, field_ty.expect_ty())
+                                            &self.encoder.encode_value_expr(field_place, field_ty)
                                                 .with_span(span)?,
                                             encoded_rhs.clone(),
                                         );
@@ -1091,13 +1088,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             op,
                             vir::Expr::snap_app(encoded_left.clone()),
                             vir::Expr::snap_app(encoded_right.clone()),
-                            operand_ty.expect_ty(),
+                            operand_ty,
                         ).with_span(span)?;
                         let encoded_check = self.mir_encoder.encode_bin_op_check(
                             op,
                             vir::Expr::snap_app(encoded_left),
                             vir::Expr::snap_app(encoded_right),
-                            operand_ty.expect_ty(),
+                            operand_ty,
                         ).with_span(span)?;
 
                         let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind() {
@@ -1106,10 +1103,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             unreachable!()
                         };
                         let value_field = self.encoder
-                            .encode_raw_ref_field("tuple_0".to_string(), field_types[0].expect_ty())
+                            .encode_raw_ref_field("tuple_0".to_string(), field_types[0])
                             .with_span(span)?;
                         let check_field = self.encoder
-                            .encode_raw_ref_field("tuple_1".to_string(), field_types[1].expect_ty())
+                            .encode_raw_ref_field("tuple_1".to_string(), field_types[1])
                             .with_span(span)?;
 
                         let lhs_value = encoded_lhs
@@ -1199,7 +1196,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
                         let encoded_val = self.mir_encoder
-                            .encode_cast_expr(operand, dst_ty, stmt.source_info.span, &self.tymap)?;
+                            .encode_cast_expr(operand, *dst_ty, stmt.source_info.span, &self.tymap)?;
 
                         // Substitute a place of a value with an expression
                         state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_val);
@@ -1257,7 +1254,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     mir::Rvalue::Repeat(ref operand, times) => {
                         let (encoded_operand, _) = self.encode_operand(operand).with_span(span)?;
-                        let len: usize = self.encoder.const_eval_intlike(&times.val).with_span(span)?
+                        let len: usize = self.encoder.const_eval_intlike(times.val()).with_span(span)?
                             .to_u64().unwrap().try_into().unwrap();
                         let elem_ty = operand.ty(self.mir, self.encoder.env().tcx());
                         let encoded_elem_ty = self.encoder.encode_snapshot_type(elem_ty, &self.tymap)
