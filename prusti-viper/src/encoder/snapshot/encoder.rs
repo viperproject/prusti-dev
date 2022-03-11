@@ -613,7 +613,9 @@ impl SnapshotEncoder {
         ty: ty::Ty<'tcx>,
         substs: SubstsRef<'tcx>,
     ) -> EncodingResult<Snapshot> {
-        let ty = encoder.resolve_typaram(strip_refs_and_boxes(ty), substs);
+        // TODO(tymap): remove substs completely from snapshot encoder?
+        //let ty = encoder.env().resolve_ty(strip_refs_and_boxes(ty), substs);
+        let ty = strip_refs_and_boxes(ty);
         let predicate_type = encoder.encode_type(ty)?;
 
         // was the snapshot for the type already encoded?

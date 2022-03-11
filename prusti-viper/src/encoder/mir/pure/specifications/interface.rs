@@ -27,9 +27,9 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         &self,
         fn_name: &str,
         span: Span,
-        substs: SubstsRef<'tcx>,
         encoded_args: Vec<Expression>,
         parent_def_id: DefId,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Expression>;
 
     #[allow(clippy::too_many_arguments)]
@@ -47,9 +47,9 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         &self,
         fn_name: &str,
         span: Span,
-        substs: SubstsRef<'tcx>,
         encoded_args: Vec<vir_crate::polymorphic::Expr>,
         parent_def_id: DefId,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr>;
 
     #[allow(clippy::too_many_arguments)]
@@ -78,18 +78,18 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         &self,
         fn_name: &str,
         span: Span,
-        substs: SubstsRef<'tcx>,
         encoded_args: Vec<Expression>,
         parent_def_id: DefId,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Expression> {
         match fn_name {
             "prusti_contracts::forall" | "prusti_contracts::exists" => encode_quantifier_high(
                 self,
                 span,
-                substs,
                 encoded_args,
                 fn_name == "prusti_contracts::exists",
                 parent_def_id,
+                substs,
             ),
             _ => unimplemented!(),
         }
@@ -124,18 +124,18 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         &self,
         fn_name: &str,
         span: Span,
-        substs: SubstsRef<'tcx>,
         encoded_args: Vec<vir_crate::polymorphic::Expr>,
         parent_def_id: DefId,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
         match fn_name {
             "prusti_contracts::forall" | "prusti_contracts::exists" => encode_quantifier(
                 self,
                 span,
-                substs,
                 encoded_args,
                 fn_name == "prusti_contracts::exists",
                 parent_def_id,
+                substs,
             ),
             _ => unimplemented!(),
         }
@@ -176,6 +176,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         encoded_assertion = self
             .patch_snapshots(encoded_assertion, substs)
             .with_span(span)?;
+
         Ok(encoded_assertion
             .set_default_pos(self.error_manager().register_span(parent_def_id, span)))
     }

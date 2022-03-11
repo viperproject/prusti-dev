@@ -48,6 +48,7 @@ pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     /// DefId of the caller. Used for error reporting.
     caller_def_id: DefId,
     substs: SubstsRef<'tcx>,
+    def_id: DefId, // TODO(tymap): is this actually caller_def_id?
 }
 
 /// This encoding works backward, so there is the risk of generating expressions whose length
@@ -69,6 +70,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             pure_encoding_context,
             caller_def_id,
             substs,
+            def_id,
         }
     }
 
@@ -410,23 +412,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 ..
             } => {
                 let ty = const_func.ty();
-                if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
+                if let ty::TyKind::FnDef(def_id, call_substs) = ty.kind() {
                     trace!(
                         "apply_terminator for function call {:?} with substs {:?}",
                         def_id,
-                        substs
+                        call_substs
                     );
                     let def_id = *def_id;
                     let tcx = self.encoder.env().tcx();
                     let full_func_proc_name: &str = &tcx.def_path_str(def_id);
                     let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
-                    // TODO(tymap): compose substs with self.substs
-                    //let tymap = self
-                    //    .encoder
-                    //    .update_substitution_map(self.tymap.clone(), def_id, substs)
-                    //    .with_span(span)?;
-                    //trace!("Updated tymap = {:?}", tymap);
+                    // compose substitutions
+                    // TODO(tymap): do we need this?
+                    use crate::rustc_middle::ty::subst::Subst;
+                    let composed_substs = call_substs.subst(self.encoder.env().tcx(), self.substs);
 
                     let state = if destination.is_some() {
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
@@ -506,7 +506,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .encode_snapshot_slice_len(
                                         slice_ty,
                                         encoded_args[0].clone(),
-                                        &self.substs,
+                                        self.substs,
                                     )
                                     .with_span(span)?;
 
@@ -585,7 +585,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         ty,
                                         start,
                                         end,
-                                        &self.substs,
+                                        self.substs,
                                     )
                                     .with_span(span)?;
 
@@ -604,9 +604,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let expr = self.encoder.encode_prusti_operation(
                                     full_func_proc_name,
                                     span,
-                                    substs,
                                     encoded_args,
                                     self.caller_def_id,
+                                    composed_substs, // TODO(tymap): is the composition correct?
                                 )?;
                                 let mut state = states[target_block].clone();
                                 state.substitute_value(&lhs_value, expr);
@@ -615,30 +615,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                             // simple function call
                             _ => {
-                                // TODO(tymap): ??? self.substs later?
-                                let own_substs = ty::List::identity_for_item(tcx, def_id);
-                                trace!("Function call has substs = {:?}, declared substs = {:?}, existing/outer substs: {:?}", substs, own_substs, self.substs);
-                                let substs = if substs.needs_subst() && !self.substs.is_empty() {
-                                    substs.subst(tcx, self.substs)
-                                } else {
-                                    substs
-                                };
-                                trace!("Merged substs for function call lookup = {:?}", substs);
-
-                                let def_id = self
+                                let (called_def_id, composed_substs) = self
                                     .encoder
                                     .env()
-                                    .find_impl_of_trait_method_call(def_id, substs)
-                                    .unwrap_or(def_id);
-                                trace!("Resolved function call: {:?}", def_id);
+                                    .resolve_method_call(self.def_id, def_id, composed_substs);
+                                trace!("Resolved function call: {:?}", called_def_id);
 
-                                let is_pure_function = self.encoder.is_pure(def_id);
+                                let is_pure_function = self.encoder.is_pure(called_def_id);
                                 let (function_name, return_type) = if is_pure_function {
                                     self.encoder
                                         .encode_pure_function_use(
-                                            def_id,
+                                            called_def_id,
                                             self.caller_def_id,
-                                            &substs,
+                                            composed_substs,
                                         )
                                         .with_span(term.source_info.span)?
                                 } else {
@@ -657,7 +646,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .enumerate()
                                     .map(|(i, arg)| {
                                         self.mir_encoder
-                                            .encode_operand_expr_type(arg, &self.substs)
+                                            .encode_operand_expr_type(arg, self.substs)
                                             .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
                                     })
                                     .collect::<Result<_, _>>()
@@ -670,7 +659,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 );
                                 let type_arguments = self
                                     .encoder
-                                    .encode_generic_arguments(def_id, &substs)
+                                    .encode_generic_arguments(called_def_id, composed_substs)
                                     .with_span(term.source_info.span)?;
                                 let encoded_rhs = vir::Expr::func_app(
                                     function_name,

@@ -47,8 +47,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
     pub fn encode_function(&self) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode stub function {}", function_name);
-        // TODO(tymap)
-        //let substs = &self.encoder.type_substitution_polymorphic_type_map(self.substs).with_span(self.mir.span)?;
 
         let formal_args: Vec<_> = self
             .mir
@@ -57,11 +55,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
                 let var_name = self.mir_encoder.encode_local_var_name(local);
                 let mir_type = self.mir_encoder.get_local_ty(local);
                 self.encoder.encode_snapshot_type(mir_type, self.substs)
-                    .map(|var_type| {
-                        // TODO(tymap)
-                        //let var_type = var_type.patch(substs);
-                        vir::LocalVar::new(var_name, var_type)
-                    })
+                    .map(|var_type| vir::LocalVar::new(var_name, var_type))
             })
             .collect::<Result<_, _>>()
             .with_span(self.mir.span)?;

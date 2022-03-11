@@ -270,6 +270,14 @@ impl<'tcx> Environment<'tcx> {
         }
     }
 
+    pub fn local_mir_subst(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
+        // TODO(tymap): cache monomorphised MIR bodies?
+        use crate::rustc_middle::ty::subst::Subst;
+        self.local_mir(def_id)
+            .clone()
+            .subst(self.tcx, substs)
+    }
+
     /// Get Polonius facts of a local procedure.
     pub fn local_mir_borrowck_facts(&self, def_id: LocalDefId) -> Rc<BorrowckFacts> {
         self.try_get_local_mir_borrowck_facts(def_id).unwrap()
@@ -388,5 +396,35 @@ impl<'tcx> Environment<'tcx> {
                 .type_implements_trait(trait_def_id, ty, ty::List::empty(), param_env)
                 .must_apply_considering_regions()
         )
+    }
+
+    /// Return the default substitutions for a particular item, i.e. where each
+    /// generic maps to itself.
+    pub fn identity_substs(&self, def_id: ProcedureDefId) -> SubstsRef<'tcx> {
+        ty::List::identity_for_item(self.tcx, def_id)
+    }
+
+    /// Convert a potential type parameter to a concrete type.
+    pub fn resolve_ty(&self, ty: ty::Ty<'tcx>, substs: SubstsRef<'tcx>) -> ty::Ty<'tcx> {
+        // TODO(tymap): most (all?) uses of this function should not need to exist
+        use crate::rustc_middle::ty::subst::Subst;
+        ty.subst(self.tcx, substs)
+    }
+
+    pub fn resolve_method_call(
+        &self,
+        caller_def_id: ProcedureDefId, // where are we calling from?
+        called_def_id: ProcedureDefId, // what are we calling?
+        call_substs: SubstsRef<'tcx>,
+    ) -> (ProcedureDefId, SubstsRef<'tcx>) {
+        let param_env = self.tcx.param_env(caller_def_id);
+        let instance = self.tcx
+            .resolve_instance(param_env.and((called_def_id, call_substs)))
+            .unwrap();
+        if let Some(instance) = instance {
+            (instance.def_id(), instance.substs)
+        } else {
+            (called_def_id, call_substs)
+        }
     }
 }
