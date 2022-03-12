@@ -5118,10 +5118,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let idx_conditions = vir_expr!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
         let tymap = SubstMap::default();
         let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap).with_span(span)?;
-        let lookup_array_i = array_types.encode_lookup_pure_call(self.encoder, encoded_array.clone(), i_var, lookup_ret_ty.clone());
-        let lookup_same_as_old = vir_expr!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
+        let lookup_array_i = array_types.encode_lookup_pure_call(self.encoder, encoded_array.clone(), i_var.clone(), lookup_ret_ty.clone());
+        // FIXME: using `old` here is a work-around for https://github.com/viperproject/prusti-dev/issues/877
+        // FIXME: which is due to an issue in Silicon, see https://github.com/viperproject/silicon/issues/603
+        let lookup_array_i_old = array_types.encode_lookup_pure_call(self.encoder, old(encoded_array.clone()), i_var, lookup_ret_ty.clone());
+        let lookup_same_as_old = vir_expr!{ [lookup_array_i] == [old(lookup_array_i)] };
         let forall_body = vir_expr!{ [idx_conditions] ==> [lookup_same_as_old] };
-        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
+        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i_old] } [ forall_body ] };
 
         stmts.push(vir_stmt!{ inhale [ all_others_unchanged ]});
 
