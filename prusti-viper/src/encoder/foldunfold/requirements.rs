@@ -247,8 +247,7 @@ impl RequiredExprPermissionsGetter for vir::Expr {
             }) => {
                 reqs.extend(argument.get_all_required_expr_permissions(preds));
             }
-            vir::Expr::MagicWand(vir::MagicWand { left, right, .. })
-            | vir::Expr::BinOp(vir::BinOp { left, right, .. })
+            vir::Expr::BinOp(vir::BinOp { left, right, .. })
             | vir::Expr::ContainerOp(vir::ContainerOp { left, right, .. }) => {
                 reqs.extend(left.get_all_required_expr_permissions(preds));
                 reqs.extend(right.get_all_required_expr_permissions(preds));
@@ -279,7 +278,7 @@ impl RequiredExprPermissionsGetter for vir::Expr {
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
 
-                // We want to temporarly unfold place
+                // We want to temporarly unfold `place`
                 let predicate_type = place.get_type();
                 let predicate = preds.get(predicate_type).unwrap();
 
@@ -388,35 +387,21 @@ impl RequiredExprPermissionsGetter for vir::Expr {
             | vir::Expr::DomainFuncApp(vir::DomainFuncApp { ref arguments, .. }) => {
                 arguments
                     .iter()
-                    .filter(|a| a.is_curr())
-                    .map(|arg| {
+                    .flat_map(|arg| {
                         if arg.is_place() && arg.get_type().is_typed_ref_or_type_var() {
                             // FIXME: A hack: have unfolded Rust references in the precondition to
                             // simplify our life. A proper solution would be to look up the
                             // real function precondition.
                             if let Some(field_place) = arg.try_deref() {
-                                vir::Expr::and(
-                                    vir::Expr::acc_permission(
-                                        field_place.clone(),
-                                        PermAmount::Read,
-                                    ),
-                                    vir::Expr::pred_permission(field_place, PermAmount::Read)
-                                        .unwrap(),
-                                )
+                                Some(Pred(field_place, PermAmount::Read)).into_iter().collect()
                             } else {
-                                let typ = arg.get_type();
-                                vir::Expr::predicate_access_predicate(
-                                    typ.clone(),
-                                    arg.clone(),
-                                    PermAmount::Read,
-                                )
+                                Some(Pred(arg.clone(), PermAmount::Read)).into_iter().collect()
                             }
                         } else {
                             debug!("arg {} is not a place with type ref", arg);
-                            arg.clone()
+                            arg.get_required_expr_permissions(predicates)
                         }
                     })
-                    .flat_map(|e| e.get_required_expr_permissions(predicates))
                     .collect()
             }
 

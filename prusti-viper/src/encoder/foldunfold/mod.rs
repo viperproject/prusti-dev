@@ -709,6 +709,39 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
                         );
                     }
                 }
+
+                /*
+                // Fold predicates at the end of the package block
+                let mut final_fold = self.replace_stmt(
+                    stmt_index,
+                    &vir::Stmt::Assert(vir::Assert {
+                        expr: right.clone(),
+                        position: vir::Position::default(),
+                    }),
+                    false,
+                    &mut package_pctxt,
+                    curr_block_index,
+                    new_cfg,
+                    Some(label),
+                )?;
+                let reduntant_assert = final_fold.pop().unwrap();
+                debug_assert!(matches!(reduntant_assert, vir::Stmt::Assert(_)));
+                package_stmts.extend(final_fold);
+                if config::dump_debug_info() {
+                    report::log::report(
+                        "vir_package",
+                        "package.vir",
+                        vir::Stmt::package_magic_wand(
+                            left.clone(),
+                            right.clone(),
+                            package_stmts.clone(),
+                            label.clone(),
+                            variables.clone(),
+                            *position,
+                        ),
+                    );
+                }*/
+
                 vir::Stmt::package_magic_wand(
                     left.clone(),
                     right.clone(),
