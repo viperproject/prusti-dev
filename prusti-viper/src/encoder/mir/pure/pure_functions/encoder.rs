@@ -172,10 +172,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // if the function returns a snapshot, we take a snapshot of the body
         if self.encode_function_return_type()?.is_snapshot() {
             let ty = self.mir.return_ty();
-            //let ty = self
-            //    .encoder
-            //    .env()
-            //    .resolve_ty(self.mir.return_ty(), &self.substs);
             let return_span = self.get_local_span(mir::RETURN_PLACE);
 
             let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
@@ -501,10 +497,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
-        //let ty = self
-        //    .encoder
-        //    .env()
-        //    .resolve_ty(self.mir.return_ty(), &self.substs);
         let ty = self.mir.return_ty();
         let return_span = self.get_local_span(mir::RETURN_PLACE);
 

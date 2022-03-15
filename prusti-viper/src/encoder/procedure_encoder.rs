@@ -2912,6 +2912,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let procedure_contract = {
             self.encoder.get_procedure_contract_for_call(
+                self.proc_def_id,
                 called_def_id,
                 &arguments,
                 target_local,
@@ -3468,7 +3469,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         if let SpecificationItem::Refined(from, to) = &procedure_spec.pres {
             // See comment in `ProcedureContractGeneric::functional_precondition`.
-            let trait_substs = self.encoder.env().resolve_substs_to_trait(
+            let trait_substs = self.encoder.env().find_trait_method_substs(
                 self.proc_def_id,
                 self.substs,
             ).unwrap().1;
@@ -3507,7 +3508,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         if let SpecificationItem::Refined(from, to) = &procedure_spec.posts {
             // See comment in `ProcedureContractGeneric::functional_precondition`.
-            let trait_substs = self.encoder.env().resolve_substs_to_trait(
+            let trait_substs = self.encoder.env().find_trait_method_substs(
                 self.proc_def_id,
                 self.substs,
             ).unwrap().1;

@@ -123,7 +123,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
                         // This works because the generics of the specification
                         // items are the same as the generics of the method on
                         // which they are declared.
-                        env.resolve_substs_to_trait(self.def_id, substs).unwrap().1,
+                        env.find_trait_method_substs(self.def_id, substs).unwrap().1,
                     ))
                     .collect(),
             }
@@ -151,7 +151,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
                     .map(|inherited_def_id| (
                         *inherited_def_id,
                         // Same comment as `functional_precondition` applies.
-                        env.resolve_substs_to_trait(self.def_id, substs).unwrap().1,
+                        env.find_trait_method_substs(self.def_id, substs).unwrap().1,
                     ))
                     .collect(),
             }
