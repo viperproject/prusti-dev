@@ -56,7 +56,7 @@ use rustc_span::source_map::SourceMap;
 // #[derive(Copy, Clone)]
 pub struct Environment<'tcx> {
     /// Cached MIR bodies.
-    bodies: RefCell<HashMap<LocalDefId, Rc<mir::Body<'tcx>>>>,
+    bodies: RefCell<HashMap<(LocalDefId, SubstsRef<'tcx>), Rc<mir::Body<'tcx>>>>,
     /// Cached borrowck information.
     borrowck_facts: RefCell<HashMap<LocalDefId, Rc<BorrowckFacts>>>,
     tcx: TyCtxt<'tcx>,
@@ -243,10 +243,15 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self, proc_def_id)
     }
 
-    /// Get the MIR body of a local procedure.
-    fn local_mir(&self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
+    /// Get the MIR body of a local procedure, monomorphised with the given
+    /// type substitutions.
+    pub fn local_mir(
+        &self,
+        def_id: LocalDefId,
+        substs: SubstsRef<'tcx>,
+    ) -> Rc<mir::Body<'tcx>> {
         let mut bodies = self.bodies.borrow_mut();
-        if let Some(body) = bodies.get(&def_id) {
+        if let Some(body) = bodies.get(&(def_id, substs)) {
             body.clone()
         } else {
             // SAFETY: This is safe because we are feeding in the same `tcx`
@@ -261,26 +266,17 @@ impl<'tcx> Environment<'tcx> {
                 location_table: RefCell::new(Some(body_with_facts.location_table)),
             };
 
+            // TODO(tymap): are these affected by type substitutions at all?
             let mut borrowck_facts = self.borrowck_facts.borrow_mut();
             borrowck_facts.insert(def_id, Rc::new(facts));
 
-            bodies.entry(def_id).or_insert_with(|| {
+            use crate::rustc_middle::ty::subst::Subst;
+            let body = body.subst(self.tcx, substs);
+
+            bodies.entry((def_id, substs)).or_insert_with(|| {
                 Rc::new(body)
             }).clone()
         }
-    }
-
-    pub fn local_mir_subst(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
-        // TODO(tymap): cache monomorphised MIR bodies?
-        use crate::rustc_middle::ty::subst::Subst;
-        self.local_mir(def_id)
-            .clone()
-            .subst(self.tcx, substs)
-    }
-
-    pub fn local_mir_ident(&self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
-        // TODO(tymap): remove, clean up interface
-        self.local_mir(def_id)
     }
 
     /// Get Polonius facts of a local procedure.

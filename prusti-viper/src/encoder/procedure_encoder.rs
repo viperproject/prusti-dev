@@ -4943,8 +4943,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 kind => unreachable!("Only calls are expected. Found: {:?}", kind),
             }
         } else {
-            // TODO(tymap): why are we getting the MIR body for this?
-            let mir = self.encoder.env().local_mir_ident(containing_def_id.expect_local());
+            // FIXME: why are we getting the MIR body for this?
+            let mir = self.encoder.env().local_mir(
+                containing_def_id.expect_local(),
+                // TODO(tymap): identity substs here are probably wrong?
+                self.encoder.env().identity_substs(containing_def_id),
+            );
             let return_ty = mir.return_ty();
             let arg_tys = mir.args_iter().map(|arg| mir.local_decls[arg].ty).collect();
             FakeMirEncoder::new(self.encoder, arg_tys, Some(return_ty))

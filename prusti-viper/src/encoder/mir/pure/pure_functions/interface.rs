@@ -206,7 +206,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             .contains_key(&key)
         {
             // TODO(tymap): why the procedure?
-            let mir = self.env().local_mir_subst(proc_def_id.expect_local(), substs);
+            let mir = self.env().local_mir(proc_def_id.expect_local(), substs);
 
             /*
             let procedure = self.env().get_procedure(proc_def_id);
@@ -277,7 +277,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
 
             // TODO(tymap): why the procedure?
-            let mir = self.env().local_mir_subst(proc_def_id.expect_local(), substs);
+            let mir = self.env().local_mir(proc_def_id.expect_local(), substs);
             let mir_span = mir.span;
 
             /*
@@ -410,7 +410,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
 
             // TODO(tymap): why the procedure?
-            let mir = self.env().local_mir_subst(proc_def_id.expect_local(), substs);
+            let mir = self.env().local_mir(proc_def_id.expect_local(), substs);
 
             /*
             let procedure = self.env().get_procedure(wrapper_def_id);
@@ -482,7 +482,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             // memoize it.
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
 
-            let mir = self.env().local_mir_subst(wrapper_def_id.expect_local(), substs);
+            let mir = self.env().local_mir(wrapper_def_id.expect_local(), substs);
 
             // TODO(tymap): why the procedure?
             /*
