@@ -3398,7 +3398,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
 
-        let func_spec: Vec<vir::Expr> = contract.functional_precondition_new(
+        let func_spec: Vec<vir::Expr> = contract.functional_precondition(
                 self.encoder.env(),
                 substs,
             ).iter()
@@ -3415,7 +3415,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // TODO(tymap): do this with the previous step ...
         let precondition_spans = MultiSpan::from_spans(
-            contract.functional_precondition_new(self.encoder.env(), substs)
+            contract.functional_precondition(self.encoder.env(), substs)
                 .iter()
                 .map(|(ts, _)| self.encoder.env().tcx().def_span(ts.to_def_id()))
                 .collect(),
@@ -3917,7 +3917,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Encode functional specification
         let mut func_spec = vec![];
         let mut func_spec_spans = vec![];
-        let func_postcondition = contract.functional_postcondition_new(self.encoder.env(), substs);
+        let func_postcondition = contract.functional_postcondition(self.encoder.env(), substs);
         for (typed_assertion, assertion_substs) in func_postcondition {
             let mut assertion = self.encoder.encode_assertion(
                 &typed_assertion,

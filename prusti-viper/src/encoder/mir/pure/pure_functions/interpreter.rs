@@ -1203,7 +1203,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let rhs_ref_ty = self.mir_encoder.get_operand_ty(operand);
                         let rhs_ty = rhs_ref_ty.peel_refs();
                         if lhs_ref_ty.is_slice() && rhs_ty.is_array() {
-                            let function_name = self.encoder.encode_unsize_function_use(rhs_ty, lhs_ty, &self.substs)
+                            let function_name = self.encoder.encode_unsize_function_use(rhs_ty, lhs_ty)
                                 .unwrap_or_else(|error| unreachable!("error during unsizing slice to array: {:?}", error) );
                             let encoded_rhs = self.encoder.encode_snapshot_type(rhs_ty).with_span(span)?;
                             let formal_args = vec![vir::LocalVar::new(

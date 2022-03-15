@@ -300,7 +300,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let parameter_expressions = self.convert_parameters_into_expressions(parameters);
         let mut conjuncts = Vec::new();
-        for (assertion, assertion_substs) in contract.functional_precondition_new(self.encoder.env(), self.substs) {
+        for (assertion, assertion_substs) in contract.functional_precondition(self.encoder.env(), self.substs) {
             let encoded_assertion = self.encoder.encode_assertion_high(
                 &assertion,
                 None,
@@ -326,7 +326,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let parameter_expressions = self.convert_parameters_into_expressions(parameters);
         let mut conjuncts = Vec::new();
         let encoded_return = self.encode_mir_local(contract.returned_value)?;
-        for (assertion, assertion_substs) in contract.functional_postcondition_new(self.encoder.env(), self.substs) {
+        for (assertion, assertion_substs) in contract.functional_postcondition(self.encoder.env(), self.substs) {
             let encoded_assertion = self.encoder.encode_assertion_high(
                 &assertion,
                 None,
