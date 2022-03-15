@@ -1,107 +1,107 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.86/src/path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.88/src/path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
-<span id="2">  2</span>
-<span id="3">  3</span>
-<span id="4">  4</span>
-<span id="5">  5</span>
-<span id="6">  6</span>
-<span id="7">  7</span>
-<span id="8">  8</span>
-<span id="9">  9</span>
-<span id="10"> 10</span>
-<span id="11"> 11</span>
-<span id="12"> 12</span>
-<span id="13"> 13</span>
-<span id="14"> 14</span>
-<span id="15"> 15</span>
-<span id="16"> 16</span>
-<span id="17"> 17</span>
-<span id="18"> 18</span>
-<span id="19"> 19</span>
-<span id="20"> 20</span>
-<span id="21"> 21</span>
-<span id="22"> 22</span>
-<span id="23"> 23</span>
-<span id="24"> 24</span>
-<span id="25"> 25</span>
-<span id="26"> 26</span>
-<span id="27"> 27</span>
-<span id="28"> 28</span>
-<span id="29"> 29</span>
-<span id="30"> 30</span>
-<span id="31"> 31</span>
-<span id="32"> 32</span>
-<span id="33"> 33</span>
-<span id="34"> 34</span>
-<span id="35"> 35</span>
-<span id="36"> 36</span>
-<span id="37"> 37</span>
-<span id="38"> 38</span>
-<span id="39"> 39</span>
-<span id="40"> 40</span>
-<span id="41"> 41</span>
-<span id="42"> 42</span>
-<span id="43"> 43</span>
-<span id="44"> 44</span>
-<span id="45"> 45</span>
-<span id="46"> 46</span>
-<span id="47"> 47</span>
-<span id="48"> 48</span>
-<span id="49"> 49</span>
-<span id="50"> 50</span>
-<span id="51"> 51</span>
-<span id="52"> 52</span>
-<span id="53"> 53</span>
-<span id="54"> 54</span>
-<span id="55"> 55</span>
-<span id="56"> 56</span>
-<span id="57"> 57</span>
-<span id="58"> 58</span>
-<span id="59"> 59</span>
-<span id="60"> 60</span>
-<span id="61"> 61</span>
-<span id="62"> 62</span>
-<span id="63"> 63</span>
-<span id="64"> 64</span>
-<span id="65"> 65</span>
-<span id="66"> 66</span>
-<span id="67"> 67</span>
-<span id="68"> 68</span>
-<span id="69"> 69</span>
-<span id="70"> 70</span>
-<span id="71"> 71</span>
-<span id="72"> 72</span>
-<span id="73"> 73</span>
-<span id="74"> 74</span>
-<span id="75"> 75</span>
-<span id="76"> 76</span>
-<span id="77"> 77</span>
-<span id="78"> 78</span>
-<span id="79"> 79</span>
-<span id="80"> 80</span>
-<span id="81"> 81</span>
-<span id="82"> 82</span>
-<span id="83"> 83</span>
-<span id="84"> 84</span>
-<span id="85"> 85</span>
-<span id="86"> 86</span>
-<span id="87"> 87</span>
-<span id="88"> 88</span>
-<span id="89"> 89</span>
-<span id="90"> 90</span>
-<span id="91"> 91</span>
-<span id="92"> 92</span>
-<span id="93"> 93</span>
-<span id="94"> 94</span>
-<span id="95"> 95</span>
-<span id="96"> 96</span>
-<span id="97"> 97</span>
-<span id="98"> 98</span>
-<span id="99"> 99</span>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
@@ -845,6 +845,37 @@
 <span id="840">840</span>
 <span id="841">841</span>
 <span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <a class="ident" href="../../src/syn/punctuated.rs.html#46-49"><span class="kw">crate</span>::punctuated::Punctuated</a>;
 
@@ -1061,101 +1092,132 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">use</span> <a class="ident" href="../../src/syn/ext.rs.html#18-87"><span class="kw">crate</span>::ext::IdentExt</a>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse</span>::{<a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a>, <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse</span>::{<a class="ident" href="../../src/syn/parse.rs.html#220-222">Parse</a>, <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>, <span class="prelude-ty">Result</span>};
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
-    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a> {
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#220-222">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="ident"><span class="self">Self</span>::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#221">input</a>, <span class="bool-val">false</span>)
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
-    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#101-123">GenericArgument</a> {
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/lifetime.rs.html#118">Lifetime</a>) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#619">peek2</a>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#109">GenericArgument::Lifetime</a>(<a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>));
+    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#220-222">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#101-123">GenericArgument</a> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/lifetime.rs.html#118">Lifetime</a>) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#621">peek2</a>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#109">GenericArgument::Lifetime</a>(<a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>));
             }
 
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/ident.rs.html#16">Ident</a>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#619">peek2</a>(<span class="macro">Token!</span>[<span class="op">=</span>]) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#114">GenericArgument::Binding</a>(<a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>));
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/ident.rs.html#16">Ident</a>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#621">peek2</a>(<span class="macro">Token!</span>[<span class="op">=</span>]) {
+                <span class="kw">let</span> <span class="ident">ident</span>: <a class="ident" href="../../syn/struct.Ident.html">Ident</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">eq_token</span>: <span class="macro">Token!</span>[<span class="op">=</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/lit.rs.html#733">Lit</a>) {
+                    <span class="kw">let</span> <span class="ident">begin</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#917">fork</a>();
+                    <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>::<span class="op">&lt;</span><a class="ident" href="../../src/syn/lit.rs.html#14-49">Lit</a><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <a class="ident" href="../../src/syn/ty.rs.html#64">Type::Verbatim</a>(<a class="ident" href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a class="ident" href="../../src/syn/path.rs.html#238">begin</a>, <a class="ident" href="../../src/syn/path.rs.html#228">input</a>))
+                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>) {
+                    <span class="kw">let</span> <span class="ident">begin</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#917">fork</a>();
+
+                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+                    {
+                        <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>::<span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#333-343">ExprBlock</a><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    }
+
+                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+                    {
+                        <span class="kw">let</span> <span class="ident">content</span>;
+                        <span class="macro">braced!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
+                        <span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    }
+
+                    <a class="ident" href="../../src/syn/ty.rs.html#64">Type::Verbatim</a>(<a class="ident" href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a class="ident" href="../../src/syn/path.rs.html#242">begin</a>, <a class="ident" href="../../src/syn/path.rs.html#228">input</a>))
+                } <span class="kw">else</span> {
+                    <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>
+                };
+
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#114">GenericArgument::Binding</a>(<a class="ident" href="../../src/syn/path.rs.html#140-151">Binding</a> {
+                    <a class="ident" href="../../src/syn/path.rs.html#234">ident</a>,
+                    <a class="ident" href="../../src/syn/path.rs.html#235">eq_token</a>,
+                    <a class="ident" href="../../src/syn/path.rs.html#237">ty</a>,
+                }));
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
             {
-                <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/ident.rs.html#16">Ident</a>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#619">peek2</a>(<span class="macro">Token!</span>[:]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#619">peek2</a>(<span class="macro">Token!</span>[::]) {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#116">GenericArgument::Constraint</a>(<a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>));
+                <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/ident.rs.html#16">Ident</a>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#621">peek2</a>(<span class="macro">Token!</span>[:]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#621">peek2</a>(<span class="macro">Token!</span>[::]) {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#116">GenericArgument::Constraint</a>(<a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>));
                 }
             }
 
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/lit.rs.html#733">Lit</a>) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>) {
-                <span class="kw">return</span> <a class="ident" href="../../src/syn/path.rs.html#287">const_argument</a>(<a class="ident" href="../../src/syn/path.rs.html#228">input</a>).<span class="ident">map</span>(<a class="ident" href="../../src/syn/path.rs.html#121">GenericArgument::Const</a>);
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/lit.rs.html#733">Lit</a>) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>) {
+                <span class="kw">return</span> <a class="ident" href="../../src/syn/path.rs.html#318">const_argument</a>(<a class="ident" href="../../src/syn/path.rs.html#228">input</a>).<span class="ident">map</span>(<a class="ident" href="../../src/syn/path.rs.html#121">GenericArgument::Const</a>);
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="kw">let</span> <span class="ident">begin</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#915">fork</a>();
+            <span class="kw">let</span> <span class="ident">begin</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#917">fork</a>();
 
-            <span class="kw">let</span> <span class="ident">argument</span>: <a class="ident" href="../../src/syn/ty.rs.html#5-92">Type</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">argument</span>: <a class="ident" href="../../src/syn/ty.rs.html#5-92">Type</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
             {
-                <span class="kw">if</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/path.rs.html#251">argument</a> {
+                <span class="kw">if</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/path.rs.html#282">argument</a> {
                     <a class="ident" href="../../src/syn/ty.rs.html#45">Type::Path</a>(<span class="ident">argument</span>)
-                        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#256">argument</a>.<span class="ident">qself</span>.<span class="ident">is_none</span>()
-                            <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#256">argument</a>.<span class="ident">path</span>.<span class="ident">leading_colon</span>.<span class="ident">is_none</span>()
-                            <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#256">argument</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#80">len</a>() <span class="op">==</span> <span class="number">1</span> =&gt;
+                        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#287">argument</a>.<span class="ident">qself</span>.<span class="ident">is_none</span>()
+                            <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#287">argument</a>.<span class="ident">path</span>.<span class="ident">leading_colon</span>.<span class="ident">is_none</span>()
+                            <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#287">argument</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#80">len</a>() <span class="op">==</span> <span class="number">1</span> =&gt;
                     {
-                        <span class="kw">match</span> <a class="ident" href="../../src/syn/path.rs.html#256">argument</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">arguments</span> {
+                        <span class="kw">match</span> <a class="ident" href="../../src/syn/path.rs.html#287">argument</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">arguments</span> {
                             <a class="ident" href="../../src/syn/path.rs.html#71">PathArguments::AngleBracketed</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
                             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
                         }
                     }
                     <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
-                } <span class="op">&amp;&amp;</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">=</span>]) {
-                    <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="op">=</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                    <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>::<span class="op">&lt;</span><a class="ident" href="../../src/syn/ty.rs.html#5-92">Type</a><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                } <span class="op">&amp;&amp;</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="op">=</span>]) {
+                    <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="op">=</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>::<span class="op">&lt;</span><a class="ident" href="../../src/syn/ty.rs.html#5-92">Type</a><span class="op">&gt;</span>()<span class="question-mark">?</span>;
                     <span class="bool-val">true</span>
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[:]) {
-                    <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>::<span class="op">&lt;</span><span class="macro">Token!</span>[:]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                    <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<a class="ident" href="../../src/syn/path.rs.html#424">constraint_bounds</a>)<span class="question-mark">?</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[:]) {
+                    <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>::<span class="op">&lt;</span><span class="macro">Token!</span>[:]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <a class="ident" href="../../src/syn/path.rs.html#228">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#506">call</a>(<a class="ident" href="../../src/syn/path.rs.html#455">constraint_bounds</a>)<span class="question-mark">?</span>;
                     <span class="bool-val">true</span>
                 } <span class="kw">else</span> {
                     <span class="bool-val">false</span>
                 } {
-                    <span class="kw">let</span> <span class="ident">verbatim</span> <span class="op">=</span> <a class="ident" href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a class="ident" href="../../src/syn/path.rs.html#249">begin</a>, <a class="ident" href="../../src/syn/path.rs.html#228">input</a>);
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<a class="ident" href="../../src/syn/ty.rs.html#64">Type::Verbatim</a>(<a class="ident" href="../../src/syn/path.rs.html#278">verbatim</a>)));
+                    <span class="kw">let</span> <span class="ident">verbatim</span> <span class="op">=</span> <a class="ident" href="../../src/syn/verbatim.rs.html#5">verbatim::between</a>(<a class="ident" href="../../src/syn/path.rs.html#280">begin</a>, <a class="ident" href="../../src/syn/path.rs.html#228">input</a>);
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<a class="ident" href="../../src/syn/ty.rs.html#64">Type::Verbatim</a>(<a class="ident" href="../../src/syn/path.rs.html#309">verbatim</a>)));
                 }
             }
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<a class="ident" href="../../src/syn/path.rs.html#251">argument</a>))
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<a class="ident" href="../../src/syn/path.rs.html#282">argument</a>))
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_argument</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#14-253">Expr</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#287">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#785">lookahead1</a>();
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_argument</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/expr.rs.html#14-253">Expr</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#318">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#787">lookahead1</a>();
 
-        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#287">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/lit.rs.html#733">Lit</a>) {
-            <span class="kw">let</span> <span class="ident">lit</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#287">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#159">Expr::Lit</a>(<a class="ident" href="../../src/syn/path.rs.html#291">lit</a>));
+        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#318">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/lit.rs.html#733">Lit</a>) {
+            <span class="kw">let</span> <span class="ident">lit</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#318">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#159">Expr::Lit</a>(<a class="ident" href="../../src/syn/path.rs.html#322">lit</a>));
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
         {
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#287">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/ident.rs.html#16">Ident</a>) {
-                <span class="kw">let</span> <span class="ident">ident</span>: <a class="ident" href="../../syn/struct.Ident.html">Ident</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#287">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#318">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/ident.rs.html#16">Ident</a>) {
+                <span class="kw">let</span> <span class="ident">ident</span>: <a class="ident" href="../../syn/struct.Ident.html">Ident</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#318">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#180">Expr::Path</a>(<a class="ident" href="../../src/syn/expr.rs.html#599-613">ExprPath</a> {
                     <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                     <span class="ident">qself</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">path</span>: <span class="ident">Path::from</span>(<a class="ident" href="../../src/syn/path.rs.html#298">ident</a>),
+                    <span class="ident">path</span>: <span class="ident">Path::from</span>(<a class="ident" href="../../src/syn/path.rs.html#329">ident</a>),
                 }));
             }
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#287">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>) {
+        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#318">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Brace</a>) {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
             {
-                <span class="kw">let</span> <span class="ident">block</span>: <a class="ident" href="../../src/syn/expr.rs.html#333-343">ExprBlock</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#287">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#110">Expr::Block</a>(<a class="ident" href="../../src/syn/path.rs.html#310">block</a>));
+                <span class="kw">let</span> <span class="ident">block</span>: <a class="ident" href="../../src/syn/expr.rs.html#333-343">ExprBlock</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#318">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/expr.rs.html#110">Expr::Block</a>(<a class="ident" href="../../src/syn/path.rs.html#341">block</a>));
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -1169,120 +1231,120 @@
             }
         }
 
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/syn/path.rs.html#288">lookahead</a>.<a class="ident" href="../../src/syn/lookahead.rs.html#109">error</a>())
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/syn/path.rs.html#319">lookahead</a>.<a class="ident" href="../../src/syn/lookahead.rs.html#109">error</a>())
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
-    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#125-138">AngleBracketedGenericArguments</a> {
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#220-222">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#125-138">AngleBracketedGenericArguments</a> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#125-138">AngleBracketedGenericArguments</a> {
-                <span class="ident">colon2_token</span>: <a class="ident" href="../../src/syn/path.rs.html#330">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">lt_token</span>: <a class="ident" href="../../src/syn/path.rs.html#330">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">colon2_token</span>: <a class="ident" href="../../src/syn/path.rs.html#361">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">lt_token</span>: <a class="ident" href="../../src/syn/path.rs.html#361">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>,
                 <span class="ident">args</span>: {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
                     <span class="kw">loop</span> {
-                        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#330">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
+                        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#361">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
                             <span class="kw">break</span>;
                         }
-                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#330">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                        <a class="ident" href="../../src/syn/path.rs.html#335">args</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/path.rs.html#340">value</a>);
-                        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#330">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
+                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#361">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+                        <a class="ident" href="../../src/syn/path.rs.html#366">args</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/path.rs.html#371">value</a>);
+                        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#361">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
                             <span class="kw">break</span>;
                         }
-                        <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#330">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                        <a class="ident" href="../../src/syn/path.rs.html#335">args</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#345">punct</a>);
+                        <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#361">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+                        <a class="ident" href="../../src/syn/path.rs.html#366">args</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#376">punct</a>);
                     }
-                    <a class="ident" href="../../src/syn/path.rs.html#335">args</a>
+                    <a class="ident" href="../../src/syn/path.rs.html#366">args</a>
                 },
-                <span class="ident">gt_token</span>: <a class="ident" href="../../src/syn/path.rs.html#330">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">gt_token</span>: <a class="ident" href="../../src/syn/path.rs.html#361">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>,
             })
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
-    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#166-180">ParenthesizedGenericArguments</a> {
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#220-222">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#166-180">ParenthesizedGenericArguments</a> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">content</span>;
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#166-180">ParenthesizedGenericArguments</a> {
-                <span class="ident">paren_token</span>: <span class="macro">parenthesized!</span>(<span class="ident">content</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/path.rs.html#357">input</a>),
-                <span class="ident">inputs</span>: <a class="ident" href="../../src/syn/path.rs.html#358">content</a>.<a class="ident" href="../../src/syn/parse.rs.html#696-699">parse_terminated</a>(<span class="ident">Type::parse</span>)<span class="question-mark">?</span>,
-                <span class="ident">output</span>: <a class="ident" href="../../src/syn/path.rs.html#357">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">ReturnType::without_plus</span>)<span class="question-mark">?</span>,
+                <span class="ident">paren_token</span>: <span class="macro">parenthesized!</span>(<span class="ident">content</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/path.rs.html#388">input</a>),
+                <span class="ident">inputs</span>: <a class="ident" href="../../src/syn/path.rs.html#389">content</a>.<a class="ident" href="../../src/syn/parse.rs.html#698-701">parse_terminated</a>(<span class="ident">Type::parse</span>)<span class="question-mark">?</span>,
+                <span class="ident">output</span>: <a class="ident" href="../../src/syn/path.rs.html#388">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#506">call</a>(<span class="ident">ReturnType::without_plus</span>)<span class="question-mark">?</span>,
             })
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
-    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#30-40">PathSegment</a> {
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="ident"><span class="self">Self</span>::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#369">input</a>, <span class="bool-val">false</span>)
+    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#220-222">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#30-40">PathSegment</a> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="ident"><span class="self">Self</span>::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#400">input</a>, <span class="bool-val">false</span>)
         }
     }
 
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/path.rs.html#30-40">PathSegment</a> {
-        <span class="kw">fn</span> <span class="ident">parse_helper</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>, <span class="ident">expr_style</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">super</span>]) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="self">self</span>]) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">crate</span>]) {
-                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Ident::parse_any</span>)<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">PathSegment::from</span>(<a class="ident" href="../../src/syn/path.rs.html#377">ident</a>));
+        <span class="kw">fn</span> <span class="ident">parse_helper</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>, <span class="ident">expr_style</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="kw">super</span>]) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="self">self</span>]) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="kw">crate</span>]) {
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#506">call</a>(<span class="ident">Ident::parse_any</span>)<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">PathSegment::from</span>(<a class="ident" href="../../src/syn/path.rs.html#408">ident</a>));
             }
 
-            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="self">Self</span>]) {
-                <a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#504">call</a>(<span class="ident">Ident::parse_any</span>)<span class="question-mark">?</span>
+            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="self">Self</span>]) {
+                <a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#506">call</a>(<span class="ident">Ident::parse_any</span>)<span class="question-mark">?</span>
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>
+                <a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>
             };
 
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#375">expr_style</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">&lt;</span>]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">&lt;</span><span class="op">=</span>])
-                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[::]) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#634">peek3</a>(<span class="macro">Token!</span>[<span class="op">&lt;</span>])
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#406">expr_style</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="op">&lt;</span>]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="op">&lt;</span><span class="op">=</span>])
+                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[::]) <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#636">peek3</a>(<span class="macro">Token!</span>[<span class="op">&lt;</span>])
             {
                 <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#30-40">PathSegment</a> {
-                    <a class="ident" href="../../src/syn/path.rs.html#381">ident</a>,
-                    <span class="ident">arguments</span>: <a class="ident" href="../../src/syn/path.rs.html#71">PathArguments::AngleBracketed</a>(<a class="ident" href="../../src/syn/path.rs.html#375">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>),
+                    <a class="ident" href="../../src/syn/path.rs.html#412">ident</a>,
+                    <span class="ident">arguments</span>: <a class="ident" href="../../src/syn/path.rs.html#71">PathArguments::AngleBracketed</a>(<a class="ident" href="../../src/syn/path.rs.html#406">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>),
                 })
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">PathSegment::from</span>(<a class="ident" href="../../src/syn/path.rs.html#381">ident</a>))
+                <span class="prelude-val">Ok</span>(<span class="ident">PathSegment::from</span>(<a class="ident" href="../../src/syn/path.rs.html#412">ident</a>))
             }
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
-    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#140-151">Binding</a> {
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#220-222">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#140-151">Binding</a> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#140-151">Binding</a> {
-                <span class="ident">ident</span>: <a class="ident" href="../../src/syn/path.rs.html#402">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">eq_token</span>: <a class="ident" href="../../src/syn/path.rs.html#402">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">ty</span>: <a class="ident" href="../../src/syn/path.rs.html#402">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">ident</span>: <a class="ident" href="../../src/syn/path.rs.html#433">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">eq_token</span>: <a class="ident" href="../../src/syn/path.rs.html#433">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">ty</span>: <a class="ident" href="../../src/syn/path.rs.html#433">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>,
             })
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
-    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#218-220">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#153-164">Constraint</a> {
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span> <a class="ident" href="../../src/syn/parse.rs.html#220-222">Parse</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#153-164">Constraint</a> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#153-164">Constraint</a> {
-                <span class="ident">ident</span>: <a class="ident" href="../../src/syn/path.rs.html#414">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">colon_token</span>: <a class="ident" href="../../src/syn/path.rs.html#414">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
-                <span class="ident">bounds</span>: <a class="ident" href="../../src/syn/path.rs.html#424">constraint_bounds</a>(<a class="ident" href="../../src/syn/path.rs.html#414">input</a>)<span class="question-mark">?</span>,
+                <span class="ident">ident</span>: <a class="ident" href="../../src/syn/path.rs.html#445">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">colon_token</span>: <a class="ident" href="../../src/syn/path.rs.html#445">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">bounds</span>: <a class="ident" href="../../src/syn/path.rs.html#455">constraint_bounds</a>(<a class="ident" href="../../src/syn/path.rs.html#445">input</a>)<span class="question-mark">?</span>,
             })
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">constraint_bounds</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Punctuated</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/generics.rs.html#470-480">TypeParamBound</a>, <span class="macro">Token!</span>[<span class="op">+</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">constraint_bounds</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Punctuated</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/generics.rs.html#470-480">TypeParamBound</a>, <span class="macro">Token!</span>[<span class="op">+</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
         <span class="kw">loop</span> {
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#424">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[,]) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#424">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#455">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[,]) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#455">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
                 <span class="kw">break</span>;
             }
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#424">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/syn/path.rs.html#425">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/path.rs.html#430">value</a>);
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#424">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#455">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+            <a class="ident" href="../../src/syn/path.rs.html#456">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/path.rs.html#461">value</a>);
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#455">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
                 <span class="kw">break</span>;
             }
-            <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#424">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/syn/path.rs.html#425">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#435">punct</a>);
+            <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#455">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+            <a class="ident" href="../../src/syn/path.rs.html#456">bounds</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#466">punct</a>);
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#425">bounds</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#456">bounds</a>)
     }
 
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a> {
@@ -1320,34 +1382,34 @@
         <span class="doccomment">/// }</span>
         <span class="doccomment">/// ```</span>
         <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_mod_style</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_mod_style</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a> {
-                <span class="ident">leading_colon</span>: <a class="ident" href="../../src/syn/path.rs.html#476">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">leading_colon</span>: <a class="ident" href="../../src/syn/path.rs.html#507">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>,
                 <span class="ident">segments</span>: {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
                     <span class="kw">loop</span> {
-                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#476">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<a class="ident" href="../../src/syn/ident.rs.html#16">Ident</a>)
-                            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#476">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">super</span>])
-                            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#476">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="self">self</span>])
-                            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#476">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="self">Self</span>])
-                            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#476">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">crate</span>])
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#507">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<a class="ident" href="../../src/syn/ident.rs.html#16">Ident</a>)
+                            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#507">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="kw">super</span>])
+                            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#507">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="self">self</span>])
+                            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#507">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="self">Self</span>])
+                            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#507">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="kw">crate</span>])
                         {
                             <span class="kw">break</span>;
                         }
-                        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">Ident::parse_any</span>(<a class="ident" href="../../src/syn/path.rs.html#476">input</a>)<span class="question-mark">?</span>;
-                        <a class="ident" href="../../src/syn/path.rs.html#480">segments</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<span class="ident">PathSegment::from</span>(<a class="ident" href="../../src/syn/path.rs.html#490">ident</a>));
-                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#476">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[::]) {
+                        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">Ident::parse_any</span>(<a class="ident" href="../../src/syn/path.rs.html#507">input</a>)<span class="question-mark">?</span>;
+                        <a class="ident" href="../../src/syn/path.rs.html#511">segments</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<span class="ident">PathSegment::from</span>(<a class="ident" href="../../src/syn/path.rs.html#521">ident</a>));
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#507">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[::]) {
                             <span class="kw">break</span>;
                         }
-                        <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#476">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                        <a class="ident" href="../../src/syn/path.rs.html#480">segments</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#495">punct</a>);
+                        <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#507">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+                        <a class="ident" href="../../src/syn/path.rs.html#511">segments</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#526">punct</a>);
                     }
-                    <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#480">segments</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/syn/path.rs.html#476">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#954">error</a>(<span class="string">&quot;expected path&quot;</span>));
-                    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#480">segments</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#202">trailing_punct</a>() {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/syn/path.rs.html#476">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#954">error</a>(<span class="string">&quot;expected path segment&quot;</span>));
+                    <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#511">segments</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#72">is_empty</a>() {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/syn/path.rs.html#507">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#956">error</a>(<span class="string">&quot;expected path&quot;</span>));
+                    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#511">segments</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#202">trailing_punct</a>() {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/syn/path.rs.html#507">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#956">error</a>(<span class="string">&quot;expected path segment&quot;</span>));
                     }
-                    <a class="ident" href="../../src/syn/path.rs.html#480">segments</a>
+                    <a class="ident" href="../../src/syn/path.rs.html#511">segments</a>
                 },
             })
         }
@@ -1388,8 +1450,8 @@
         <span class="kw">where</span>
             <a class="ident" href="../../syn/struct.Ident.html">Ident</a>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
         {
-            <span class="kw">match</span> <a class="self" href="../../src/syn/path.rs.html#540">self</a>.<a class="ident" href="../../src/syn/path.rs.html#562">get_ident</a>() {
-                <span class="prelude-val">Some</span>(<span class="ident">id</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#545">id</a> <span class="op">==</span> <a class="ident" href="../../src/syn/path.rs.html#540">ident</a>,
+            <span class="kw">match</span> <a class="self" href="../../src/syn/path.rs.html#571">self</a>.<a class="ident" href="../../src/syn/path.rs.html#593">get_ident</a>() {
+                <span class="prelude-val">Some</span>(<span class="ident">id</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#576">id</a> <span class="op">==</span> <a class="ident" href="../../src/syn/path.rs.html#571">ident</a>,
                 <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
             }
         }
@@ -1407,94 +1469,94 @@
         <span class="doccomment">/// feature.*</span>
         <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../syn/struct.Ident.html">Ident</a><span class="op">&gt;</span> {
-            <span class="kw">if</span> <a class="self" href="../../src/syn/path.rs.html#562">self</a>.<span class="ident">leading_colon</span>.<span class="ident">is_none</span>()
-                <span class="op">&amp;&amp;</span> <a class="self" href="../../src/syn/path.rs.html#562">self</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#80">len</a>() <span class="op">==</span> <span class="number">1</span>
-                <span class="op">&amp;&amp;</span> <a class="self" href="../../src/syn/path.rs.html#562">self</a>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">arguments</span>.<a class="ident" href="../../src/syn/path.rs.html#93">is_none</a>()
+            <span class="kw">if</span> <a class="self" href="../../src/syn/path.rs.html#593">self</a>.<span class="ident">leading_colon</span>.<span class="ident">is_none</span>()
+                <span class="op">&amp;&amp;</span> <a class="self" href="../../src/syn/path.rs.html#593">self</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#80">len</a>() <span class="op">==</span> <span class="number">1</span>
+                <span class="op">&amp;&amp;</span> <a class="self" href="../../src/syn/path.rs.html#593">self</a>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">arguments</span>.<a class="ident" href="../../src/syn/path.rs.html#93">is_none</a>()
             {
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/path.rs.html#562">self</a>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span>)
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/syn/path.rs.html#593">self</a>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             }
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_helper</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>, <span class="ident">expr_style</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_helper</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>, <span class="ident">expr_style</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">path</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a> {
-                <span class="ident">leading_colon</span>: <a class="ident" href="../../src/syn/path.rs.html#573">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>,
+                <span class="ident">leading_colon</span>: <a class="ident" href="../../src/syn/path.rs.html#604">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>,
                 <span class="ident">segments</span>: {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">PathSegment::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#573">input</a>, <a class="ident" href="../../src/syn/path.rs.html#573">expr_style</a>)<span class="question-mark">?</span>;
-                    <a class="ident" href="../../src/syn/path.rs.html#577">segments</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/path.rs.html#578">value</a>);
-                    <a class="ident" href="../../src/syn/path.rs.html#577">segments</a>
+                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">PathSegment::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#604">input</a>, <a class="ident" href="../../src/syn/path.rs.html#604">expr_style</a>)<span class="question-mark">?</span>;
+                    <a class="ident" href="../../src/syn/path.rs.html#608">segments</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/path.rs.html#609">value</a>);
+                    <a class="ident" href="../../src/syn/path.rs.html#608">segments</a>
                 },
             };
-            <span class="ident">Path::parse_rest</span>(<a class="ident" href="../../src/syn/path.rs.html#573">input</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/syn/path.rs.html#574">path</a>, <a class="ident" href="../../src/syn/path.rs.html#573">expr_style</a>)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#574">path</a>)
+            <span class="ident">Path::parse_rest</span>(<a class="ident" href="../../src/syn/path.rs.html#604">input</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/syn/path.rs.html#605">path</a>, <a class="ident" href="../../src/syn/path.rs.html#604">expr_style</a>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/syn/path.rs.html#605">path</a>)
         }
 
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_rest</span>(
-            <span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>,
+            <span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>,
             <span class="ident">path</span>: <span class="kw-2">&amp;mut</span> <span class="self">Self</span>,
             <span class="ident">expr_style</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="kw">while</span> <a class="ident" href="../../src/syn/path.rs.html#588">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[::]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#588">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#634">peek3</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Paren</a>) {
-                <span class="kw">let</span> <span class="ident">punct</span>: <span class="macro">Token!</span>[::] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#588">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                <a class="ident" href="../../src/syn/path.rs.html#589">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#593">punct</a>);
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">PathSegment::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#588">input</a>, <a class="ident" href="../../src/syn/path.rs.html#590">expr_style</a>)<span class="question-mark">?</span>;
-                <a class="ident" href="../../src/syn/path.rs.html#589">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/path.rs.html#595">value</a>);
+            <span class="kw">while</span> <a class="ident" href="../../src/syn/path.rs.html#619">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[::]) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#619">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#636">peek3</a>(<a class="ident" href="../../src/syn/token.rs.html#756-761">token::Paren</a>) {
+                <span class="kw">let</span> <span class="ident">punct</span>: <span class="macro">Token!</span>[::] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#619">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+                <a class="ident" href="../../src/syn/path.rs.html#620">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#624">punct</a>);
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">PathSegment::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#619">input</a>, <a class="ident" href="../../src/syn/path.rs.html#621">expr_style</a>)<span class="question-mark">?</span>;
+                <a class="ident" href="../../src/syn/path.rs.html#620">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/path.rs.html#626">value</a>);
             }
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">qpath</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#228">ParseStream</a>, <span class="ident">expr_style</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/path.rs.html#182-210">QSelf</a><span class="op">&gt;</span>, <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a>)<span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#602">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="op">&lt;</span>]) {
-            <span class="kw">let</span> <span class="ident">lt_token</span>: <span class="macro">Token!</span>[<span class="op">&lt;</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#602">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">this</span>: <a class="ident" href="../../src/syn/ty.rs.html#5-92">Type</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#602">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#602">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[<span class="kw">as</span>]) {
-                <span class="kw">let</span> <span class="ident">as_token</span>: <span class="macro">Token!</span>[<span class="kw">as</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#602">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">path</span>: <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#602">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/path.rs.html#607">as_token</a>, <a class="ident" href="../../src/syn/path.rs.html#608">path</a>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">qpath</span>(<span class="ident">input</span>: <a class="ident" href="../../src/syn/parse.rs.html#230">ParseStream</a>, <span class="ident">expr_style</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/path.rs.html#182-210">QSelf</a><span class="op">&gt;</span>, <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a>)<span class="op">&gt;</span> {
+        <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#633">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="op">&lt;</span>]) {
+            <span class="kw">let</span> <span class="ident">lt_token</span>: <span class="macro">Token!</span>[<span class="op">&lt;</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#633">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">this</span>: <a class="ident" href="../../src/syn/ty.rs.html#5-92">Type</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#633">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#633">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[<span class="kw">as</span>]) {
+                <span class="kw">let</span> <span class="ident">as_token</span>: <span class="macro">Token!</span>[<span class="kw">as</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#633">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">path</span>: <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#633">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+                <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/path.rs.html#638">as_token</a>, <a class="ident" href="../../src/syn/path.rs.html#639">path</a>))
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
-            <span class="kw">let</span> <span class="ident">gt_token</span>: <span class="macro">Token!</span>[<span class="op">&gt;</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#602">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">colon2_token</span>: <span class="macro">Token!</span>[::] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#602">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">gt_token</span>: <span class="macro">Token!</span>[<span class="op">&gt;</span>] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#633">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">colon2_token</span>: <span class="macro">Token!</span>[::] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#633">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
             <span class="kw">loop</span> {
-                <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">PathSegment::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#602">input</a>, <a class="ident" href="../../src/syn/path.rs.html#602">expr_style</a>)<span class="question-mark">?</span>;
-                <a class="ident" href="../../src/syn/path.rs.html#615">rest</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/path.rs.html#617">path</a>);
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#602">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#580">peek</a>(<span class="macro">Token!</span>[::]) {
+                <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">PathSegment::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#633">input</a>, <a class="ident" href="../../src/syn/path.rs.html#633">expr_style</a>)<span class="question-mark">?</span>;
+                <a class="ident" href="../../src/syn/path.rs.html#646">rest</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#164">push_value</a>(<a class="ident" href="../../src/syn/path.rs.html#648">path</a>);
+                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#633">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#582">peek</a>(<span class="macro">Token!</span>[::]) {
                     <span class="kw">break</span>;
                 }
-                <span class="kw">let</span> <span class="ident">punct</span>: <span class="macro">Token!</span>[::] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#602">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#464">parse</a>()<span class="question-mark">?</span>;
-                <a class="ident" href="../../src/syn/path.rs.html#615">rest</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#622">punct</a>);
+                <span class="kw">let</span> <span class="ident">punct</span>: <span class="macro">Token!</span>[::] <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#633">input</a>.<a class="ident" href="../../src/syn/parse.rs.html#466">parse</a>()<span class="question-mark">?</span>;
+                <a class="ident" href="../../src/syn/path.rs.html#646">rest</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#653">punct</a>);
             }
-            <span class="kw">let</span> (<span class="ident">position</span>, <span class="ident">as_token</span>, <span class="ident">path</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/syn/path.rs.html#606">path</a> {
+            <span class="kw">let</span> (<span class="ident">position</span>, <span class="ident">as_token</span>, <span class="ident">path</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/syn/path.rs.html#637">path</a> {
                 <span class="prelude-val">Some</span>((<span class="ident">as_token</span>, <span class="kw-2">mut</span> <span class="ident">path</span>)) =&gt; {
-                    <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#626">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#80">len</a>();
-                    <a class="ident" href="../../src/syn/path.rs.html#626">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#614">colon2_token</a>);
-                    <a class="ident" href="../../src/syn/path.rs.html#626">path</a>.<span class="ident">segments</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/syn/path.rs.html#615">rest</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#145">into_pairs</a>());
-                    (<a class="ident" href="../../src/syn/path.rs.html#627">pos</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/path.rs.html#626">as_token</a>), <a class="ident" href="../../src/syn/path.rs.html#626">path</a>)
+                    <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#657">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#80">len</a>();
+                    <a class="ident" href="../../src/syn/path.rs.html#657">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#180">push_punct</a>(<a class="ident" href="../../src/syn/path.rs.html#645">colon2_token</a>);
+                    <a class="ident" href="../../src/syn/path.rs.html#657">path</a>.<span class="ident">segments</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/syn/path.rs.html#646">rest</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#145">into_pairs</a>());
+                    (<a class="ident" href="../../src/syn/path.rs.html#658">pos</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/path.rs.html#657">as_token</a>), <a class="ident" href="../../src/syn/path.rs.html#657">path</a>)
                 }
                 <span class="prelude-val">None</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a> {
-                        <span class="ident">leading_colon</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/path.rs.html#614">colon2_token</a>),
-                        <span class="ident">segments</span>: <a class="ident" href="../../src/syn/path.rs.html#615">rest</a>,
+                        <span class="ident">leading_colon</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/path.rs.html#645">colon2_token</a>),
+                        <span class="ident">segments</span>: <a class="ident" href="../../src/syn/path.rs.html#646">rest</a>,
                     };
-                    (<span class="number">0</span>, <span class="prelude-val">None</span>, <a class="ident" href="../../src/syn/path.rs.html#633">path</a>)
+                    (<span class="number">0</span>, <span class="prelude-val">None</span>, <a class="ident" href="../../src/syn/path.rs.html#664">path</a>)
                 }
             };
             <span class="kw">let</span> <span class="ident">qself</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#182-210">QSelf</a> {
-                <a class="ident" href="../../src/syn/path.rs.html#604">lt_token</a>,
-                <span class="ident">ty</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/path.rs.html#605">this</a>),
-                <a class="ident" href="../../src/syn/path.rs.html#625">position</a>,
-                <a class="ident" href="../../src/syn/path.rs.html#625">as_token</a>,
-                <a class="ident" href="../../src/syn/path.rs.html#613">gt_token</a>,
+                <a class="ident" href="../../src/syn/path.rs.html#635">lt_token</a>,
+                <span class="ident">ty</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/syn/path.rs.html#636">this</a>),
+                <a class="ident" href="../../src/syn/path.rs.html#656">position</a>,
+                <a class="ident" href="../../src/syn/path.rs.html#656">as_token</a>,
+                <a class="ident" href="../../src/syn/path.rs.html#644">gt_token</a>,
             };
-            <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/path.rs.html#640">qself</a>), <a class="ident" href="../../src/syn/path.rs.html#625">path</a>))
+            <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/path.rs.html#671">qself</a>), <a class="ident" href="../../src/syn/path.rs.html#656">path</a>))
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#602">input</a>, <a class="ident" href="../../src/syn/path.rs.html#602">expr_style</a>)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, <a class="ident" href="../../src/syn/path.rs.html#649">path</a>))
+            <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path::parse_helper</span>(<a class="ident" href="../../src/syn/path.rs.html#633">input</a>, <a class="ident" href="../../src/syn/path.rs.html#633">expr_style</a>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, <a class="ident" href="../../src/syn/path.rs.html#680">path</a>))
         }
     }
 }
@@ -1510,29 +1572,29 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/path.rs.html#665">self</a>.<span class="ident">leading_colon</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#665">tokens</a>);
-            <a class="self" href="../../src/syn/path.rs.html#665">self</a>.<span class="ident">segments</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#665">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#696">self</a>.<span class="ident">leading_colon</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#696">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#696">self</a>.<span class="ident">segments</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#696">tokens</a>);
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#30-40">PathSegment</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/path.rs.html#673">self</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#673">tokens</a>);
-            <a class="self" href="../../src/syn/path.rs.html#673">self</a>.<span class="ident">arguments</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#673">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#704">self</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#704">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#704">self</a>.<span class="ident">arguments</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#704">tokens</a>);
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#54-75">PathArguments</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <span class="kw">match</span> <a class="self" href="../../src/syn/path.rs.html#681">self</a> {
+            <span class="kw">match</span> <a class="self" href="../../src/syn/path.rs.html#712">self</a> {
                 <a class="ident" href="../../src/syn/path.rs.html#69">PathArguments::None</a> =&gt; {}
                 <a class="ident" href="../../src/syn/path.rs.html#71">PathArguments::AngleBracketed</a>(<span class="ident">arguments</span>) =&gt; {
-                    <a class="ident" href="../../src/syn/path.rs.html#684">arguments</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#681">tokens</a>);
+                    <a class="ident" href="../../src/syn/path.rs.html#715">arguments</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#712">tokens</a>);
                 }
                 <a class="ident" href="../../src/syn/path.rs.html#73">PathArguments::Parenthesized</a>(<span class="ident">arguments</span>) =&gt; {
-                    <a class="ident" href="../../src/syn/path.rs.html#687">arguments</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#681">tokens</a>);
+                    <a class="ident" href="../../src/syn/path.rs.html#718">arguments</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#712">tokens</a>);
                 }
             }
         }
@@ -1542,24 +1604,24 @@
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#101-123">GenericArgument</a> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::match_same_arms</span>)]</span>
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <span class="kw">match</span> <a class="self" href="../../src/syn/path.rs.html#697">self</a> {
-                <a class="ident" href="../../src/syn/path.rs.html#109">GenericArgument::Lifetime</a>(<span class="ident">lt</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#699">lt</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#697">tokens</a>),
-                <a class="ident" href="../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<span class="ident">ty</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#700">ty</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#697">tokens</a>),
-                <a class="ident" href="../../src/syn/path.rs.html#114">GenericArgument::Binding</a>(<span class="ident">tb</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#701">tb</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#697">tokens</a>),
-                <a class="ident" href="../../src/syn/path.rs.html#116">GenericArgument::Constraint</a>(<span class="ident">tc</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#702">tc</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#697">tokens</a>),
-                <a class="ident" href="../../src/syn/path.rs.html#121">GenericArgument::Const</a>(<span class="ident">e</span>) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/syn/path.rs.html#703">e</a> {
-                    <a class="ident" href="../../src/syn/expr.rs.html#159">Expr::Lit</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#703">e</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#697">tokens</a>),
+            <span class="kw">match</span> <a class="self" href="../../src/syn/path.rs.html#728">self</a> {
+                <a class="ident" href="../../src/syn/path.rs.html#109">GenericArgument::Lifetime</a>(<span class="ident">lt</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#730">lt</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#728">tokens</a>),
+                <a class="ident" href="../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<span class="ident">ty</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#731">ty</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#728">tokens</a>),
+                <a class="ident" href="../../src/syn/path.rs.html#114">GenericArgument::Binding</a>(<span class="ident">tb</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#732">tb</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#728">tokens</a>),
+                <a class="ident" href="../../src/syn/path.rs.html#116">GenericArgument::Constraint</a>(<span class="ident">tc</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#733">tc</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#728">tokens</a>),
+                <a class="ident" href="../../src/syn/path.rs.html#121">GenericArgument::Const</a>(<span class="ident">e</span>) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/syn/path.rs.html#734">e</a> {
+                    <a class="ident" href="../../src/syn/expr.rs.html#159">Expr::Lit</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#734">e</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#728">tokens</a>),
 
                     <span class="comment">// NOTE: We should probably support parsing blocks with only</span>
                     <span class="comment">// expressions in them without the full feature for const</span>
                     <span class="comment">// generics.</span>
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-                    <a class="ident" href="../../src/syn/expr.rs.html#110">Expr::Block</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#703">e</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#697">tokens</a>),
+                    <a class="ident" href="../../src/syn/expr.rs.html#110">Expr::Block</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#734">e</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#728">tokens</a>),
 
                     <span class="comment">// ERROR CORRECTION: Add braces to make sure that the</span>
                     <span class="comment">// generated code is valid.</span>
-                    <span class="kw">_</span> =&gt; <span class="ident">token::Brace::default</span>().<a class="ident" href="../../src/syn/token.rs.html#756-761">surround</a>(<a class="ident" href="../../src/syn/path.rs.html#697">tokens</a>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
-                        <a class="ident" href="../../src/syn/path.rs.html#703">e</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#714">tokens</a>);
+                    <span class="kw">_</span> =&gt; <span class="ident">token::Brace::default</span>().<a class="ident" href="../../src/syn/token.rs.html#756-761">surround</a>(<a class="ident" href="../../src/syn/path.rs.html#728">tokens</a>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
+                        <a class="ident" href="../../src/syn/path.rs.html#734">e</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#745">tokens</a>);
                     }),
                 },
             }
@@ -1569,8 +1631,8 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#125-138">AngleBracketedGenericArguments</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/path.rs.html#724">self</a>.<span class="ident">colon2_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#724">tokens</a>);
-            <a class="self" href="../../src/syn/path.rs.html#724">self</a>.<span class="ident">lt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#724">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#755">self</a>.<span class="ident">colon2_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#755">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#755">self</a>.<span class="ident">lt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#755">tokens</a>);
 
             <span class="comment">// Print lifetimes before types and consts, all before bindings,</span>
             <span class="comment">// regardless of their order in self.args.</span>
@@ -1578,11 +1640,11 @@
             <span class="comment">// TODO: ordering rules for const arguments vs type arguments have</span>
             <span class="comment">// not been settled yet. https://github.com/rust-lang/rust/issues/44580</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trailing_or_empty</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/path.rs.html#724">self</a>.<span class="ident">args</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
-                <span class="kw">match</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/path.rs.html#734">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/path.rs.html#755">self</a>.<span class="ident">args</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
+                <span class="kw">match</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/path.rs.html#765">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
                     <a class="ident" href="../../src/syn/path.rs.html#109">GenericArgument::Lifetime</a>(<span class="kw">_</span>) =&gt; {
-                        <a class="ident" href="../../src/syn/path.rs.html#734">param</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#724">tokens</a>);
-                        <a class="ident" href="../../src/syn/path.rs.html#733">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#734">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
+                        <a class="ident" href="../../src/syn/path.rs.html#765">param</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#755">tokens</a>);
+                        <a class="ident" href="../../src/syn/path.rs.html#764">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#765">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
                     }
                     <a class="ident" href="../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<span class="kw">_</span>)
                     <span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#114">GenericArgument::Binding</a>(<span class="kw">_</span>)
@@ -1590,28 +1652,28 @@
                     <span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#121">GenericArgument::Const</a>(<span class="kw">_</span>) =&gt; {}
                 }
             }
-            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/path.rs.html#724">self</a>.<span class="ident">args</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
-                <span class="kw">match</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/path.rs.html#746">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/path.rs.html#755">self</a>.<span class="ident">args</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
+                <span class="kw">match</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/path.rs.html#777">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
                     <a class="ident" href="../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#121">GenericArgument::Const</a>(<span class="kw">_</span>) =&gt; {
-                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#733">trailing_or_empty</a> {
-                            <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#724">tokens</a>);
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#764">trailing_or_empty</a> {
+                            <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#755">tokens</a>);
                         }
-                        <a class="ident" href="../../src/syn/path.rs.html#746">param</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#724">tokens</a>);
-                        <a class="ident" href="../../src/syn/path.rs.html#733">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#746">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
+                        <a class="ident" href="../../src/syn/path.rs.html#777">param</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#755">tokens</a>);
+                        <a class="ident" href="../../src/syn/path.rs.html#764">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#777">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
                     }
                     <a class="ident" href="../../src/syn/path.rs.html#109">GenericArgument::Lifetime</a>(<span class="kw">_</span>)
                     <span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#114">GenericArgument::Binding</a>(<span class="kw">_</span>)
                     <span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#116">GenericArgument::Constraint</a>(<span class="kw">_</span>) =&gt; {}
                 }
             }
-            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/path.rs.html#724">self</a>.<span class="ident">args</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
-                <span class="kw">match</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/path.rs.html#760">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
+            <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="self" href="../../src/syn/path.rs.html#755">self</a>.<span class="ident">args</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>() {
+                <span class="kw">match</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/syn/path.rs.html#791">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>() {
                     <a class="ident" href="../../src/syn/path.rs.html#114">GenericArgument::Binding</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#116">GenericArgument::Constraint</a>(<span class="kw">_</span>) =&gt; {
-                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#733">trailing_or_empty</a> {
-                            <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#724">tokens</a>);
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/syn/path.rs.html#764">trailing_or_empty</a> {
+                            <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#755">tokens</a>);
                         }
-                        <a class="ident" href="../../src/syn/path.rs.html#760">param</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#724">tokens</a>);
-                        <a class="ident" href="../../src/syn/path.rs.html#733">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#760">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
+                        <a class="ident" href="../../src/syn/path.rs.html#791">param</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#755">tokens</a>);
+                        <a class="ident" href="../../src/syn/path.rs.html#764">trailing_or_empty</a> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#791">param</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<span class="ident">is_some</span>();
                     }
                     <a class="ident" href="../../src/syn/path.rs.html#109">GenericArgument::Lifetime</a>(<span class="kw">_</span>)
                     <span class="op">|</span> <a class="ident" href="../../src/syn/path.rs.html#111">GenericArgument::Type</a>(<span class="kw">_</span>)
@@ -1619,74 +1681,74 @@
                 }
             }
 
-            <a class="self" href="../../src/syn/path.rs.html#724">self</a>.<span class="ident">gt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#724">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#755">self</a>.<span class="ident">gt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#755">tokens</a>);
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#140-151">Binding</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/path.rs.html#781">self</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#781">tokens</a>);
-            <a class="self" href="../../src/syn/path.rs.html#781">self</a>.<span class="ident">eq_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#781">tokens</a>);
-            <a class="self" href="../../src/syn/path.rs.html#781">self</a>.<span class="ident">ty</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#781">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#812">self</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#812">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#812">self</a>.<span class="ident">eq_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#812">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#812">self</a>.<span class="ident">ty</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#812">tokens</a>);
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#153-164">Constraint</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/path.rs.html#790">self</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#790">tokens</a>);
-            <a class="self" href="../../src/syn/path.rs.html#790">self</a>.<span class="ident">colon_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#790">tokens</a>);
-            <a class="self" href="../../src/syn/path.rs.html#790">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#790">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#821">self</a>.<span class="ident">ident</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#821">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#821">self</a>.<span class="ident">colon_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#821">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#821">self</a>.<span class="ident">bounds</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#821">tokens</a>);
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/path.rs.html#166-180">ParenthesizedGenericArguments</a> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-            <a class="self" href="../../src/syn/path.rs.html#799">self</a>.<span class="ident">paren_token</span>.<a class="ident" href="../../src/syn/token.rs.html#756-761">surround</a>(<a class="ident" href="../../src/syn/path.rs.html#799">tokens</a>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
-                <a class="self" href="../../src/syn/path.rs.html#799">self</a>.<span class="ident">inputs</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#800">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#830">self</a>.<span class="ident">paren_token</span>.<a class="ident" href="../../src/syn/token.rs.html#756-761">surround</a>(<a class="ident" href="../../src/syn/path.rs.html#830">tokens</a>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
+                <a class="self" href="../../src/syn/path.rs.html#830">self</a>.<span class="ident">inputs</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#831">tokens</a>);
             });
-            <a class="self" href="../../src/syn/path.rs.html#799">self</a>.<span class="ident">output</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#799">tokens</a>);
+            <a class="self" href="../../src/syn/path.rs.html#830">self</a>.<span class="ident">output</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#830">tokens</a>);
         }
     }
 
     <span class="kw">impl</span> <a class="ident" href="../../src/syn/export.rs.html#36">private</a> {
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">print_path</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">qself</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/syn/path.rs.html#182-210">QSelf</a><span class="op">&gt;</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/path.rs.html#4-14">Path</a>) {
-            <span class="kw">let</span> <span class="ident">qself</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/syn/path.rs.html#808">qself</a> {
-                <span class="prelude-val">Some</span>(<span class="ident">qself</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#810">qself</a>,
+            <span class="kw">let</span> <span class="ident">qself</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/syn/path.rs.html#839">qself</a> {
+                <span class="prelude-val">Some</span>(<span class="ident">qself</span>) =&gt; <a class="ident" href="../../src/syn/path.rs.html#841">qself</a>,
                 <span class="prelude-val">None</span> =&gt; {
-                    <a class="ident" href="../../src/syn/path.rs.html#808">path</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
+                    <a class="ident" href="../../src/syn/path.rs.html#839">path</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
                     <span class="kw">return</span>;
                 }
             };
-            <a class="ident" href="../../src/syn/path.rs.html#809">qself</a>.<span class="ident">lt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
-            <a class="ident" href="../../src/syn/path.rs.html#809">qself</a>.<span class="ident">ty</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
+            <a class="ident" href="../../src/syn/path.rs.html#840">qself</a>.<span class="ident">lt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
+            <a class="ident" href="../../src/syn/path.rs.html#840">qself</a>.<span class="ident">ty</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
 
-            <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../src/syn/path.rs.html#809">qself</a>.<span class="ident">position</span>, <a class="ident" href="../../src/syn/path.rs.html#808">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#80">len</a>());
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#808">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>();
-            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#819">pos</a> <span class="op">&gt;</span> <span class="number">0</span> {
-                <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/path.rs.html#809">qself</a>.<span class="ident">as_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
-                <a class="ident" href="../../src/syn/path.rs.html#808">path</a>.<span class="ident">leading_colon</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
-                <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">segment</span>) <span class="kw">in</span> <a class="ident" href="../../src/syn/path.rs.html#820">segments</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">by_ref</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<a class="ident" href="../../src/syn/path.rs.html#819">pos</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
-                    <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#824">i</a> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <a class="ident" href="../../src/syn/path.rs.html#819">pos</a> {
-                        <a class="ident" href="../../src/syn/path.rs.html#824">segment</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
-                        <a class="ident" href="../../src/syn/path.rs.html#809">qself</a>.<span class="ident">gt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
-                        <a class="ident" href="../../src/syn/path.rs.html#824">segment</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
+            <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../src/syn/path.rs.html#840">qself</a>.<span class="ident">position</span>, <a class="ident" href="../../src/syn/path.rs.html#839">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#80">len</a>());
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <a class="ident" href="../../src/syn/path.rs.html#839">path</a>.<span class="ident">segments</span>.<a class="ident" href="../../src/syn/punctuated.rs.html#127">pairs</a>();
+            <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#850">pos</a> <span class="op">&gt;</span> <span class="number">0</span> {
+                <a class="ident" href="../../src/syn/print.rs.html#4">TokensOrDefault</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/path.rs.html#840">qself</a>.<span class="ident">as_token</span>).<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
+                <a class="ident" href="../../src/syn/path.rs.html#839">path</a>.<span class="ident">leading_colon</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
+                <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">segment</span>) <span class="kw">in</span> <a class="ident" href="../../src/syn/path.rs.html#851">segments</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">by_ref</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<a class="ident" href="../../src/syn/path.rs.html#850">pos</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+                    <span class="kw">if</span> <a class="ident" href="../../src/syn/path.rs.html#855">i</a> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <a class="ident" href="../../src/syn/path.rs.html#850">pos</a> {
+                        <a class="ident" href="../../src/syn/path.rs.html#855">segment</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#923">value</a>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
+                        <a class="ident" href="../../src/syn/path.rs.html#840">qself</a>.<span class="ident">gt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
+                        <a class="ident" href="../../src/syn/path.rs.html#855">segment</a>.<a class="ident" href="../../src/syn/punctuated.rs.html#938">punct</a>().<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
                     } <span class="kw">else</span> {
-                        <a class="ident" href="../../src/syn/path.rs.html#824">segment</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
+                        <a class="ident" href="../../src/syn/path.rs.html#855">segment</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
                     }
                 }
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/syn/path.rs.html#809">qself</a>.<span class="ident">gt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
-                <a class="ident" href="../../src/syn/path.rs.html#808">path</a>.<span class="ident">leading_colon</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
+                <a class="ident" href="../../src/syn/path.rs.html#840">qself</a>.<span class="ident">gt_token</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
+                <a class="ident" href="../../src/syn/path.rs.html#839">path</a>.<span class="ident">leading_colon</span>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
             }
-            <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/path.rs.html#820">segments</a> {
-                <a class="ident" href="../../src/syn/path.rs.html#837">segment</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#808">tokens</a>);
+            <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <a class="ident" href="../../src/syn/path.rs.html#851">segments</a> {
+                <a class="ident" href="../../src/syn/path.rs.html#868">segment</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../src/syn/path.rs.html#839">tokens</a>);
             }
         }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (6a7055661 2022-02-27)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
 </body></html>
