@@ -52,13 +52,20 @@ use crate::data::ProcedureDefId;
 // use utils::get_attr_value;
 use rustc_span::source_map::SourceMap;
 
+struct CachedBody<'tcx> {
+    /// MIR body as known to the compiler.
+    base_body: Rc<mir::Body<'tcx>>,
+    /// Copies of the MIR body with the given substs applied.
+    monomorphised_bodies: HashMap<SubstsRef<'tcx>, Rc<mir::Body<'tcx>>>,
+    /// Cached borrowck information.
+    borrowck_facts: Rc<BorrowckFacts>,
+}
+
 /// Facade to the Rust compiler.
 // #[derive(Copy, Clone)]
 pub struct Environment<'tcx> {
     /// Cached MIR bodies.
-    bodies: RefCell<HashMap<(LocalDefId, SubstsRef<'tcx>), Rc<mir::Body<'tcx>>>>,
-    /// Cached borrowck information.
-    borrowck_facts: RefCell<HashMap<LocalDefId, Rc<BorrowckFacts>>>,
+    bodies: RefCell<HashMap<LocalDefId, CachedBody<'tcx>>>,
     tcx: TyCtxt<'tcx>,
 }
 
@@ -68,7 +75,6 @@ impl<'tcx> Environment<'tcx> {
         Environment {
             tcx,
             bodies: RefCell::new(HashMap::new()),
-            borrowck_facts: RefCell::new(HashMap::new()),
         }
     }
 
@@ -251,32 +257,34 @@ impl<'tcx> Environment<'tcx> {
         substs: SubstsRef<'tcx>,
     ) -> Rc<mir::Body<'tcx>> {
         let mut bodies = self.bodies.borrow_mut();
-        if let Some(body) = bodies.get(&(def_id, substs)) {
-            body.clone()
-        } else {
-            // SAFETY: This is safe because we are feeding in the same `tcx`
-            // that was used to store the data.
-            let body_with_facts = unsafe {
-                self::mir_storage::retrieve_mir_body(self.tcx, def_id)
-            };
-            let body = body_with_facts.body;
-            let facts = BorrowckFacts {
-                input_facts: RefCell::new(Some(body_with_facts.input_facts)),
-                output_facts: body_with_facts.output_facts,
-                location_table: RefCell::new(Some(body_with_facts.location_table)),
-            };
+        let mut body = bodies.entry(def_id)
+            .or_insert_with(|| {
+                // SAFETY: This is safe because we are feeding in the same `tcx`
+                // that was used to store the data.
+                let body_with_facts = unsafe {
+                    self::mir_storage::retrieve_mir_body(self.tcx, def_id)
+                };
+                let body = body_with_facts.body;
+                let facts = BorrowckFacts {
+                    input_facts: RefCell::new(Some(body_with_facts.input_facts)),
+                    output_facts: body_with_facts.output_facts,
+                    location_table: RefCell::new(Some(body_with_facts.location_table)),
+                };
 
-            // TODO(tymap): are these affected by type substitutions at all?
-            let mut borrowck_facts = self.borrowck_facts.borrow_mut();
-            borrowck_facts.insert(def_id, Rc::new(facts));
-
-            use crate::rustc_middle::ty::subst::Subst;
-            let body = body.subst(self.tcx, substs);
-
-            bodies.entry((def_id, substs)).or_insert_with(|| {
-                Rc::new(body)
-            }).clone()
-        }
+                CachedBody {
+                    base_body: Rc::new(body),
+                    monomorphised_bodies: HashMap::new(),
+                    borrowck_facts: Rc::new(facts),
+                }
+            });
+        body
+            .monomorphised_bodies
+            .entry(substs)
+            .or_insert_with(|| {
+                use crate::rustc_middle::ty::subst::Subst;
+                body.base_body.clone().subst(self.tcx, substs)
+            })
+            .clone()
     }
 
     /// Get Polonius facts of a local procedure.
@@ -286,8 +294,9 @@ impl<'tcx> Environment<'tcx> {
 
     pub fn try_get_local_mir_borrowck_facts(&self, def_id: LocalDefId) -> Option<Rc<BorrowckFacts>> {
         trace!("try_get_local_mir_borrowck_facts: {:?}", def_id);
-        let borrowck_facts = self.borrowck_facts.borrow();
-        borrowck_facts.get(&def_id).cloned()
+        self.bodies.borrow()
+            .get(&def_id)
+            .map(|body| body.borrowck_facts.clone())
     }
 
     /// Get the MIR body of an external procedure.
