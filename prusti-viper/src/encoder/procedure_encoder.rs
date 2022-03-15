@@ -2020,15 +2020,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ref destination,
                 func:
                     mir::Operand::Constant(box mir::Constant {
-                        literal: mir::ConstantKind::Ty(
-                            ty::Const(func_ty_val),
-                        ),
+                        literal,
                         ..
                     }),
                 ..
             } => {
-                let ty = &func_ty_val.ty;
-                let func_const_val = &func_ty_val.val;
+                let ty = literal.ty();
+                let func_const_val = literal.try_to_value();
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
                     debug!("Encode function call {:?} with substs {:?}", def_id, substs);
 
@@ -2474,7 +2472,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let encoded_idx = self.mir_encoder.encode_operand_place(&args[1])?.unwrap();
         trace!("idx: {:?}", encoded_idx);
         let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);
-        let idx_ident = self.encoder.env().tcx().def_path_str(idx_ty.ty_adt_def().unwrap().did);
+        let idx_ident = self.encoder.env().tcx().def_path_str(idx_ty.ty_adt_def().unwrap().did());
         trace!("ident: {}", idx_ident);
 
         self.slice_created_at.insert(location, encoded_lhs);
@@ -5477,7 +5475,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let bytes = self.encoder.env().tcx()
                     .layout_of(ParamEnv::empty().and(op_ty))
                     .unwrap().layout
-                    .size
+                    .size()
                     .bytes();
                 let bytes_vir = vir::Expr::from(bytes);
                 self.encode_copy_value_assign(
@@ -5492,7 +5490,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let bytes = self.encoder.env().tcx()
                     .layout_of(ParamEnv::empty().and(op_ty))
                     .unwrap().layout
-                    .align.abi // FIXME: abi or pref?
+                    .align().abi // FIXME: abi or pref?
                     .bytes();
                 let bytes_vir = vir::Expr::from(bytes);
                 self.encode_copy_value_assign(
@@ -5555,7 +5553,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (encoded_src, mut stmts, src_ty, _) = self.encode_place(src, ArrayAccessKind::Shared, location)?;
         let encode_stmts = match src_ty.kind() {
             ty::TyKind::Adt(adt_def, _) if !adt_def.is_box() => {
-                let num_variants = adt_def.variants.len();
+                let num_variants = adt_def.variants().len();
                 // Initialize `lhs.int_field`
                 // Note: in our encoding an enumeration with just one variant has
                 // no discriminant
@@ -5572,7 +5570,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let substs = SubstMap::default();
                     let encoded_rhs = self.encoder.encode_discriminant_func_app(
                         encoded_src,
-                        adt_def,
+                        *adt_def,
                         &substs,
                     )?;
                     self.encode_copy_value_assign(
@@ -6154,13 +6152,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         span
                     ));
                 }
-                let num_variants = adt_def.variants.len();
-                let variant_def = &adt_def.variants[variant_index];
+                let num_variants = adt_def.variants().len();
+                let variant_def = &adt_def.variants()[variant_index];
                 let mut dst_base = dst.clone();
                 if num_variants != 1 {
                     // An enum.
                     // Handle *signed* discriminats
-                    let discr_value: vir::Expr = if let SignedInt(ity) = adt_def.repr.discr_type() {
+                    let discr_value: vir::Expr = if let SignedInt(ity) = adt_def.repr().discr_type() {
                         let bit_size =
                             Integer::from_attr(&tcx, SignedInt(ity))
                                 .size()

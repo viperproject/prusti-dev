@@ -101,21 +101,21 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Ref(_, ty, _) => vir::Type::reference(self.encoder.encode_type_high(*ty)?),
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() => vir::Type::struct_(
-                encode_struct_name(self.encoder, adt_def.did),
+                encode_struct_name(self.encoder, adt_def.did()),
                 self.encode_substs(substs),
             ),
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_enum() => {
-                if adt_def.variants.len() == 1 {
+                if adt_def.variants().len() == 1 {
                     // FIXME: Currently fold-unfold assumes that everything that
                     // has only a single variant is a struct.
                     vir::Type::struct_(
-                        encode_struct_name(self.encoder, adt_def.did),
+                        encode_struct_name(self.encoder, adt_def.did()),
                         self.encode_substs(substs),
                     )
                 } else {
                     vir::Type::enum_(
-                        self.encode_enum_name(adt_def.did),
+                        self.encode_enum_name(adt_def.did()),
                         self.encode_substs(substs),
                         None,
                     )
@@ -123,7 +123,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_union() => vir::Type::union_(
-                self.encode_union_name(adt_def.did),
+                self.encode_union_name(adt_def.did()),
                 self.encode_substs(substs),
             ),
 
@@ -209,7 +209,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Placeholder(_)
             | ty::TyKind::Infer(_)
             | ty::TyKind::Error(_) => MultiSpan::new(),
-            ty::TyKind::Adt(adt, _) => self.encoder.env().get_def_span(adt.did).into(),
+            ty::TyKind::Adt(adt, _) => self.encoder.env().get_def_span(adt.did()).into(),
             ty::TyKind::Foreign(did)
             | ty::TyKind::FnDef(did, _)
             | ty::TyKind::Closure(did, _)
@@ -302,7 +302,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     .collect(),
             ),
             ty::TyKind::Adt(adt_def, substs) => {
-                encode_adt_def(self.encoder, adt_def, substs, None)?
+                encode_adt_def(self.encoder, *adt_def, substs, None)?
             }
             ty::TyKind::Never => vir::TypeDecl::never(),
             ty::TyKind::Param(param_ty) => {
@@ -496,7 +496,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         //             let _cleanup_token = self.encoder.push_temp_tymap(tymap);
 
         //             let mut exprs: Vec<vir::Expression> = vec![];
-        //             let num_variants = adt_def.variants.len();
+        //             let num_variants = adt_def.variants().len();
         //             let tcx = self.encoder.env().tcx();
 
         //             let specs: Vec<typed::SpecificationSet> = Vec::new();
@@ -726,7 +726,7 @@ fn encode_variant<'v, 'tcx: 'v>(
 
 pub(super) fn encode_adt_def<'v, 'tcx>(
     encoder: &Encoder<'v, 'tcx>,
-    adt_def: &'tcx ty::AdtDef,
+    adt_def: ty::AdtDef<'tcx>,
     substs: ty::subst::SubstsRef<'tcx>,
     variant_index: Option<rustc_target::abi::VariantIdx>,
 ) -> SpannedEncodingResult<vir::TypeDecl> {
@@ -739,7 +739,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
     } else if adt_def.is_struct() {
         debug!("ADT {:?} is a struct", adt_def);
         assert!(variant_index.is_none());
-        let name = encode_struct_name(encoder, adt_def.did);
+        let name = encode_struct_name(encoder, adt_def.did());
         let variant = adt_def.non_enum_variant();
         Ok(vir::TypeDecl::Struct(encode_variant(
             encoder, name, substs, variant,
@@ -749,20 +749,20 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         assert!(variant_index.is_none());
         Err(SpannedEncodingError::unsupported(
             "unions are not supported",
-            encoder.env().get_def_span(adt_def.did),
+            encoder.env().get_def_span(adt_def.did()),
         ))
     } else if adt_def.is_enum() {
         debug!("ADT {:?} is an enum", adt_def);
-        let name = encode_struct_name(encoder, adt_def.did);
-        let num_variants = adt_def.variants.len();
+        let name = encode_struct_name(encoder, adt_def.did());
+        let num_variants = adt_def.variants().len();
         debug!("ADT {:?} is enum with {} variants", adt_def, num_variants);
         let type_decl = if num_variants == 1 {
             // FIXME: Currently fold-unfold assumes that everything that
             // has only a single variant is a struct.
-            let variant = &adt_def.variants[0usize.into()];
+            let variant = &adt_def.variants()[0usize.into()];
             vir::TypeDecl::Struct(encode_variant(encoder, name, substs, variant)?)
         } else if let Some(_variant_index) = variant_index {
-            // let variant = &adt_def.variants[variant_index];
+            // let variant = &adt_def.variants()[variant_index];
             // vir::TypeDecl::Struct(encode_variant(encoder, name, substs, variant)?)
             unimplemented!("FIXME: How this should be implemented?")
         } else {
@@ -774,7 +774,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
                 .map(|value| value.into())
                 .collect();
             let mut variants = Vec::new();
-            for variant in &adt_def.variants {
+            for variant in adt_def.variants() {
                 let name = variant.ident(tcx).to_string();
                 let encoded_variant = encode_variant(encoder, name, substs, variant)?;
                 variants.push(encoded_variant);
@@ -785,7 +785,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
     } else {
         Err(SpannedEncodingError::internal(
             format!("unexpected variant of adt_def: {:?}", adt_def),
-            encoder.env().get_def_span(adt_def.did),
+            encoder.env().get_def_span(adt_def.did()),
         ))
     }
 }
