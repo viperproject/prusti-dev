@@ -218,7 +218,7 @@ fn translate_type<'tcx>(encoder: &Encoder<'_, 'tcx>, typ: vir::Type, substs: Sub
         | vir::Type::Domain(_) => typ,
         vir::Type::TypedRef(_) | vir::Type::TypeVar(_) => {
             let mir_typ = encoder.decode_type_predicate_type(&typ).unwrap(); // FIXME: unwrap
-            encoder.encode_snapshot_type(mir_typ, substs).unwrap() // FIXME: unwrap
+            encoder.encode_snapshot_type(mir_typ).unwrap() // FIXME: unwrap
         }
         vir::Type::Seq(_) => unreachable!(),
     }

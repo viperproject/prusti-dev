@@ -174,7 +174,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
 
         let span = self.env().tcx().def_span(assertion.to_def_id());
         encoded_assertion = self
-            .patch_snapshots(encoded_assertion, substs)
+            .patch_snapshots(encoded_assertion)
             .with_span(span)?;
 
         Ok(encoded_assertion

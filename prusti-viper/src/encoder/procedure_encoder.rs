@@ -384,7 +384,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         // Patch snapshots
-        self.cfg_method = self.encoder.patch_snapshots_method(self.cfg_method, self.substs)
+        self.cfg_method = self.encoder.patch_snapshots_method(self.cfg_method)
             .with_span(mir_span)?;
 
         // Add fold/unfold
@@ -2461,7 +2461,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let enc_sequence_types = self.encoder.encode_sequence_types(base_seq_ty.peel_refs())?;
 
         let j = vir_local!{ j: Int };
-        let elem_snap_ty = self.encoder.encode_snapshot_type(enc_sequence_types.elem_ty_rs, self.substs)?;
+        let elem_snap_ty = self.encoder.encode_snapshot_type(enc_sequence_types.elem_ty_rs)?;
         let rhs_lookup_j = enc_sequence_types.encode_lookup_pure_call(
             self.encoder,
             base_seq_expr.clone(),
@@ -2517,7 +2517,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         trace!("start: {}, end: {}", start, end);
 
         let slice_types_lhs = self.encoder.encode_sequence_types(lhs_slice_ty)?;
-        let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types_lhs.elem_ty_rs, self.substs)?;
+        let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types_lhs.elem_ty_rs)?;
 
         // length
         let length = vir_expr!{ [end] - [start] };
@@ -2599,7 +2599,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
-        if self.encoder.supports_snapshot_equality(arg_ty, &substs).with_span(call_site_span)? {
+        if self.encoder.supports_snapshot_equality(arg_ty).with_span(call_site_span)? {
             let lhs = self.mir_encoder.encode_operand_expr(&args[0])
                 .with_span(call_site_span)?;
             let rhs = self.mir_encoder.encode_operand_expr(&args[1])
@@ -3891,9 +3891,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
                 lhs = replace_fake_exprs(lhs);
                 rhs = replace_fake_exprs(rhs);
-                lhs = self.encoder.patch_snapshots(lhs, substs)
+                lhs = self.encoder.patch_snapshots(lhs)
                     .with_span(self.mir.span)?;
-                rhs = self.encoder.patch_snapshots(rhs, substs)
+                rhs = self.encoder.patch_snapshots(rhs)
                     .with_span(self.mir.span)?;
                 debug!("Insert ({:?} {:?}) at {:?}", lhs, rhs, location);
                 self.magic_wand_at_location
@@ -5081,7 +5081,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             stmts.push(vir_stmt!{ inhale [len_eq] });
         }
 
-        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), self.substs).with_span(span)?;
+        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index)).with_span(span)?;
 
         // inhale infos about array contents back
         let i_var: vir::Expr = vir_local!{ i: Int }.into();
@@ -5089,7 +5089,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let i_lt_len = vir_expr!{ [ i_var ] < [ sequence_len ] };
         let i_ne_idx = vir_expr!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
         let idx_conditions = vir_expr!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
-        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, self.substs).with_span(span)?;
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs).with_span(span)?;
         let lookup_array_i = sequence_types.encode_lookup_pure_call(self.encoder, encoded_array.clone(), i_var.clone(), lookup_ret_ty.clone());
         // FIXME: using `old` here is a work-around for https://github.com/viperproject/prusti-dev/issues/877
         // FIXME: which is due to an issue in Silicon, see https://github.com/viperproject/silicon/issues/603
@@ -5720,7 +5720,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             expr: vir_expr!{ [slice_len_call] == [sequence_types.len(self.encoder, rhs_expr.clone())] }
         }));
 
-        let elem_snap_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, self.substs).with_span(span)?;
+        let elem_snap_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs).with_span(span)?;
 
         let i: vir::Expr = vir_local! { i: Int }.into();
 
@@ -5825,7 +5825,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .with_span(span)?;
         let len: usize = self.encoder.const_eval_intlike(times.val()).with_span(span)?
             .to_u64().unwrap().try_into().unwrap();
-        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, self.substs)
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs)
             .with_span(span)?;
 
         let inhaled_operand = if lookup_ret_ty.is_domain() || lookup_ret_ty.is_snapshot() {
@@ -6192,7 +6192,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::AggregateKind::Array(..) => {
                 let sequence_types = self.encoder.encode_sequence_types(ty).with_span(span)?;
-                let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, self.substs)
+                let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs)
                     .with_span(span)?;
 
                 for (idx, operand) in operands.iter().enumerate() {
@@ -6278,15 +6278,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(sequence_types.elem_pred_type.clone()).into();
         let lookup_res_val_field = self.encoder.encode_value_expr(lookup_res.clone(), sequence_types.elem_ty_rs)?;
-        let substs = ty::List::empty();
-        let snap_lookup_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(lookup_res_val_field), &substs)?;
+        let snap_lookup_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(lookup_res_val_field))?;
 
-        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &substs)?;
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs)?;
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Shared)?;
         stmts.extend(self.encode_havoc_and_initialization(&lookup_res));
 
-        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &substs)?;
+        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
         let lookup_pure_call = sequence_types.encode_lookup_pure_call(
             self.encoder,
@@ -6314,16 +6313,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         _loan: Option<Borrow>,
         location: mir::Location,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
-        let substs = ty::List::empty();
         let sequence_types = self.encoder.encode_sequence_types(sequence_ty)?;
 
         let res: vir::Expr = self.cfg_method.add_fresh_local_var(sequence_types.elem_pred_type.clone()).into();
         let res_val_field = self.encoder.encode_value_expr(res.clone(), sequence_types.elem_ty_rs)?;
-        let snap_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(res_val_field.clone()), &substs)?;
+        let snap_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(res_val_field.clone()))?;
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Mutable(None, location))?;
 
-        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &substs)?;
+        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
         // var res: Ref := havoc_ref()
         stmts.extend(self.encode_havoc_and_initialization(&res));
@@ -6350,8 +6348,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let old_lhs = |e| { vir::Expr::labelled_old("lhs", e) };
 
         // value of res
-        let substs = ty::List::empty();
-        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &substs)?;
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs)?;
         let lookup_pure_call = sequence_types.encode_lookup_pure_call(
             self.encoder,
             encoded_base_expr.clone(),
@@ -6398,7 +6395,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             lookup_ret_ty,
         );
         // TODO: old inside snapshot or the other way around?
-        let snap_old_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(res_val_field.clone()), &substs)?;
+        let snap_old_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(res_val_field.clone()))?;
         let indexed_updated = vir_expr!{ [ indexed_lookup_pure ] == [ old_lhs(snap_old_res_val_field) ] };
 
         let magic_wand_rhs = vir_expr!{ [all_others_unchanged] && [indexed_updated] };

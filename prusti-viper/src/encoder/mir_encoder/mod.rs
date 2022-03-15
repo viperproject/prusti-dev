@@ -519,7 +519,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         //     }
         // }
         let ty = operand.ty(self.mir, self.encoder.env().tcx());
-        self.encoder.encode_snapshot_type(ty, substs)
+        self.encoder.encode_snapshot_type(ty)
     }
 
     pub fn encode_bin_op_expr(
@@ -779,7 +779,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         self.encode_operand_expr_type(operand, substs).with_span(span)?,
                     )];
                     let pos = self.register_error(span, ErrorCtxt::TypeCast);
-                    let return_type = self.encoder.encode_snapshot_type(dst_ty, substs).with_span(span)?;
+                    let return_type = self.encoder.encode_snapshot_type(dst_ty).with_span(span)?;
                     return Ok(vir::Expr::func_app(
                         function_name,
                         vec![], // FIXME: This is probably wrong.

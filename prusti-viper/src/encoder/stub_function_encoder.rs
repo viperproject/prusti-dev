@@ -54,7 +54,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
             .map(|local| {
                 let var_name = self.mir_encoder.encode_local_var_name(local);
                 let mir_type = self.mir_encoder.get_local_ty(local);
-                self.encoder.encode_snapshot_type(mir_type, self.substs)
+                self.encoder.encode_snapshot_type(mir_type)
                     .map(|var_type| vir::LocalVar::new(var_name, var_type))
             })
             .collect::<Result<_, _>>()
@@ -93,6 +93,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         let ty = self.mir.return_ty();
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.mir_encoder.get_local_span(return_local);
-        self.encoder.encode_snapshot_type(ty, self.substs).with_span(span)
+        self.encoder.encode_snapshot_type(ty).with_span(span)
     }
 }
