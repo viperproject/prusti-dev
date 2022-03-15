@@ -531,7 +531,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     // Check the cast
                     // FIXME: Should use a high function.
                     let function_name = self
-                        .encode_cast_function_use(src_ty, dst_ty, substs)
+                        .encode_cast_function_use(src_ty, dst_ty)
                         .with_span(span)?;
                     let position =
                         self.error_manager()

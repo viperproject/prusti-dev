@@ -464,11 +464,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         builtin_encoder.encode_builtin_method_name(method_kind)
     }
 
-    pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>, substs: SubstsRef<'tcx>)
+    pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>)
         -> EncodingResult<String>
     {
-        // TODO(tymap): the key for casts might need to include substs, if we
-        //   ever cast from/to generic types
         trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
@@ -492,10 +490,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(function_name)
     }
 
-    pub fn encode_unsize_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>, substs: SubstsRef<'tcx>)
+    pub fn encode_unsize_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>)
         -> EncodingResult<String>
     {
-        // TODO(tymap): the key for unsizes might need to include substs
         trace!("encode_unsize_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         // at some point we may want to add support for other types of unsizing calls?
         assert!(matches!(src_ty.kind(), ty::TyKind::Array(..) | ty::TyKind::Slice(..)));

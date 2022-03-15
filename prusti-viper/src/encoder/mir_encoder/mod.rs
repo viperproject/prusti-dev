@@ -771,7 +771,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 let encoded_operand = self.encode_operand_expr(operand).with_span(span)?;
                 if config::check_overflows() {
                     // Check the cast
-                    let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty, substs)
+                    let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty)
                         .with_span(span)?;
                     let encoded_args = vec![encoded_operand];
                     let formal_args = vec![vir::LocalVar::new(

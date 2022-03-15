@@ -404,7 +404,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .iter()
             .map(|local| self.encode_local((*local).into()).map(|l| l.into()))
             .collect::<Result<_, _>>()?;
-        for (assertion, assertion_substs) in contract.functional_precondition_new(self.encoder.env(), self.substs) {
+        for (assertion, assertion_substs) in contract.functional_precondition(self.encoder.env(), self.substs) {
             debug!("Encode spec item: {:?}", assertion);
             let encoded_assertion = self.encoder.encode_assertion(
                 &assertion,
@@ -444,7 +444,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let encoded_return = self.encode_local(contract.returned_value.into())?;
         debug!("encoded_return: {:?}", encoded_return);
 
-        for (assertion, assertion_substs) in contract.functional_postcondition_new(self.encoder.env(), self.substs) {
+        for (assertion, assertion_substs) in contract.functional_postcondition(self.encoder.env(), self.substs) {
             let encoded_postcond = self.encoder.encode_assertion(
                 &assertion,
                 None,

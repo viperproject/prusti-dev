@@ -86,7 +86,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             .map(|local| self.encode_local((*local).into()))
             .collect::<Result<Vec<_>, _>>()?;
 
-        for (assertion, assertion_substs) in contract.functional_precondition_new(self.encoder.env(), self.substs) {
+        for (assertion, assertion_substs) in contract.functional_precondition(self.encoder.env(), self.substs) {
             let encoded_assertion = self.encoder.encode_assertion(
                 &assertion,
                 None,
@@ -134,7 +134,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         // _2... - additional arguments
         // encoded return: _0
 
-        for (assertion, assertion_substs) in contract.functional_postcondition_new(self.encoder.env(), self.substs) {
+        for (assertion, assertion_substs) in contract.functional_postcondition(self.encoder.env(), self.substs) {
             let encoded_assertion = self.encoder.encode_assertion(
                 &assertion,
                 None,
