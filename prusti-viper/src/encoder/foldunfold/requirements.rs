@@ -66,8 +66,18 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
             &vir::Stmt::Exhale(vir::Exhale {
                 ref expr,
                 ref position,
-            })
-            | &vir::Stmt::Assert(vir::Assert {
+            }) => {
+                // Here we use `get_all_required_expr_permissions` instead of
+                // `get_required_stmt_permissions` because `ApplyOnState::apply_on_state` doesn't
+                // currently support unfoldings on the RHS.
+                let perms = expr.get_all_required_expr_permissions(predicates);
+                perms
+                    .into_iter()
+                    .map(|perm| perm.set_default_pos(*position))
+                    .collect()
+            }
+
+            &vir::Stmt::Assert(vir::Assert {
                 ref expr,
                 ref position,
             })
@@ -214,11 +224,16 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
 impl RequiredExprPermissionsGetter for vir::Expr {
     fn get_required_stmt_permissions(&self, preds: &Predicates) -> FxHashSet<Perm> {
         trace!("[enter] get_required_stmt_permissions(expr={})", self);
-        let reqs = self.get_all_required_expr_permissions(preds)
+        let reqs = self
+            .get_all_required_expr_permissions(preds)
             .into_iter()
             .filter(|p| p.is_pred())
             .collect();
-        trace!("[exit] get_required_stmt_permissions(expr={}) {:#?}", self, reqs);
+        trace!(
+            "[exit] get_required_stmt_permissions(expr={}) {:#?}",
+            self,
+            reqs
+        );
         reqs
     }
 
@@ -340,14 +355,15 @@ impl RequiredExprPermissionsGetter for vir::Expr {
                 ..
             }) => {
                 debug_assert!(argument.is_place());
-                Some(Pred(argument.clone(), PermAmount::Read)).into_iter().collect()
-            }
-
-            vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate { ref base, .. }) => {
-                base.get_required_expr_permissions(predicates)
+                Some(Pred(argument.clone(), PermAmount::Read))
                     .into_iter()
                     .collect()
             }
+
+            vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate { ref base, .. }) => base
+                .get_required_expr_permissions(predicates)
+                .into_iter()
+                .collect(),
 
             vir::Expr::LetExpr(vir::LetExpr {
                 variable: _variable,
@@ -388,9 +404,13 @@ impl RequiredExprPermissionsGetter for vir::Expr {
                             // simplify our life. A proper solution would be to look up the
                             // real function precondition.
                             if let Some(field_place) = arg.try_deref() {
-                                Some(Pred(field_place, PermAmount::Read)).into_iter().collect()
+                                Some(Pred(field_place, PermAmount::Read))
+                                    .into_iter()
+                                    .collect()
                             } else {
-                                Some(Pred(arg.clone(), PermAmount::Read)).into_iter().collect()
+                                Some(Pred(arg.clone(), PermAmount::Read))
+                                    .into_iter()
+                                    .collect()
                             }
                         } else {
                             debug!("arg {} is not a place with type ref", arg);
