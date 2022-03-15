@@ -335,22 +335,21 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn get_procedure_contract_for_call(
         &self,
-        proc_def_id: ProcedureDefId,
+        caller_def_id: ProcedureDefId,
+        called_def_id: ProcedureDefId,
         args: &[places::Local],
         target: places::Local,
-        substs: ty::subst::SubstsRef<'tcx>,
+        call_substs: ty::subst::SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
-        let spec = self.env()
-            .find_impl_of_trait_method_call(proc_def_id, substs)
-            .and_then(|impl_def_id| self.get_procedure_specs(impl_def_id))
-            .or_else(|| self.get_procedure_specs(proc_def_id)) // Fallback to trait spec
+        let (called_def_id, call_substs) = self.env()
+            .resolve_method_call(caller_def_id, called_def_id, call_substs);
+        let spec = self.get_procedure_specs(called_def_id)
             .unwrap_or_else(typed::ProcedureSpecification::empty);
-
         let contract = compute_procedure_contract(
-            proc_def_id,
+            called_def_id,
             self.env(),
             typed::SpecificationSet::Procedure(spec),
-            &substs,
+            &call_substs,
         )?;
         Ok(contract.to_call_site_contract(args, target))
     }

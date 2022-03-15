@@ -257,7 +257,7 @@ impl<'tcx> Environment<'tcx> {
         substs: SubstsRef<'tcx>,
     ) -> Rc<mir::Body<'tcx>> {
         let mut bodies = self.bodies.borrow_mut();
-        let mut body = bodies.entry(def_id)
+        let body = bodies.entry(def_id)
             .or_insert_with(|| {
                 // SAFETY: This is safe because we are feeding in the same `tcx`
                 // that was used to store the data.
@@ -338,8 +338,12 @@ impl<'tcx> Environment<'tcx> {
     }
 
     /// Returns the `DefId` of the corresponding trait method, if any.
-    pub fn find_trait_method(&self, impl_def_id: ProcedureDefId) -> Option<DefId> {
-        // TODO(tymap): replace this method with resolve_substs_to_trait ?
+    /// This should not be used to resolve calls (where substs are known): use
+    /// `find_trait_method_substs` instead!
+    pub fn find_trait_method(
+        &self,
+        impl_def_id: ProcedureDefId, // what are we calling?
+    ) -> Option<DefId> {
         self.tcx
             .impl_of_method(impl_def_id)
             .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
@@ -347,9 +351,47 @@ impl<'tcx> Environment<'tcx> {
             .map(|assoc_item| assoc_item.def_id)
     }
 
+    /// If the given `impl_method_def_id` is an implementation of a trait
+    /// method, return the `DefId` of that trait method as well as an adapted
+    /// version of the callsite `impl_method_substs` substitutions.
+    pub fn find_trait_method_substs(
+        &self,
+        impl_method_def_id: ProcedureDefId, // what are we calling?
+        impl_method_substs: SubstsRef<'tcx>, // what are the substs on the call?
+    ) -> Option<(ProcedureDefId, SubstsRef<'tcx>)> {
+        let impl_def_id = self.tcx.impl_of_method(impl_method_def_id)?;
+        let trait_def_id = self.tcx.trait_id_of_impl(impl_def_id)?;
+
+        // the input method was in an impl for a trait: finding a `None` in
+        // further calls would be unexpected, so we unwrap instead of ?
+
+        let trait_method_def_id = self.get_assoc_item(
+            trait_def_id,
+            self.tcx().item_name(impl_method_def_id),
+        ).unwrap().def_id;
+        let trait_ref = self.tcx.impl_trait_ref(impl_def_id).unwrap();
+        let identity_impl_method = self.identity_substs(impl_method_def_id);
+        let identity_trait_method = self.identity_substs(trait_method_def_id);
+
+        // sanity check: do the two methods have matching substs counts?
+        // (trait method substs include the substs for the trait itself, so we
+        // have to subtract here)
+        assert_eq!(identity_impl_method.len(), identity_trait_method.len() - trait_ref.substs.len());
+
+        // sanity check: have we provided the correct number of substs?
+        assert_eq!(identity_impl_method.len(), impl_method_substs.len());
+
+        Some((
+            trait_method_def_id,
+            self.tcx.mk_substs(trait_ref.substs.iter()
+                .chain(impl_method_substs))
+        ))
+    }
+
     /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
     /// Returns `None` if this method can not be found or the provided `proc_def_id` is no trait item.
     pub fn find_impl_of_trait_method_call(&self, proc_def_id: ProcedureDefId, substs: SubstsRef<'tcx>) -> Option<ProcedureDefId> {
+        // TODO(tymap): remove this method?
         if let Some(trait_id) = self.tcx().trait_of_item(proc_def_id) {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx().def_path_str(trait_id), substs);
 
@@ -370,6 +412,28 @@ impl<'tcx> Environment<'tcx> {
             };
         } else {
             None
+        }
+    }
+
+    /// Given a call to `called_def_id` from within `caller_def_id`, returns
+    /// the `DefId` that will actually be called if known (i.e. if a trait
+    /// method call actually resolves to a concrete implementation), as well as
+    /// the correct substitutions for that call. If a method is not resolved,
+    /// returns the original `called_def_id` and `call_substs`.
+    pub fn resolve_method_call(
+        &self,
+        caller_def_id: ProcedureDefId, // where are we calling from?
+        called_def_id: ProcedureDefId, // what are we calling?
+        call_substs: SubstsRef<'tcx>,
+    ) -> (ProcedureDefId, SubstsRef<'tcx>) {
+        let param_env = self.tcx.param_env(caller_def_id);
+        let instance = self.tcx
+            .resolve_instance(param_env.and((called_def_id, call_substs)))
+            .unwrap();
+        if let Some(instance) = instance {
+            (instance.def_id(), instance.substs)
+        } else {
+            (called_def_id, call_substs)
         }
     }
 
@@ -414,67 +478,5 @@ impl<'tcx> Environment<'tcx> {
     /// generic maps to itself.
     pub fn identity_substs(&self, def_id: ProcedureDefId) -> SubstsRef<'tcx> {
         ty::List::identity_for_item(self.tcx, def_id)
-    }
-
-    /// Convert a potential type parameter to a concrete type.
-    pub fn resolve_ty(&self, ty: ty::Ty<'tcx>, substs: SubstsRef<'tcx>) -> ty::Ty<'tcx> {
-        // TODO(tymap): most (all?) uses of this function should not need to exist
-        // TODO(tymap): if this is kept, make generic for all TypeFoldables
-        use crate::rustc_middle::ty::subst::Subst;
-        ty.subst(self.tcx, substs)
-    }
-
-    pub fn resolve_method_call(
-        &self,
-        caller_def_id: ProcedureDefId, // where are we calling from?
-        called_def_id: ProcedureDefId, // what are we calling?
-        call_substs: SubstsRef<'tcx>,
-    ) -> (ProcedureDefId, SubstsRef<'tcx>) {
-        let param_env = self.tcx.param_env(caller_def_id);
-        let instance = self.tcx
-            .resolve_instance(param_env.and((called_def_id, call_substs)))
-            .unwrap();
-        if let Some(instance) = instance {
-            (instance.def_id(), instance.substs)
-        } else {
-            (called_def_id, call_substs)
-        }
-    }
-
-    // TODO(tymap): update comment to reflect Option return
-    /// Given a method call to `impl_method_def_id`, known to be an
-    /// implementation of a trait method, and its substs `impl_method_substs`,
-    /// output a tuple with the `DefId` of the corresponding trait method,
-    /// and the substs that would be valid for that method.
-    pub fn resolve_substs_to_trait(
-        &self,
-        impl_method_def_id: ProcedureDefId, // what are we calling?
-        impl_method_substs: SubstsRef<'tcx>, // what are the substs on the call?
-    ) -> Option<(ProcedureDefId, SubstsRef<'tcx>)> {
-        // TODO(tymap): some of these should be unwrap instead of ?
-        let impl_def_id = self.tcx.impl_of_method(impl_method_def_id)?;
-        let trait_def_id = self.tcx.trait_id_of_impl(impl_def_id)?;
-        let trait_method_def_id = self.get_assoc_item(
-            trait_def_id,
-            self.tcx().item_name(impl_method_def_id),
-        )?.def_id;
-        let trait_def = self.tcx.trait_def(trait_def_id);
-        let trait_ref = self.tcx.impl_trait_ref(impl_def_id)?;
-        let identity_impl_method = self.identity_substs(impl_method_def_id);
-        let identity_trait_method = self.identity_substs(trait_method_def_id);
-
-        // sanity check: do the two methods have matching substs counts?
-        // (trait method substs include the substs for the trait itself, so we
-        // have to subtract here)
-        assert_eq!(identity_impl_method.len(), identity_trait_method.len() - trait_ref.substs.len());
-
-        // sanity check: have we provided the correct number of substs?
-        assert_eq!(identity_impl_method.len(), impl_method_substs.len());
-
-        Some((
-            trait_method_def_id,
-            self.tcx.mk_substs(trait_ref.substs.iter()
-                .chain(impl_method_substs))
-        ))
     }
 }
