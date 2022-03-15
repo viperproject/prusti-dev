@@ -33,7 +33,6 @@ use std::io::Write;
 use std::rc::Rc;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
-use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
 use crate::encoder::name_interner::NameInterner;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
@@ -85,7 +84,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) snapshot_encoder_state: SnapshotEncoderState,
     pub(super) mirror_encoder: RefCell<MirrorEncoder>,
     array_types_encoder: RefCell<SequenceTypesEncoder<'tcx>>,
-    closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
     encoding_queue: RefCell<Vec<EncodingTask<'tcx>>>,
     vir_program_before_foldunfold_writer: Option<RefCell<Box<dyn Write>>>,
     vir_program_before_viper_writer: Option<RefCell<Box<dyn Write>>>,
@@ -153,7 +151,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             spec_functions: RefCell::new(FxHashMap::default()),
             type_discriminant_funcs: RefCell::new(FxHashMap::default()),
             type_cast_functions: RefCell::new(FxHashMap::default()),
-            closures_collector: RefCell::new(SpecsClosuresCollector::new()),
             encoding_queue: RefCell::new(vec![]),
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
@@ -199,7 +196,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn initialize(&mut self) {
-        self.closures_collector.borrow_mut().collect_from_all_spec_items(self.env);
         // These are used in optimization passes
         self.encode_builtin_method_def(BuiltinMethodKind::HavocBool);
         self.encode_builtin_method_def(BuiltinMethodKind::HavocInt);
@@ -270,19 +266,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
         self.procedures.borrow_mut().drain().map(|(_, value)| value).collect()
-    }
-
-    /// Return, if there is any, the unique instantiation of the given closure.
-    pub fn get_single_closure_instantiation(
-        &self,
-        closure_def_id: DefId,
-    ) -> Option<(
-        ProcedureDefId,
-        mir::Location,
-        Vec<mir::Operand<'tcx>>,
-        Vec<ty::Ty<'tcx>>,
-    )> {
-        self.closures_collector.borrow().get_single_instantiation(closure_def_id)
     }
 
     fn get_procedure_contract(
@@ -569,7 +552,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             def_id
         );
         if !self.procedures.borrow().contains_key(&def_id) {
-            self.closures_collector.borrow_mut().collect(self.env, def_id.expect_local());
             let procedure = self.env.get_procedure(def_id);
             let proc_encoder = ProcedureEncoder::new(self, &procedure)?;
             let mut method = match proc_encoder.encode() {
