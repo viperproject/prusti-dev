@@ -99,16 +99,7 @@ where
 }
 
 impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
-    //pub fn functional_precondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
-    //    // TODO(tymap): remove
-    //    if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-    //        spec.pres.extract_with_selective_replacement_iter()
-    //    } else {
-    //        unreachable!("Unexpected: {:?}", self.specification)
-    //    }
-    //}
-
-    pub fn functional_precondition_new<'a, 'tcx>(
+    pub fn functional_precondition<'a, 'tcx>(
         &'a self,
         env: &'a Environment<'tcx>,
         substs: SubstsRef<'tcx>,
@@ -126,10 +117,13 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
                 typed::SpecificationItem::Inherited(pres) => pres.iter()
                     .map(|inherited_def_id| (
                         *inherited_def_id,
-                        env.resolve_substs_to_trait(
-                            self.def_id,
-                            substs,
-                        ).unwrap().1, // TODO(tymap): document why self.def_id and .1
+                        // This uses the substs of the current method and
+                        // resolves them to the substs of the trait; however,
+                        // we are actually resolving to a specification item.
+                        // This works because the generics of the specification
+                        // items are the same as the generics of the method on
+                        // which they are declared.
+                        env.resolve_substs_to_trait(self.def_id, substs).unwrap().1,
                     ))
                     .collect(),
             }
@@ -138,16 +132,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         }
     }
 
-    //pub fn functional_postcondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
-    //    // TODO(tymap): remove
-    //    if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-    //        spec.posts.extract_with_selective_replacement_iter()
-    //    } else {
-    //        unreachable!("Unexpected: {:?}", self.specification)
-    //    }
-    //}
-
-    pub fn functional_postcondition_new<'a, 'tcx>(
+    pub fn functional_postcondition<'a, 'tcx>(
         &'a self,
         env: &'a Environment<'tcx>,
         substs: SubstsRef<'tcx>,
@@ -165,10 +150,8 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
                 typed::SpecificationItem::Inherited(posts) => posts.iter()
                     .map(|inherited_def_id| (
                         *inherited_def_id,
-                        env.resolve_substs_to_trait(
-                            self.def_id,
-                            substs,
-                        ).unwrap().1, // TODO(tymap): document why self.def_id and .1
+                        // Same comment as `functional_precondition` applies.
+                        env.resolve_substs_to_trait(self.def_id, substs).unwrap().1,
                     ))
                     .collect(),
             }

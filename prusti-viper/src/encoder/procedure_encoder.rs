@@ -3467,10 +3467,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut strengthening: Option<vir::Expr> = None;
 
         if let SpecificationItem::Refined(from, to) = &procedure_spec.pres {
+            // See comment in `ProcedureContractGeneric::functional_precondition`.
             let trait_substs = self.encoder.env().resolve_substs_to_trait(
                 self.proc_def_id,
                 self.substs,
             ).unwrap().1;
+
             let from_pre = from.iter()
                 .map(|spec| self.encoder.encode_assertion(
                     spec,
@@ -3484,7 +3486,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .collect::<Result<Vec<_>, _>>()?
                 .into_iter()
                 .conjoin();
-
             let to_pre = to.iter()
                 .map(|spec| self.encoder.encode_assertion(
                     spec,
@@ -3505,10 +3506,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         if let SpecificationItem::Refined(from, to) = &procedure_spec.posts {
+            // See comment in `ProcedureContractGeneric::functional_precondition`.
             let trait_substs = self.encoder.env().resolve_substs_to_trait(
                 self.proc_def_id,
                 self.substs,
             ).unwrap().1;
+
             let from_post = from
                 .iter()
                 .map(|spec| self.encoder.encode_assertion(
