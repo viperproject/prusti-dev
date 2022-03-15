@@ -2037,18 +2037,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             } => {
                 let ty = literal.ty();
                 let func_const_val = literal.try_to_value();
-                if let ty::TyKind::FnDef(def_id, call_substs) = ty.kind() {
-                    debug!("Encode function call {:?} with substs {:?}", def_id, call_substs);
+                if let ty::TyKind::FnDef(called_def_id, call_substs) = ty.kind() {
+                    let called_def_id = *called_def_id;
+                    debug!("Encode function call {:?} with substs {:?}", called_def_id, call_substs);
 
-                    let def_id = *def_id;
                     let full_func_proc_name: &str =
-                        &self.encoder.env().tcx().def_path_str(def_id);
-                        // &self.encoder.env().tcx().absolute_item_path_str(def_id);
-
-                    // compose substitutions
-                    // TODO(tymap): do we need this?
-                    use crate::rustc_middle::ty::subst::Subst;
-                    let composed_substs = call_substs.subst(self.encoder.env().tcx(), self.substs);
+                        &self.encoder.env().tcx().def_path_str(called_def_id);
 
                     match full_func_proc_name {
                         "std::rt::begin_panic"
@@ -2132,13 +2126,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             debug!("Encoding call of PartialEq::eq");
                             stmts.extend(
                                 self.encode_cmp_function_call(
-                                    def_id,
+                                    called_def_id,
                                     location,
                                     term.source_info.span,
                                     args,
                                     destination,
                                     vir::BinaryOpKind::EqCmp,
-                                    self.substs, // don't use composed substs
+                                    call_substs,
                                 )?
                             );
                         }
@@ -2153,20 +2147,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             debug!("Encoding call of PartialEq::ne");
                             stmts.extend(
                                 self.encode_cmp_function_call(
-                                    def_id,
+                                    called_def_id,
                                     location,
                                     term.source_info.span,
                                     args,
                                     destination,
                                     vir::BinaryOpKind::NeCmp,
-                                    self.substs, // don't use composed substs
+                                    call_substs,
                                 )?
                             );
                         }
 
                         "std::ops::Fn::call"
                         | "core::ops::Fn::call" => {
-                            let cl_type: ty::Ty = composed_substs[0].expect_ty();
+                            let cl_type: ty::Ty = call_substs[0].expect_ty();
                             match cl_type.kind() {
                                 ty::TyKind::Closure(cl_def_id, _) => {
                                     debug!("Encoding call to closure {:?} with func {:?}", cl_def_id, func_const_val);
@@ -2176,7 +2170,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         args,
                                         destination,
                                         *cl_def_id,
-                                        composed_substs,
+                                        call_substs,
                                     )?);
                                 }
 
@@ -2225,9 +2219,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                         _ => {
                             // The called method might be a trait method.
-                            // We try to resolve it to the concrete implementation.
-                            let (called_def_id, composed_substs) = self.encoder.env()
-                                .resolve_method_call(self.proc_def_id, def_id, composed_substs);
+                            // We try to resolve it to the concrete implementation
+                            // and type substitutions.
+                            let (called_def_id, call_substs) = self.encoder.env()
+                                .resolve_method_call(self.proc_def_id, called_def_id, call_substs);
 
                             let is_pure_function = self.encoder.is_pure(called_def_id) &&
                                 // We are verifying this pure function and,
@@ -2237,7 +2232,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             if is_pure_function {
                                 let def_id = called_def_id;
                                 let (function_name, _) = self.encoder
-                                    .encode_pure_function_use(def_id, self.proc_def_id, composed_substs)
+                                    .encode_pure_function_use(def_id, self.proc_def_id, call_substs)
                                     .with_default_span(term.source_info.span)?;
                                 debug!("Encoding pure function call '{}'", function_name);
                                 assert!(destination.is_some());
@@ -2254,7 +2249,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         args,
                                         destination,
                                         def_id,
-                                        composed_substs,
+                                        call_substs,
                                     )?
                                 );
                             } else {
@@ -2264,8 +2259,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         term.source_info.span,
                                         args,
                                         destination,
-                                        def_id,
-                                        composed_substs,
+                                        called_def_id,
+                                        call_substs,
                                     )?
                                 );
                             }
@@ -3396,30 +3391,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             };
         }
 
-        let mut func_spec: Vec<vir::Expr> = vec![];
-
         // Encode functional specification
         let encoded_args: Vec<vir::Expr> = contract
             .args
             .iter()
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
-        for assertion in contract.functional_precondition() {
-            // FIXME
-            let value = self.encoder.encode_assertion(
-                assertion,
+
+        let func_spec: Vec<vir::Expr> = contract.functional_precondition_new(
+                self.encoder.env(),
+                substs,
+            ).iter()
+            .map(|(assertion, assertion_substs)| self.encoder.encode_assertion(
+                &assertion,
                 None,
                 &encoded_args,
                 None,
                 false,
                 self.proc_def_id,
-                substs,
-            )?;
-            func_spec.push(value);
-        }
+                assertion_substs,
+            ))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // TODO(tymap): do this with the previous step ...
         let precondition_spans = MultiSpan::from_spans(
-            contract.functional_precondition()
-                .map(|ts| self.encoder.env().tcx().def_span(ts.to_def_id()))
+            contract.functional_precondition_new(self.encoder.env(), substs)
+                .iter()
+                .map(|(ts, _)| self.encoder.env().tcx().def_span(ts.to_def_id()))
                 .collect(),
         );
 
@@ -3461,8 +3459,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let encoded_return = self
             .encode_prusti_local(self.procedure_contract().returned_value).into();
 
-        // FIXME: ??? new substs?
-        let substs = ty::List::empty();
         debug!("procedure_contract: {:?}", self.procedure_contract());
 
         let procedure_spec = self.procedure_contract().specification.expect_procedure();
@@ -3471,6 +3467,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut strengthening: Option<vir::Expr> = None;
 
         if let SpecificationItem::Refined(from, to) = &procedure_spec.pres {
+            let trait_substs = self.encoder.env().resolve_substs_to_trait(
+                self.proc_def_id,
+                self.substs,
+            ).unwrap().1;
             let from_pre = from.iter()
                 .map(|spec| self.encoder.encode_assertion(
                     spec,
@@ -3479,7 +3479,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     None,
                     false,
                     self.proc_def_id,
-                    &substs,
+                    &trait_substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
                 .into_iter()
@@ -3493,7 +3493,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     None,
                     false,
                     self.proc_def_id,
-                    &substs,
+                    &self.substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
                 .into_iter()
@@ -3505,6 +3505,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         if let SpecificationItem::Refined(from, to) = &procedure_spec.posts {
+            let trait_substs = self.encoder.env().resolve_substs_to_trait(
+                self.proc_def_id,
+                self.substs,
+            ).unwrap().1;
             let from_post = from
                 .iter()
                 .map(|spec| self.encoder.encode_assertion(
@@ -3514,7 +3518,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Some(&encoded_return),
                     false,
                     self.proc_def_id,
-                    &substs,
+                    &trait_substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
                 .into_iter()
@@ -3528,7 +3532,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Some(&encoded_return),
                     false,
                     self.proc_def_id,
-                    &substs,
+                    &self.substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
                 .into_iter()
@@ -3910,16 +3914,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Encode functional specification
         let mut func_spec = vec![];
         let mut func_spec_spans = vec![];
-        let func_postcondition = contract.functional_postcondition();
-        for typed_assertion in func_postcondition {
+        let func_postcondition = contract.functional_postcondition_new(self.encoder.env(), substs);
+        for (typed_assertion, assertion_substs) in func_postcondition {
             let mut assertion = self.encoder.encode_assertion(
-                typed_assertion,
+                &typed_assertion,
                 Some(pre_label),
                 &encoded_args,
                 Some(&encoded_return),
                 false,
                 self.proc_def_id,
-                substs,
+                assertion_substs,
             )?;
             let assertion_span = self.encoder.env().tcx().def_span(typed_assertion.to_def_id());
             func_spec_spans.push(assertion_span);
@@ -4939,7 +4943,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 kind => unreachable!("Only calls are expected. Found: {:?}", kind),
             }
         } else {
-            let mir = self.encoder.env().local_mir(containing_def_id.expect_local());
+            // TODO(tymap): why are we getting the MIR body for this?
+            let mir = self.encoder.env().local_mir_ident(containing_def_id.expect_local());
             let return_ty = mir.return_ty();
             let arg_tys = mir.args_iter().map(|arg| mir.local_decls[arg].ty).collect();
             FakeMirEncoder::new(self.encoder, arg_tys, Some(return_ty))

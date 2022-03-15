@@ -53,7 +53,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     ) -> Self {
         trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
 
-        assert_eq!(substs.len(), encoder.env().identity_substs(proc_def_id).len());
+        //assert_eq!(substs.len(), encoder.env().identity_substs(proc_def_id).len());
 
         // TODO(tymap): do this with substs somehow?
 
@@ -171,10 +171,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         // if the function returns a snapshot, we take a snapshot of the body
         if self.encode_function_return_type()?.is_snapshot() {
-            let ty = self
-                .encoder
-                .env()
-                .resolve_ty(self.mir.return_ty(), &self.substs);
+            let ty = self.mir.return_ty();
+            //let ty = self
+            //    .encoder
+            //    .env()
+            //    .resolve_ty(self.mir.return_ty(), &self.substs);
             let return_span = self.get_local_span(mir::RETURN_PLACE);
 
             let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
@@ -403,21 +404,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .iter()
             .map(|local| self.encode_local((*local).into()).map(|l| l.into()))
             .collect::<Result<_, _>>()?;
-        for item in contract.functional_precondition() {
-            debug!("Encode spec item: {:?}", item);
-            let assertion = self.encoder.encode_assertion(
-                item,
+        for (assertion, assertion_substs) in contract.functional_precondition_new(self.encoder.env(), self.substs) {
+            debug!("Encode spec item: {:?}", assertion);
+            let encoded_assertion = self.encoder.encode_assertion(
+                &assertion,
                 None,
                 &encoded_args,
                 None,
                 true,
                 self.parent_def_id,
-                self.substs,
+                assertion_substs,
             )?;
             self.encoder
                 .error_manager()
-                .set_error(assertion.pos(), ErrorCtxt::PureFunctionDefinition);
-            func_spec.push(assertion);
+                .set_error(encoded_assertion.pos(), ErrorCtxt::PureFunctionDefinition);
+            func_spec.push(encoded_assertion);
         }
 
         Ok((
@@ -443,15 +444,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let encoded_return = self.encode_local(contract.returned_value.into())?;
         debug!("encoded_return: {:?}", encoded_return);
 
-        for item in contract.functional_postcondition() {
+        for (assertion, assertion_substs) in contract.functional_postcondition_new(self.encoder.env(), self.substs) {
             let encoded_postcond = self.encoder.encode_assertion(
-                item,
+                &assertion,
                 None,
                 &encoded_args,
                 Some(&encoded_return.clone().into()),
                 true,
                 self.parent_def_id,
-                self.substs,
+                assertion_substs,
             )?;
             self.encoder
                 .error_manager()
@@ -501,10 +502,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
-        let ty = self
-            .encoder
-            .env()
-            .resolve_ty(self.mir.return_ty(), &self.substs);
+        //let ty = self
+        //    .encoder
+        //    .env()
+        //    .resolve_ty(self.mir.return_ty(), &self.substs);
+        let ty = self.mir.return_ty();
         let return_span = self.get_local_span(mir::RETURN_PLACE);
 
         // Return an error for unsupported return types

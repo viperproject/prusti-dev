@@ -44,7 +44,7 @@ pub(super) fn inline_spec_item_high<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Expression> {
-    let mir = encoder.env().local_mir(def_id.expect_local());
+    let mir = encoder.env().local_mir_subst(def_id.expect_local(), substs);
     assert_eq!(
         mir.arg_count,
         target_args.len() + if target_return.is_some() { 1 } else { 0 }
