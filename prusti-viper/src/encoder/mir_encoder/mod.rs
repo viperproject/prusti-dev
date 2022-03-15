@@ -116,7 +116,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
                     ty::TyKind::Adt(adt_def, ref subst) if !adt_def.is_box() => {
                         debug!("subst {:?}", subst);
-                        let num_variants = adt_def.variants.len();
+                        let num_variants = adt_def.variants().len();
                         // FIXME: why this can be None?
                         let variant_index = if let Some(num) = opt_variant_index {
                             num
@@ -135,7 +135,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             0
                         };
                         let tcx = self.encoder().env().tcx();
-                        let variant_def = &adt_def.variants[variant_index.into()];
+                        let variant_def = &adt_def.variants()[variant_index.into()];
                         let encoded_variant = if num_variants != 1 {
                             encoded_base.variant(variant_def.ident(tcx).as_str())
                         } else {

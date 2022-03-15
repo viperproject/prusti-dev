@@ -3,6 +3,8 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(if_let_guard)]
+// This Clippy chcek seems to be always wrong.
+#![allow(clippy::iter_with_drain)]
 
 #[macro_use]
 mod parse_quote_spanned;

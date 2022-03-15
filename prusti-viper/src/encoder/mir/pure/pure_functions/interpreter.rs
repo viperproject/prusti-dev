@@ -93,7 +93,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                     .with_span(span)?;
                 let variant_field = if let ty::TyKind::Adt(adt_def, _subst) = place_ty.kind() {
                     let tcx = self.encoder.env().tcx();
-                    let variant_name = adt_def.variants[variant_idx].ident(tcx).to_string();
+                    let variant_name = adt_def.variants()[variant_idx].ident(tcx).to_string();
                     self.encoder.encode_enum_variant_field(&variant_name)
                 } else {
                     unreachable!()
@@ -526,7 +526,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                                 let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);
                                 let idx_ty_did = match idx_ty.ty_adt_def() {
-                                    Some(def) => def.did,
+                                    Some(def) => def.did(),
                                     None => return Err(SpannedEncodingError::unsupported(
                                         format!("Using {} as index/range type for {} is not currently supported in pure functions", idx_ty, base_ty),
                                         span,
@@ -943,8 +943,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             &mir::AggregateKind::Adt(adt_did, variant_index, subst, _, _) => {
                                 let tcx = self.encoder.env().tcx();
                                 let adt_def = tcx.adt_def(adt_did);
-                                let num_variants = adt_def.variants.len();
-                                let variant_def = &adt_def.variants[variant_index];
+                                let num_variants = adt_def.variants().len();
+                                let variant_def = &adt_def.variants()[variant_index];
                                 let mut encoded_lhs_variant = encoded_lhs.clone();
                                 if num_variants > 1 {
                                     let discr_field = self.encoder.encode_discriminant_field();
@@ -1136,7 +1136,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let (encoded_src, src_ty, _) = self.encode_place(src).with_span(span)?;
                         match src_ty.kind() {
                             ty::TyKind::Adt(adt_def, _) if !adt_def.is_box() => {
-                                let num_variants = adt_def.variants.len();
+                                let num_variants = adt_def.variants().len();
 
                                 let discr_value: vir::Expr = if num_variants == 0 {
                                     let pos = self
