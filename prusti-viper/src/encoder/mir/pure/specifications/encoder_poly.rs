@@ -67,6 +67,8 @@ pub(super) fn inline_spec_item<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
+    assert_eq!(substs.len(), encoder.env().identity_substs(def_id).len());
+
     let mir = encoder.env().local_mir_subst(def_id.expect_local(), substs);
     assert_eq!(
         mir.arg_count,

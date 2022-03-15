@@ -32,6 +32,7 @@ pub struct SpecFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     proc_def_id: ProcedureDefId,
     is_closure: bool,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
+    // TODO(tymap): which substs are these?
     substs: SubstsRef<'tcx>,
 }
 
@@ -85,9 +86,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             .map(|local| self.encode_local((*local).into()))
             .collect::<Result<Vec<_>, _>>()?;
 
-        for item in contract.functional_precondition() {
-            let assertion = self.encoder.encode_assertion(
-                item,
+        for (assertion, assertion_substs) in contract.functional_precondition_new(self.encoder.env(), self.substs) {
+            let encoded_assertion = self.encoder.encode_assertion(
+                &assertion,
                 None,
                 &encoded_args
                     .iter()
@@ -95,13 +96,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                 None,
                 true,
                 self.proc_def_id,
-                self.substs,
+                assertion_substs,
             )?;
             self.encoder.error_manager().set_error(
-                assertion.pos(),
+                encoded_assertion.pos(),
                 ErrorCtxt::PureFunctionDefinition,
             );
-            func_spec.push(assertion);
+            func_spec.push(encoded_assertion);
         }
 
         Ok(vir::Function {
@@ -133,9 +134,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         // _2... - additional arguments
         // encoded return: _0
 
-        for item in contract.functional_postcondition() {
-            let assertion = self.encoder.encode_assertion(
-                item,
+        for (assertion, assertion_substs) in contract.functional_postcondition_new(self.encoder.env(), self.substs) {
+            let encoded_assertion = self.encoder.encode_assertion(
+                &assertion,
                 None,
                 &encoded_args
                     .iter()
@@ -143,13 +144,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                 Some(&encoded_return.clone().into()),
                 true,
                 self.proc_def_id,
-                self.substs,
+                assertion_substs,
             )?;
             self.encoder.error_manager().set_error(
-                assertion.pos(),
+                encoded_assertion.pos(),
                 ErrorCtxt::PureFunctionDefinition,
             );
-            func_spec.push(assertion);
+            func_spec.push(encoded_assertion);
         }
 
         Ok(vir::Function {

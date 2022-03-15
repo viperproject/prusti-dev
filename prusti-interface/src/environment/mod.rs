@@ -244,7 +244,7 @@ impl<'tcx> Environment<'tcx> {
     }
 
     /// Get the MIR body of a local procedure.
-    pub fn local_mir(&self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
+    fn local_mir(&self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
         let mut bodies = self.bodies.borrow_mut();
         if let Some(body) = bodies.get(&def_id) {
             body.clone()
@@ -276,6 +276,11 @@ impl<'tcx> Environment<'tcx> {
         self.local_mir(def_id)
             .clone()
             .subst(self.tcx, substs)
+    }
+
+    pub fn local_mir_ident(&self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
+        // TODO(tymap): remove, clean up interface
+        self.local_mir(def_id)
     }
 
     /// Get Polonius facts of a local procedure.
@@ -327,8 +332,9 @@ impl<'tcx> Environment<'tcx> {
             .is_some()
     }
 
-    /// Returns the `DefId` of the corresponding trait method
+    /// Returns the `DefId` of the corresponding trait method, if any.
     pub fn find_trait_method(&self, impl_def_id: ProcedureDefId) -> Option<DefId> {
+        // TODO(tymap): replace this method with resolve_substs_to_trait ?
         self.tcx
             .impl_of_method(impl_def_id)
             .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
@@ -342,6 +348,7 @@ impl<'tcx> Environment<'tcx> {
         if let Some(trait_id) = self.tcx().trait_of_item(proc_def_id) {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx().def_path_str(trait_id), substs);
 
+            // TODO(tymap): don't use reveal_all
             let param_env = ty::ParamEnv::reveal_all();
             let key = ty::ParamEnvAnd { param_env, value: (proc_def_id, substs) };
             let resolved_instance = traits::resolve_instance(self.tcx(), key);
@@ -407,6 +414,7 @@ impl<'tcx> Environment<'tcx> {
     /// Convert a potential type parameter to a concrete type.
     pub fn resolve_ty(&self, ty: ty::Ty<'tcx>, substs: SubstsRef<'tcx>) -> ty::Ty<'tcx> {
         // TODO(tymap): most (all?) uses of this function should not need to exist
+        // TODO(tymap): if this is kept, make generic for all TypeFoldables
         use crate::rustc_middle::ty::subst::Subst;
         ty.subst(self.tcx, substs)
     }
@@ -426,5 +434,42 @@ impl<'tcx> Environment<'tcx> {
         } else {
             (called_def_id, call_substs)
         }
+    }
+
+    // TODO(tymap): update comment to reflect Option return
+    /// Given a method call to `impl_method_def_id`, known to be an
+    /// implementation of a trait method, and its substs `impl_method_substs`,
+    /// output a tuple with the `DefId` of the corresponding trait method,
+    /// and the substs that would be valid for that method.
+    pub fn resolve_substs_to_trait(
+        &self,
+        impl_method_def_id: ProcedureDefId, // what are we calling?
+        impl_method_substs: SubstsRef<'tcx>, // what are the substs on the call?
+    ) -> Option<(ProcedureDefId, SubstsRef<'tcx>)> {
+        // TODO(tymap): some of these should be unwrap instead of ?
+        let impl_def_id = self.tcx.impl_of_method(impl_method_def_id)?;
+        let trait_def_id = self.tcx.trait_id_of_impl(impl_def_id)?;
+        let trait_method_def_id = self.get_assoc_item(
+            trait_def_id,
+            self.tcx().item_name(impl_method_def_id),
+        )?.def_id;
+        let trait_def = self.tcx.trait_def(trait_def_id);
+        let trait_ref = self.tcx.impl_trait_ref(impl_def_id)?;
+        let identity_impl_method = self.identity_substs(impl_method_def_id);
+        let identity_trait_method = self.identity_substs(trait_method_def_id);
+
+        // sanity check: do the two methods have matching substs counts?
+        // (trait method substs include the substs for the trait itself, so we
+        // have to subtract here)
+        assert_eq!(identity_impl_method.len(), identity_trait_method.len() - trait_ref.substs.len());
+
+        // sanity check: have we provided the correct number of substs?
+        assert_eq!(identity_impl_method.len(), impl_method_substs.len());
+
+        Some((
+            trait_method_def_id,
+            self.tcx.mk_substs(trait_ref.substs.iter()
+                .chain(impl_method_substs))
+        ))
     }
 }

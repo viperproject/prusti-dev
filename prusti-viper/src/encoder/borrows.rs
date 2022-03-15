@@ -99,17 +99,79 @@ where
 }
 
 impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
-    pub fn functional_precondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
+    //pub fn functional_precondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
+    //    // TODO(tymap): remove
+    //    if let typed::SpecificationSet::Procedure(spec) = &self.specification {
+    //        spec.pres.extract_with_selective_replacement_iter()
+    //    } else {
+    //        unreachable!("Unexpected: {:?}", self.specification)
+    //    }
+    //}
+
+    pub fn functional_precondition_new<'a, 'tcx>(
+        &'a self,
+        env: &'a Environment<'tcx>,
+        substs: SubstsRef<'tcx>,
+    ) -> Vec<(LocalDefId, SubstsRef<'tcx>)> {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            spec.pres.extract_with_selective_replacement_iter()
+            match &spec.pres {
+                typed::SpecificationItem::Empty => vec![],
+                typed::SpecificationItem::Inherent(pres)
+                | typed::SpecificationItem::Refined(_, pres) => pres.iter()
+                    .map(|inherent_def_id| (
+                        *inherent_def_id,
+                        substs,
+                    ))
+                    .collect(),
+                typed::SpecificationItem::Inherited(pres) => pres.iter()
+                    .map(|inherited_def_id| (
+                        *inherited_def_id,
+                        env.resolve_substs_to_trait(
+                            self.def_id,
+                            substs,
+                        ).unwrap().1, // TODO(tymap): document why self.def_id and .1
+                    ))
+                    .collect(),
+            }
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
     }
 
-    pub fn functional_postcondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
+    //pub fn functional_postcondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
+    //    // TODO(tymap): remove
+    //    if let typed::SpecificationSet::Procedure(spec) = &self.specification {
+    //        spec.posts.extract_with_selective_replacement_iter()
+    //    } else {
+    //        unreachable!("Unexpected: {:?}", self.specification)
+    //    }
+    //}
+
+    pub fn functional_postcondition_new<'a, 'tcx>(
+        &'a self,
+        env: &'a Environment<'tcx>,
+        substs: SubstsRef<'tcx>,
+    ) -> Vec<(LocalDefId, SubstsRef<'tcx>)> {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            spec.posts.extract_with_selective_replacement_iter()
+            match &spec.posts {
+                typed::SpecificationItem::Empty => vec![],
+                typed::SpecificationItem::Inherent(posts)
+                | typed::SpecificationItem::Refined(_, posts) => posts.iter()
+                    .map(|inherent_def_id| (
+                        *inherent_def_id,
+                        substs,
+                    ))
+                    .collect(),
+                typed::SpecificationItem::Inherited(posts) => posts.iter()
+                    .map(|inherited_def_id| (
+                        *inherited_def_id,
+                        env.resolve_substs_to_trait(
+                            self.def_id,
+                            substs,
+                        ).unwrap().1, // TODO(tymap): document why self.def_id and .1
+                    ))
+                    .collect(),
+            }
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
@@ -435,7 +497,8 @@ where
     if !env.tcx().is_closure(proc_def_id) {
         // FIXME: "skip_binder" is most likely wrong
         // FIXME: Replace with FakeMirEncoder.
-        let fn_sig: FnSig = env.tcx().fn_sig(proc_def_id).skip_binder();
+        let fn_sig: FnSig = env.tcx().fn_sig(proc_def_id).skip_binder()
+            .subst(env.tcx(), substs);
         if fn_sig.c_variadic {
             return Err(EncodingError::unsupported(
                 "variadic functions are not supported"
@@ -446,7 +509,7 @@ where
             .collect();
         return_ty = fn_sig.output();
     } else {
-        let mir = env.local_mir(proc_def_id.expect_local());
+        let mir = env.local_mir_subst(proc_def_id.expect_local(), substs);
         // local_decls:
         // _0    - return, with closure's return type
         // _1    - closure's self
@@ -460,13 +523,10 @@ where
 
     let mut fake_mir_args = Vec::new();
     let mut fake_mir_args_ty = Vec::new();
-
-    // substitute type parameters
     for (local, arg_ty) in args_ty {
         fake_mir_args.push(local);
-        fake_mir_args_ty.push(arg_ty.subst(env.tcx(), substs));
+        fake_mir_args_ty.push(arg_ty);
     }
-    let return_ty = return_ty.subst(env.tcx(), substs);
 
     let mut visitor = BorrowInfoCollectingVisitor::new(env.tcx());
     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {

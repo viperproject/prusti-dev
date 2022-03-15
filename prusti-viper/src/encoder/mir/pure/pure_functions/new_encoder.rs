@@ -300,20 +300,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let parameter_expressions = self.convert_parameters_into_expressions(parameters);
         let mut conjuncts = Vec::new();
-        for item in contract.functional_precondition() {
-            let assertion = self.encoder.encode_assertion_high(
-                item,
+        for (assertion, assertion_substs) in contract.functional_precondition_new(self.encoder.env(), self.substs) {
+            let encoded_assertion = self.encoder.encode_assertion_high(
+                &assertion,
                 None,
                 &parameter_expressions,
                 None,
                 self.parent_def_id,
-                self.substs,
+                assertion_substs,
             )?;
             self.encoder.error_manager().set_error(
-                assertion.position().into(),
+                encoded_assertion.position().into(),
                 ErrorCtxt::PureFunctionDefinition,
             );
-            conjuncts.push(assertion);
+            conjuncts.push(encoded_assertion);
         }
         Ok(conjuncts.into_iter().conjoin())
     }
@@ -326,20 +326,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let parameter_expressions = self.convert_parameters_into_expressions(parameters);
         let mut conjuncts = Vec::new();
         let encoded_return = self.encode_mir_local(contract.returned_value)?;
-        for item in contract.functional_postcondition() {
-            let assertion = self.encoder.encode_assertion_high(
-                item,
+        for (assertion, assertion_substs) in contract.functional_postcondition_new(self.encoder.env(), self.substs) {
+            let encoded_assertion = self.encoder.encode_assertion_high(
+                &assertion,
                 None,
                 &parameter_expressions,
                 Some(&vir_high::Expression::local_no_pos(encoded_return.clone())),
                 self.parent_def_id,
-                self.substs,
+                assertion_substs,
             )?;
             self.encoder.error_manager().set_error(
-                assertion.position().into(),
+                encoded_assertion.position().into(),
                 ErrorCtxt::PureFunctionDefinition,
             );
-            conjuncts.push(assertion);
+            conjuncts.push(encoded_assertion);
         }
         let post = conjuncts.into_iter().conjoin();
 
