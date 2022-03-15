@@ -125,7 +125,7 @@ pub trait TypeVisitor<'tcx>: Sized {
 
     fn visit_adt(
         &mut self,
-        adt_def: &'tcx AdtDef,
+        adt_def: AdtDef<'tcx>,
         substs: SubstsRef<'tcx>
     ) -> Result<(), Self::Error> {
         trace!("visit_adt({:?})", adt_def);
@@ -218,10 +218,10 @@ pub trait TypeVisitor<'tcx>: Sized {
 
 pub fn walk_adt<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
-    adt_def: &'tcx AdtDef,
+    adt_def: AdtDef<'tcx>,
     substs: SubstsRef<'tcx>,
 ) -> Result<(), E> {
-    for variant in adt_def.variants.iter() {
+    for variant in adt_def.variants().iter() {
         visitor.visit_adt_variant(variant, substs)?;
     }
     Ok(())
@@ -292,7 +292,7 @@ pub fn walk_closure<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     let fn_sig =
         cl_substs.sig()
                  .no_bound_vars()
-                 .ok_or_else(|| visitor.unsupported("higher-ranked lifetimes and types are not supported"))?; 
+                 .ok_or_else(|| visitor.unsupported("higher-ranked lifetimes and types are not supported"))?;
     for ty in fn_sig.inputs() {
         visitor.visit_ty(*ty)?;
     }

@@ -440,11 +440,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             //     }
             // }
             TerminatorKind::Call {
-                func:
-                    mir::Operand::Constant(box mir::Constant {
-                        literal: mir::ConstantKind::Ty(ty::Const(func_ty_val)),
-                        ..
-                    }),
+                func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 args,
                 destination,
                 cleanup,
@@ -453,8 +449,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             } => self.encode_terminator_call(
                 block_builder,
                 span,
-                func_ty_val.ty,
-                func_ty_val.val,
+                literal.ty(),
                 args,
                 destination,
                 cleanup,
@@ -554,7 +549,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         block_builder: &mut BasicBlockBuilder,
         span: Span,
         ty: ty::Ty<'tcx>,
-        _func_const_val: ty::ConstKind<'tcx>,
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
         cleanup: &Option<mir::BasicBlock>,

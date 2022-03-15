@@ -11,11 +11,11 @@ use vir_crate::{
 
 /// Compute the values that a discriminant can take.
 pub(crate) fn compute_discriminant_values<'tcx>(
-    adt_def: &'tcx ty::AdtDef,
+    adt_def: ty::AdtDef<'tcx>,
     tcx: ty::TyCtxt<'tcx>,
 ) -> Vec<i128> {
     let mut discr_values: Vec<i128> = vec![];
-    let size = ty::tls::with(|tcx| Integer::from_attr(&tcx, adt_def.repr.discr_type()).size());
+    let size = ty::tls::with(|tcx| Integer::from_attr(&tcx, adt_def.repr().discr_type()).size());
     for (_variant_idx, discr) in adt_def.discriminants(tcx) {
         // Sign extend the raw representation to be an i128, to handle *signed* discriminants.
         // See also: https://github.com/rust-lang/rust/blob/b7ebc6b0c1ba3c27ebb17c0b496ece778ef11e18/compiler/rustc_middle/src/ty/util.rs#L35-L45
@@ -26,7 +26,7 @@ pub(crate) fn compute_discriminant_values<'tcx>(
 
 /// Encode a disjunction that lists all possible discrimintant values.
 pub(super) fn compute_discriminant_bounds_high<'tcx>(
-    adt_def: &'tcx ty::AdtDef,
+    adt_def: ty::AdtDef<'tcx>,
     tcx: ty::TyCtxt<'tcx>,
     discriminant: &vir_high::Expression,
 ) -> vir_high::Expression {
@@ -66,7 +66,7 @@ pub(super) fn compute_discriminant_bounds_high<'tcx>(
 ///
 /// FIXME: Remove this code duplication once snapshots are refactored.
 pub(crate) fn compute_discriminant_bounds<'tcx>(
-    adt_def: &'tcx ty::AdtDef,
+    adt_def: ty::AdtDef<'tcx>,
     tcx: ty::TyCtxt<'tcx>,
     discriminant_loc: &vir::Expr,
 ) -> vir::Expr {

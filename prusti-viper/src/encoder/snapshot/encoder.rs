@@ -779,7 +779,7 @@ impl SnapshotEncoder {
             ty::TyKind::Adt(adt_def, subst) if adt_def.is_enum() => {
                 let mut variants = vec![];
                 let predicate = encoder.encode_type_predicate_def(ty)?;
-                for (variant_idx, variant) in adt_def.variants.iter_enumerated() {
+                for (variant_idx, variant) in adt_def.variants().iter_enumerated() {
                     let mut fields = vec![];
                     let variant_idx: usize = variant_idx.into();
                     let (field_base, variant_name) = match predicate {
@@ -825,7 +825,7 @@ impl SnapshotEncoder {
                         )
                         .val;
                     let size = ty::tls::with(|tcx| {
-                        Integer::from_attr(&tcx, adt_def.repr.discr_type()).size()
+                        Integer::from_attr(&tcx, adt_def.repr().discr_type()).size()
                     });
                     let discriminant = size.sign_extend(discriminant_raw) as i128;
                     variants.push(SnapshotVariant {

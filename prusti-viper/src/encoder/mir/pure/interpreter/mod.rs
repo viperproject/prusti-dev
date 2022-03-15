@@ -128,10 +128,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             mir::AggregateKind::Adt(adt_did, variant_index, _, _, _) => {
                 let tcx = self.encoder.env().tcx();
                 let adt_def = tcx.adt_def(*adt_did);
-                let ty_with_variant = if adt_def.variants.len() > 1 {
+                let ty_with_variant = if adt_def.variants().len() > 1 {
                     // FIXME: Shouls use adt_def.is_enum() as a check.
                     // FIXME: Most likely need to substitute the discriminant here.
-                    let variant_def = &adt_def.variants[*variant_index];
+                    let variant_def = &adt_def.variants()[*variant_index];
                     let variant_name = variant_def.ident(tcx).to_string();
                     ty.variant(variant_name.into())
                 } else {
@@ -758,13 +758,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             TerminatorKind::Call {
                 args,
                 destination,
-                func:
-                    mir::Operand::Constant(box mir::Constant {
-                        literal: mir::ConstantKind::Ty(ty::Const(ty_val)),
-                        ..
-                    }),
+                func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 ..
-            } => self.apply_call_terminator(args, destination, ty_val.ty, states, span)?,
+            } => self.apply_call_terminator(args, destination, literal.ty(), states, span)?,
 
             TerminatorKind::Call { .. } => {
                 return Err(SpannedEncodingError::unsupported(

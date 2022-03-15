@@ -403,7 +403,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_discriminant_func_app(
         &self,
         place: vir::Expr,
-        adt_def: &'tcx ty::AdtDef,
+        adt_def: ty::AdtDef<'tcx>,
         tymap: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<vir::Expr> {
         let typ = place.get_type().clone();
