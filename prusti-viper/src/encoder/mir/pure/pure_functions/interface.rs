@@ -322,7 +322,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 }
 
                 function = self
-                    .patch_snapshots_function(function, substs)
+                    .patch_snapshots_function(function)
                     .with_span(mir_span)?;
 
                 self.log_vir_program_before_viper(function.to_string());

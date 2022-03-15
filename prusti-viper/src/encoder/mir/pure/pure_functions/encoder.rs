@@ -339,7 +339,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // Patch snapshots
         function = self
             .encoder
-            .patch_snapshots_function(function, &self.substs)
+            .patch_snapshots_function(function)
             .with_span(self.mir.span)?;
 
         // Fix arguments
@@ -487,7 +487,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .encoder
             .encode_snapshot_type(
                 self.interpreter.mir_encoder().get_local_ty(local),
-                &self.substs,
             )
             .with_span(var_span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
@@ -521,7 +520,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.interpreter.mir_encoder().get_local_span(return_local);
         self.encoder
-            .encode_snapshot_type(ty, &self.substs)
+            .encode_snapshot_type(ty)
             .with_span(span)
     }
 
@@ -547,7 +546,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             }
             let var_type = self
                 .encoder
-                .encode_snapshot_type(mir_type, self.substs)
+                .encode_snapshot_type(mir_type)
                 .with_span(var_span)?;
             formal_args.push(vir::LocalVar::new(var_name, var_type))
         }

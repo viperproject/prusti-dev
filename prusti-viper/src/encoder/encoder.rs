@@ -436,7 +436,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     self.encode_discriminant_postcondition(
                         self_local_var_expr.clone(),
                         vir::Expr::local(result),
-                        substs,
                     ).unwrap(), // TODO: no unwrap
                 ],
                 body: Some(self_local_var_expr.field(discr_field)),
@@ -490,8 +489,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
-            let arg = vir_local!{ number: {self.encode_snapshot_type(src_ty, substs)?} };
-            let result = vir_local!{ __result: {self.encode_snapshot_type(dst_ty, substs)?} };
+            let arg = vir_local!{ number: {self.encode_snapshot_type(src_ty)?} };
+            let result = vir_local!{ __result: {self.encode_snapshot_type(dst_ty)?} };
             let mut precondition = self.encode_type_bounds(&arg.clone().into(), src_ty);
             precondition.extend(self.encode_type_bounds(&arg.clone().into(), dst_ty));
             let postcondition = self.encode_type_bounds(&result.into(), dst_ty);
@@ -499,7 +498,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 name: function_name.clone(),
                 type_arguments: Vec::new(),
                 formal_args: vec![arg.clone()],
-                return_type: self.encode_snapshot_type(dst_ty, substs)?,
+                return_type: self.encode_snapshot_type(dst_ty)?,
                 pres: precondition,
                 posts: postcondition,
                 body: Some(arg.into()),
@@ -528,12 +527,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         );
 
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
-            let src_snap_ty = self.encode_snapshot_type(src_ty, substs)?;
-            let dst_snap_ty = self.encode_snapshot_type(dst_ty, substs)?;
+            let src_snap_ty = self.encode_snapshot_type(src_ty)?;
+            let dst_snap_ty = self.encode_snapshot_type(dst_ty)?;
             let arg = vir_local!{ array: {src_snap_ty} };
             let arg_expr = vir::Expr::from(arg.clone());
-            let array_uncons = self.encode_snapshot_destructor(src_ty, vec![arg_expr.clone()], substs)?;
-            let slice_cons = self.encode_snapshot(dst_ty, None, vec![array_uncons.clone()], substs)?;
+            let array_uncons = self.encode_snapshot_destructor(src_ty, vec![arg_expr.clone()])?;
+            let slice_cons = self.encode_snapshot(dst_ty, None, vec![array_uncons.clone()])?;
             let data_len = vir::Expr::ContainerOp(vir::ContainerOp {
                 op_kind: vir::ContainerOpKind::SeqLen,
                 left: box array_uncons,
