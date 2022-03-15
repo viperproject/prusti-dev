@@ -340,12 +340,7 @@ impl RequiredExprPermissionsGetter for vir::Expr {
                 ..
             }) => {
                 debug_assert!(argument.is_place());
-                vec![
-                    Pred(argument.clone(), PermAmount::Read),
-                    Acc(argument.clone(), PermAmount::Read),
-                ]
-                .into_iter()
-                .collect()
+                Some(Pred(argument.clone(), PermAmount::Read)).into_iter().collect()
             }
 
             vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate { ref base, .. }) => {
