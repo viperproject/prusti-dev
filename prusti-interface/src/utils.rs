@@ -112,7 +112,7 @@ pub fn expand_one_level<'tcx>(
         mir::ProjectionElem::Downcast(_symbol, variant) => {
             let kind = &current_place.ty(mir, tcx).ty.kind();
             force_matches!(kind, ty::TyKind::Adt(adt, _) =>
-                (tcx.mk_place_downcast(current_place, adt, variant), Vec::new())
+                (tcx.mk_place_downcast(current_place, *adt, variant), Vec::new())
             )
         }
         mir::ProjectionElem::Deref => (tcx.mk_place_deref(current_place), Vec::new()),

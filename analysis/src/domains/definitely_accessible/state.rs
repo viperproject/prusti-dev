@@ -250,7 +250,7 @@ fn describe_field_from_ty(
             ty::TyKind::Adt(def, _) => {
                 let variant = if let Some(idx) = variant_index {
                     assert!(def.is_enum());
-                    &def.variants[idx]
+                    &def.variants()[idx]
                 } else {
                     def.non_enum_variant()
                 };
