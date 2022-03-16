@@ -411,16 +411,12 @@ impl RequiredExprPermissionsGetter for vir::Expr {
                             // real function precondition.
                             if let Some(field_place) = arg.try_deref() {
                                 Some(Pred(field_place, PermAmount::Read))
-                                    .into_iter()
-                                    .collect()
                             } else {
                                 Some(Pred(arg.clone(), PermAmount::Read))
-                                    .into_iter()
-                                    .collect()
                             }
                         } else {
                             debug!("arg {} is not a place with type ref", arg);
-                            arg.get_required_expr_permissions(predicates)
+                            None
                         }
                     })
                     .collect()
