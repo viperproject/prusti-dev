@@ -26,6 +26,12 @@ pub trait RequiredExprPermissionsGetter {
     /// statement containing the `self` expression, because Viper has no "folding" expressions.
     fn get_required_stmt_permissions(&self, preds: &Predicates) -> FxHashSet<Perm>;
 
+    /// Compute all the permissions required by the expression or one of its subexpressions.
+    /// This is needed to unfold as much as possible before certain statements, like assignments and
+    /// assertions, for which the foldunfold algorithm assumes that they contain no unfolding
+    /// expressions.
+    /// The result will in some cases contain conflicting requirements (e.g. require `x.f` folded
+    /// but also `x.f.g` folded) which can be solved by calling the `solve_conficts` function.
     fn get_all_required_expr_permissions(&self, predicates: &Predicates) -> FxHashSet<Perm>;
 
     /// Compute the required permissions that the root of the expression has.
@@ -69,7 +75,7 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
             }) => {
                 // Here we use `get_all_required_expr_permissions` instead of
                 // `get_required_stmt_permissions` because `ApplyOnState::apply_on_state` doesn't
-                // currently support unfoldings on the RHS.
+                // currently support unfoldings in the exhale.
                 let perms = expr.get_all_required_expr_permissions(predicates);
                 perms
                     .into_iter()
