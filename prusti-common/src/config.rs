@@ -50,7 +50,7 @@ impl Optimizations {
             remove_empty_if: true,
             purify_vars: true,
             fix_quantifiers: true,
-            fix_unfoldings: true,
+            fix_unfoldings: false, // FIXME: this should no longer be needed
             remove_unused_vars: true,
             remove_trivial_assertions: true,
             clean_cfg: true,
