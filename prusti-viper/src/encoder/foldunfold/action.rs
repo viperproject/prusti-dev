@@ -59,9 +59,9 @@ impl Action {
                     inner_expr,
                     *permission,
                     enum_variant.clone(),
-                    pos
+                    pos,
                 ))
-            },
+            }
 
             Action::Drop(..) => Ok(inner_expr),
         }
