@@ -78,6 +78,18 @@ impl ast::StmtFolder for StmtOptimizer {
     fn fold_inhale(&mut self, ast::Inhale { expr }: ast::Inhale) -> ast::Stmt {
         ast::Stmt::inhale(expr.optimize())
     }
+    fn fold_assert(&mut self, ast::Assert { expr, position }: ast::Assert) -> ast::Stmt {
+        ast::Stmt::Assert(ast::Assert {
+            expr: expr.optimize(),
+            position,
+        })
+    }
+    fn fold_exhale(&mut self, ast::Exhale { expr, position }: ast::Exhale) -> ast::Stmt {
+        ast::Stmt::Exhale(ast::Exhale {
+            expr: expr.optimize(),
+            position,
+        })
+    }
 }
 
 type UnfoldingMap = HashMap<ast::Expr, (ast::Type, ast::PermAmount, ast::MaybeEnumVariantIndex)>;
@@ -151,47 +163,38 @@ fn check_requirements_conflict(
                 conflict_set.insert(base1);
             } else if base1 == base2 && !place1.has_prefix(place2) && !place2.has_prefix(place1) {
                 // Check if we have different variants.
-                let mut len1 = components1.len();
-                let mut len2 = components2.len();
                 for (part1, part2) in components1.into_iter().zip(components2.into_iter()) {
-                    len1 -= 1;
-                    len2 -= 1;
-                    if part1 != part2 {
-                        match (part1, part2) {
-                            (
-                                ast::PlaceComponent::Variant(..),
-                                ast::PlaceComponent::Variant(..),
-                            ) => {
-                                if len1 != 0 || len2 != 0 {
-                                    debug!("different variants: {} {}", place1, place2);
-                                    // If variant is the last component of the place, then we are
-                                    // still fine because we will try to unfold under implication.
-                                    conflict_set.insert(base1);
-                                }
-                            }
-                            (
-                                ast::PlaceComponent::Field(ast::Field { name, .. }, _),
-                                ast::PlaceComponent::Variant(..),
-                            )
-                            | (
-                                ast::PlaceComponent::Variant(..),
-                                ast::PlaceComponent::Field(ast::Field { name, .. }, _),
-                            ) => {
-                                if name == "discriminant" {
-                                    debug!("guarded permission: {} {}", place1, place2);
-                                    // If we are checking discriminant, this means that the
-                                    // permission is guarded.
-                                    if len1 != 0 || len2 != 0 {
-                                        // However, if the variant is the last component of the
-                                        // place, then we are still fine because we will try to
-                                        // unfold under implication.
-                                        conflict_set.insert(base1);
-                                    }
-                                }
-                            }
-                            _ => {}
+                    match (part1, part2) {
+                        (
+                            ast::PlaceComponent::Variant(ast::Field { name: name1, .. }, _),
+                            ast::PlaceComponent::Variant(ast::Field { name: name2, .. }, _),
+                        ) if name1 != name2 => {
+                            conflict_set.insert(base1);
+                            break;
                         }
-                        break;
+                        (
+                            ast::PlaceComponent::Field(ast::Field { name, .. }, _),
+                            ast::PlaceComponent::Variant(..),
+                        )
+                        | (
+                            ast::PlaceComponent::Variant(..),
+                            ast::PlaceComponent::Field(ast::Field { name, .. }, _),
+                        ) => {
+                            if name == "discriminant" {
+                                debug!("guarded permission: {} {}", place1, place2);
+                                // If we are checking discriminant, this means that the
+                                // permission is guarded.
+                                conflict_set.insert(base1);
+                            }
+                            break;
+                        }
+                        (
+                            ast::PlaceComponent::Field(ast::Field { name: name1, .. }, _),
+                            ast::PlaceComponent::Field(ast::Field { name: name2, .. }, _),
+                        ) if name1 != name2 => {
+                            break;
+                        }
+                        _ => {}
                     }
                 }
             }
@@ -437,24 +440,60 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         let second_requirements = self.get_requirements();
 
         trace!("fold_bin_op: {} {} {}", op_kind, f, s);
+        let conflicts = check_requirements_conflict(&first_requirements, &second_requirements);
 
-        let (new_reqs, new_unfoldings, new_first, new_second) = merge_requirements_and_unfoldings2(
-            first_folded,
-            first_unfoldings,
-            first_requirements,
-            second_folded,
-            second_unfoldings,
-            second_requirements,
-        );
+        if conflicts.is_empty() {
+            let (new_reqs, new_unfoldings, new_first, new_second) =
+                merge_requirements_and_unfoldings2(
+                    first_folded,
+                    first_unfoldings,
+                    first_requirements,
+                    second_folded,
+                    second_unfoldings,
+                    second_requirements,
+                );
 
-        self.requirements = new_reqs;
-        self.unfoldings = new_unfoldings;
-        Ok(ast::Expr::BinOp(ast::BinOp {
-            op_kind,
-            left: new_first,
-            right: new_second,
-            position,
-        }))
+            self.requirements = new_reqs;
+            self.unfoldings = new_unfoldings;
+            Ok(ast::Expr::BinOp(ast::BinOp {
+                op_kind,
+                left: new_first,
+                right: new_second,
+                position,
+            }))
+        } else {
+            let (common, first_unfoldings, second_unfoldings) =
+                find_common_unfoldings2(first_unfoldings, second_unfoldings);
+
+            let (first_to_restore, first_to_keep) = split_unfoldings(first_unfoldings, &conflicts);
+            let (second_to_restore, second_to_keep) =
+                split_unfoldings(second_unfoldings, &conflicts);
+
+            self.requirements = first_requirements;
+            self.requirements.extend(second_requirements);
+            update_requirements(
+                &mut self.requirements,
+                first_to_restore.keys().cloned().collect(),
+            );
+            update_requirements(
+                &mut self.requirements,
+                second_to_restore.keys().cloned().collect(),
+            );
+
+            let first_restored = restore_unfoldings_boxed(first_to_restore, first_folded);
+            let second_restored = restore_unfoldings_boxed(second_to_restore, second_folded);
+
+            self.unfoldings = common;
+            self.unfoldings.extend(first_to_keep);
+            self.unfoldings.extend(second_to_keep);
+
+            Ok(ast::Expr::BinOp(ast::BinOp {
+                op_kind,
+                left: first_restored,
+                right: second_restored,
+                position,
+            }))
+        }
     }
     fn fallible_fold_cond(
         &mut self,

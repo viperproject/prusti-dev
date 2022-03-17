@@ -46,11 +46,12 @@ impl Optimizations {
         Optimizations {
             inline_constant_functions: true,
             delete_unused_predicates: true,
-            optimize_folding: false, // FIXME: the optimization is wrong w.r.t. enums
+            optimize_folding: true,
             remove_empty_if: true,
             purify_vars: true,
             fix_quantifiers: true,
-            fix_unfoldings: false, // FIXME: this should no longer be needed
+            // Disabled because https://github.com/viperproject/prusti-dev/issues/892 has been fixed
+            fix_unfoldings: false,
             remove_unused_vars: true,
             remove_trivial_assertions: true,
             clean_cfg: true,
