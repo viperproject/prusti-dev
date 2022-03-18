@@ -1288,6 +1288,17 @@ impl SnapshotEncoder {
                     }
                 };
 
+                let len_usize = {
+                    let len_call =
+                        len.apply(vec![vir_local! { slice: {slice_snap_ty.clone()} }.into()]);
+
+                    vir::DomainAxiom {
+                        name: format!("{}$len_usize", predicate_type.name()),
+                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } ([len_call] <= [Expr::from(usize::MAX)]) },
+                        domain_name: domain_name.clone(),
+                    }
+                };
+
                 let mut domain = vir::Domain {
                     name: domain_name.clone(),
                     functions: vec![cons.clone(), uncons.clone(), read.clone(), len.clone()],
@@ -1298,6 +1309,7 @@ impl SnapshotEncoder {
                         read_axiom,
                         len_of_seq,
                         len_positive,
+                        len_usize,
                     ],
                     type_vars: vec![],
                 };
