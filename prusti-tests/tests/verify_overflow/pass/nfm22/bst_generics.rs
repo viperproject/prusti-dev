@@ -1,13 +1,19 @@
-// Requires PR #882
-
 use prusti_contracts::*;
 use std::cmp::{Ord, Ordering::{self, Equal, Less, Greater}};
 
 fn main() {
-    let value = 0;
-    let bst = Tree::Node(value, Box::new(Tree::Empty), Box::new(Tree::Empty));
+    let bstl = Tree::Node(0, Box::new(Tree::Empty), Box::new(Tree::Empty));
+    let bstr = Tree::Node(5, Box::new(Tree::Empty), Box::new(Tree::Empty));
+    let mut bst = Tree::Node(2, Box::new(bstl), Box::new(bstr));
     // TODO: make this work:
-    // assert!(bst.contains(&value));
+    // let a = bst.get_root_value();
+    // *a = 4;
+    // let four = 4;
+    // assert!(bst.contains(&four));
+    // let two = 2;
+    // assert!(!bst.contains(&two));
+    // let zero = 0;
+    // assert!(bst.contains(&zero));
 }
 
 // TODO 0: Would be nice to get invariants working!
@@ -15,6 +21,9 @@ pub enum Tree<T: Ord> {
     Node(T, Box<Tree<T>>, Box<Tree<T>>),
     Empty,
 }
+
+#[pure]
+fn snap<T>(x: &T) -> &T { x }
 
 #[extern_spec]
 trait Ord {
@@ -75,16 +84,16 @@ impl<T: Ord> Tree<T> {
     #[assert_on_expiry(
         // Must hold before result can expire
         if let Tree::Node(_, left, right) = old(self) {
-            forall(|i: T| left.contains(&i) == (matches!(compare(&i, result), Less) && old(self).contains(&i))) &&
-            forall(|i: T| right.contains(&i) == (matches!(compare(&i, result), Greater) && old(self).contains(&i)))
+            forall(|i: T| left.contains(&i) ==> matches!(compare(&i, result), Less)) &&
+            forall(|i: T| right.contains(&i) ==> matches!(compare(&i, result), Greater))
         } else { false },
-        // A postcondition of `get_root` after result expires
-        self.bst_invariant() && self.contains(before_expiry(result))
-        && (if let Tree::Node(value, _, _) = old(self) {
-            (!matches!(compare(before_expiry(result), value), Equal) ==> !self.contains(value))
+        // A postcondition of `get_root_value` after result expires
+        self.bst_invariant()
+        && (if let Tree::Node(value, _, _) = self {
+            matches!(compare(before_expiry(snap(result)), value), Equal)
         } else { false })
     )]
-    pub fn get_root(&mut self) -> &mut T {
+    pub fn get_root_value(&mut self) -> &mut T {
         if let Tree::Node(value, _, _) = self { value } else { panic!() }
     }
 
@@ -93,7 +102,7 @@ impl<T: Ord> Tree<T> {
     #[ensures(self.bst_invariant())]
     // Issue 5: `new_value` isn't automatically wrapped in `old(...)` (due to snapshot encoding imo)
     #[ensures(self.contains(old(&new_value)))]
-    #[ensures(forall(|i: &T| !matches!(compare(old(&new_value), i), Equal) ==> old(self).contains(i) == self.contains(i)))]
+    #[ensures(forall(|i: &T| !matches!(compare(old(&new_value), i), Equal) ==> self.contains(i) == old(self).contains(i)))]
     pub fn insert(&mut self, new_value: T) {
         if let Tree::Node(value, left, right) = self {
             match compare(&new_value, value) {

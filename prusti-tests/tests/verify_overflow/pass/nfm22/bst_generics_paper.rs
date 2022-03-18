@@ -1,6 +1,3 @@
-// Version of the example that doesn't yet work
-// but will be included in the paper. We should
-// make this work by the deadline
 use prusti_contracts::*;
 use std::cmp::{Ord, Ordering::{self, Equal, Less, Greater}};
 
@@ -64,7 +61,7 @@ impl<T: Ord> Tree<T> {
     }
 
     #[ensures(self.contains(&new_value))]
-    #[ensures(forall(|i: &T| !matches!(new_value.cmp(i), Equal) ==> old(self.contains(i)) == self.contains(i)))]
+    #[ensures(forall(|i: &T| !matches!(new_value.cmp(i), Equal) ==> self.contains(i) == old(self).contains(i)))]
     pub fn insert(&mut self, new_value: T) {
         if let Tree::Node(value, left, right) = self {
             match new_value.cmp(value) {
@@ -75,5 +72,21 @@ impl<T: Ord> Tree<T> {
         } else {
             *self = Tree::Node(new_value, Box::new(Tree::Empty), Box::new(Tree::Empty))
         }
+    }
+
+    #[requires(matches!(self, Tree::Node(..)))]
+    #[assert_on_expiry(
+        // Must hold before result can expire
+        if let Tree::Node(_, left, right) = old(self) {
+            forall(|i: &T| left.contains(i) ==> matches!(i.cmp(result), Less)) &&
+            forall(|i: &T| right.contains(i) ==> matches!(i.cmp(result), Greater))
+        } else { false },
+        // A postcondition of `get_root_value` after result expires
+        if let Tree::Node(ref value, _, _) = self {
+            matches!(value.cmp(before_expiry(result)), Equal)
+        } else { false }
+    )]
+    pub fn get_root_value(&mut self) -> &mut T {
+        if let Tree::Node(value, _, _) = self { value } else { panic!() }
     }
 }

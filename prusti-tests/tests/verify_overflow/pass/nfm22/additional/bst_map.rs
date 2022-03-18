@@ -1,11 +1,4 @@
 #![feature(box_patterns)]
-
-// Requires PR #882
-
-// Prusti cannot handle the `get_mut` fn sadly.
-// We probably dont have the time to fix this,
-// so can just mark it as #[trusted] and add a
-// pledge + client code?
 use prusti_contracts::*;
 use std::cmp::{Ord, Ordering::{self, Equal, Less, Greater}, Eq};
 
