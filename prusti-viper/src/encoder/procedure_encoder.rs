@@ -2201,7 +2201,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         "core::slice::<impl [T]>::len" => {
                             debug!("Encoding call of slice::len");
                             stmts.extend(
-                                self.len(
+                                self.encode_slice_len_call(
                                     destination,
                                     args,
                                     location,
@@ -2365,7 +2365,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(result)
     }
 
-    fn len(
+    fn encode_slice_len_call(
         &mut self,
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         args: &[mir::Operand<'tcx>],
@@ -5112,9 +5112,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let old = |e| { vir::Expr::labelled_old(&label, e) };
 
-        // inhale that len unchanged
-        let len_eq = vir_expr!{ [ sequence_len ] == [ old(sequence_len.clone()) ] };
-        stmts.push(vir_stmt!{ inhale [len_eq] });
+        // For sequences with fixed len (e.g. arrays) this will be Some
+        if sequence_types.sequence_len.is_none() {
+            // inhale that len unchanged
+            let len_eq = vir_expr!{ [ sequence_len ] == [ old(sequence_len.clone()) ] };
+            stmts.push(vir_stmt!{ inhale [len_eq] });
+        }
 
         let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &tymap).with_span(span)?;
 
