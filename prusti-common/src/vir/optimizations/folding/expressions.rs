@@ -396,30 +396,55 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             }
         })
     }
+
     fn fallible_fold_unfolding(&mut self, _unfolding: ast::Unfolding) -> Result<ast::Expr, ()> {
         unreachable!();
     }
+
     fn fallible_fold_labelled_old(
         &mut self,
         _labelled_old: ast::LabelledOld,
     ) -> Result<ast::Expr, ()> {
         unreachable!();
     }
+
     fn fallible_fold_magic_wand(&mut self, _magic_wand: ast::MagicWand) -> Result<ast::Expr, ()> {
         Err(())
     }
+
     fn fallible_fold_predicate_access_predicate(
         &mut self,
         _predicate_access_predicate: ast::PredicateAccessPredicate,
     ) -> Result<ast::Expr, ()> {
         Err(())
     }
+
     fn fallible_fold_field_access_predicate(
         &mut self,
         _field_access_predicate: ast::FieldAccessPredicate,
     ) -> Result<ast::Expr, ()> {
         Err(())
     }
+
+    fn fallible_fold_snap_app(&mut self, _expr: ast::SnapApp) -> Result<ast::Expr, ()> {
+        Err(())
+    }
+
+    fn fallible_fold_func_app(&mut self, _func_app: ast::FuncApp) -> Result<ast::Expr, ()> {
+        Err(())
+    }
+
+    fn fallible_fold_domain_func_app(
+        &mut self,
+        _domain_func_app: ast::DomainFuncApp,
+    ) -> Result<ast::Expr, ()> {
+        Err(())
+    }
+
+    fn fallible_fold_let_expr(&mut self, _let_expr: ast::LetExpr) -> Result<ast::Expr, ()> {
+        unreachable!();
+    }
+
     fn fallible_fold_bin_op(
         &mut self,
         ast::BinOp {
@@ -495,6 +520,7 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             }))
         }
     }
+
     fn fallible_fold_cond(
         &mut self,
         ast::Cond {
@@ -594,8 +620,5 @@ impl ast::FallibleExprFolder for ExprOptimizer {
                 position,
             }))
         }
-    }
-    fn fallible_fold_let_expr(&mut self, _let_expr: ast::LetExpr) -> Result<ast::Expr, ()> {
-        unreachable!();
     }
 }
