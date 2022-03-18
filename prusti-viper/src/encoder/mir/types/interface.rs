@@ -56,7 +56,7 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
     fn encode_type_def(&self, ty: &vir_high::Type) -> SpannedEncodingResult<vir_high::TypeDecl>;
     fn encode_adt_def(
         &self,
-        adt_def: &'tcx ty::AdtDef,
+        adt_def: ty::AdtDef<'tcx>,
         substs: ty::subst::SubstsRef<'tcx>,
         variant_index: Option<rustc_target::abi::VariantIdx>,
     ) -> SpannedEncodingResult<vir_high::TypeDecl>;
@@ -184,7 +184,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
         variant_index: rustc_target::abi::VariantIdx,
     ) -> EncodingResult<vir_high::ty::VariantIndex> {
         if let ty::TyKind::Adt(adt_def, _) = ty.kind() {
-            let variant = &adt_def.variants[variant_index];
+            let variant = &adt_def.variants()[variant_index];
             let name = variant.ident(self.env().tcx()).to_string();
             Ok(name.into())
         } else {
@@ -240,7 +240,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     }
     fn encode_adt_def(
         &self,
-        adt_def: &'tcx ty::AdtDef,
+        adt_def: ty::AdtDef<'tcx>,
         substs: ty::subst::SubstsRef<'tcx>,
         variant_index: Option<rustc_target::abi::VariantIdx>,
     ) -> SpannedEncodingResult<vir_high::TypeDecl> {

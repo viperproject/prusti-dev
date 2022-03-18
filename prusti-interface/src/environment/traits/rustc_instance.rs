@@ -10,8 +10,8 @@
 // + Use our copy of `codegen_fulfill_obligation` that does not record delayed
 //   span bugs, which is the main motivation for duplication.
 
-use rustc_errors::ErrorReported;
-use rustc_hir::def_id::DefId;
+use rustc_errors::ErrorGuaranteed;
+use rustc_hir::def_id::{DefId};
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::ty::subst::SubstsRef;
 use rustc_middle::ty::{self, Binder, Instance, Ty, TyCtxt, TypeFoldable, TypeVisitor};
@@ -102,8 +102,8 @@ impl<'tcx> TypeVisitor<'tcx> for BoundVarsCollector<'tcx> {
     }
 
     fn visit_region(&mut self, r: ty::Region<'tcx>) -> ControlFlow<Self::BreakTy> {
-        match r {
-            ty::ReLateBound(index, br) if *index == self.binder_index => {
+        match *r {
+            ty::ReLateBound(index, br) if index == self.binder_index => {
                 match self.vars.entry(br.var.as_u32()) {
                     Entry::Vacant(entry) => {
                         entry.insert(ty::BoundVariableKind::Region(br.kind));
@@ -125,7 +125,7 @@ impl<'tcx> TypeVisitor<'tcx> for BoundVarsCollector<'tcx> {
 pub fn resolve_instance<'tcx>(
     tcx: TyCtxt<'tcx>,
     key: ty::ParamEnvAnd<'tcx, (DefId, SubstsRef<'tcx>)>,
-) -> Result<Option<Instance<'tcx>>, ErrorReported> {
+) -> Result<Option<Instance<'tcx>>, ErrorGuaranteed> {
     let (param_env, (did, substs)) = key.into_parts();
     if let Some(did) = did.as_local() {
         if let Some(param_did) = tcx.opt_const_param_of(did) {
@@ -139,7 +139,7 @@ pub fn resolve_instance<'tcx>(
 fn inner_resolve_instance<'tcx>(
     tcx: TyCtxt<'tcx>,
     key: ty::ParamEnvAnd<'tcx, (ty::WithOptConstParam<DefId>, SubstsRef<'tcx>)>,
-) -> Result<Option<Instance<'tcx>>, ErrorReported> {
+) -> Result<Option<Instance<'tcx>>, ErrorGuaranteed> {
     let (param_env, (def, substs)) = key.into_parts();
 
     let result = if let Some(trait_def_id) = tcx.trait_of_item(def.did) {
@@ -199,7 +199,7 @@ fn resolve_associated_item<'tcx>(
     param_env: ty::ParamEnv<'tcx>,
     trait_id: DefId,
     rcvr_substs: SubstsRef<'tcx>,
-) -> Result<Option<Instance<'tcx>>, ErrorReported> {
+) -> Result<Option<Instance<'tcx>>, ErrorGuaranteed> {
     debug!(?trait_item_id, ?param_env, ?trait_id, ?rcvr_substs, "resolve_associated_item");
 
     let trait_ref = ty::TraitRef::from_method(tcx, trait_id, rcvr_substs);
@@ -277,7 +277,7 @@ fn resolve_associated_item<'tcx>(
             // we know the error would've been caught (e.g. in an upstream crate).
             //
             // A better approach might be to just introduce a query (returning
-            // `Result<(), ErrorReported>`) for the check that `rustc_typeck`
+            // `Result<(), ErrorGuaranteed>`) for the check that `rustc_typeck`
             // performs (i.e. that the definition's type in the `impl` matches
             // the declaration in the `trait`), so that we can cheaply check
             // here if it failed, instead of approximating it.
@@ -304,7 +304,7 @@ fn resolve_associated_item<'tcx>(
                     let span = tcx.def_span(leaf_def.item.def_id);
                     tcx.sess.delay_span_bug(span, &msg);
 
-                    return Err(ErrorReported);
+                    return Err(ErrorGuaranteed);
                 }
             }
 

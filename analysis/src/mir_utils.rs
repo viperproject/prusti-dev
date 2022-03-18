@@ -124,7 +124,7 @@ pub(crate) fn expand_struct_place<'tcx>(
                 for (index, arg) in slice.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, arg.expect_ty());
+                        let field_place = tcx.mk_place_field(*place, field, arg);
                         places.push(field_place.into());
                     }
                 }
@@ -166,7 +166,7 @@ pub(crate) fn expand_one_level<'tcx>(
             let kind = &current_place.ty(mir, tcx).ty.kind();
             if let ty::TyKind::Adt(adt, _) = kind {
                 (
-                    tcx.mk_place_downcast(*current_place, adt, variant).into(),
+                    tcx.mk_place_downcast(*current_place, *adt, variant).into(),
                     Vec::new(),
                 )
             } else {

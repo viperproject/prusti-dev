@@ -68,10 +68,10 @@ pub fn expand_struct_place<'tcx>(
                 }
             }
             ty::Tuple(slice) => {
-                for (index, arg) in slice.iter().enumerate() {
+                for (index, ty) in slice.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, arg.expect_ty());
+                        let field_place = tcx.mk_place_field(*place, field, ty);
                         places.push(field_place);
                     }
                 }
@@ -112,7 +112,7 @@ pub fn expand_one_level<'tcx>(
         mir::ProjectionElem::Downcast(_symbol, variant) => {
             let kind = &current_place.ty(mir, tcx).ty.kind();
             force_matches!(kind, ty::TyKind::Adt(adt, _) =>
-                (tcx.mk_place_downcast(current_place, adt, variant), Vec::new())
+                (tcx.mk_place_downcast(current_place, *adt, variant), Vec::new())
             )
         }
         mir::ProjectionElem::Deref => (tcx.mk_place_deref(current_place), Vec::new()),

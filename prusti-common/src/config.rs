@@ -3,6 +3,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#![allow(deprecated)]
 
 pub mod commandline;
 
@@ -49,7 +50,8 @@ impl Optimizations {
             remove_empty_if: true,
             purify_vars: true,
             fix_quantifiers: true,
-            fix_unfoldings: true,
+            // Disabled because https://github.com/viperproject/prusti-dev/issues/892 has been fixed
+            fix_unfoldings: false,
             remove_unused_vars: true,
             remove_trivial_assertions: true,
             clean_cfg: true,

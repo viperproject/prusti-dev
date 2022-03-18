@@ -13,10 +13,10 @@ use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_middle::ty::subst::SubstsRef;
-use rustc_trait_selection::infer::{TyCtxtInferExt, InferCtxtExt};
+use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
 
-use rustc_span::{Span, MultiSpan, symbol::Symbol};
+use rustc_span::{MultiSpan, Span, symbol::Symbol};
 use std::collections::HashSet;
 use log::{debug, trace};
 use std::rc::Rc;
@@ -37,6 +37,7 @@ pub mod polonius_info;
 mod procedure;
 pub mod mir_dump;
 mod traits;
+pub mod tymap;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
@@ -291,7 +292,7 @@ impl<'tcx> Environment<'tcx> {
         let mut res = HashSet::new();
         let traits = self.tcx().all_traits();
         for trait_id in traits {
-            self.tcx().for_each_relevant_impl(trait_id, ty, |impl_id| {
+            self.tcx().for_each_relevant_impl(trait_id, *ty, |impl_id| {
                 if let Some(relevant_trait_id) = self.tcx().trait_id_of_impl(impl_id) {
                     res.insert(relevant_trait_id);
                 }
