@@ -2204,6 +2204,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             ));
                         }
 
+                        "core::ops::IndexMut::index_mut" |
+                        "std::ops::IndexMut::index_mut" |
                         "core::ops::Index::index" |
                         "std::ops::Index::index" => {
                             debug!("Encoding call of array/slice index call");
@@ -2420,9 +2422,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let label = self.cfg_method.get_fresh_label_name();
         stmts.push(vir::Stmt::label(label.clone()));
 
+        let loan = self.polonius_info().get_loan_at_location(location);
         let (encoded_lhs, encode_stmts, lhs_ty, _) = self.encode_place(
             &destination.as_ref().unwrap().0,
-            ArrayAccessKind::Mutable(None, location),
+            ArrayAccessKind::Mutable(Some(loan.index().into()), location),
             location,
         )?;
         stmts.extend(encode_stmts);
@@ -2431,9 +2434,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 format!("Non-slice LHS type '{:?}' not supported yet", lhs_ty)
             ));
         }
+        let mutability = if let ty::TyKind::Ref(_, _, mutability) = lhs_ty.kind() { mutability } else { unreachable!() };
+        let perm_amount = match mutability {
+            Mutability::Mut => vir::PermAmount::Write,
+            Mutability::Not => vir::PermAmount::Read,
+        };
 
         stmts.extend(self.encode_havoc(&encoded_lhs));
-        stmts.push(vir_stmt!{ inhale [vir::Expr::pred_permission(encoded_lhs.clone(), vir::PermAmount::Read).unwrap()] });
+        stmts.push(vir_stmt!{ inhale [vir::Expr::pred_permission(encoded_lhs.clone(), perm_amount).unwrap()] });
 
         let lhs_slice_ty = lhs_ty.peel_refs();
         let lhs_slice_expr = self.encoder.encode_value_expr(encoded_lhs.clone(), lhs_ty)?;
@@ -6231,7 +6239,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                     stmts.push(
                         vir::Stmt::Inhale( vir::Inhale {
-                            expr: vir_expr!{ [lookup_pure_call] == [encoded_operand]},
+                            expr: vir_expr!{ [lookup_pure_call] == [vir::Expr::snap_app(encoded_operand)]},
                         }),
                     );
                 }
@@ -6301,12 +6309,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         index: vir::Expr,
         sequence_ty: ty::Ty<'tcx>,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
+        let tymap = SubstMap::default();
         let sequence_types = self.encoder.encode_sequence_types(sequence_ty)?;
 
         let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(sequence_types.elem_pred_type.clone()).into();
-        let val_field = self.encoder.encode_value_field(sequence_types.elem_ty_rs)?;
-        let lookup_res_val_field = lookup_res.clone().field(val_field);
-        let tymap = SubstMap::default();
+        let lookup_res_val_field = self.encoder.encode_value_expr(lookup_res.clone(), sequence_types.elem_ty_rs)?;
+        let snap_lookup_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(lookup_res_val_field), &tymap)?;
+
         let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &tymap)?;
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Shared)?;
@@ -6327,7 +6336,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }));
 
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr!{ [ lookup_pure_call ] == [ lookup_res_val_field ] }
+            expr: vir_expr!{ [ lookup_pure_call ] == [ snap_lookup_res_val_field ] }
         }));
         Ok((lookup_res, stmts))
     }
@@ -6344,8 +6353,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let sequence_types = self.encoder.encode_sequence_types(sequence_ty)?;
 
         let res: vir::Expr = self.cfg_method.add_fresh_local_var(sequence_types.elem_pred_type.clone()).into();
-        let val_field = self.encoder.encode_value_field(sequence_types.elem_ty_rs)?;
-        let res_val_field = res.clone().field(val_field);
+        let res_val_field = self.encoder.encode_value_expr(res.clone(), sequence_types.elem_ty_rs)?;
+        let snap_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(res_val_field.clone()), &tymap)?;
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Mutable(None, location))?;
 
@@ -6385,7 +6394,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             lookup_ret_ty.clone(),
         );
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir_expr!{ [ old(lookup_pure_call) ] == [ res_val_field ] }
+            expr: vir_expr!{ [ old(lookup_pure_call) ] == [ snap_res_val_field ] }
         }));
 
         // inhale magic wand
@@ -6423,7 +6432,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             old(idx_val_int),
             lookup_ret_ty,
         );
-        let indexed_updated = vir_expr!{ [ indexed_lookup_pure ] == [ old_lhs(res_val_field.clone()) ] };
+        let indexed_updated = vir_expr!{ [ indexed_lookup_pure ] == [ vir::Expr::snap_app(old_lhs(res_val_field.clone())) ] };
 
         let magic_wand_rhs = vir_expr!{ [all_others_unchanged] && [indexed_updated] };
         self.array_magic_wand_at.insert(
