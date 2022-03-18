@@ -31,7 +31,7 @@ use vir_crate::{
         self as vir,
         borrows::Borrow,
         collect_assigned_vars,
-        CfgBlockIndex, Expr, ExprIterator, Successor, Type},
+        CfgBlockIndex, ExprIterator, Successor, Type},
 };
 use prusti_interface::{
     data::ProcedureDefId,
@@ -2370,7 +2370,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let slice_ty_ref = self.mir_encoder.get_operand_ty(&args[0]);
         let slice_ty = if let ty::TyKind::Ref(_, slice_ty, _) = slice_ty_ref.kind() { slice_ty } else { unreachable!() };
-        let slice_types = self.encoder.encode_sequence_types(slice_ty).with_span(span)?;
+        let slice_types = self.encoder.encode_sequence_types(*slice_ty).with_span(span)?;
 
         let rhs = slice_types.len(self.encoder, slice_operand);
 
@@ -2489,7 +2489,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ),
             "std::ops::RangeTo" | "core::ops::RangeTo" |
             "std::ops::RangeFull" | "core::ops::RangeFull" |
-            "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => vir::Expr::from(0),
+            "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => vir::Expr::from(0usize),
             _ => unreachable!("{}", idx_ident)
         };
         let end = match &*idx_ident {
@@ -2501,7 +2501,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ),
             "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => {
                 let end_expr = self.encoder.encode_struct_field_value(encoded_idx, "end", usize_ty)?;
-                vir_expr!{ [end_expr] + [vir::Expr::from(1)] }
+                vir_expr!{ [end_expr] + [vir::Expr::from(1usize)] }
             }
             "std::ops::RangeFrom" | "core::ops::RangeFrom" |
             "std::ops::RangeFull" | "core::ops::RangeFull" => {
@@ -2543,7 +2543,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // being sliced
         let lookup_eq = vir_expr!{ [lhs_lookup_i] == [rhs_lookup_j] };
         let indices = vir_expr!{
-            [vir_expr!{ [vir::Expr::from(0)] <= [i_var] }] &&
+            [vir_expr!{ [vir::Expr::from(0usize)] <= [i_var] }] &&
             (
                 [vir_expr!{ [i_var] < [slice_len_call] }] &&
                 (
@@ -2559,7 +2559,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // forall i: Int, j: Int :: { lhs_lookup(i), rhs_lookup(j) } 0 <= i && i < slice$len && j == i + start && start <= j && j < end ==> lhs_lookup(i) == rhs_lookup(j)
         stmts.push(vir_stmt!{
             inhale [
-                Expr::forall(
+                vir::Expr::forall(
                     vec![i, j],
                     vec![vir::Trigger::new(vec![lhs_lookup_i, rhs_lookup_j])],
                     vir_expr!{ ([indices] ==> [lookup_eq]) }
@@ -3106,7 +3106,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         function_name: String,
-        arg_exprs: Vec<Expr>,
+        arg_exprs: Vec<vir::Expr>,
         return_type: Type,
         called_def_id: ProcedureDefId,
         tymap: SubstMap<'tcx>,
@@ -5106,13 +5106,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // inhale infos about array contents back
         let i_var: vir::Expr = vir_local!{ i: Int }.into();
-        let zero_le_i = vir_expr!{ [vir::Expr::from(0)] <= [ i_var ] };
+        let zero_le_i = vir_expr!{ [vir::Expr::from(0usize)] <= [ i_var ] };
         let i_lt_len = vir_expr!{ [ i_var ] < [ sequence_len ] };
         let i_ne_idx = vir_expr!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
         let idx_conditions = vir_expr!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
         let tymap = SubstMap::default();
         let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &tymap).with_span(span)?;
-        let lookup_array_i = sequence_types.encode_lookup_pure_call(self.encoder, encoded_array.clone(), i_var, lookup_ret_ty.clone());
+        let lookup_array_i = sequence_types.encode_lookup_pure_call(self.encoder, encoded_array.clone(), i_var.clone(), lookup_ret_ty.clone());
+        // FIXME: using `old` here is a work-around for https://github.com/viperproject/prusti-dev/issues/877
+        // FIXME: which is due to an issue in Silicon, see https://github.com/viperproject/silicon/issues/603
+        let lookup_array_i_old = sequence_types.encode_lookup_pure_call(self.encoder, old(encoded_array.clone()), i_var, lookup_ret_ty.clone());
         let lookup_same_as_old = vir_expr!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
         let forall_body = vir_expr!{ [idx_conditions] ==> [lookup_same_as_old] };
         let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i_old] } [ forall_body ] };
@@ -5699,7 +5702,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         } else {
             unreachable!("encode_assign_slice on a non-ref?!")
         };
-        let slice_types = self.encoder.encode_sequence_types(slice_ty).with_span(span)?;
+        let slice_types = self.encoder.encode_sequence_types(*slice_ty).with_span(span)?;
 
         stmts.extend(self.encode_havoc(&encoded_lhs));
         let val_ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
@@ -5733,7 +5736,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let val_ref_field = self.encoder.encode_value_field(rhs_ty).with_span(span)?;
         let rhs_expr = rhs_place.field(val_ref_field);
-        let sequence_types = self.encoder.encode_sequence_types(rhs_array_ty).with_span(span)?;
+        let sequence_types = self.encoder.encode_sequence_types(*rhs_array_ty).with_span(span)?;
 
         let slice_len_call = slice_types.len(self.encoder, slice_expr.clone());
 
@@ -5744,7 +5747,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let tymap = SubstMap::default();
         let elem_snap_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs, &tymap).with_span(span)?;
 
-        let i: Expr = vir_local! { i: Int }.into();
+        let i: vir::Expr = vir_local! { i: Int }.into();
 
         let array_lookup_call = sequence_types.encode_lookup_pure_call(
             self.encoder,
@@ -5760,7 +5763,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             elem_snap_ty,
         );
 
-        let indices = vir_expr! { ([Expr::from(0)] <= [i]) && ([i] < [sequence_types.len(self.encoder, rhs_expr)]) };
+        let indices = vir_expr! { ([vir::Expr::from(0usize)] <= [i]) && ([i] < [sequence_types.len(self.encoder, rhs_expr)]) };
 
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: vir_expr! {
@@ -5858,8 +5861,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
 
         let mut stmts = self.encode_havoc_and_initialization(&encoded_lhs);
-        let idx: Expr = vir_local! { i: Int }.into();
-        let indices = vir_expr! { ([Expr::from(0usize)] <= [idx]) && ([idx] < [Expr::from(len)]) };
+        let idx: vir::Expr = vir_local! { i: Int }.into();
+        let indices = vir_expr! { ([vir::Expr::from(0usize)] <= [idx]) && ([idx] < [vir::Expr::from(len)]) };
         let lookup_pure_call = sequence_types.encode_lookup_pure_call(
             self.encoder,
             encoded_lhs,
@@ -6459,33 +6462,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     position: vir::Position::default(),
                 }),
                 stmts)
-            }
-            PlaceEncoding::SliceAccess { base, index, rust_slice_ty, .. } => {
-                let slice_types = self.encoder.encode_slice_types(rust_slice_ty)?;
-
-                let res = vir::Expr::local(self.cfg_method.add_fresh_local_var(slice_types.elem_pred_type.clone()));
-                let val_field = self.encoder.encode_value_field(slice_types.elem_ty_rs)?;
-                let res_val_field = res.clone().field(val_field);
-                let tymap = SubstMap::default();
-                let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types.elem_ty_rs, &tymap)?;
-
-                let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base, array_encode_kind)?;
-                stmts.extend(self.encode_havoc_and_initialization(&res));
-
-                let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index), &tymap)?;
-
-                let lookup_pure_call = slice_types.encode_lookup_pure_call(
-                    self.encoder,
-                    encoded_base_expr,
-                    idx_val_int,
-                    elem_snap_ty,
-                );
-
-                stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                    expr: vir_expr!{ [lookup_pure_call] == [res_val_field] }
-                }));
-
-                (res, stmts)
             }
         })
     }
