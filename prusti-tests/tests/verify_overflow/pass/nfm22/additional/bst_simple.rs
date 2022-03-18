@@ -1,4 +1,3 @@
-// Works out of the box. Would be nice to reenable invariants. (PR #686)
 use prusti_contracts::*;
 
 #[cfg(feature = "prusti")]
@@ -10,7 +9,7 @@ fn main() {
     println!("{:#?}", t);
 }
 
-#[cfg_attr(not(feature = "prusti"), derive(Debug))]b
+#[cfg_attr(not(feature = "prusti"), derive(Debug))]
 pub enum Tree {
     Node(i32, Box<Tree>, Box<Tree>),
     Empty,
