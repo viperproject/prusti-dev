@@ -79,6 +79,10 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -87,13 +91,13 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder::foldunfold</span>::{<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#33">perm</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43-69">FoldUnfoldError</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <span class="ident">vir_crate::polymorphic</span>::{<a class="self" href="../../../../vir/polymorphic/index.html">self</a> <span class="kw">as</span> <span class="ident">vir</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">Fold</a>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">Unfold</a>};
+<span class="kw">use</span> <span class="ident">vir_crate::polymorphic</span>::{<a class="self" href="../../../../vir/polymorphic/index.html">self</a> <span class="kw">as</span> <span class="ident">vir</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::large_enum_variant</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
-    <span class="ident">Fold</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">Fold</a>),
-    <span class="ident">Unfold</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">Unfold</a>),
+    <span class="ident">Fold</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a>),
+    <span class="ident">Unfold</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a>),
     <span class="doccomment">/// The dropped perm and the missing permission that caused this</span>
     <span class="doccomment">/// perm to be dropped.</span>
     <span class="ident">Drop</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14-17">Perm</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14-17">Perm</a>),
@@ -110,7 +114,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">inner_expr</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#43-69">FoldUnfoldError</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#30">self</a> {
-            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#14">Action::Fold</a>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">Fold</a> {
+            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#14">Action::Fold</a>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a> {
                 <span class="ident">predicate</span>,
                 <span class="ident">arguments</span>,
                 <span class="ident">permission</span>,
@@ -127,18 +131,22 @@
                 ))
             }
 
-            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#15">Action::Unfold</a>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">Unfold</a> {
+            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#15">Action::Unfold</a>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a> {
                 <span class="ident">predicate</span>,
                 <span class="ident">arguments</span>,
                 <span class="ident">permission</span>,
                 <span class="ident">enum_variant</span>,
-            }) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::unfolding</span>(
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#50">predicate</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#51">arguments</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#30">inner_expr</a>,
-                <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#52">permission</a>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#53">enum_variant</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            )),
+            }) =&gt; {
+                <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#30">inner_expr</a>.<span class="ident">pos</span>();
+                <span class="prelude-val">Ok</span>(<span class="ident">vir::Expr::unfolding_with_pos</span>(
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#50">predicate</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#51">arguments</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#30">inner_expr</a>,
+                    <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#52">permission</a>,
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#53">enum_variant</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#55">pos</a>,
+                ))
+            }
 
             <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#18">Action::Drop</a>(..) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#30">inner_expr</a>),
         }
@@ -147,10 +155,10 @@
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#13-19">Action</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#68">self</a> {
-            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#14">Action::Fold</a>(..) <span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#15">Action::Unfold</a>(..) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#68">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#68">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#22">to_stmt</a>()),
+        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#72">self</a> {
+            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#14">Action::Fold</a>(..) <span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#15">Action::Unfold</a>(..) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#72">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#72">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#22">to_stmt</a>()),
             <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#18">Action::Drop</a>(<span class="kw-2">ref</span> <span class="ident">perm</span>, <span class="kw-2">ref</span> <span class="ident">missing_perm</span>) =&gt; {
-                <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#68">f</a>, <span class="string">&quot;drop {} ({})&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#71">perm</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#71">missing_perm</a>)
+                <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#72">f</a>, <span class="string">&quot;drop {} ({})&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#75">perm</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/action.rs.html#75">missing_perm</a>)
             }
         }
     }
