@@ -21,11 +21,11 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
     ) -> EncodingResult<vir_high::Expression> {
         // FIXME: encode_snapshot_constant also handled non literal constants
         let value = match constant.literal {
-            mir::ConstantKind::Ty(ty::Const { val, .. }) => *val,
+            mir::ConstantKind::Ty(ty::Const(ty_val)) => ty_val.val,
             mir::ConstantKind::Val(val, _) => ty::ConstKind::Value(val),
         };
         let mir_type = constant.ty();
-        let scalar_value = self.const_eval_intlike(&value)?;
+        let scalar_value = self.const_eval_intlike(value)?;
 
         let expr = match mir_type.kind() {
             ty::TyKind::Bool => scalar_value.to_bool().unwrap().into(),

@@ -27,7 +27,7 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use rustc_middle::ty;
 use std::cell::{Cell, RefCell, RefMut, Ref};
-use rustc_hash::{FxHashMap};
+use rustc_hash::FxHashMap;
 use std::io::Write;
 use std::rc::Rc;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
@@ -57,6 +57,7 @@ use super::mir::{
     }
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
+pub use prusti_interface::environment::tymap::SubstMap;
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -100,7 +101,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
 }
 
 pub type EncodingTask<'tcx> = (ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>);
-pub type SubstMap<'tcx> = FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>;
 
 // If the field name is an identifier, removing the leading prefix r#
 pub fn encode_field_name(field_name: &str) -> String {
@@ -298,7 +298,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Extract scalar value, invoking const evaluation if necessary.
     pub fn const_eval_intlike(
         &self,
-        value: &ty::ConstKind<'tcx>,
+        value: ty::ConstKind<'tcx>,
     ) -> EncodingResult<mir::interpret::Scalar> {
         let opt_scalar_value = match value {
             ty::ConstKind::Value(ref const_value) => {
@@ -307,7 +307,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::ConstKind::Unevaluated(ct) => {
                 let tcx = self.env().tcx();
                 let param_env = tcx.param_env(ct.def.did);
-                tcx.const_eval_resolve(param_env, *ct, None)
+                tcx.const_eval_resolve(param_env, ct, None)
                     .ok()
                     .and_then(|const_value| const_value.try_to_scalar())
             }
@@ -403,7 +403,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_discriminant_func_app(
         &self,
         place: vir::Expr,
-        adt_def: &'tcx ty::AdtDef,
+        adt_def: ty::AdtDef<'tcx>,
         tymap: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<vir::Expr> {
         let typ = place.get_type().clone();
@@ -608,7 +608,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         if !self.spec_functions.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
-            let tymap = FxHashMap::default(); // TODO: This is probably wrong.
+            let tymap = SubstMap::default(); // TODO: This is probably wrong.
             let substs = ty::List::empty(); // TODO: This is probably wrong.
             let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, &tymap, &substs);
             let result = spec_func_encoder.encode()?.into_iter().map(|function| {
@@ -645,8 +645,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_const_expr(
         &self,
-        ty: &ty::TyS<'tcx>,
-        value: &ty::ConstKind<'tcx>
+        ty: ty::Ty<'tcx>,
+        value: ty::ConstKind<'tcx>
     ) -> EncodingResult<vir::Expr> {
         trace!("encode_const_expr {:?}", value);
         let scalar_value = self.const_eval_intlike(value)?;
@@ -799,7 +799,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                 // TODO: Make sure that this encoded function does not end up in
                 // the Viper file because that would be unsound.
-                if let Err(error) = self.encode_pure_function_def(proc_def_id, &FxHashMap::default(), &ty::List::empty()) {
+                if let Err(error) = self.encode_pure_function_def(proc_def_id, &SubstMap::default(), &ty::List::empty()) {
                     self.register_encoding_error(error);
                     debug!("Error encoding function: {:?}", proc_def_id);
                     // Skip encoding the function as a method.
@@ -832,22 +832,24 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         use rustc_middle::ty::fold::{TypeFolder, TypeFoldable};
         struct Resolver<'a, 'tcx> {
             tcx: ty::TyCtxt<'tcx>,
-            tymap: &'a FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>,
+            tymap: &'a SubstMap<'tcx>,
         }
         impl<'a, 'tcx> TypeFolder<'tcx> for Resolver<'a, 'tcx> {
             fn tcx(&self) -> ty::TyCtxt<'tcx> {
                 self.tcx
             }
             fn fold_ty(&mut self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-                let rep = self.tymap.get(&ty).unwrap_or(&ty);
+                let rep = self.tymap.resolve(&ty).unwrap_or(&ty);
                 rep.super_fold_with(self)
             }
         }
-        ty.fold_with(&mut Resolver {
+        let resolved = ty.fold_with(&mut Resolver {
             tcx: self.env().tcx(),
             // TODO: creating each time a current_tymap might be slow. This can be optimized.
             tymap//: self.current_tymap(),
-        })
+        });
+        trace!("Resolving {:?} with map {:?} -> {:?}", ty, tymap, resolved);
+        resolved
     }
 
     pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {

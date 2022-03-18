@@ -1,5 +1,3 @@
-// compile-flags: -Poptimizations=fix_unfoldings
-
 use prusti_contracts::*;
 
 fn main() {}

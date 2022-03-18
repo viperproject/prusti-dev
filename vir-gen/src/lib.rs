@@ -1,3 +1,6 @@
+// This Clippy chcek seems to be always wrong.
+#![allow(clippy::iter_with_drain)]
+
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::mem;
