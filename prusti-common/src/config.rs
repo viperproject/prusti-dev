@@ -50,7 +50,8 @@ impl Optimizations {
             remove_empty_if: true,
             purify_vars: true,
             fix_quantifiers: true,
-            fix_unfoldings: true,
+            // Disabled because https://github.com/viperproject/prusti-dev/issues/892 has been fixed
+            fix_unfoldings: false,
             remove_unused_vars: true,
             remove_trivial_assertions: true,
             clean_cfg: true,
