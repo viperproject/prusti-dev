@@ -15,7 +15,6 @@ impl B {
     /// Obtain a shared reference to an ADT within a slice
     #[requires(index < self.inner.len())]
     pub fn get(&self, index: usize) -> &A {
-        //~^ ERROR Prusti encountered an unexpected internal error
         &self.inner[index]
     }
 
@@ -23,7 +22,6 @@ impl B {
     #[pure]
     #[requires(index < self.inner.len())]
     pub const fn get_pure(&self, index: usize) -> &A {
-        //~^ ERROR Prusti encountered an unexpected internal error
         &self.inner[index]
     }
 }
