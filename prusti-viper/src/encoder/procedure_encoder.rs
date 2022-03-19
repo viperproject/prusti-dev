@@ -6432,7 +6432,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             old(idx_val_int),
             lookup_ret_ty,
         );
-        let indexed_updated = vir_expr!{ [ indexed_lookup_pure ] == [ vir::Expr::snap_app(old_lhs(res_val_field.clone())) ] };
+        // TODO: old inside snapshot or the other way around?
+        let snap_old_res_val_field = self.encoder.patch_snapshots(vir::Expr::snap_app(res_val_field.clone()), &tymap)?;
+        let indexed_updated = vir_expr!{ [ indexed_lookup_pure ] == [ old_lhs(snap_old_res_val_field) ] };
 
         let magic_wand_rhs = vir_expr!{ [all_others_unchanged] && [indexed_updated] };
         self.array_magic_wand_at.insert(
