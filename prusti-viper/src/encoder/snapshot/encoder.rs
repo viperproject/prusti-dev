@@ -18,7 +18,10 @@ use log::debug;
 use prusti_common::{vir_expr, vir_local};
 
 use rustc_hash::FxHashMap;
-use rustc_middle::{ty, ty::layout::IntegerExt};
+use rustc_middle::{
+    ty,
+    ty::{layout::IntegerExt, ParamEnv},
+};
 use rustc_target::abi::Integer;
 use std::rc::Rc;
 use vir_crate::{
@@ -1288,13 +1291,25 @@ impl SnapshotEncoder {
                     }
                 };
 
+                // TODO: ParamEnv::empty() should probably be tyctxt.param_env(def_id_of_method)
+                let ty_size_bytes = tcx
+                    .layout_of(ParamEnv::empty().and(*elem_ty))
+                    .map(|layout| layout.layout.size().bytes())
+                    .unwrap_or(0);
                 let len_usize = {
                     let len_call =
                         len.apply(vec![vir_local! { slice: {slice_snap_ty.clone()} }.into()]);
+                    let upper_bound = if ty_size_bytes != 0 {
+                        // See https://github.com/viperproject/prusti-dev/issues/733
+                        vir_expr! { (([len_call] * [Expr::from(ty_size_bytes)]) <= [Expr::from(isize::MAX)]) }
+                    } else {
+                        // Result is at most a `usize` type (e.g. generics or unit type)
+                        vir_expr! { ([len_call] <= [Expr::from(usize::MAX)]) }
+                    };
 
                     vir::DomainAxiom {
-                        name: format!("{}$len_usize", predicate_type.name()),
-                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } ([len_call] <= [Expr::from(usize::MAX)]) },
+                        name: format!("{}$len_upper_bound", predicate_type.name()),
+                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } [upper_bound] },
                         domain_name: domain_name.clone(),
                     }
                 };
