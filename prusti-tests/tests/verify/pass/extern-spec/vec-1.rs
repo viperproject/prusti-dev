@@ -1,11 +1,15 @@
-extern crate prusti_contracts;
+#![feature(allocator_api)]
+
 use prusti_contracts::*;
 
 #[extern_spec]
-impl<T> std::vec::Vec<T> {
+impl<T> Vec<T> {
     #[ensures(result.len() == 0)]
     fn new() -> std::vec::Vec::<T>;
+}
 
+#[extern_spec]
+impl<T, A: std::alloc::Allocator> Vec<T, A> {
     #[pure]
     fn len(&self) -> usize;
 
