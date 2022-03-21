@@ -1692,76 +1692,77 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             expr
         };
         let borrow_infos = &contract.borrow_infos;
-        if borrow_infos.len() != 1 {
+        if borrow_infos.len() > 1 {
             return Err(SpannedEncodingError::internal(
-                format!("We require exactly one magic wand in the postcondition. But we have {:?}", borrow_infos.len()),
+                format!("We require at most one magic wand in the postcondition. But we have {:?}", borrow_infos.len()),
                 span,
             ));
-        }
-        let borrow_info = &borrow_infos[0];
+        } else if borrow_infos.len() == 1 {
+            let borrow_info = &borrow_infos[0];
 
-        // Get the magic wand info.
-        let (post_label, lhs, rhs) = self
-            .magic_wand_at_location
-            .get(&loan_location)
-            .cloned()
-            .map(|(post_label, lhs, rhs)| {
-                let lhs = self.replace_old_places_with_ghost_vars(None, lhs);
-                let rhs = self.replace_old_places_with_ghost_vars(None, rhs);
-                (post_label, lhs, rhs)
-            })
-            .unwrap();
+            // Get the magic wand info.
+            let (post_label, lhs, rhs) = self
+                .magic_wand_at_location
+                .get(&loan_location)
+                .cloned()
+                .map(|(post_label, lhs, rhs)| {
+                    let lhs = self.replace_old_places_with_ghost_vars(None, lhs);
+                    let rhs = self.replace_old_places_with_ghost_vars(None, rhs);
+                    (post_label, lhs, rhs)
+                })
+                .unwrap();
 
-        // Obtain the LHS permission.
-        for (path, _) in &borrow_info.blocking_paths {
-            let (encoded_place, _, _) = self.encode_generic_place(
-                contract.def_id, Some(loan_location), path
-            ).with_span(span)?;
-            let encoded_place = replace_fake_exprs(encoded_place);
+            // Obtain the LHS permission.
+            for (path, _) in &borrow_info.blocking_paths {
+                let (encoded_place, _, _) = self.encode_generic_place(
+                    contract.def_id, Some(loan_location), path
+                ).with_span(span)?;
+                let encoded_place = replace_fake_exprs(encoded_place);
 
-            // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
-            if node.incoming_zombies {
-                for &in_loan in node.reborrowing_loans.iter() {
-                    let in_location = self.polonius_info().get_loan_location(&in_loan);
-                    let in_label = self.get_label_after_location(in_location).to_string();
+                // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
+                if node.incoming_zombies {
+                    for &in_loan in node.reborrowing_loans.iter() {
+                        let in_location = self.polonius_info().get_loan_location(&in_loan);
+                        let in_label = self.get_label_after_location(in_location).to_string();
+                        stmts.extend(self.encode_transfer_permissions(
+                            encoded_place.clone().old(&in_label),
+                            encoded_place.clone().old(&post_label),
+                            loan_location,
+                            is_in_package_stmt,
+                        ));
+                    }
+                }
+                if !node.incoming_zombies || node.reborrowing_loans.is_empty() {
                     stmts.extend(self.encode_transfer_permissions(
-                        encoded_place.clone().old(&in_label),
-                        encoded_place.clone().old(&post_label),
+                        encoded_place.clone(),
+                        encoded_place.old(&post_label),
                         loan_location,
                         is_in_package_stmt,
                     ));
                 }
             }
-            if !node.incoming_zombies || node.reborrowing_loans.is_empty() {
-                stmts.extend(self.encode_transfer_permissions(
-                    encoded_place.clone(),
-                    encoded_place.old(&post_label),
-                    loan_location,
-                    is_in_package_stmt,
-                ));
-            }
-        }
 
-        let pos = self.register_error(
-            //self.mir.span,
-            // TODO change to where the loan expires?
-            self.mir.source_info(loan_location).span, // the source of the ref
-            ErrorCtxt::ApplyMagicWandOnExpiry,
-        );
-        // Inhale the magic wand.
-        let magic_wand = vir::Expr::MagicWand( vir::MagicWand {
-            left: box lhs.clone(),
-            right: box rhs.clone(),
-            borrow: Some(loan.index().into()),
-            position: pos,
-        });
-        stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: magic_wand
-        }));
-        // Emit the apply statement.
-        let statement = vir::Stmt::apply_magic_wand(lhs, rhs, loan.index().into(), pos);
-        debug!("{:?} at {:?}", statement, loan_location);
-        stmts.push(statement);
+            let pos = self.register_error(
+                //self.mir.span,
+                // TODO change to where the loan expires?
+                self.mir.source_info(loan_location).span, // the source of the ref
+                ErrorCtxt::ApplyMagicWandOnExpiry,
+            );
+            // Inhale the magic wand.
+            let magic_wand = vir::Expr::MagicWand( vir::MagicWand {
+                left: box lhs.clone(),
+                right: box rhs.clone(),
+                borrow: Some(loan.index().into()),
+                position: pos,
+            });
+            stmts.push(vir::Stmt::Inhale( vir::Inhale {
+                expr: magic_wand
+            }));
+            // Emit the apply statement.
+            let statement = vir::Stmt::apply_magic_wand(lhs, rhs, loan.index().into(), pos);
+            debug!("{:?} at {:?}", statement, loan_location);
+            stmts.push(statement);
+        }
 
         let guard = self.construct_location_guard(loan_location);
         Ok(vir::borrows::Node::new(
