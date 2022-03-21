@@ -58,8 +58,20 @@ pub enum Float {
     F64,
 }
 
-pub struct TypeVar {
+#[display(fmt = "{}", name)]
+pub struct Lifetime {
     pub name: String,
+}
+
+#[display(fmt = "{}", name)]
+pub struct GenericType {
+    pub name: String,
+}
+
+#[derive(derive_more::Unwrap)]
+pub enum TypeVar{
+    Lifetime(Lifetime),
+    GenericType(GenericType),
 }
 
 #[display(fmt = "({})", "display::cjoin(arguments)")]
@@ -115,6 +127,7 @@ pub struct Slice {
 #[display(fmt = "&{}", target_type)]
 pub struct Reference {
     pub target_type: Box<Type>,
+    pub lifetime: Lifetime,
 }
 
 #[display(fmt = "*{}", target_type)]

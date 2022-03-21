@@ -45,8 +45,20 @@ pub struct Float {
     pub upper_bound: Option<Box<Expression>>,
 }
 
-pub struct TypeVar {
+#[display(fmt = "{}", name)]
+pub struct Lifetime {
     pub name: String,
+}
+
+#[display(fmt = "{}", name)]
+pub struct GenericType {
+    pub name: String,
+}
+
+#[derive(derive_more::Unwrap)]
+pub enum TypeVar{
+    Lifetime(Lifetime),
+    GenericType(GenericType),
 }
 
 #[display(fmt = "({})", "display::cjoin(arguments)")]
@@ -85,6 +97,7 @@ pub struct Array {
 #[display(fmt = "&{}", target_type)]
 pub struct Reference {
     pub target_type: Type,
+    pub lifetime: Lifetime,
 }
 
 #[display(fmt = "{}", name)]
