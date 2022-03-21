@@ -123,7 +123,7 @@ pub(super) fn encode_quantifier<'tcx>(
     //   )
 
     let cl_type_body = substs.type_at(1);
-    let (body_def_id, _, args, _) = extract_closure_from_ty(tcx, cl_type_body);
+    let (body_def_id, body_substs, _, args, _) = extract_closure_from_ty(tcx, cl_type_body);
 
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
@@ -154,7 +154,7 @@ pub(super) fn encode_quantifier<'tcx>(
         let mut encoded_triggers = vec![];
         let mut set_spans = vec![];
         for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
-            let (trigger_def_id, trigger_span, _, _) = extract_closure_from_ty(tcx, ty_trigger);
+            let (trigger_def_id, trigger_substs, trigger_span, _, _) = extract_closure_from_ty(tcx, ty_trigger);
             let set_field = encoder
                 .encode_raw_ref_field(format!("tuple_{}", trigger_set_idx), ty_trigger_set)
                 .with_span(trigger_span)?;
@@ -172,18 +172,22 @@ pub(super) fn encode_quantifier<'tcx>(
                     .field(trigger_field),
                 encoded_qvars.clone(),
                 parent_def_id,
-                &substs,
+                trigger_substs,
             );
             encoder.is_encoding_trigger.set(false);
-            let encoded_trigger = match encoded_trigger_result? {
-                // slice accesses are encoded like `read$Snap(arg).val_X`, but for triggers we
-                // need to strip the field because these are never accessed in snap expressions.
-                vir_crate::polymorphic::Expr::Field(vir_crate::polymorphic::FieldExpr {
-                    base: box base @ vir_crate::polymorphic::Expr::DomainFuncApp(..),
-                    ..
-                }) => base,
-                encoded_trigger => encoded_trigger,
-            };
+            let mut encoded_trigger = encoded_trigger_result?;
+
+            // slice accesses and other pure calls can get encoded as
+            // `foo(...).val_X` but for triggers we need to strip the field
+            // access away
+            // TODO(tymap): this also strip out user-written field accesses...
+            while let vir_crate::polymorphic::Expr::Field(vir_crate::polymorphic::FieldExpr {
+                base,
+                ..
+            }) = encoded_trigger {
+                encoded_trigger = *base;
+            }
+
             check_trigger(&encoded_trigger).with_span(trigger_span)?;
             encoded_triggers.push(encoded_trigger);
             set_spans.push(trigger_span);
@@ -200,7 +204,7 @@ pub(super) fn encode_quantifier<'tcx>(
         encoded_args[1].clone(),
         encoded_qvars.clone(),
         parent_def_id,
-        &substs,
+        body_substs,
     )?;
 
     // replace qvars with a nicer name based on quantifier depth to ensure that

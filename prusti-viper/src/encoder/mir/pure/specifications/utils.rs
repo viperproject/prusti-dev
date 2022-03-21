@@ -6,6 +6,7 @@
 
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty;
+use rustc_middle::ty::subst::SubstsRef;
 use rustc_span::Span;
 
 pub(super) fn extract_closure_from_ty<'tcx>(
@@ -13,6 +14,7 @@ pub(super) fn extract_closure_from_ty<'tcx>(
     ty: ty::Ty<'tcx>,
 ) -> (
     DefId,             // closure definition
+    SubstsRef<'tcx>,   // closure substitutions
     Span,              // definition span
     Vec<ty::Ty<'tcx>>, // input types
     Vec<ty::Ty<'tcx>>, // upvar types
@@ -23,6 +25,7 @@ pub(super) fn extract_closure_from_ty<'tcx>(
             let sig = cl_substs.sig().no_bound_vars().unwrap();
             (
                 *def_id,
+                substs,
                 tcx.def_span(*def_id),
                 sig.inputs()[0].tuple_fields().to_vec(),
                 cl_substs.upvar_tys().collect(),

@@ -26,7 +26,8 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
         | vir::Type::Enum(_)
         | vir::Type::Closure(_)
         | vir::Type::FunctionDef(_)
-        | vir::Type::FnPointer => vir::FieldDecl::new("val_ref", ty),
+        | vir::Type::FnPointer
+        | vir::Type::TypeVar(_) => vir::FieldDecl::new("val_ref", ty),
 
         vir::Type::Reference(vir::ty::Reference { target_type, .. }) => {
             vir::FieldDecl::new("val_ref", (*target_type).clone())
@@ -39,8 +40,7 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
             )));
         }
 
-        vir::Type::TypeVar(_)
-        | vir::Type::Union(_)
+        vir::Type::Union(_)
         | vir::Type::Pointer(_)
         | vir::Type::Never
         | vir::Type::Str
