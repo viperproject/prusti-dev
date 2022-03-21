@@ -53,54 +53,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     ) -> Self {
         trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
 
-        //assert_eq!(substs.len(), encoder.env().identity_substs(proc_def_id).len());
+        let proc_def_id = encoder.get_wrapper_def_id(proc_def_id);
 
-        // TODO(tymap): do this with substs somehow?
-
-        /*
-        let mut tymap = tymap.clone();
-        if encoder.has_extern_spec(proc_def_id) {
-            // FIXME: this is a little bit hacky while tymap exists, but it
-            //        makes sure that if we are encoding an extern specced
-            //        function with a Self type we translate our placeholder
-            //        into the actual Self type
-            // TODO: generics and associated types still aren't mapped properly;
-            //       they exist in wrapper_substs but we need to figure out the
-            //       mapping to target, i.e. given `Prusti_T_FooA` we need to
-            //       construct `Self::FooA` (ideally without string ops...)
-            let wrapper_def_id = encoder.get_wrapper_def_id(proc_def_id);
-
-            // try to find the Prusti_T_Self generic
-            let wrapper_self = ty::List::identity_for_item(encoder.env().tcx(), wrapper_def_id)
-                .iter()
-                .find(|subst| {
-                    if let ty::TyKind::Param(param) = subst.expect_ty().kind() {
-                        param.name.as_str() == "Prusti_T_Self"
-                    } else {
-                        false
-                    }
-                });
-
-            // try to find the Self generic
-            let target_self = ty::List::identity_for_item(encoder.env().tcx(), proc_def_id)
-                .iter()
-                .find(|subst| {
-                    if let ty::TyKind::Param(param) = subst.expect_ty().kind() {
-                        param.name.as_str() == "Self"
-                    } else {
-                        false
-                    }
-                });
-
-            // if we found both Prusti_T_Self and Self, make Prusti_T_Self
-            // substitute to the same type as Self
-            if let (Some(wrapper_self), Some(target_self)) = (wrapper_self, target_self) {
-                if let Some(self_subst) = tymap.get(&target_self.expect_ty()).cloned() {
-                    tymap.insert_ty(wrapper_self.expect_ty(), self_subst);
-                }
-            }
-        }
-        */
+        // should hold for extern specs as well (otherwise there would have
+        // been an error reported earlier)
+        assert_eq!(substs.len(), encoder.env().identity_substs(proc_def_id).len());
 
         let interpreter = PureFunctionBackwardInterpreter::new(
             encoder,

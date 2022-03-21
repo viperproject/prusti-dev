@@ -100,7 +100,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
     //   )
 
     let cl_type_body = substs.type_at(1);
-    let (body_def_id, _, args, _) = extract_closure_from_ty(tcx, cl_type_body);
+    let (body_def_id, body_substs, _, args, _) = extract_closure_from_ty(tcx, cl_type_body);
 
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
@@ -126,7 +126,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
     {
         let mut encoded_triggers = vec![];
         for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
-            let (trigger_def_id, _, _, _) = extract_closure_from_ty(tcx, ty_trigger);
+            let (trigger_def_id, trigger_substs, _, _, _) = extract_closure_from_ty(tcx, ty_trigger);
             let set_field = FieldDecl::new(
                 format!("tuple_{}", trigger_set_idx),
                 encoder.encode_type_high(ty_trigger_set)?,
@@ -144,7 +144,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
                 ),
                 encoded_qvars.clone(),
                 parent_def_id,
-                substs,
+                trigger_substs,
             )?);
         }
         encoded_trigger_sets.push(Trigger::new(encoded_triggers));
@@ -156,7 +156,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
         encoded_args[1].clone(),
         encoded_qvars.clone(),
         parent_def_id,
-        substs,
+        body_substs,
     )?;
 
     // TODO: implement cache-friendly qvar renaming

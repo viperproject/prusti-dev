@@ -426,6 +426,13 @@ impl<'tcx> Environment<'tcx> {
         called_def_id: ProcedureDefId, // what are we calling?
         call_substs: SubstsRef<'tcx>,
     ) -> (ProcedureDefId, SubstsRef<'tcx>) {
+        use crate::rustc_middle::ty::TypeFoldable;
+
+        // avoids a compiler-internal panic
+        if call_substs.needs_infer() {
+            return (called_def_id, call_substs);
+        }
+
         let param_env = self.tcx.param_env(caller_def_id);
         let instance = self.tcx
             .resolve_instance(param_env.and((called_def_id, call_substs)))

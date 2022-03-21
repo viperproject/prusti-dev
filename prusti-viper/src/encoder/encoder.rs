@@ -362,7 +362,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Closure(_, _)
             | ty::TyKind::Array(..)
-            | ty::TyKind::Tuple(_) => {
+            | ty::TyKind::Tuple(_)
+            | ty::TyKind::Param(_) => {
                 Ok(base) // don't use a field for tuples and ADTs
             }
             _ => {
@@ -616,7 +617,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             | ty::TyKind::Never
             | ty::TyKind::Array(..)
             | ty::TyKind::Slice(..)
-            | ty::TyKind::Param(_) => true,
+            | ty::TyKind::Param(_) => true, // TODO(tymap): this is weird, use substs properly?
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Closure(_, _) => {
                 self.env().tcx().has_structural_eq_impls(ty)

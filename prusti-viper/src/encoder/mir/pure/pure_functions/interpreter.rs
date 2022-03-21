@@ -422,17 +422,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
                     // compose substitutions
-                    // TODO(tymap): do we need this?
                     use crate::rustc_middle::ty::subst::Subst;
                     let composed_substs = call_substs.subst(self.encoder.env().tcx(), self.substs);
 
                     let state = if destination.is_some() {
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                         let (encoded_lhs, ty, _) = self.encode_place(lhs_place).with_span(span)?;
-                        let lhs_value = self
-                            .encoder
-                            .encode_value_expr(encoded_lhs.clone(), ty)
-                            .with_span(span)?;
                         let encoded_args: Vec<vir::Expr> = args
                             .iter()
                             .map(|arg| self.mir_encoder.encode_operand_expr(arg))
@@ -477,7 +472,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     vir::Expr::snap_app(encoded_args[1].clone()),
                                 );
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state.substitute_value(&encoded_lhs, encoded_rhs);
                                 state
                             }
 
@@ -492,7 +487,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     vir::Expr::snap_app(encoded_args[1].clone()),
                                 );
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state.substitute_value(&encoded_lhs, encoded_rhs);
                                 state
                             }
 
@@ -508,13 +503,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .with_span(span)?;
 
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, len);
+                                state.substitute_value(&encoded_lhs, len);
                                 state
                             }
 
                             "std::ops::Index::index" | "core::ops::Index::index" => {
                                 assert_eq!(args.len(), 2);
-                                trace!("slice::index(args={:?}, encoded_args={:?}, ty={:?}, lhs_value={:?})", args, encoded_args, ty, lhs_value);
+                                trace!("slice::index(args={:?}, encoded_args={:?}, ty={:?}, encoded_lhs={:?})", args, encoded_args, ty, encoded_lhs);
 
                                 let base_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
@@ -586,7 +581,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .with_span(span)?;
 
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, slice_expr);
+                                state.substitute_value(&encoded_lhs, slice_expr);
                                 state
                             }
 
@@ -602,10 +597,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     span,
                                     encoded_args,
                                     self.caller_def_id,
-                                    composed_substs, // TODO(tymap): is the composition correct?
+                                    composed_substs,
                                 )?;
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, expr);
+                                state.substitute_value(&encoded_lhs, expr);
                                 state
                             }
 
@@ -666,7 +661,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     pos,
                                 );
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state.substitute_value(&encoded_lhs, encoded_rhs);
                                 state
                             }
                         }

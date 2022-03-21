@@ -4752,14 +4752,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             for stmt in &self.mir.basic_blocks()[bbi].statements {
                 if let mir::StatementKind::Assign(box (
                     _,
-                    mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
+                    mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
                 )) = stmt.kind {
                     if let Some(spec) = self.encoder.get_loop_specs(cl_def_id) {
                         encoded_specs.push(self.encoder.encode_invariant(
                             self.mir,
                             bbi,
                             self.proc_def_id,
-                            self.substs,
+                            cl_substs,
                         )?);
                         encoded_spec_spans.push(self.encoder.env().tcx().def_span(spec.invariant.to_def_id()));
                     }
