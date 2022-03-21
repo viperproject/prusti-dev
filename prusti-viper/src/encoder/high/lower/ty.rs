@@ -3,6 +3,7 @@ use vir_crate::{
     high as vir_high, polymorphic as vir_poly,
     polymorphic::Float::{F32, F64},
 };
+use vir_crate::common::identifier::WithIdentifier;
 
 impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::Type {
@@ -50,11 +51,10 @@ impl IntoPolymorphic<Vec<vir_poly::TypeVar>> for Vec<vir_high::ty::TypeVar> {
 
 impl IntoPolymorphic<vir_poly::TypeVar> for vir_high::ty::TypeVar {
     fn lower(&self, _encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::TypeVar {
-        let name = match self {
-            vir_high::ty::TypeVar::GenericType(generic_type) => generic_type.name.clone(),
-            vir_high::ty::TypeVar::Lifetime(lifetime) => lifetime.name.clone(),
-        };
-        vir_poly::TypeVar { label: name }
+        vir_poly::TypeVar { label: match self {
+            vir_high::ty::TypeVar::GenericType(generic_type) => generic_type.get_identifier(),
+            vir_high::ty::TypeVar::Lifetime(lifetime) => lifetime.get_identifier(),
+        }}
     }
 }
 

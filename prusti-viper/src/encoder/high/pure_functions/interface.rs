@@ -92,6 +92,7 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         // FIXME: Should use encode_builtin_function_use.
         let name = "subslice";
         let element_type = extract_container_element_type(&container)?;
+        // TODO: add real lifetime here
         let fake_lft = vir_high::ty::Lifetime {
             name: "lft_fake".to_string(),
         };
