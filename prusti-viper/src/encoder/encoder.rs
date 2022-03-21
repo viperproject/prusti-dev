@@ -53,7 +53,7 @@ use super::mir::{
         MirTypeEncoderState, MirTypeEncoderInterface,
     },
     specifications::{
-        SpecificationsState, SpecificationsInterface,
+        SpecificationsState, SpecificationsInterface, SpecQuery,
     }
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
@@ -273,10 +273,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         proc_def_id: ProcedureDefId,
         substs: SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-        let spec = typed::SpecificationSet::Procedure(
-            self.get_procedure_specs(proc_def_id)
-                .unwrap_or_else(typed::ProcedureSpecification::empty)
-        );
+        let query = SpecQuery::new(proc_def_id, substs);
+        let spec = self.get_procedure_specs(query)
+            .unwrap_or_else(typed::ProcedureSpecification::empty);
         compute_procedure_contract(proc_def_id, self.env(), spec, substs)
     }
 
@@ -343,12 +342,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         let (called_def_id, call_substs) = self.env()
             .resolve_method_call(caller_def_id, called_def_id, call_substs);
-        let spec = self.get_procedure_specs(called_def_id)
+        let spec = self.get_procedure_specs(SpecQuery::new(called_def_id, call_substs))
             .unwrap_or_else(typed::ProcedureSpecification::empty);
         let contract = compute_procedure_contract(
             called_def_id,
             self.env(),
-            typed::SpecificationSet::Procedure(spec),
+            spec,
             call_substs,
         )?;
         Ok(contract.to_call_site_contract(args, target))
@@ -543,7 +542,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<()> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
-            !self.is_trusted(def_id),
+            !self.is_trusted(SpecQuery::without_substs(def_id)),
             "procedure is marked as trusted: {:?}",
             def_id
         );
@@ -775,7 +774,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 continue;
             }
 
-            if self.is_pure(proc_def_id) {
+            if self.is_pure(SpecQuery::without_substs(proc_def_id)) {
                 // Check that the pure Rust function satisfies the basic
                 // requirements by trying to encode it as a Viper function,
                 // which will automatically run the validity checks.
@@ -790,7 +789,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     continue;
                 }
             }
-            if self.is_trusted(proc_def_id) {
+            if self.is_trusted(SpecQuery::without_substs(proc_def_id)) {
                 debug!(
                     "Trusted procedure will not be encoded or verified: {:?}",
                     proc_def_id

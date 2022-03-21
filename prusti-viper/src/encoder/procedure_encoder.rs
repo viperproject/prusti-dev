@@ -64,7 +64,7 @@ use crate::utils::is_reference;
 use crate::encoder::mir::pure::PureFunctionEncoderInterface;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 use crate::encoder::mir::pure::SpecificationEncoderInterface;
-use crate::encoder::mir::specifications::SpecificationsInterface;
+use crate::encoder::mir::specifications::{SpecificationsInterface, SpecQuery};
 use super::high::generics::HighGenericsEncoderInterface;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -2224,7 +2224,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (called_def_id, call_substs) = self.encoder.env()
                                 .resolve_method_call(self.proc_def_id, called_def_id, call_substs);
 
-                            let is_pure_function = self.encoder.is_pure(called_def_id) &&
+                            let is_pure_function = self.encoder.is_pure(SpecQuery::new(called_def_id, call_substs)) &&
                                 // We are verifying this pure function and,
                                 // therefore, need to always encode it as a
                                 // method.
@@ -3462,7 +3462,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         debug!("procedure_contract: {:?}", self.procedure_contract());
 
-        let procedure_spec = self.procedure_contract().specification.expect_procedure();
+        let procedure_spec = &self.procedure_contract().specification;
 
         let mut weakening: Option<PreconditionWeakening> = None;
         let mut strengthening: Option<PostconditionStrengthening> = None;

@@ -2,17 +2,23 @@ pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
 use prusti_specs::specifications::common;
 use rustc_hir::def_id::{DefId, LocalDefId};
-use std::{collections::HashMap, fmt::Debug};
+use std::{
+    collections::HashMap,
+    fmt::{Debug},
+};
+
+// TODO hansenj: Restructure this file
 
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)] // TODO hansenj: Put obligations somewhere else
 pub enum SpecificationSet {
-    Procedure(ProcedureSpecification),
+    Procedure(WithPossibleObligation<ProcedureSpecification>),
     Loop(LoopSpecification),
 }
 
 impl SpecificationSet {
     pub fn empty_procedure_set() -> Self {
-        SpecificationSet::Procedure(ProcedureSpecification::empty())
+        SpecificationSet::Procedure(WithPossibleObligation::WithoutObligation(ProcedureSpecification::empty()))
     }
 
     pub fn is_procedure(&self) -> bool {
@@ -20,7 +26,7 @@ impl SpecificationSet {
     }
 
     #[track_caller]
-    pub fn expect_procedure(&self) -> &ProcedureSpecification {
+    pub fn expect_procedure(&self) -> &WithPossibleObligation<ProcedureSpecification> {
         if let SpecificationSet::Procedure(spec) = self {
             return spec;
         }
@@ -28,7 +34,7 @@ impl SpecificationSet {
     }
 
     #[track_caller]
-    pub fn as_procedure(&self) -> Option<&ProcedureSpecification> {
+    pub fn as_procedure(&self) -> Option<&WithPossibleObligation<ProcedureSpecification>> {
         if let SpecificationSet::Procedure(spec) = self {
             return Some(spec);
         }
@@ -36,7 +42,7 @@ impl SpecificationSet {
     }
 
     #[track_caller]
-    pub fn expect_mut_procedure(&mut self) -> &mut ProcedureSpecification {
+    pub fn expect_mut_procedure(&mut self) -> &mut WithPossibleObligation<ProcedureSpecification> {
         if let SpecificationSet::Procedure(spec) = self {
             return spec;
         }
@@ -44,7 +50,7 @@ impl SpecificationSet {
     }
 
     #[track_caller]
-    pub fn into_procedure(self) -> ProcedureSpecification {
+    pub fn into_procedure(self) -> WithPossibleObligation<ProcedureSpecification> {
         if let SpecificationSet::Procedure(spec) = self {
             return spec;
         }
@@ -73,6 +79,23 @@ pub struct Pledge {
     pub reference: Option<()>, // TODO: pledge references
     pub lhs: Option<LocalDefId>,
     pub rhs: LocalDefId,
+}
+
+// TODO hansenj: Might want to add simplification method, i.e.
+// - And(None, Simple(A)) -> Simple(A)
+// - And(Simple(A), None) -> Simple(A)
+// - And(Simple(A), Simple(A)) -> Simple(A)
+// TODO hansenj: Rename (trait Obligation, SpecificationObligation: Can be confusing)
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum SpecificationObligationKind {
+    /// A specification without obligations
+    None,
+
+    /// A specification which may have trait bounds on generics
+    ResolveGenericParamTraitBounds,
+
+    /// A consolidated obligation, which is usually the case in trait specification refinement
+    Combined(Box<SpecificationObligationKind>, Box<SpecificationObligationKind>), // TODO: Only needed for refinement.
 }
 
 /// A specification, such as preconditions or a `#[pure]` annotation.
@@ -128,9 +151,23 @@ impl<T> SpecificationItem<T> {
     }
 }
 
+// TODO hansenj: Test
+impl<T: Clone> SpecificationItem<T> {
+    pub fn set(&mut self, new_value: T) {
+        match self {
+            SpecificationItem::Empty => *self = SpecificationItem::Inherent(new_value),
+            SpecificationItem::Inherent(val) => *val = new_value,
+            SpecificationItem::Refined(_, values) => *values = new_value,
+            SpecificationItem::Inherited(inherited) => *self = SpecificationItem::Refined(inherited.clone(), new_value)
+        }
+    }
+}
+
 impl SpecificationItem<bool> {
     pub fn extract_inherit(&self) -> Option<bool> {
-        self.extract_with_strategy(|(refined_from, refined)| *(refined_from.unwrap_or(&false)) || *refined)
+        self.extract_with_strategy(|(refined_from, refined)| {
+            *(refined_from.unwrap_or(&false)) || *refined
+        })
     }
 }
 
@@ -143,10 +180,33 @@ impl<T> SpecificationItem<Vec<T>> {
     }
 }
 
+impl<T: Clone> SpecificationItem<Vec<T>> {
+    // TODO hansenj: Test this
+
+    pub fn push(&mut self, value: T) {
+        match self {
+            SpecificationItem::Empty => *self = SpecificationItem::Inherent(vec![value]),
+            SpecificationItem::Inherent(values) => values.push(value),
+            SpecificationItem::Refined(_, values) => values.push(value),
+            SpecificationItem::Inherited(inherited) => *self = SpecificationItem::Refined(inherited.clone(), vec![value])
+        }
+    }
+}
+
 pub trait Refinable {
     fn refine(self, other: &Self) -> Self
     where
         Self: Sized;
+}
+
+// TODO hansenj: Test
+impl<T: Refinable> Refinable for Option<T> {
+    fn refine(self, other: &Self) -> Self where Self: Sized {
+        if let Some(other) = other {
+            return self.map(|s| s.refine(other));
+        }
+        self
+    }
 }
 
 impl<T: std::fmt::Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
@@ -219,7 +279,55 @@ impl Refinable for SpecificationSet {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
+pub enum WithPossibleObligation<T: PartialEq> {
+    WithoutObligation(T),
+    WithObligation(SpecificationObligationKind, T, T)
+}
+
+// TODO hansenj: Test
+// TODO hansenj: Move code
+impl Refinable for SpecificationObligationKind {
+    fn refine(self, other: &Self) -> Self where Self: Sized {
+        if matches!(self, SpecificationObligationKind::None) {
+            other.clone()
+        } else if matches!(other, SpecificationObligationKind::None) {
+            self
+        } else {
+            SpecificationObligationKind::Combined(Box::new(self), Box::new(other.clone()))
+        }
+    }
+}
+
+// TODO hansenj: Test
+// TODO: hansenj: Is this what we want?
+impl<T: Refinable+Clone+PartialEq> Refinable for WithPossibleObligation<T> {
+    fn refine(self, other: &Self) -> Self where Self: Sized {
+        match self {
+            WithPossibleObligation::WithoutObligation(self_item) => {
+                match other {
+                    WithPossibleObligation::WithoutObligation(other_item) =>
+                        Self::WithoutObligation(self_item.refine(other_item))
+                    ,
+                    WithPossibleObligation::WithObligation(other_obligation, other_item, other_alternative) =>
+                        Self::WithObligation(other_obligation.clone(), self_item.refine(other_item), other_alternative.clone())
+                }
+            },
+            WithPossibleObligation::WithObligation(self_obligation, self_item, self_alternative) => {
+                match other {
+                    WithPossibleObligation::WithoutObligation(other_item) =>
+                        Self::WithObligation(self_obligation, self_item.refine(other_item), self_alternative)
+                    ,
+                    WithPossibleObligation::WithObligation(other_obligation, other_item, other_alternative) =>
+                        Self::WithObligation(self_obligation.refine(other_obligation), self_item.refine(other_item), self_alternative.refine(other_alternative))
+                }
+            }
+        }
+    }
+}
+
+// TODO hansenj: Since I introduce obligations, we probably need to make fields non-public, s.t. the obligation is always resolved
+#[derive(Debug, Clone, PartialEq)]
 pub struct ProcedureSpecification {
     pub pres: SpecificationItem<Vec<LocalDefId>>,
     pub posts: SpecificationItem<Vec<LocalDefId>>,

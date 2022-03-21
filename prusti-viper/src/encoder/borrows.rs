@@ -95,7 +95,7 @@ where
     /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
     pub borrow_infos: Vec<BorrowInfo<P>>,
     /// The functional specification: precondition and postcondition
-    pub specification: typed::SpecificationSet,
+    pub specification: typed::ProcedureSpecification,
 }
 
 impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
@@ -104,8 +104,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         env: &'a Environment<'tcx>,
         substs: SubstsRef<'tcx>,
     ) -> Vec<(LocalDefId, SubstsRef<'tcx>)> {
-        if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            match &spec.pres {
+            match &self.specification.pres {
                 typed::SpecificationItem::Empty => vec![],
                 typed::SpecificationItem::Inherent(pres)
                 | typed::SpecificationItem::Refined(_, pres) => pres.iter()
@@ -127,9 +126,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
                     ))
                     .collect(),
             }
-        } else {
-            unreachable!("Unexpected: {:?}", self.specification)
-        }
+
     }
 
     pub fn functional_postcondition<'a, 'tcx>(
@@ -137,8 +134,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         env: &'a Environment<'tcx>,
         substs: SubstsRef<'tcx>,
     ) -> Vec<(LocalDefId, SubstsRef<'tcx>)> {
-        if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            match &spec.posts {
+            match &self.specification.posts {
                 typed::SpecificationItem::Empty => vec![],
                 typed::SpecificationItem::Inherent(posts)
                 | typed::SpecificationItem::Refined(_, posts) => posts.iter()
@@ -155,17 +151,10 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
                     ))
                     .collect(),
             }
-        } else {
-            unreachable!("Unexpected: {:?}", self.specification)
-        }
     }
 
     pub fn pledges(&self) -> impl Iterator<Item = &typed::Pledge> + '_ {
-        if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            spec.pledges.extract_with_selective_replacement_iter()
-        } else {
-            unreachable!("Unexpected: {:?}", self.specification)
-        }
+        self.specification.pledges.extract_with_selective_replacement_iter()
     }
 }
 
@@ -463,7 +452,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     env: &Environment<'tcx>,
-    specification: typed::SpecificationSet,
+    specification: typed::ProcedureSpecification,
     substs: SubstsRef<'tcx>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>>
 where

@@ -7,6 +7,7 @@ use rustc_span::{Span, MultiSpan};
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::collections::HashMap;
 use std::convert::TryInto;
+use std::fmt::Debug;
 use crate::environment::Environment;
 use crate::PrustiError;
 use crate::utils::{has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr};
@@ -15,12 +16,13 @@ use log::debug;
 pub mod external;
 pub mod typed;
 pub mod checker;
+mod partitioning;
 
 use typed::SpecIdRef;
 
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
-use crate::specs::typed::SpecificationItem;
+use crate::specs::partitioning::{GetAttrs, ProcSpecPartitioner};
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -71,64 +73,39 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
-        // First: Build specs as they are typed by the user
         for (local_id, refs) in self.procedure_specs.iter() {
-            let mut pres = vec![];
-            let mut posts = vec![];
-            let mut pledges = vec![];
-            let mut predicate_body = SpecificationItem::Empty;
+            let mut partitioner = ProcSpecPartitioner::new(self.tcx);
+
+            // Process specs for function `local_id`
             for spec_id_ref in &refs.spec_id_refs {
                 match spec_id_ref {
                     SpecIdRef::Precondition(spec_id) => {
-                        pres.push(*self.spec_functions.get(spec_id).unwrap());
+                        partitioner.add_precondition(*self.spec_functions.get(spec_id).unwrap());
                     }
                     SpecIdRef::Postcondition(spec_id) => {
-                        posts.push(*self.spec_functions.get(spec_id).unwrap());
+                        partitioner.add_postcondition(*self.spec_functions.get(spec_id).unwrap());
                     }
                     SpecIdRef::Pledge { lhs, rhs } => {
-                        pledges.push(typed::Pledge {
+                        let pledge = typed::Pledge {
                             reference: None, // FIXME: Currently only `result` is supported.
                             lhs: lhs.as_ref().map(|spec_id| *self.spec_functions.get(spec_id).unwrap()),
                             rhs: *self.spec_functions.get(rhs).unwrap(),
-                        });
+                        };
+                        partitioner.add_pledge(pledge);
                     }
                     SpecIdRef::Predicate(spec_id) => {
-                        predicate_body = SpecificationItem::Inherent(*self.spec_functions.get(spec_id).unwrap());
+                        partitioner.set_predicate(*self.spec_functions.get(spec_id).unwrap());
                     }
                 }
             }
 
-            let pres = if pres.is_empty() {
-                SpecificationItem::Empty
-            } else {
-                SpecificationItem::Inherent(pres)
-            };
+            partitioner.set_pure(refs.pure);
+            partitioner.set_trusted(refs.trusted);
 
-            let posts = if posts.is_empty() {
-                SpecificationItem::Empty
-            } else {
-                SpecificationItem::Inherent(posts)
-            };
-
-            let pledges = if pledges.is_empty() {
-                SpecificationItem::Empty
-            } else {
-                SpecificationItem::Inherent(pledges)
-            };
-
-            let pure = SpecificationItem::Inherent(refs.pure);
-            let trusted = SpecificationItem::Inherent(refs.trusted);
-
+            let proc_spec = partitioner.make_contract();
             def_spec.specs.insert(
                 *local_id,
-                typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
-                    pres,
-                    posts,
-                    pledges,
-                    predicate_body,
-                    pure,
-                    trusted,
-                })
+                typed::SpecificationSet::Procedure(proc_spec),
             );
         }
     }
@@ -308,5 +285,12 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 }
             }
         }
+    }
+}
+
+/// Implementing required interface of [ProcSpecPartitioner
+impl<'tcx> GetAttrs for rustc_middle::ty::TyCtxt<'tcx> {
+    fn attrs_of(&self, local_def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
+        self.get_attrs(local_def_id.to_def_id())
     }
 }

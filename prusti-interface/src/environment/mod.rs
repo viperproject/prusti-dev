@@ -495,10 +495,16 @@ impl<'tcx> Environment<'tcx> {
 
     /// Checks whether the given type implements the trait with the given DefId.
     pub fn type_implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId, param_env: ty::ParamEnv<'tcx>) -> bool {
+        self.type_implements_trait_with_trait_substs(ty, trait_def_id, ty::List::empty(), param_env)
+    }
+
+    /// Checks whether the given type implements the trait with the given DefId.
+    /// Accounts for generic params on the trait by the given `trait_substs`.
+    pub fn type_implements_trait_with_trait_substs(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId, trait_substs: ty::subst::SubstsRef<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
         assert!(self.tcx.is_trait(trait_def_id));
         self.tcx.infer_ctxt().enter(|infcx|
             infcx
-                .type_implements_trait(trait_def_id, ty, ty::List::empty(), param_env)
+                .type_implements_trait(trait_def_id, ty, trait_substs, param_env)
                 .must_apply_considering_regions()
         )
     }

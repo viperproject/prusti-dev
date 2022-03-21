@@ -1,3 +1,4 @@
+use crate::encoder::mir::specifications::{interface::SpecQuery, obligations::ObligationResolver};
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
@@ -35,45 +36,46 @@ impl Specifications {
         spec.as_loop()
     }
 
-    pub(super) fn get_and_refine_proc_spec<'tcx>(
-        &mut self,
-        env: &Environment<'tcx>,
-        def_id: DefId,
-    ) -> Option<&ProcedureSpecification> {
-        trace!("Get procedure specs of {:?}", def_id);
+    pub(super) fn get_and_refine_proc_spec<'a, 'env: 'a, 'tcx>(
+        &'a mut self,
+        env: &'env Environment<'tcx>,
+        query: SpecQuery<'tcx>,
+    ) -> Option<&'a ProcedureSpecification> {
+        trace!("Get procedure specs of {:?}", query);
 
         // Refinement (if needed)
-        if !self.is_refined(def_id) {
-            if let Some(trait_def_id) = env.find_trait_method(def_id) {
-                let refined = self.perform_proc_spec_refinement(def_id, trait_def_id);
+        if !self.is_refined(query) {
+            if let Some(trait_def_id) = env.find_trait_method(query.def_id) {
+                let refined = self.perform_proc_spec_refinement(env, query, trait_def_id);
                 assert!(
                     refined.is_some(),
                     "Could not perform refinement for {:?}",
-                    def_id
+                    query
                 );
                 return refined;
             }
         }
 
-        self.get_proc_spec(def_id)
+        self.get_proc_spec(env, query)
     }
 
-    fn perform_proc_spec_refinement(
-        &mut self,
-        of_def_id: DefId,
+    fn perform_proc_spec_refinement<'a, 'env: 'a, 'tcx: 'a>(
+        &'a mut self,
+        env: &'env Environment<'tcx>,
+        of_query: SpecQuery<'tcx>,
         with_trait_def_id: DefId,
-    ) -> Option<&ProcedureSpecification> {
+    ) -> Option<&'a ProcedureSpecification> {
         debug!(
             "Refining specs of {:?} with specs of {:?}",
-            of_def_id, with_trait_def_id
+            of_query, with_trait_def_id
         );
 
         let impl_spec = self
-            .get_proc_spec(of_def_id)
+            .get_proc_spec(env, of_query)
             .cloned()
             .unwrap_or_else(ProcedureSpecification::empty);
 
-        let trait_spec = self.get_proc_spec(with_trait_def_id);
+        let trait_spec = self.get_proc_spec(env, SpecQuery::without_substs(with_trait_def_id));
 
         let refined = if let Some(trait_spec_set) = trait_spec {
             impl_spec.refine(trait_spec_set)
@@ -81,19 +83,29 @@ impl Specifications {
             impl_spec
         };
 
-        self.refined_specs.insert(of_def_id, refined);
-        self.get_proc_spec(of_def_id)
+        self.refined_specs.insert(of_query.def_id, refined);
+        self.get_proc_spec(env, of_query)
     }
 
-    fn get_proc_spec(&self, def_id: DefId) -> Option<&ProcedureSpecification> {
-        self.refined_specs.get(&def_id).or_else(|| {
+    fn get_proc_spec<'a, 'env: 'a, 'tcx>(
+        &'a self,
+        env: &'env Environment<'tcx>,
+        query: SpecQuery<'tcx>,
+    ) -> Option<&'a ProcedureSpecification> {
+        self.refined_specs.get(&query.def_id).or_else(|| {
             self.user_typed_specs
-                .get(&def_id)
+                .get(&query.def_id)
                 .and_then(|spec_set| spec_set.as_procedure())
+                .map(|spec_with_obligation| ObligationResolver {
+                    env,
+                    query,
+                    with_obligation: spec_with_obligation,
+                })
+                .map(|resolver| resolver.resolve())
         })
     }
 
-    fn is_refined(&self, def_id: DefId) -> bool {
-        self.refined_specs.contains_key(&def_id)
+    fn is_refined(&self, query: SpecQuery) -> bool {
+        self.refined_specs.contains_key(&query.def_id)
     }
 }
