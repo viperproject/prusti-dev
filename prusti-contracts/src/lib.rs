@@ -47,6 +47,9 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_impl::predicate;
+
+    /// TODO hansenj: Comment
+    pub use prusti_contracts_impl::ghost_constraint;
 }
 
 #[cfg(feature = "prusti")]
@@ -84,6 +87,9 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_internal::predicate;
+
+    /// TODO hansenj: Comment
+    pub use prusti_contracts_internal::ghost_constraint;
 }
 
 

@@ -14,7 +14,7 @@ use crate::encoder::{
         generics::MirGenericsEncoderInterface,
         places::PlacesEncoderInterface,
         pure::{PureFunctionEncoderInterface, SpecificationEncoderInterface},
-        specifications::SpecificationsInterface,
+        specifications::{SpecQuery, SpecificationsInterface},
         types::MirTypeEncoderInterface,
     },
     mir_encoder::MirEncoder,
@@ -27,7 +27,6 @@ use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty, ty::subst::SubstsRef};
 use rustc_span::Span;
-
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
     high::{self as vir_high},
@@ -512,7 +511,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     }
 
                     _ => {
-                        if self.encoder.is_pure(def_id) {
+                        if self.encoder.is_pure(SpecQuery::new(def_id, substs)) {
                             self.encode_call_generic(
                                 *target_block,
                                 states,

@@ -50,6 +50,15 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
     Ok((lhs, rhs))
 }
 
+// TODO hansenj: Parsing #[ghost_constraint(where T: Foo<Bla>, ...)] currently fails when having generic trait bound (but it works in test?)
+pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
+    let pts = PrustiTokenStream::new(tokens);
+    let (where_clause_ts, nested_specs_ts) = pts.parse_ghost_constraint()?;
+    syn::parse2::<syn::WhereClause>(where_clause_ts.clone())?;
+    // Note: typechecking of nested specs happens later
+    Ok((where_clause_ts, nested_specs_ts))
+}
+
 /*
 Preparsing consists of two stages:
 
@@ -75,11 +84,13 @@ fn error<T>(span: Span, msg: &str) -> syn::Result<T> {
 #[derive(Debug, Clone)]
 struct PrustiTokenStream {
     tokens: VecDeque<PrustiToken>,
+    source_span: Span,
 }
 
 impl PrustiTokenStream {
     /// Constructs a stream of Prusti tokens from a stream of Rust tokens.
     fn new(source: TokenStream) -> Self {
+        let source_span = source.span();
         let source = source.into_iter().collect::<Vec<_>>();
 
         let mut pos = 0;
@@ -106,7 +117,7 @@ impl PrustiTokenStream {
                     Some(TokenTree::Punct(p2)),
                     _,
                 ) if let Some(op) = PrustiToken::parse_op2(p1, p2) => {
-                    // this was a three-character operator, consume one
+                    // this was a two-character operator, consume one
                     // additional token
                     pos += 1;
                     op
@@ -147,7 +158,7 @@ impl PrustiTokenStream {
                 (token, _, _) => PrustiToken::Token(token.clone()),
             });
         }
-        Self { tokens }
+        Self { tokens, source_span }
     }
 
     fn is_empty(&self) -> bool {
@@ -212,6 +223,20 @@ impl PrustiTokenStream {
         } else {
             error(Span::call_site(), "missing assertion")
         }
+    }
+
+    fn parse_ghost_constraint(self) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
+        let span = self.source_span;
+        let mut arguments = self.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
+
+        if arguments.len() != 2 {
+            return error(span, "two arguments expected"); // TODO hansenj: This span is wrong
+        }
+
+        let where_clause_ts = arguments.remove(0).parse_rust_only()?;
+        let nested_specs = arguments.remove(0).pop_group_of_nested_specs(Span::call_site())?;
+
+        Ok((where_clause_ts, nested_specs))
     }
 
     /// The core of the Pratt parser algorithm. [self.tokens] is the source of
@@ -304,8 +329,7 @@ impl PrustiTokenStream {
                     self.tokens.pop_front();
                     let args = self.pop_closure_args()
                         .ok_or_else(|| syn::parse::Error::new(span, "expected closure arguments"))?;
-                    let contract = self.pop_group(Delimiter::Bracket)
-                        .ok_or_else(|| syn::parse::Error::new(span, "expected closure specification in brackets"))?;
+                    let nested_closure_specs = self.pop_group_of_nested_specs(span)?;
                     lhs = translate_spec_ent(
                         span,
                         once,
@@ -315,13 +339,7 @@ impl PrustiTokenStream {
                             .into_iter()
                             .map(|stream| stream.parse())
                             .collect::<Result<Vec<_>, _>>()?,
-                        contract
-                            .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
-                            .into_iter()
-                            .map(|stream| stream.pop_closure_spec().unwrap())
-                            // TODO: assert empty afterwards ...
-                            .map(|stream| stream.parse())
-                            .collect::<Result<Vec<_>, _>>()?,
+                        nested_closure_specs,
                     );
                     continue;
                 }
@@ -364,7 +382,7 @@ impl PrustiTokenStream {
 
         // special case: empty closure might be parsed as a logical or
         if matches!(self.tokens.front(), Some(PrustiToken::BinOp(_, PrustiBinaryOp::Or))) {
-            return Some(Self { tokens });
+            return Some(Self { tokens, source_span: self.source_span });
         }
 
         if !self.tokens.pop_front()?.is_closure_brace() {
@@ -378,10 +396,10 @@ impl PrustiTokenStream {
             tokens.push_back(token);
         }
 
-        Some(Self { tokens })
+        Some(Self { tokens, source_span: self.source_span })
     }
 
-    fn pop_closure_spec(self) -> Option<ClosureSpec<PrustiTokenStream>> {
+    fn pop_one_nested_spec(self) -> Option<NestedSpec<Self>> {
         // TODO: clean up the interface somehow ...
         if self.tokens.is_empty() {
             return None;
@@ -398,15 +416,31 @@ impl PrustiTokenStream {
                 PrustiToken::Group(_span, Delimiter::Parenthesis, box group),
             ] => {
                 if ident == "requires" {
-                    Some(ClosureSpec::Requires(group.clone()))
+                    Some(NestedSpec::Requires(group.clone()))
                 } else if ident == "ensures" {
-                    Some(ClosureSpec::Ensures(group.clone()))
+                    Some(NestedSpec::Ensures(group.clone()))
                 } else {
                     None
                 }
             }
             _ => None
         }
+    }
+
+    // TODO hansenj: Refactor
+    // TODO hansenj: Why is this a mut self?
+    // TODO hansenj: Better parsing in pop_one_nested_spec???
+    fn pop_group_of_nested_specs(&mut self, span: Span) -> syn::Result<Vec<NestedSpec<TokenStream>>> {
+        let group_of_specs = self.pop_group(Delimiter::Bracket)
+            .ok_or_else(|| syn::parse::Error::new(span, "expected nested specification in brackets"))?;
+        let parsed = group_of_specs
+            .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
+            .into_iter()
+            .map(|stream| stream.pop_one_nested_spec().unwrap())
+            // TODO: assert empty afterwards ...
+            .map(|stream| stream.parse())
+            .collect::<syn::Result<Vec<NestedSpec<TokenStream>>>>()?;
+        Ok(parsed)
     }
 
     fn split(
@@ -421,13 +455,14 @@ impl PrustiTokenStream {
             .into_iter()
             .collect::<Vec<_>>()
             .split(|token| matches!(token, PrustiToken::BinOp(_, t) if *t == split_on))
-            .map(|group| Self { tokens: group.iter().cloned().collect() })
+            .map(|group| Self { tokens: group.iter().cloned().collect(), source_span: self.source_span })
             .collect::<Vec<_>>();
         if allow_trailing && res.len() > 1 && res[res.len() - 1].tokens.is_empty() {
             res.pop();
         }
         res
     }
+
 
     fn extract_triggers(&mut self) -> syn::Result<Vec<Vec<TokenStream>>> {
         let len = self.tokens.len();
@@ -465,16 +500,18 @@ impl PrustiTokenStream {
     }
 }
 
-enum ClosureSpec<T> {
+/// A specification enclosed in another specification (e.g. in spec entailments or ghost constraints)
+#[derive(Debug)]
+pub enum NestedSpec<T> {
     Requires(T),
     Ensures(T),
 }
 
-impl ClosureSpec<PrustiTokenStream> {
-    fn parse(self) -> syn::Result<ClosureSpec<TokenStream>> {
+impl NestedSpec<PrustiTokenStream> {
+    fn parse(self) -> syn::Result<NestedSpec<TokenStream>> {
         Ok(match self {
-            ClosureSpec::Requires(stream) => ClosureSpec::Requires(stream.parse()?),
-            ClosureSpec::Ensures(stream) => ClosureSpec::Ensures(stream.parse()?),
+            NestedSpec::Requires(stream) => NestedSpec::Requires(stream.parse()?),
+            NestedSpec::Ensures(stream) => NestedSpec::Ensures(stream.parse()?),
         })
     }
 }
@@ -496,7 +533,7 @@ fn translate_spec_ent(
     once: bool,
     cl_expr: TokenStream,
     cl_args: Vec<TokenStream>,
-    contract: Vec<ClosureSpec<TokenStream>>,
+    contract: Vec<NestedSpec<TokenStream>>,
 ) -> TokenStream {
     let once = if once {
         quote_spanned! { span => true }
@@ -528,13 +565,13 @@ fn translate_spec_ent(
 
     let preconds = contract.iter()
         .filter_map(|spec| match spec {
-            ClosureSpec::Requires(stream) => Some(stream.clone()),
+            NestedSpec::Requires(stream) => Some(stream.clone()),
             _ => None,
         })
         .collect::<Vec<_>>();
     let postconds = contract.into_iter()
         .filter_map(|spec| match spec {
-            ClosureSpec::Ensures(stream) => Some(stream),
+            NestedSpec::Ensures(stream) => Some(stream),
             _ => None,
         })
         .collect::<Vec<_>>();
@@ -819,30 +856,74 @@ impl RustOp {
     }
 }
 
-#[test]
-fn test_preparser() {
-    assert_eq!(
-        parse_prusti(quote! { a ==> b }).unwrap().to_string(),
-        "(! (a) || (b))",
-    );
-    assert_eq!(
-        parse_prusti(quote! { a ==> b ==> c }).unwrap().to_string(),
-        "(! (a) || ((! (b) || (c))))",
-    );
-    assert_eq!(
-        parse_prusti(quote! { (a ==> b && c) ==> d || e }).unwrap().to_string(),
-        "(! (((! (a) || (b && c)))) || (d || e))",
-    );
-    assert_eq!(
-        parse_prusti(quote! { forall(|x: i32| a ==> b) }).unwrap().to_string(),
-        "forall (() , # [prusti :: spec_only] | x : i32 | -> bool { (((! (a) || (b))) : bool) })",
-    );
-    assert_eq!(
-        parse_prusti(quote! { exists(|x: i32| a === b) }).unwrap().to_string(),
-        "exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (a , b)) : bool) })",
-    );
-    assert_eq!(
-        parse_prusti(quote! { forall(|x: i32| a ==> b, triggers = [(c,), (d, e)]) }).unwrap().to_string(),
-        "forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { (((! (a) || (b))) : bool) })",
-    );
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_preparser() {
+        assert_eq!(
+            parse_prusti(quote! { a ==> b }).unwrap().to_string(),
+            "(! (a) || (b))",
+        );
+        assert_eq!(
+            parse_prusti(quote! { a ==> b ==> c }).unwrap().to_string(),
+            "(! (a) || ((! (b) || (c))))",
+        );
+        assert_eq!(
+            parse_prusti(quote! { (a ==> b && c) ==> d || e }).unwrap().to_string(),
+            "(! (((! (a) || (b && c)))) || (d || e))",
+        );
+        assert_eq!(
+            parse_prusti(quote! { forall(|x: i32| a ==> b) }).unwrap().to_string(),
+            "forall (() , # [prusti :: spec_only] | x : i32 | -> bool { (((! (a) || (b))) : bool) })",
+        );
+        assert_eq!(
+            parse_prusti(quote! { exists(|x: i32| a === b) }).unwrap().to_string(),
+            "exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (a , b)) : bool) })",
+        );
+        assert_eq!(
+            parse_prusti(quote! { forall(|x: i32| a ==> b, triggers = [(c,), (d, e)]) }).unwrap().to_string(),
+            "forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { (((! (a) || (b))) : bool) })",
+        );
+    }
+
+    macro_rules! assert_error {
+        ( $result:expr, $expected:expr ) => {
+            {
+                let _res = $result;
+                assert!(_res.is_err());
+                let _err = _res.unwrap_err();
+                assert_eq!(_err.to_string(), $expected);
+            }
+        };
+    }
+
+    #[test]
+    fn ghost_constraint_invalid_args() {
+        assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), "two arguments expected");
+        assert_error!(parse_ghost_constraint(quote!{ }), "two arguments expected");
+    }
+
+    #[test]
+    fn ghost_constraints_first_arg_is_no_where_clause() {
+        assert_error!(parse_ghost_constraint(quote!{ foo, []}), "expected `where`");
+    }
+
+    #[test]
+    fn ghost_constraints_ok() {
+        let (where_clause, nested_specs) = parse_ghost_constraint(quote!{ where T: A+B+Foo<i32>, [requires(true), ensures(false)]}).unwrap();
+
+        assert_eq!(where_clause.to_string(), "where T : A + B + Foo < i32 >");
+
+        match &nested_specs[0] {
+            NestedSpec::Requires(ts) => assert_eq!(ts.to_string(), "true"),
+            _ => panic!(),
+        }
+
+        match &nested_specs[1] {
+            NestedSpec::Ensures(ts) => assert_eq!(ts.to_string(), "false"),
+            _ => panic!(),
+        }
+    }
 }

@@ -5,6 +5,7 @@ use prusti_interface::{
     utils::has_spec_only_attr,
 };
 use rustc_hir::def_id::{DefId, LocalDefId};
+use rustc_middle::{ty, ty::subst::SubstsRef};
 use std::cell::RefCell;
 
 pub(crate) struct SpecificationsState {
@@ -19,12 +20,28 @@ impl SpecificationsState {
     }
 }
 
-pub(crate) trait SpecificationsInterface {
-    fn is_pure(&self, def_id: DefId) -> bool;
+#[derive(Copy, Clone, Debug)]
+pub struct SpecQuery<'tcx> {
+    pub def_id: DefId,
+    pub substs: SubstsRef<'tcx>,
+}
 
-    fn is_trusted(&self, def_id: DefId) -> bool;
+impl<'tcx> SpecQuery<'tcx> {
+    pub(crate) fn new(def_id: DefId, substs: SubstsRef<'tcx>) -> Self {
+        Self { def_id, substs }
+    }
 
-    fn get_predicate_body(&self, def_id: DefId) -> Option<LocalDefId>;
+    pub(crate) fn without_substs(def_id: DefId) -> Self {
+        Self::new(def_id, ty::List::empty())
+    }
+}
+
+pub(crate) trait SpecificationsInterface<'tcx> {
+    fn is_pure(&self, query: SpecQuery<'tcx>) -> bool;
+
+    fn is_trusted(&self, query: SpecQuery<'tcx>) -> bool;
+
+    fn get_predicate_body(&self, query: SpecQuery<'tcx>) -> Option<LocalDefId>;
 
     fn has_extern_spec(&self, def_id: DefId) -> bool;
 
@@ -32,8 +49,8 @@ pub(crate) trait SpecificationsInterface {
     /// `prusti::loop_body_invariant_spec` attribute.
     fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification>;
 
-    /// Get the specifications attached to the `def_id` function.
-    fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::ProcedureSpecification>;
+    /// Get the specifications attached to a function.
+    fn get_procedure_specs(&self, query: SpecQuery<'tcx>) -> Option<typed::ProcedureSpecification>;
 
     /// Get a local wrapper `DefId` for functions that have external specs.
     /// Return the original `DefId` for everything else.
@@ -43,37 +60,37 @@ pub(crate) trait SpecificationsInterface {
     fn is_spec_closure(&self, def_id: DefId) -> bool;
 }
 
-impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 'tcx> {
-    fn is_pure(&self, def_id: DefId) -> bool {
+impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    fn is_pure(&self, query: SpecQuery<'tcx>) -> bool {
         let result = self
             .specifications_state
             .specs
             .borrow_mut()
-            .get_and_refine_proc_spec(self.env(), def_id)
+            .get_and_refine_proc_spec(self.env(), query)
             .and_then(|spec| spec.pure.extract_inherit())
             .unwrap_or(false);
-        trace!("is_pure {:?} = {}", def_id, result);
+        trace!("is_pure {:?} = {}", query, result);
         result
     }
 
-    fn is_trusted(&self, def_id: DefId) -> bool {
+    fn is_trusted(&self, query: SpecQuery<'tcx>) -> bool {
         let result = self
             .specifications_state
             .specs
             .borrow_mut()
-            .get_and_refine_proc_spec(self.env(), def_id)
+            .get_and_refine_proc_spec(self.env(), query)
             .and_then(|spec| spec.trusted.extract_with_selective_replacement().copied())
             .unwrap_or(false);
-        trace!("is_trusted {:?} = {}", def_id, result);
+        trace!("is_trusted {:?} = {}", query, result);
         result
     }
 
-    fn get_predicate_body(&self, def_id: DefId) -> Option<LocalDefId> {
+    fn get_predicate_body(&self, query: SpecQuery<'tcx>) -> Option<LocalDefId> {
         let mut specs = self.specifications_state.specs.borrow_mut();
         let result = specs
-            .get_and_refine_proc_spec(self.env(), def_id)
+            .get_and_refine_proc_spec(self.env(), query)
             .and_then(|spec| spec.predicate_body.extract_with_selective_replacement());
-        trace!("get_predicate_body {:?} = {:?}", def_id, result);
+        trace!("get_predicate_body {:?} = {:?}", query, result);
         result.cloned()
     }
 
@@ -101,9 +118,9 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
             .cloned()
     }
 
-    fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::ProcedureSpecification> {
+    fn get_procedure_specs(&self, query: SpecQuery<'tcx>) -> Option<typed::ProcedureSpecification> {
         let mut specs = self.specifications_state.specs.borrow_mut();
-        let spec = specs.get_and_refine_proc_spec(self.env(), def_id)?;
+        let spec = specs.get_and_refine_proc_spec(self.env(), query)?;
         Some(spec.clone())
     }
 
