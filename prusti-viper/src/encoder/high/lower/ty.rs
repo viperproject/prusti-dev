@@ -50,9 +50,11 @@ impl IntoPolymorphic<Vec<vir_poly::TypeVar>> for Vec<vir_high::ty::TypeVar> {
 
 impl IntoPolymorphic<vir_poly::TypeVar> for vir_high::ty::TypeVar {
     fn lower(&self, _encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::TypeVar {
-        vir_poly::TypeVar {
-            label: self.name.clone(),
-        }
+        let name = match self {
+            vir_high::ty::TypeVar::GenericType(generic_type) => generic_type.name.clone(),
+            vir_high::ty::TypeVar::Lifetime(lifetime) => lifetime.name.clone(),
+        };
+        vir_poly::TypeVar { label: name }
     }
 }
 

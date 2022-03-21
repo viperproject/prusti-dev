@@ -56,7 +56,7 @@ pub struct GenericType {
 }
 
 #[derive(derive_more::Unwrap)]
-pub enum TypeVar{
+pub enum TypeVar {
     Lifetime(Lifetime),
     GenericType(GenericType),
 }
