@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 /// External traits
@@ -15,11 +14,6 @@ trait ExternTrait {
 
 #[extern_spec]
 trait ExternTrait {
-    type Arg1Ty;
-    type Arg2Ty;
-    type Ret1Ty;
-    type Ret2Ty;
-
     fn foo(&self, x: Self::Arg1Ty, y: Self::Arg2Ty) -> Self::Ret1Ty;
 }
 

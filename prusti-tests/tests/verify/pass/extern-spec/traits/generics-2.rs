@@ -1,4 +1,5 @@
-extern crate prusti_contracts;
+// ignore-test #[concrete] is troublesome
+
 use prusti_contracts::*;
 
 /// External traits
@@ -19,7 +20,6 @@ impl MyTrait<i32> for Impl {
         42
     }
 }
-
 
 fn main() {
     let s = Impl{};

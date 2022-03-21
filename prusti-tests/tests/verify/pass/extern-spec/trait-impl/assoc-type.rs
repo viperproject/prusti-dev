@@ -18,7 +18,6 @@ impl Incrementable for Number {
 
 #[extern_spec]
 impl Incrementable for Number {
-    type Result = i32;
     #[ensures( self.0 == old(self.0) + 1 )]
     #[ensures( result == self.0 )]
     fn increment(&mut self) -> i32;

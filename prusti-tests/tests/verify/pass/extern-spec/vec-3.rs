@@ -1,4 +1,5 @@
-extern crate prusti_contracts;
+#![feature(allocator_api)]
+
 use prusti_contracts::*;
 use std::vec::Vec;
 use std::option::Option;
@@ -22,7 +23,10 @@ impl<T> Option<T> {
 impl<T> Vec<T> {
     #[ensures(result.len() == 0)]
     fn new() -> Vec::<T>;
+}
 
+#[extern_spec]
+impl<T, A: std::alloc::Allocator> Vec<T, A> {
     #[pure]
     fn len(&self) -> usize;
 
@@ -38,7 +42,7 @@ impl<T> Vec<T> {
     pub fn pop(&mut self) -> Option<T>;
 
     #[ensures(self.len() == old(self.len()) + other.len())]
-    pub fn append(&mut self, other: &mut Vec<T>);
+    pub fn append(&mut self, other: &mut Vec<T, A>);
 }
 
 fn main() {
