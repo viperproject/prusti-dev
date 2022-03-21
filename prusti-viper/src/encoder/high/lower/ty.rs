@@ -2,8 +2,8 @@ use super::{super::types::interface::HighTypeEncoderInterfacePrivate, IntoPolymo
 use vir_crate::{
     high as vir_high, polymorphic as vir_poly,
     polymorphic::Float::{F32, F64},
+    common::identifier::WithIdentifier,
 };
-use vir_crate::common::identifier::WithIdentifier;
 
 impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
     fn lower(&self, encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::Type {
