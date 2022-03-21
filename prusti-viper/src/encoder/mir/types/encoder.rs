@@ -303,7 +303,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 let fake_lft = vir_crate::high::type_decl::Lifetime {
                     name: String::from("lft_fake"),
                 };
-                // vir::TypeDecl::reference(target_type, fake_lft)
                 vir::TypeDecl::reference(target_type, fake_lft)
             }
             ty::TyKind::Tuple(elems) => vir::TypeDecl::tuple(
