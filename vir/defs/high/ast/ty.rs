@@ -68,6 +68,7 @@ pub struct GenericType {
     pub name: String,
 }
 
+#[derive_helpers]
 #[derive(derive_more::Unwrap)]
 pub enum TypeVar {
     Lifetime(Lifetime),
