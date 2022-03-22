@@ -1,8 +1,9 @@
-extern crate prusti_contracts;
+#![feature(allocator_api)]
+
 use prusti_contracts::*;
 
 #[extern_spec]
-impl<T> std::vec::Vec<T> {
+impl<T, A: std::alloc::Allocator> Vec<T, A> {
     #[pure]
     fn len(&self) -> usize;
 
@@ -11,7 +12,7 @@ impl<T> std::vec::Vec<T> {
 }
 
 #[extern_spec]
-impl<T> std::vec::Vec<T> {
+impl<T, A: std::alloc::Allocator> Vec<T, A> {
     #[ensures(self.len() == 0)] //~ ERROR: duplicate specification for std::vec::Vec::<T, A>::clear
     fn clear(&mut self);
 }
