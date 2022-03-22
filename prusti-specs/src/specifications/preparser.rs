@@ -51,12 +51,11 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
 }
 
 // TODO hansenj: Parsing #[ghost_constraint(where T: Foo<Bla>, ...)] currently fails when having generic trait bound (but it works in test?)
+// TODO hansenj: Remove
 pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
     let pts = PrustiTokenStream::new(tokens);
-    let (where_clause_ts, nested_specs_ts) = pts.parse_ghost_constraint()?;
-    syn::parse2::<syn::WhereClause>(where_clause_ts.clone())?;
-    // Note: typechecking of nested specs happens later
-    Ok((where_clause_ts, nested_specs_ts))
+    let (trait_bounds_ts, nested_specs_ts) = pts.parse_ghost_constraint()?;
+    Ok((trait_bounds_ts, nested_specs_ts))
 }
 
 /*
@@ -233,10 +232,10 @@ impl PrustiTokenStream {
             return error(span, "two arguments expected"); // TODO hansenj: This span is wrong
         }
 
-        let where_clause_ts = arguments.remove(0).parse_rust_only()?;
+        let trait_bounds_ts = arguments.remove(0).parse_rust_only()?;
         let nested_specs = arguments.remove(0).pop_group_of_nested_specs(Span::call_site())?;
 
-        Ok((where_clause_ts, nested_specs))
+        Ok((trait_bounds_ts, nested_specs))
     }
 
     /// The core of the Pratt parser algorithm. [self.tokens] is the source of
@@ -860,6 +859,17 @@ impl RustOp {
 mod tests {
     use super::*;
 
+    macro_rules! assert_error {
+        ( $result:expr, $expected:expr ) => {
+            {
+                let _res = $result;
+                assert!(_res.is_err());
+                let _err = _res.unwrap_err();
+                assert_eq!(_err.to_string(), $expected);
+            }
+        };
+    }
+
     #[test]
     fn test_preparser() {
         assert_eq!(
@@ -888,17 +898,6 @@ mod tests {
         );
     }
 
-    macro_rules! assert_error {
-        ( $result:expr, $expected:expr ) => {
-            {
-                let _res = $result;
-                assert!(_res.is_err());
-                let _err = _res.unwrap_err();
-                assert_eq!(_err.to_string(), $expected);
-            }
-        };
-    }
-
     #[test]
     fn ghost_constraint_invalid_args() {
         assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), "two arguments expected");
@@ -906,15 +905,10 @@ mod tests {
     }
 
     #[test]
-    fn ghost_constraints_first_arg_is_no_where_clause() {
-        assert_error!(parse_ghost_constraint(quote!{ foo, []}), "expected `where`");
-    }
-
-    #[test]
     fn ghost_constraints_ok() {
-        let (where_clause, nested_specs) = parse_ghost_constraint(quote!{ where T: A+B+Foo<i32>, [requires(true), ensures(false)]}).unwrap();
+        let (bounds, nested_specs) = parse_ghost_constraint(quote!{ T: A+B+Foo<i32>, [requires(true), ensures(false)]}).unwrap();
 
-        assert_eq!(where_clause.to_string(), "where T : A + B + Foo < i32 >");
+        assert_eq!(bounds.to_string(), "T : A + B + Foo < i32 >");
 
         match &nested_specs[0] {
             NestedSpec::Requires(ts) => assert_eq!(ts.to_string(), "true"),

@@ -1,5 +1,4 @@
 // TODO hansenj: Parsing error
-
 use prusti_contracts::*;
 
 trait A {}
@@ -10,7 +9,7 @@ impl A for i32 {}
 impl B<i32> for i32 {}
 impl B<u32> for i32 {}
 
-#[ghost_constraint(where T: A + B<i32> + B<u32> , [
+#[ghost_constraint(T: A + B<i32> + B<u32> , [
     ensures(result > 0)
 ])]
 fn foo<T>(_x: T) -> i32 {
