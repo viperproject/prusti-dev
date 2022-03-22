@@ -1,12 +1,10 @@
-extern crate prusti_contracts;
 use prusti_contracts::*;
-use std::ops::*;
-use crate::base::option::*;
+use crate::base::*;
 
 use super::linear_mutable_map_base::*;
 
 pub struct FixedSizeLinearHashMap<V> {
-    storage: Vec<Item<V>>,
+    storage: Vector<Item<V>>,
     count: usize,
 }
 
@@ -17,14 +15,14 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
     }
 
     pub fn with_size(size: usize) -> Self {
-        let storage = vec![Empty; size];
+        let storage = Vector::init(Empty, size);
         Self {
             storage,
             count: 0
         }
     }
 
-    pub fn from_storage(storage: Vec<Item<V>>, count: usize) -> Self {
+    pub fn from_storage(storage: Vector<Item<V>>, count: usize) -> Self {
         Self {
             storage,
             count
@@ -38,7 +36,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
     }
 
     pub fn get_empty_witness(&self, i: usize) -> usize {
-        match self.storage[i] {
+        match self.storage.index(i) {
             Empty => i,
             _ => self.get_empty_witness(i+1)
         }
@@ -50,7 +48,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
         let mut skips = 0;
 
         loop {
-            let slot = &self.storage[slot_idx];
+            let slot = &self.storage.index(slot_idx);
             match slot {
                 Empty => return slot_idx,
                 Tombstone{key: k} if key == *k => return slot_idx,
