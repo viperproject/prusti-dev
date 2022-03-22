@@ -50,8 +50,7 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
     Ok((lhs, rhs))
 }
 
-// TODO hansenj: Parsing #[ghost_constraint(where T: Foo<Bla>, ...)] currently fails when having generic trait bound (but it works in test?)
-// TODO hansenj: Remove
+// TODO hansenj: Maybe remove
 pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
     let pts = PrustiTokenStream::new(tokens);
     let (trait_bounds_ts, nested_specs_ts) = pts.parse_ghost_constraint()?;
@@ -141,9 +140,12 @@ impl PrustiTokenStream {
                     // to avoid later mis-identifying its suffix
                     tokens.push_back(PrustiToken::Token(token.clone()));
                     while let Some(token @ TokenTree::Punct(p)) = source.get(pos) {
+                        if p.as_char() == ',' { // Treat comma as a delimiter for macros
+                            break;
+                        }
                         pos += 1;
                         tokens.push_back(PrustiToken::Token(token.clone()));
-                        if p.spacing() != Joint {
+                        if p.spacing() != Alone {
                             break;
                         }
                     }
@@ -857,6 +859,7 @@ impl RustOp {
 
 #[cfg(test)]
 mod tests {
+    use crate::{rewrite_prusti_attributes, SpecAttributeKind};
     use super::*;
 
     macro_rules! assert_error {
