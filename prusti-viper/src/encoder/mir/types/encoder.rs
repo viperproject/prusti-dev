@@ -98,7 +98,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Type::pointer(self.encoder.encode_type_high(*ty)?)
             }
 
-            ty::TyKind::Ref(_, ty, _) => vir::Type::reference(self.encoder.encode_type_high(*ty)?),
+            ty::TyKind::Ref(_, ty, _) => {
+                // TODO: add real lifetime here?
+                let fake_lft = vir::ty::Lifetime {
+                    name: String::from("lft_fake"),
+                };
+                vir::Type::reference(self.encoder.encode_type_high(*ty)?, fake_lft)
+            }
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() => vir::Type::struct_(
                 encode_struct_name(self.encoder, adt_def.did()),
@@ -293,7 +299,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
             ty::TyKind::Ref(_, ty, _) => {
                 let target_type = self.encoder.encode_type_high(*ty)?;
-                vir::TypeDecl::reference(target_type)
+                // TODO: add real lifetime here?
+                let fake_lft = vir_crate::high::type_decl::Lifetime {
+                    name: String::from("lft_fake"),
+                };
+                vir::TypeDecl::reference(target_type, fake_lft)
             }
             ty::TyKind::Tuple(elems) => vir::TypeDecl::tuple(
                 elems
@@ -306,7 +316,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
             ty::TyKind::Never => vir::TypeDecl::never(),
             ty::TyKind::Param(param_ty) => {
-                vir::TypeDecl::type_var(param_ty.name.as_str().to_string())
+                vir::TypeDecl::type_var(vir_crate::high::type_decl::TypeVar::GenericType(
+                    vir_crate::high::type_decl::GenericType {
+                        name: param_ty.name.as_str().to_string(),
+                    },
+                ))
             }
             ty::TyKind::Closure(def_id, internal_substs) => {
                 let cl_substs = internal_substs.as_closure();
