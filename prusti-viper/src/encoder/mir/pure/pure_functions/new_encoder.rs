@@ -18,8 +18,7 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::vir_high_local;
 use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
-use rustc_middle::ty::subst::SubstsRef;
+use rustc_middle::{mir, ty::subst::SubstsRef};
 use rustc_span::Span;
 use vir_crate::{
     common::{expression::ExpressionIterator, position::Positioned},
@@ -33,14 +32,8 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::FunctionDecl> {
-    let interpreter = ExpressionBackwardInterpreter::new(
-        encoder,
-        mir,
-        proc_def_id,
-        false,
-        parent_def_id,
-        substs,
-    );
+    let interpreter =
+        ExpressionBackwardInterpreter::new(encoder, mir, proc_def_id, false, parent_def_id, substs);
     let pure_encoder = PureEncoder {
         encoder,
         proc_def_id,
@@ -95,14 +88,8 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
-    let interpreter = ExpressionBackwardInterpreter::new(
-        encoder,
-        mir,
-        proc_def_id,
-        false,
-        parent_def_id,
-        substs,
-    );
+    let interpreter =
+        ExpressionBackwardInterpreter::new(encoder, mir, proc_def_id, false, parent_def_id, substs);
     let encoder = PureEncoder {
         encoder,
         proc_def_id,
@@ -124,14 +111,8 @@ pub(super) fn encode_function_call_info<'p, 'v: 'p, 'tcx: 'v>(
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<FunctionCallInfoHigh> {
     // FIXME: Refactor code to avoid creating the interpreter because it is unnecessary.
-    let interpreter = ExpressionBackwardInterpreter::new(
-        encoder,
-        mir,
-        proc_def_id,
-        false,
-        parent_def_id,
-        substs,
-    );
+    let interpreter =
+        ExpressionBackwardInterpreter::new(encoder, mir, proc_def_id, false, parent_def_id, substs);
     let encoder = PureEncoder {
         encoder,
         proc_def_id,
@@ -300,7 +281,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let parameter_expressions = self.convert_parameters_into_expressions(parameters);
         let mut conjuncts = Vec::new();
-        for (assertion, assertion_substs) in contract.functional_precondition(self.encoder.env(), self.substs) {
+        for (assertion, assertion_substs) in
+            contract.functional_precondition(self.encoder.env(), self.substs)
+        {
             let encoded_assertion = self.encoder.encode_assertion_high(
                 &assertion,
                 None,
@@ -326,7 +309,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let parameter_expressions = self.convert_parameters_into_expressions(parameters);
         let mut conjuncts = Vec::new();
         let encoded_return = self.encode_mir_local(contract.returned_value)?;
-        for (assertion, assertion_substs) in contract.functional_postcondition(self.encoder.env(), self.substs) {
+        for (assertion, assertion_substs) in
+            contract.functional_postcondition(self.encoder.env(), self.substs)
+        {
             let encoded_assertion = self.encoder.encode_assertion_high(
                 &assertion,
                 None,

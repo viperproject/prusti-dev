@@ -262,7 +262,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     self.caller_def_id,
                     operand,
                     *dst_ty,
-                    &self.substs,
                     span,
                 )?;
                 state.substitute_value(&encoded_lhs, encoded_rhs);

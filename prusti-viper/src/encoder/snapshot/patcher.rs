@@ -25,8 +25,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
         vir::SnapApp { mut base, .. }: vir::SnapApp,
     ) -> Result<vir::Expr, Self::Error> {
         base = self.fallible_fold_boxed(base)?;
-        self.snapshot_encoder
-            .snap_app(self.encoder, *base)
+        self.snapshot_encoder.snap_app(self.encoder, *base)
     }
 
     fn fallible_fold_func_app(
@@ -48,8 +47,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                 // TODO: this patches more than it should
                 // so it could cover up/muddle some type errors in the VIR
                 if *arg.get_type() != formal_arg.typ {
-                    self.snapshot_encoder
-                        .snap_app(self.encoder, arg)
+                    self.snapshot_encoder.snap_app(self.encoder, arg)
                 } else {
                     Ok(arg)
                 }
@@ -80,8 +78,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                 let folded_arg = FallibleExprFolder::fallible_fold(self, arg)?;
                 // TODO: same note as for fallible_fold_func_app applies
                 if *folded_arg.get_type() != formal_arg.typ {
-                    self.snapshot_encoder
-                        .snap_app(self.encoder, folded_arg)
+                    self.snapshot_encoder.snap_app(self.encoder, folded_arg)
                 } else {
                     Ok(folded_arg)
                 }
@@ -135,11 +132,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                     vir::Type::Bool if field.name == "val_bool" => Ok(*receiver),
                     vir::Type::Snapshot(_) => match field.name.as_str() {
                         "val_ref" => Ok(*receiver),
-                        _ => self.snapshot_encoder.snap_field(
-                            self.encoder,
-                            *receiver,
-                            field,
-                        ),
+                        _ => self
+                            .snapshot_encoder
+                            .snap_field(self.encoder, *receiver, field),
                     },
                     _ => Ok(vir::Expr::Field(vir::FieldExpr {
                         base: receiver,
@@ -252,9 +247,7 @@ fn fix_quantifier(
                 let ty = patcher.encoder.decode_type_predicate_type(&var.typ)?;
                 let patched_var = vir::LocalVar::new(
                     &var.name,
-                    patcher
-                        .snapshot_encoder
-                        .encode_type(patcher.encoder, ty)?,
+                    patcher.snapshot_encoder.encode_type(patcher.encoder, ty)?,
                 );
                 patched_vars.push(patched_var.clone());
                 let mut fixer = QuantifierFixer { var, patched_var };

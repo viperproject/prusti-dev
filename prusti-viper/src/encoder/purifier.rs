@@ -5,8 +5,6 @@
 
 use vir_crate::polymorphic::{self as vir, ExprWalker, ExprFolder, StmtWalker, StmtFolder};
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_middle::ty;
-use rustc_middle::ty::subst::SubstsRef;
 
 use log::{debug, trace};
 use crate::encoder::Encoder;
@@ -64,9 +62,7 @@ pub fn purify_method(
         candidates
     );
 
-    // TODO(tymap)
-    let substs = ty::List::empty();
-    let mut purifier = Purifier::new(encoder, candidates, &substs);
+    let mut purifier = Purifier::new(encoder, candidates);
 
     for block in &mut method.basic_blocks {
         block.stmts = block
@@ -80,9 +76,9 @@ pub fn purify_method(
     for var in &mut method.local_vars {
         if purifier.vars.contains(&var.name) {
             let typ = std::mem::replace(&mut var.typ, vir::Type::Bool);
-            var.typ = translate_type(encoder, typ, &purifier.substs);
+            var.typ = translate_type(encoder, typ);
         } else if let Some(typ) = purifier.change_var_types.remove(&var.name) {
-            var.typ = translate_type(encoder, typ, &purifier.substs);
+            var.typ = translate_type(encoder, typ);
         }
     }
 
@@ -208,7 +204,7 @@ impl ExprWalker for VariableCollector {
     }
 }
 
-fn translate_type<'tcx>(encoder: &Encoder<'_, 'tcx>, typ: vir::Type, substs: SubstsRef<'tcx>) -> vir::Type {
+fn translate_type<'tcx>(encoder: &Encoder<'_, 'tcx>, typ: vir::Type) -> vir::Type {
     match typ {
         vir::Type::Int
         | vir::Type::Bool
@@ -229,24 +225,22 @@ struct Purifier<'p, 'v: 'p, 'tcx: 'v> {
     vars: FxHashSet<String>,
     fresh_variables: Vec<vir::LocalVar>,
     change_var_types: FxHashMap<String, vir::Type>,
-    substs: SubstsRef<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Purifier<'p, 'v, 'tcx> {
-    fn new(encoder: &'p Encoder<'v, 'tcx>, vars: FxHashSet<String>, substs: SubstsRef<'tcx>) -> Self {
+    fn new(encoder: &'p Encoder<'v, 'tcx>, vars: FxHashSet<String>) -> Self {
         Self {
             encoder,
             vars,
             fresh_variables: Vec::new(),
             change_var_types: FxHashMap::default(),
-            substs,
         }
     }
     fn fresh_variable(&mut self, typ: &vir::Type) -> vir::LocalVar {
         let name = format!("havoc${}", self.fresh_variables.len());
         let var = vir::LocalVar {
             name,
-            typ: translate_type(self.encoder, typ.clone(), &self.substs),
+            typ: translate_type(self.encoder, typ.clone()),
         };
         self.fresh_variables.push(var.clone());
         var
@@ -263,7 +257,7 @@ impl StmtFolder for Purifier<'_, '_, '_> {
                 return vir::Stmt::Assign( vir::Assign {
                     target: vir::LocalVar {
                         name: local_var.name.clone(),
-                        typ: translate_type(self.encoder, local_var.typ.clone(), &self.substs),
+                        typ: translate_type(self.encoder, local_var.typ.clone()),
                     }.into(),
                     source: self.fresh_variable(&local_var.typ).into(),
                     kind: vir::AssignKind::Ghost,
@@ -285,7 +279,7 @@ impl StmtFolder for Purifier<'_, '_, '_> {
                     if (target_var.name.starts_with("_preserve") ||
                         target_var.name.starts_with("_old$")
                         ) && self.vars.contains(&source_var.name) => {
-                target_var.typ = translate_type(self.encoder, source_var.typ.clone(), &self.substs);
+                target_var.typ = translate_type(self.encoder, source_var.typ.clone());
                 self.change_var_types.insert(target_var.name.clone(), source_var.typ.clone());
             }
             _ => {}
@@ -340,7 +334,7 @@ impl ExprFolder for Purifier<'_, '_, '_> {
     fn fold_local(
         &mut self, vir::Local {mut variable, position}: vir::Local) -> vir::Expr {
         if let Some(new_type) = self.change_var_types.get(&variable.name) {
-            variable.typ = translate_type(self.encoder, new_type.clone(), &self.substs);
+            variable.typ = translate_type(self.encoder, new_type.clone());
         }
         vir::Expr::local_with_pos(variable, position)
     }
@@ -349,7 +343,7 @@ impl ExprFolder for Purifier<'_, '_, '_> {
             box vir::Expr::Local( vir::Local {variable: local_var, ..} ) if self.vars.contains(&local_var.name) => {
                 return vir::LocalVar {
                     name: local_var.name,
-                    typ: translate_type(self.encoder, local_var.typ, &self.substs),
+                    typ: translate_type(self.encoder, local_var.typ),
                 }.into();
             }
             _ => {}

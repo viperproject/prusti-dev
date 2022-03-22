@@ -21,7 +21,6 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
 
-use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{mir, ty, ty::subst::SubstsRef};
@@ -57,7 +56,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         // should hold for extern specs as well (otherwise there would have
         // been an error reported earlier)
-        assert_eq!(substs.len(), encoder.env().identity_substs(proc_def_id).len());
+        assert_eq!(
+            substs.len(),
+            encoder.env().identity_substs(proc_def_id).len()
+        );
 
         let interpreter = PureFunctionBackwardInterpreter::new(
             encoder,
@@ -357,7 +359,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .iter()
             .map(|local| self.encode_local((*local).into()).map(|l| l.into()))
             .collect::<Result<_, _>>()?;
-        for (assertion, assertion_substs) in contract.functional_precondition(self.encoder.env(), self.substs) {
+        for (assertion, assertion_substs) in
+            contract.functional_precondition(self.encoder.env(), self.substs)
+        {
             debug!("Encode spec item: {:?}", assertion);
             let encoded_assertion = self.encoder.encode_assertion(
                 &assertion,
@@ -397,7 +401,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let encoded_return = self.encode_local(contract.returned_value.into())?;
         debug!("encoded_return: {:?}", encoded_return);
 
-        for (assertion, assertion_substs) in contract.functional_postcondition(self.encoder.env(), self.substs) {
+        for (assertion, assertion_substs) in
+            contract.functional_postcondition(self.encoder.env(), self.substs)
+        {
             let encoded_postcond = self.encoder.encode_assertion(
                 &assertion,
                 None,
@@ -438,9 +444,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let var_span = mir_encoder.get_local_span(local);
         let var_type = self
             .encoder
-            .encode_snapshot_type(
-                self.interpreter.mir_encoder().get_local_ty(local),
-            )
+            .encode_snapshot_type(self.interpreter.mir_encoder().get_local_ty(local))
             .with_span(var_span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
     }
@@ -468,14 +472,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.interpreter.mir_encoder().get_local_span(return_local);
-        self.encoder
-            .encode_snapshot_type(ty)
-            .with_span(span)
+        self.encoder.encode_snapshot_type(ty).with_span(span)
     }
 
     fn encode_type_arguments(&self) -> SpannedEncodingResult<Vec<vir::Type>> {
         self.encoder
-            .encode_generic_arguments(self.proc_def_id, &self.substs)
+            .encode_generic_arguments(self.proc_def_id, self.substs)
             .with_span(self.mir.span)
     }
 

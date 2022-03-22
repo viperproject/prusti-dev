@@ -2,14 +2,12 @@ use crate::encoder::{
     errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
     high::lower::{predicates::IntoPredicates, IntoPolymorphic},
     mir::types::MirTypeEncoderInterface,
-    utils::transpose,
 };
 #[rustfmt::skip]
 use ::log::trace;
 use prusti_common::{config, report::log};
 use rustc_hash::FxHashMap;
 use rustc_middle::ty;
-use rustc_middle::ty::subst::SubstsRef;
 use rustc_span::MultiSpan;
 use std::cell::RefCell;
 use vir_crate::{

@@ -10,7 +10,7 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_interface::data::ProcedureDefId;
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_middle::{ty, ty::subst::SubstsRef};
+use rustc_middle::ty::subst::SubstsRef;
 
 use std::cell::RefCell;
 use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
@@ -374,7 +374,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             drop(function_descriptions);
             self.encode_pure_function_def(
                 function_description.proc_def_id,
-                &function_description.substs,
+                function_description.substs,
             )?;
         } else {
             // FIXME: We probably should not fail silently here…

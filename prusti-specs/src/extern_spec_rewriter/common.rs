@@ -148,7 +148,7 @@ impl<'a> AssociatedTypeRewriter<'a> {
 impl<'a> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a> {
     fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
         if ty_path.qself.is_none()
-            && ty_path.path.segments.len() >= 1
+            && !ty_path.path.segments.is_empty()
             && ty_path.path.segments[0].ident == "Self" {
             if ty_path.path.segments.len() == 1 {
                 // replace `Self` type

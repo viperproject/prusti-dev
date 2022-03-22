@@ -2936,7 +2936,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_mandatory_type_spec,
             pre_invs_spec,
             pre_func_spec,
-        ) = self.encode_precondition_expr(&procedure_contract, &substs, fake_expr_spans)?;
+        ) = self.encode_precondition_expr(&procedure_contract, substs, fake_expr_spans)?;
         let pos = self.register_error(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
         stmts.push(vir::Stmt::Assert( vir::Assert {
             expr: replace_fake_exprs(pre_func_spec),
@@ -3008,7 +3008,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             encoded_target.is_none(),
             loan,
             false,
-            &substs,
+            substs,
         )?;
         // We inhale the magic wand just before applying it because we need
         // a magic wand that depends on the current value of ghost variables.
@@ -3112,7 +3112,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .iter()
             .enumerate()
             .map(|(i, arg)| {
-                self.mir_encoder.encode_operand_expr_type(arg, call_substs)
+                self.mir_encoder.encode_operand_expr_type(arg)
                     .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
             })
             .collect::<Result<_, _>>()
@@ -3404,7 +3404,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 substs,
             ).iter()
             .map(|(assertion, assertion_substs)| self.encoder.encode_assertion(
-                &assertion,
+                assertion,
                 None,
                 &encoded_args,
                 None,
@@ -3482,7 +3482,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     None,
                     false,
                     self.proc_def_id,
-                    &trait_substs,
+                    trait_substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
                 .into_iter()
@@ -3495,7 +3495,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     None,
                     false,
                     self.proc_def_id,
-                    &self.substs,
+                    self.substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
                 .into_iter()
@@ -3522,7 +3522,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Some(&encoded_return),
                     false,
                     self.proc_def_id,
-                    &trait_substs,
+                    trait_substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
                 .into_iter()
@@ -3536,7 +3536,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Some(&encoded_return),
                     false,
                     self.proc_def_id,
-                    &self.substs,
+                    self.substs,
                 ))
                 .collect::<Result<Vec<_>, _>>()?
                 .into_iter()
@@ -5552,7 +5552,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let encoded_rhs = self.encoder.encode_discriminant_func_app(
                         encoded_src,
                         *adt_def,
-                        self.substs,
                     )?;
                     self.encode_copy_value_assign(
                         encoded_lhs,
@@ -5661,7 +5660,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             dst_ty
         );
         let span = self.mir_encoder.get_span_of_location(location);
-        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty, span, self.substs)?;
+        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty, span)?;
         self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
     }
 
@@ -6143,7 +6142,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // dst was havocked, so it is safe to assume the equality here.
                     let discriminant = self
                         .encoder
-                        .encode_discriminant_func_app(dst.clone(), adt_def, self.substs)?;
+                        .encode_discriminant_func_app(dst.clone(), adt_def)?;
                     stmts.push(vir::Stmt::Inhale( vir::Inhale {
                         expr: vir::Expr::eq_cmp(discriminant, discr_value),
                     }));
