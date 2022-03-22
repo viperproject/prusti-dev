@@ -115,5 +115,4 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
         let identifier = format!("{}${}", name.as_str(), index);
         vir_high::ty::TypeVar::generic_type(identifier)
     }
-
 }
