@@ -51,9 +51,9 @@ mod resolvers {
     use super::*;
 
     pub mod trait_bounds {
-        use rustc_hash::FxHashMap;
-        use prusti_interface::PrustiError;
         use super::*;
+        use prusti_interface::PrustiError;
+        use rustc_hash::FxHashMap;
 
         pub fn resolve<'spec, 'env: 'spec, 'tcx: 'env>(
             env: &'env Environment<'tcx>,

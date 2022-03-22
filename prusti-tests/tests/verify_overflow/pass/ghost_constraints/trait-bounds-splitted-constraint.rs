@@ -4,10 +4,10 @@ trait A {}
 
 impl A for i32 {}
 
-#[ghost_constraint(where T: A, [
+#[ghost_constraint(T: A, [
     ensures(result % 2 == 0)
 ])]
-#[ghost_constraint(where T: A, [
+#[ghost_constraint(T: A, [
     ensures(result > 0)
 ])]
 fn foo<T>(_x: T) -> i32 {

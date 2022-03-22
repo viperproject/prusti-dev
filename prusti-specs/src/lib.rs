@@ -13,6 +13,7 @@ mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
 mod spec_attribute_kind;
+mod ghost_constraints;
 pub mod specifications;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
@@ -142,7 +143,7 @@ fn generate_spec_and_assertions(
             // only exists so we successfully parse it and emit an error in
             // `check_incompatible_attrs`; so we'll never reach here.
             SpecAttributeKind::Predicate => unreachable!(),
-            SpecAttributeKind::GhostConstraint => generate_for_ghost_constraint(attr_tokens, item),
+            SpecAttributeKind::GhostConstraint => ghost_constraints::generate(attr_tokens, item),
         };
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
@@ -504,42 +505,4 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
         #[prusti::pred_spec_id_ref = #spec_id_str]
         #cleaned_fn
     }
-}
-
-fn generate_for_ghost_constraint(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
-    let tokens_span = attr.span();
-
-    // Parse ghost constraint information
-    let (where_clause_ts, nested_specs) = parse_ghost_constraint(attr)?;
-    let where_clause: syn::WhereClause = syn::parse2(where_clause_ts)?;
-
-    let mut new_items = vec![];
-    let mut new_attrs = vec![];
-
-    for nested_spec in nested_specs {
-        let (mut generated_items, generated_attrs) = match nested_spec {
-            NestedSpec::Ensures(tokens) => generate_for_ensures(tokens, item)?,
-            NestedSpec::Requires(tokens) => generate_for_requires(tokens, item)?
-        };
-
-        for generated_item in generated_items.iter_mut() {
-            let item_fn = match generated_item {
-                syn::Item::Fn(item_fn) => item_fn,
-                _ => unreachable!()
-            };
-            // TODO hansenj: Allow this (see meeting notes 21.03.2022)
-            assert!(item_fn.sig.generics.where_clause.is_none(), "Generated spec function has a where clause, cannot add ghost constraints");
-
-            item_fn.sig.generics.where_clause = Some(where_clause.clone());
-            // TODO hansenj: Magic string
-            item_fn.attrs.push(parse_quote_spanned!(tokens_span=>
-                #[prusti::ghost_constraint_trait_bounds_in_where_clause]
-            ));
-        }
-
-        new_items.extend(generated_items);
-        new_attrs.extend(generated_attrs);
-    }
-
-    Ok((new_items, new_attrs))
 }
