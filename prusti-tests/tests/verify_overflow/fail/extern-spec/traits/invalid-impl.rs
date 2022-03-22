@@ -1,25 +1,23 @@
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
-trait MyTrait<T> {
-    fn get_value(&self) -> T;
+trait MyTrait {
+    fn get_value(&self) -> i32;
 }
 
 #[extern_spec]
-trait MyTrait<#[concrete] i32 > {
+trait MyTrait {
     #[ensures(result == 42)] //~ ERROR: postcondition might not hold.
     fn get_value(&self) -> i32;
 }
 
 struct Impl;
-impl MyTrait<i32> for Impl {
+impl MyTrait for Impl {
     fn get_value(&self) -> i32 {
         43
     }
 }
 
-
 fn main() {
-    let s = Impl{};
-    assert!(MyTrait::<i32>::get_value(&s) == 42);
+    let s = Impl {};
+    assert!(MyTrait::get_value(&s) == 42);
 }

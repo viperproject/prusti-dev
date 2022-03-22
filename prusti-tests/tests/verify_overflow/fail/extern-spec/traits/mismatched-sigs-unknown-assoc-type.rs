@@ -1,4 +1,6 @@
-extern crate prusti_contracts;
+// ignore-test for now, associated types cannot be declared
+// eventually (with specs on associated types), we will want this error
+
 use prusti_contracts::*;
 
 #[extern_spec]
@@ -9,6 +11,4 @@ trait Iterator {
     fn next(&mut self) -> Option<Self::Item>;
 }
 
-fn main() {
-
-}
+fn main() {}
