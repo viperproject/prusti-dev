@@ -29,14 +29,8 @@ pub(crate) trait SnapshotEncoderInterface<'tcx> {
         &self,
         function: vir_poly::Function,
     ) -> EncodingResult<vir_poly::Function>;
-    fn patch_snapshots(
-        &self,
-        expr: vir_poly::Expr,
-    ) -> EncodingResult<vir_poly::Expr>;
-    fn encode_snapshot_type(
-        &self,
-        ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<vir_poly::Type>;
+    fn patch_snapshots(&self, expr: vir_poly::Expr) -> EncodingResult<vir_poly::Expr>;
+    fn encode_snapshot_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type>;
     fn encode_snapshot_constant(
         &self,
         expr: &mir::Constant<'tcx>,
@@ -77,14 +71,8 @@ pub(crate) trait SnapshotEncoderInterface<'tcx> {
         lo: vir_poly::Expr,
         hi: vir_poly::Expr,
     ) -> EncodingResult<vir_poly::Expr>;
-    fn supports_snapshot_equality(
-        &self,
-        ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<bool>;
-    fn is_quantifiable(
-        &self,
-        ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<bool>;
+    fn supports_snapshot_equality(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool>;
+    fn is_quantifiable(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool>;
 }
 
 impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 'tcx> {
@@ -141,19 +129,13 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
             .borrow_mut()
             .patch_snapshots_function(self, function)
     }
-    fn patch_snapshots(
-        &self,
-        expr: vir_poly::Expr,
-    ) -> EncodingResult<vir_poly::Expr> {
+    fn patch_snapshots(&self, expr: vir_poly::Expr) -> EncodingResult<vir_poly::Expr> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
             .patch_snapshots_expr(self, expr)
     }
-    fn encode_snapshot_type(
-        &self,
-        ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<vir_poly::Type> {
+    fn encode_snapshot_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
@@ -253,20 +235,14 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
             .encode_slicing(self, base_ty, base, slice_ty, lo, hi)
     }
 
-    fn supports_snapshot_equality(
-        &self,
-        ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<bool> {
+    fn supports_snapshot_equality(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
             .supports_equality(self, ty)
     }
 
-    fn is_quantifiable(
-        &self,
-        ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<bool> {
+    fn is_quantifiable(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()

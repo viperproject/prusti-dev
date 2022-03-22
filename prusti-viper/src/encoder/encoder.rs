@@ -271,7 +271,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     fn get_procedure_contract(
         &self,
         proc_def_id: ProcedureDefId,
-        substs: ty::subst::SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
         let spec = typed::SpecificationSet::Procedure(
             self.get_procedure_specs(proc_def_id)
@@ -311,7 +311,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn get_mir_procedure_contract_for_def(
         &self,
         proc_def_id: ProcedureDefId,
-        substs: ty::subst::SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
         self.procedure_contracts
             .borrow_mut()
@@ -323,7 +323,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn get_procedure_contract_for_def(
         &self,
         proc_def_id: ProcedureDefId,
-        substs: ty::subst::SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         self.procedure_contracts
             .borrow_mut()
@@ -339,7 +339,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         called_def_id: ProcedureDefId,
         args: &[places::Local],
         target: places::Local,
-        call_substs: ty::subst::SubstsRef<'tcx>,
+        call_substs: SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         let (called_def_id, call_substs) = self.env()
             .resolve_method_call(caller_def_id, called_def_id, call_substs);
@@ -349,7 +349,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             called_def_id,
             self.env(),
             typed::SpecificationSet::Procedure(spec),
-            &call_substs,
+            call_substs,
         )?;
         Ok(contract.to_call_site_contract(args, target))
     }
@@ -390,7 +390,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         place: vir::Expr,
         adt_def: ty::AdtDef<'tcx>,
-        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir::Expr> {
         let typ = place.get_type().clone();
         let mut name = typ.name();
@@ -592,8 +591,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         if !self.spec_functions.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
-            let substs = ty::List::empty(); // TODO: This is probably wrong.
-            let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, &substs);
+            // TODO(tymap): for now use identity, long-term might need separate spec funcs
+            let substs = self.env.identity_substs(def_id);
+            let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, substs);
             let result = spec_func_encoder.encode()?.into_iter().map(|function| {
                 self.insert_function(function)
             }).collect();
@@ -783,7 +783,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 // TODO: Make sure that this encoded function does not end up in
                 // the Viper file because that would be unsound.
                 let identity_substs = self.env().identity_substs(proc_def_id);
-                if let Err(error) = self.encode_pure_function_def(proc_def_id, &identity_substs) {
+                if let Err(error) = self.encode_pure_function_def(proc_def_id, identity_substs) {
                     self.register_encoding_error(error);
                     debug!("Error encoding function: {:?}", proc_def_id);
                     // Skip encoding the function as a method.

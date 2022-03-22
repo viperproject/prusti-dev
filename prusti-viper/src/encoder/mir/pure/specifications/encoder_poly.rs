@@ -154,7 +154,8 @@ pub(super) fn encode_quantifier<'tcx>(
         let mut encoded_triggers = vec![];
         let mut set_spans = vec![];
         for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
-            let (trigger_def_id, trigger_substs, trigger_span, _, _) = extract_closure_from_ty(tcx, ty_trigger);
+            let (trigger_def_id, trigger_substs, trigger_span, _, _) =
+                extract_closure_from_ty(tcx, ty_trigger);
             let set_field = encoder
                 .encode_raw_ref_field(format!("tuple_{}", trigger_set_idx), ty_trigger_set)
                 .with_span(trigger_span)?;
@@ -184,7 +185,8 @@ pub(super) fn encode_quantifier<'tcx>(
             while let vir_crate::polymorphic::Expr::Field(vir_crate::polymorphic::FieldExpr {
                 base,
                 ..
-            }) = encoded_trigger {
+            }) = encoded_trigger
+            {
                 encoded_trigger = *base;
             }
 

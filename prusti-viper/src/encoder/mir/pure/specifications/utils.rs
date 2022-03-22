@@ -5,8 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_hir::def_id::DefId;
-use rustc_middle::ty;
-use rustc_middle::ty::subst::SubstsRef;
+use rustc_middle::{ty, ty::subst::SubstsRef};
 use rustc_span::Span;
 
 pub(super) fn extract_closure_from_ty<'tcx>(

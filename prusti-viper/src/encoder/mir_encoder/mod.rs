@@ -17,7 +17,6 @@ use prusti_common::config;
 use rustc_target::abi;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
-use rustc_middle::ty::subst::SubstsRef;
 use rustc_index::vec::IndexVec;
 use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
@@ -501,7 +500,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     /// Returns an `vir::Type` that corresponds to the type of the value of the operand
-    pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>, substs: SubstsRef<'tcx>)
+    pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>)
         -> EncodingResult<vir::Type>
     {
         trace!("Encode operand expr {:?}", operand);
@@ -711,7 +710,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
         span: Span,
-        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
@@ -776,7 +774,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     let encoded_args = vec![encoded_operand];
                     let formal_args = vec![vir::LocalVar::new(
                         String::from("number"),
-                        self.encode_operand_expr_type(operand, substs).with_span(span)?,
+                        self.encode_operand_expr_type(operand).with_span(span)?,
                     )];
                     let pos = self.register_error(span, ErrorCtxt::TypeCast);
                     let return_type = self.encoder.encode_snapshot_type(dst_ty).with_span(span)?;

@@ -10,7 +10,6 @@ use log::debug;
 use prusti_common::config;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
-use rustc_middle::ty::subst::SubstsRef;
 use rustc_span::Span;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
@@ -112,7 +111,6 @@ pub(crate) trait PlacesEncoderInterface<'tcx> {
         def_id: DefId,
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
-        substs: SubstsRef<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression>;
 }
@@ -465,7 +463,6 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         def_id: DefId,
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
-        substs: SubstsRef<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let src_ty = self.get_operand_type(mir, operand)?;

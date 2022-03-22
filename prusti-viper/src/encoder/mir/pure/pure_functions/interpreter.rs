@@ -10,7 +10,6 @@ use crate::encoder::{
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
     },
     mir::{
-        generics::MirGenericsEncoderInterface,
         pure::{specifications::SpecificationEncoderInterface, PureEncodingContext},
         specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
@@ -28,10 +27,7 @@ use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
     mir, span_bug, ty,
-    ty::{
-        fold::TypeFoldable,
-        subst::{Subst, SubstsRef},
-    },
+    ty::subst::{Subst, SubstsRef},
 };
 
 use std::{convert::TryInto, mem};
@@ -167,9 +163,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                 ..
             } => {
                 let postprocessed_base = self.postprocess_place_encoding(base)?;
-                let idx_val_int = self
-                    .encoder
-                    .patch_snapshots(vir::Expr::snap_app(index))?;
+                let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
                 self.encoder.encode_snapshot_array_idx(
                     rust_array_ty,
@@ -184,9 +178,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                 ..
             } => {
                 let postprocessed_base = self.postprocess_place_encoding(base)?;
-                let idx_val_int = self
-                    .encoder
-                    .patch_snapshots(vir::Expr::snap_app(index))?;
+                let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
                 self.encoder.encode_snapshot_slice_idx(
                     rust_slice_ty,
@@ -422,7 +414,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
                     // compose substitutions
-                    use crate::rustc_middle::ty::subst::Subst;
                     let composed_substs = call_substs.subst(self.encoder.env().tcx(), self.substs);
 
                     let state = if destination.is_some() {
@@ -496,10 +487,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let slice_ty = self.mir_encoder.get_operand_ty(&args[0]);
                                 let len = self
                                     .encoder
-                                    .encode_snapshot_slice_len(
-                                        slice_ty,
-                                        encoded_args[0].clone(),
-                                    )
+                                    .encode_snapshot_slice_len(slice_ty, encoded_args[0].clone())
                                     .with_span(span)?;
 
                                 let mut state = states[target_block].clone();
@@ -637,7 +625,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .enumerate()
                                     .map(|(i, arg)| {
                                         self.mir_encoder
-                                            .encode_operand_expr_type(arg, self.substs)
+                                            .encode_operand_expr_type(arg)
                                             .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
                                     })
                                     .collect::<Result<_, _>>()
@@ -1168,7 +1156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
                         let encoded_val = self.mir_encoder
-                            .encode_cast_expr(operand, *dst_ty, span, &self.substs)?;
+                            .encode_cast_expr(operand, *dst_ty, span)?;
 
                         // Substitute a place of a value with an expression
                         state.substitute_value(&encoded_lhs, encoded_val);

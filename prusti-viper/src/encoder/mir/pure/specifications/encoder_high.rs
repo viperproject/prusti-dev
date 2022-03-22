@@ -15,8 +15,7 @@ use crate::encoder::{
 };
 use prusti_common::config;
 use rustc_hir::def_id::DefId;
-use rustc_middle::ty;
-use rustc_middle::ty::subst::SubstsRef;
+use rustc_middle::{ty, ty::subst::SubstsRef};
 use rustc_span::Span;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
@@ -126,7 +125,8 @@ pub(super) fn encode_quantifier_high<'tcx>(
     {
         let mut encoded_triggers = vec![];
         for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
-            let (trigger_def_id, trigger_substs, _, _, _) = extract_closure_from_ty(tcx, ty_trigger);
+            let (trigger_def_id, trigger_substs, _, _, _) =
+                extract_closure_from_ty(tcx, ty_trigger);
             let set_field = FieldDecl::new(
                 format!("tuple_{}", trigger_set_idx),
                 encoder.encode_type_high(ty_trigger_set)?,

@@ -1,11 +1,6 @@
-use crate::encoder::{
-    errors::{EncodingError, EncodingResult},
-    mir::types::MirTypeEncoderInterface,
-};
+use crate::encoder::{errors::EncodingResult, mir::types::MirTypeEncoderInterface};
 
-use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
-use rustc_middle::ty;
 use rustc_middle::ty::subst::SubstsRef;
 use rustc_span::symbol::Symbol;
 use vir_crate::high::{self as vir_high};
@@ -51,13 +46,10 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
         def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> EncodingResult<Vec<vir_high::ty::Type>> {
+        assert_eq!(substs.len(), self.env().identity_substs(def_id).len());
+
         // FIXME: why can try_as_type_list not be called here?
         //rustc_middle::ty::subst::InternalSubsts::try_as_type_list(substs)
-
-        // assumption: the `substs` passed to this method is a correct `substs`
-        // for the given `DefId`
-        // FIXME: debug_assert some check for this (e.g. that `identity_for_item`
-        // has the same length as `substs`)
         Ok(substs
             .iter()
             .map(|subst| subst.expect_ty())
