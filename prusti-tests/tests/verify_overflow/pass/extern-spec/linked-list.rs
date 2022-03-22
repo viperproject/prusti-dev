@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 use std::collections::LinkedList;
@@ -77,7 +76,7 @@ impl<T> LinkedList<T>
 
     #[ensures(self.len() == old(self.len() + other.len()))]
     #[ensures(forall (|i: usize| (i < old(self.len())) ==>
-    get(self, i) == old(get(self, i))))]
+        get(self, i) == old(get(self, i))))]
     #[ensures(forall (|j: usize| (old(self.len()) <= j && j < self.len()) ==>
         get(self, j) == old(get(other, j - self.len()))))]
     #[ensures(other.len() == 0)]
@@ -103,15 +102,18 @@ fn main() {
     ll2.push_front(2);
     ll2.push_front(3);
     ll2.push_front(4);
+    assert!(get(&ll2, 2) == 2);
+    assert!(get(&ll2, 1) == 3);
+    assert!(get(&ll2, 0) == 4);
 
     l.append(&mut ll2);
     assert!(l.len() == 4);
 
-    assert!(get(&l, 1) == 2);
+    assert!(get(&l, 3) == 2);
     assert!(get(&l, 2) == 3);
-    assert!(get(&l, 3) == 4);
+    assert!(get(&l, 1) == 4);
 
-    assert!(matches!(l.pop_front(), Some(4)));
+    assert!(matches!(l.pop_front(), Some(1)));
 
     assert!(l.len() == 3);
 }
