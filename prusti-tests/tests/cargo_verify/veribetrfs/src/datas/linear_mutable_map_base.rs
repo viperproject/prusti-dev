@@ -37,6 +37,7 @@ impl Slot {
 }
 
 #[pure] 
+#[trusted] // since no flags right now
 pub fn hash64(k: usize) -> usize {
     let k0 = !k + k << 21;
     let k1 = k0 ^ (k0 >> 24);
