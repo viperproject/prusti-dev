@@ -45,6 +45,21 @@ impl WithIdentifier for ty::Float {
 
 impl WithIdentifier for ty::TypeVar {
     fn get_identifier(&self) -> String {
+        match self {
+            ty::TypeVar::Lifetime(type_var) => type_var.get_identifier(),
+            ty::TypeVar::GenericType(type_var) => type_var.get_identifier(),
+        }
+    }
+}
+
+impl WithIdentifier for ty::Lifetime {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
+    }
+}
+
+impl WithIdentifier for ty::GenericType {
+    fn get_identifier(&self) -> String {
         self.name.clone()
     }
 }

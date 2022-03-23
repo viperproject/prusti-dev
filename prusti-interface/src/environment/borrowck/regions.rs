@@ -103,7 +103,7 @@ fn extract_region(place_regions: &mut PlaceRegions, local: mir::Local, ty: ty::T
             debug!("region: {:?}", region);
         }
         ty::TyKind::Tuple(substs) => {
-            for (i, ty) in substs.types().enumerate() {
+            for (i, ty) in substs.iter().enumerate() {
                 match ty.kind() {
                     ty::TyKind::Ref(region, _, _) => {
                         place_regions.add(local, vec![i], extract_region_id(region))

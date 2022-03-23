@@ -23,8 +23,7 @@ impl B {
     /// this is only disallowed for references to slices, because internally the Rust core library performs
     /// "inbounds GEP" LLVM instructions on pointers derived from the slice reference.)
     #[pure]
-    // FIXME: https://github.com/viperproject/prusti-dev/issues/718
-    #[ensures(result.len() <= isize::MAX as usize / SIZE_A)] //~ ERROR postcondition might not hold.
+    #[ensures(result.len() <= isize::MAX as usize / SIZE_A)]
     pub const fn deref(&self) -> &[A] {
         &self.inner
     }

@@ -92,7 +92,12 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         // FIXME: Should use encode_builtin_function_use.
         let name = "subslice";
         let element_type = extract_container_element_type(&container)?;
-        let return_type = vir_high::Type::reference(vir_high::Type::slice(element_type.clone()));
+        // TODO: add real lifetime here
+        let fake_lft = vir_high::ty::Lifetime {
+            name: "lft_fake".to_string(),
+        };
+        let return_type =
+            vir_high::Type::reference(vir_high::Type::slice(element_type.clone()), fake_lft);
         Ok(vir_high::Expression::function_call(
             name,
             vec![element_type.clone()],
@@ -172,9 +177,11 @@ fn extract_container_element_type(
         | vir_high::Type::Slice(vir_high::ty::Slice { element_type, .. })
         | vir_high::Type::Reference(vir_high::ty::Reference {
             target_type: box vir_high::Type::Array(vir_high::ty::Array { element_type, .. }),
+            ..
         })
         | vir_high::Type::Reference(vir_high::ty::Reference {
             target_type: box vir_high::Type::Slice(vir_high::ty::Slice { element_type, .. }),
+            ..
         }) => Ok(&**element_type),
         container_ty => Err(EncodingError::unsupported(format!(
             "unsupported container: {}",

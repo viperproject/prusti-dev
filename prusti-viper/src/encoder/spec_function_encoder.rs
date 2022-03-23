@@ -1,9 +1,12 @@
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::encoder::{Encoder, borrows::ProcedureContract};
-use crate::encoder::errors::{SpannedEncodingResult, ErrorCtxt, WithSpan};
+use crate::encoder::errors::{ErrorCtxt, SpannedEncodingResult, WithSpan};
 use crate::encoder::borrows::compute_procedure_contract;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
-use crate::encoder::mir::pure::SpecificationEncoderInterface;
+use crate::encoder::mir::{
+    pure::SpecificationEncoderInterface,
+    specifications::SpecificationsInterface,
+};
 use prusti_interface::{
     environment::{
         Procedure
@@ -15,9 +18,6 @@ use vir_crate::polymorphic as vir;
 use vir_crate::polymorphic::ExprIterator;
 use rustc_middle::{mir, ty::subst::SubstsRef};
 use rustc_span::Span;
-
-
-
 use super::encoder::SubstMap;
 
 pub enum SpecFunctionKind {
@@ -90,7 +90,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             .collect::<Result<Vec<_>, _>>()?;
 
         for item in contract.functional_precondition() {
-            func_spec.push(self.encoder.encode_assertion(
+            let assertion = self.encoder.encode_assertion(
                 item,
                 None,
                 &encoded_args
@@ -98,11 +98,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                     .map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 None,
                 true,
-                ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 self.tymap,
                 self.substs,
-            )?);
+            )?;
+            self.encoder.error_manager().set_error(
+                assertion.pos(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
+            func_spec.push(assertion);
         }
 
         Ok(vir::Function {
@@ -135,7 +139,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         // encoded return: _0
 
         for item in contract.functional_postcondition() {
-            func_spec.push(self.encoder.encode_assertion(
+            let assertion = self.encoder.encode_assertion(
                 item,
                 None,
                 &encoded_args
@@ -143,11 +147,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                     .map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 Some(&encoded_return.clone().into()),
                 true,
-                ErrorCtxt::GenericExpression,
                 self.proc_def_id,
                 self.tymap,
                 self.substs,
-            )?);
+            )?;
+            self.encoder.error_manager().set_error(
+                assertion.pos(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
+            func_spec.push(assertion);
         }
 
         Ok(vir::Function {

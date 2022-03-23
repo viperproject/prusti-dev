@@ -3,6 +3,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#![allow(deprecated)]
 
 pub mod commandline;
 
@@ -19,6 +20,7 @@ pub struct Optimizations {
     pub remove_empty_if: bool,
     pub purify_vars: bool,
     pub fix_quantifiers: bool,
+    pub fix_unfoldings: bool,
     pub remove_unused_vars: bool,
     pub remove_trivial_assertions: bool,
     pub clean_cfg: bool,
@@ -33,6 +35,7 @@ impl Optimizations {
             remove_empty_if: false,
             purify_vars: false,
             fix_quantifiers: false,
+            fix_unfoldings: false,
             remove_unused_vars: false,
             remove_trivial_assertions: false,
             clean_cfg: false,
@@ -47,6 +50,8 @@ impl Optimizations {
             remove_empty_if: true,
             purify_vars: true,
             fix_quantifiers: true,
+            // Disabled because https://github.com/viperproject/prusti-dev/issues/892 has been fixed
+            fix_unfoldings: false,
             remove_unused_vars: true,
             remove_trivial_assertions: true,
             clean_cfg: true,
@@ -122,6 +127,8 @@ lazy_static! {
         allowed_keys.insert("config".to_string());
         allowed_keys.insert("log".to_string());
         allowed_keys.insert("log_style".to_string());
+        allowed_keys.insert("rustc_log_args".to_string());
+        allowed_keys.insert("rustc_log_env".to_string());
 
         // 2. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
         settings.merge(
@@ -443,6 +450,7 @@ pub fn optimizations() -> Optimizations {
             "remove_empty_if" => opt.remove_empty_if = true,
             "purify_vars" => opt.purify_vars = true,
             "fix_quantifiers" => opt.fix_quantifiers = true,
+            "fix_unfoldings" => opt.fix_unfoldings = true,
             "remove_unused_vars" => opt.remove_unused_vars = true,
             "remove_trivial_assertions" => opt.remove_trivial_assertions = true,
             "clean_cfg" => opt.clean_cfg = true,

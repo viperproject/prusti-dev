@@ -47,7 +47,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             debug!("Dump borrow checker info...");
             env.dump_borrowck_info(&verification_task.procedures);
 
-            let mut verifier = Verifier::new(&env, &def_spec);
+            let mut verifier = Verifier::new(&env, def_spec);
             let verification_result = verifier.verify(&verification_task);
             debug!("Verifier returned {:?}", verification_result);
 
