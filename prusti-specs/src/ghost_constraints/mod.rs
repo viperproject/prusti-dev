@@ -11,7 +11,9 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
 
     // Parse ghost constraint information
     let (trait_bounds_ts, nested_specs) = parse_ghost_constraint(attr)?;
-    let trait_bounds: ProvidedTraitBounds = syn::parse2(trait_bounds_ts)?;
+    let trait_bounds: ProvidedTraitBounds = syn::parse2(trait_bounds_ts).map_err(|err|
+        syn::Error::new(err.span(), "Could not parse trait bounds")
+    )?;
 
     verify_provided_trait_bounds(&trait_bounds)?;
 
