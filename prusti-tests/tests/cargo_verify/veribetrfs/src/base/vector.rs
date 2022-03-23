@@ -1,5 +1,4 @@
 use prusti_contracts::*;
-use core::ops::*;
 
 pub struct Vector<T>(Vec<T>);
 
