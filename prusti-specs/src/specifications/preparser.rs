@@ -50,7 +50,6 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
     Ok((lhs, rhs))
 }
 
-// TODO hansenj: Maybe remove
 pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
     let pts = PrustiTokenStream::new(tokens);
     let (trait_bounds_ts, nested_specs_ts) = pts.parse_ghost_constraint()?;
@@ -231,7 +230,7 @@ impl PrustiTokenStream {
         let mut arguments = self.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
 
         if arguments.len() != 2 {
-            return error(span, "two arguments expected"); // TODO hansenj: This span is wrong
+            return error(span, "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)");
         }
 
         let trait_bounds_ts = arguments.remove(0).parse_rust_only()?;
@@ -428,9 +427,6 @@ impl PrustiTokenStream {
         }
     }
 
-    // TODO hansenj: Refactor
-    // TODO hansenj: Why is this a mut self?
-    // TODO hansenj: Better parsing in pop_one_nested_spec???
     fn pop_group_of_nested_specs(&mut self, span: Span) -> syn::Result<Vec<NestedSpec<TokenStream>>> {
         let group_of_specs = self.pop_group(Delimiter::Bracket)
             .ok_or_else(|| syn::parse::Error::new(span, "expected nested specification in brackets"))?;
@@ -903,8 +899,8 @@ mod tests {
 
     #[test]
     fn ghost_constraint_invalid_args() {
-        assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), "two arguments expected");
-        assert_error!(parse_ghost_constraint(quote!{ }), "two arguments expected");
+        assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)");
+        assert_error!(parse_ghost_constraint(quote!{ }), "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)");
     }
 
     #[test]
