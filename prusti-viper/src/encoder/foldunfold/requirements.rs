@@ -16,25 +16,16 @@ use vir_crate::polymorphic::{self as vir, PermAmount};
 
 pub trait RequiredStmtPermissionsGetter {
     /// Returns the permissions required for the statement to be well-defined.
-    /// The result can be an over-approximation.
     fn get_required_permissions(&self, predicates: &Predicates) -> FxHashSet<Perm>;
 }
 
 pub trait RequiredExprPermissionsGetter {
-    /// Compute the required permissions that the *statement* containing the expression has.
+    /// Compute the permissions required by the *statement* containing the expression has.
     /// This is needed to appropriately generate fold statements in impure code, before the
     /// statement containing the `self` expression, because Viper has no "folding" expressions.
     fn get_required_stmt_permissions(&self, preds: &Predicates) -> FxHashSet<Perm>;
 
-    /// Compute all the permissions required by the expression or one of its subexpressions.
-    /// This is needed to unfold as much as possible before certain statements, like assignments and
-    /// assertions, for which the foldunfold algorithm assumes that they contain no unfolding
-    /// expressions.
-    /// The result will in some cases contain conflicting requirements (e.g. require `x.f` folded
-    /// but also `x.f.g` folded) which can be solved by calling the `solve_conficts` function.
-    fn get_all_required_expr_permissions(&self, predicates: &Predicates) -> FxHashSet<Perm>;
-
-    /// Compute the required permissions that the root of the expression has.
+    /// Compute the permissions required by the root of the expression has.
     /// If subexpressions have requirements that can be satisfied by generating unfolding
     /// expressions in the subexpressions, then those requirements should *not* be returned by
     /// this method.
@@ -50,9 +41,6 @@ impl<'a, A: RequiredStmtPermissionsGetter> RequiredStmtPermissionsGetter for &'a
 impl<'a, A: RequiredExprPermissionsGetter> RequiredExprPermissionsGetter for &'a A {
     fn get_required_stmt_permissions(&self, predicates: &Predicates) -> FxHashSet<Perm> {
         (*self).get_required_stmt_permissions(predicates)
-    }
-    fn get_all_required_expr_permissions(&self, predicates: &Predicates) -> FxHashSet<Perm> {
-        (*self).get_all_required_expr_permissions(predicates)
     }
     fn get_required_expr_permissions(&self, predicates: &Predicates) -> FxHashSet<Perm> {
         (*self).get_required_expr_permissions(predicates)
@@ -76,8 +64,8 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
                 // Here we use `get_all_required_expr_permissions` instead of
                 // `get_required_stmt_permissions` because `ApplyOnState::apply_on_state` doesn't
                 // currently support unfoldings in the exhale.
-                let perms = expr.get_all_required_expr_permissions(predicates);
-                perms
+                get_all_required_expr_permissions(expr, predicates)
+                    .0
                     .into_iter()
                     .map(|perm| perm.set_default_pos(*position))
                     .collect()
@@ -121,7 +109,7 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
                 // Here we use `get_all_required_expr_permissions` instead of
                 // `get_required_stmt_permissions` because `ApplyOnState::apply_on_state` doesn't
                 // currently support unfoldings on the RHS.
-                let mut res = source.get_all_required_expr_permissions(predicates);
+                let mut res = get_all_required_expr_permissions(source, predicates).0;
                 res.insert(Acc(target.clone(), PermAmount::Write));
                 res
             }
@@ -227,115 +215,193 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
     }
 }
 
+/// Compute all the permissions required by the expression or one of its subexpressions.
+/// This is needed to unfold as much as possible before certain statements, like assignments and
+/// assertions, for which the fold-unfold algorithm assumes that they contain no unfolding
+/// expressions.
+/// The result will in some cases contain conflicting requirements (e.g. require `x.f` folded
+/// but also `x.f.g` folded) which can be solved by calling the `solve_conficts` function.
+fn get_all_required_expr_permissions(
+    expr: &vir::Expr,
+    preds: &Predicates,
+) -> (FxHashSet<Perm>, FxHashSet<vir::Expr>) {
+    trace!("[enter] get_all_required_expr_permissions(expr={})", expr);
+    let mut reqs: FxHashSet<Perm> = FxHashSet::default();
+    let mut discr: FxHashSet<vir::Expr> = FxHashSet::default();
+
+    reqs.extend(expr.get_required_expr_permissions(preds));
+
+    fn extend_filtering_discriminant_checks(
+        check_discr: &FxHashSet<vir::Expr>,
+        dependant_reqs: FxHashSet<Perm>,
+        final_reqs: &mut FxHashSet<Perm>,
+    ) {
+        for req in dependant_reqs {
+            let mut added_discr_base = false;
+            for discr_base in check_discr {
+                if req.get_place().has_proper_prefix(discr_base) {
+                    final_reqs.insert(Pred(discr_base.clone(), req.get_perm_amount()));
+                    added_discr_base = true;
+                }
+            }
+            if !added_discr_base {
+                final_reqs.insert(req);
+            }
+        }
+    }
+
+    match expr {
+        vir::Expr::Field(vir::FieldExpr {
+            box base, field, ..
+        }) => {
+            let (base_reqs, base_discr) = get_all_required_expr_permissions(base, preds);
+            reqs.extend(base_reqs);
+            discr.extend(base_discr);
+            if field.name == "discriminant" {
+                debug_assert!(base.is_place());
+                discr.insert(base.clone());
+            }
+        }
+
+        vir::Expr::Variant(vir::Variant { base: inner, .. })
+        | vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate { base: inner, .. })
+        | vir::Expr::AddrOf(vir::AddrOf { base: inner, .. })
+        | vir::Expr::Cast(vir::Cast { base: inner, .. })
+        | vir::Expr::Downcast(vir::DowncastExpr { base: inner, .. })
+        | vir::Expr::ForAll(vir::ForAll { body: inner, .. })
+        | vir::Expr::Exists(vir::Exists { body: inner, .. })
+        | vir::Expr::UnaryOp(vir::UnaryOp {
+            argument: inner, ..
+        })
+        | vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
+            argument: inner,
+            ..
+        }) => {
+            let (inner_reqs, inner_discr) = get_all_required_expr_permissions(inner, preds);
+            reqs.extend(inner_reqs);
+            discr.extend(inner_discr);
+        }
+
+        vir::Expr::BinOp(vir::BinOp {
+            left,
+            right,
+            op_kind,
+            ..
+        }) => {
+            let (left_reqs, left_discr) = get_all_required_expr_permissions(left, preds);
+            reqs.extend(left_reqs);
+            let (right_reqs, right_discr) = get_all_required_expr_permissions(right, preds);
+            discr.extend(right_discr);
+
+            if let vir::BinaryOpKind::Implies | vir::BinaryOpKind::And | vir::BinaryOpKind::Or =
+                op_kind
+            {
+                extend_filtering_discriminant_checks(&left_discr, right_reqs, &mut reqs);
+            } else {
+                reqs.extend(right_reqs);
+            }
+            discr.extend(left_discr);
+        }
+
+        vir::Expr::ContainerOp(vir::ContainerOp { left, right, .. })
+        | vir::Expr::LetExpr(vir::LetExpr {
+            def: left,
+            body: right,
+            ..
+        }) => {
+            let (left_reqs, left_discr) = get_all_required_expr_permissions(left, preds);
+            reqs.extend(left_reqs);
+            discr.extend(left_discr);
+            let (right_reqs, right_discr) = get_all_required_expr_permissions(right, preds);
+            reqs.extend(right_reqs);
+            discr.extend(right_discr);
+        }
+
+        vir::Expr::Cond(vir::Cond {
+            guard,
+            then_expr,
+            else_expr,
+            ..
+        }) => {
+            let (guard_reqs, guard_discr) = get_all_required_expr_permissions(guard, preds);
+            reqs.extend(guard_reqs);
+            let (then_reqs, then_discr) = get_all_required_expr_permissions(then_expr, preds);
+            discr.extend(then_discr);
+            extend_filtering_discriminant_checks(&guard_discr, then_reqs, &mut reqs);
+            let (else_reqs, else_discr) = get_all_required_expr_permissions(else_expr, preds);
+            discr.extend(else_discr);
+            extend_filtering_discriminant_checks(&guard_discr, else_reqs, &mut reqs);
+            discr.extend(guard_discr);
+        }
+
+        vir::Expr::Seq(vir::Seq {
+            elements: inners, ..
+        })
+        | vir::Expr::FuncApp(vir::FuncApp {
+            arguments: inners, ..
+        })
+        | vir::Expr::DomainFuncApp(vir::DomainFuncApp {
+            arguments: inners, ..
+        }) => {
+            for inner in inners {
+                let (inner_reqs, inner_discr) = get_all_required_expr_permissions(inner, preds);
+                reqs.extend(inner_reqs);
+                discr.extend(inner_discr);
+            }
+        }
+
+        vir::Expr::Unfolding(vir::Unfolding {
+            arguments,
+            base,
+            permission,
+            variant,
+            ..
+        }) => {
+            assert_eq!(arguments.len(), 1);
+            let place = &arguments[0];
+            debug_assert!(place.is_place());
+
+            // We want to temporarly unfold `place`
+            let predicate_type = place.get_type();
+            let predicate = preds.get(predicate_type).unwrap();
+
+            let pred_self_place: vir::Expr = predicate.self_place();
+            let places_in_pred: FxHashSet<Perm> = predicate
+                .get_body_footprint(variant)
+                .into_iter()
+                .map(|aop| {
+                    aop.map_place(|p| p.replace_place(&pred_self_place, place))
+                        .update_perm_amount(*permission)
+                })
+                .collect();
+
+            // Simulate temporary unfolding of `place`
+            let (expr_req_places, base_discr) = get_all_required_expr_permissions(base, preds);
+            reqs.extend(perm_difference(expr_req_places, places_in_pred));
+            discr.extend(base_discr);
+        }
+        _ => {}
+    }
+
+    trace!(
+        "[exit] get_all_required_expr_permissions(expr={}) {:#?} {:#?}",
+        expr,
+        reqs,
+        discr
+    );
+    (reqs, discr)
+}
+
 impl RequiredExprPermissionsGetter for vir::Expr {
     fn get_required_stmt_permissions(&self, preds: &Predicates) -> FxHashSet<Perm> {
         trace!("[enter] get_required_stmt_permissions(expr={})", self);
-        let reqs = self
-            .get_all_required_expr_permissions(preds)
+        let reqs = get_all_required_expr_permissions(self, preds)
+            .0
             .into_iter()
             .filter(|p| p.is_pred())
             .collect();
         trace!(
             "[exit] get_required_stmt_permissions(expr={}) {:#?}",
-            self,
-            reqs
-        );
-        reqs
-    }
-
-    fn get_all_required_expr_permissions(&self, preds: &Predicates) -> FxHashSet<Perm> {
-        trace!("[enter] get_all_required_expr_permissions(expr={})", self);
-        let mut reqs: FxHashSet<Perm> = FxHashSet::default();
-
-        reqs.extend(self.get_required_expr_permissions(preds));
-
-        match self {
-            vir::Expr::Variant(vir::Variant { base, .. })
-            | vir::Expr::Field(vir::FieldExpr { base, .. })
-            | vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate { base, .. })
-            | vir::Expr::AddrOf(vir::AddrOf { base, .. })
-            | vir::Expr::Cast(vir::Cast { base, .. })
-            | vir::Expr::Downcast(vir::DowncastExpr { base, .. }) => {
-                reqs.extend(base.get_all_required_expr_permissions(preds));
-            }
-            vir::Expr::ForAll(vir::ForAll { body, .. })
-            | vir::Expr::Exists(vir::Exists { body, .. }) => {
-                reqs.extend(body.get_all_required_expr_permissions(preds));
-            }
-            vir::Expr::UnaryOp(vir::UnaryOp { argument, .. })
-            | vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
-                argument, ..
-            }) => {
-                reqs.extend(argument.get_all_required_expr_permissions(preds));
-            }
-            vir::Expr::BinOp(vir::BinOp { left, right, .. })
-            | vir::Expr::ContainerOp(vir::ContainerOp { left, right, .. }) => {
-                reqs.extend(left.get_all_required_expr_permissions(preds));
-                reqs.extend(right.get_all_required_expr_permissions(preds));
-            }
-            vir::Expr::Seq(vir::Seq { elements, .. }) => {
-                reqs.extend(
-                    elements
-                        .iter()
-                        .flat_map(|a| a.get_all_required_expr_permissions(preds)),
-                );
-            }
-            vir::Expr::FuncApp(vir::FuncApp { arguments, .. })
-            | vir::Expr::DomainFuncApp(vir::DomainFuncApp { arguments, .. }) => {
-                reqs.extend(
-                    arguments
-                        .iter()
-                        .flat_map(|a| a.get_all_required_expr_permissions(preds)),
-                );
-            }
-            vir::Expr::Unfolding(vir::Unfolding {
-                arguments,
-                base,
-                permission,
-                variant,
-                ..
-            }) => {
-                assert_eq!(arguments.len(), 1);
-                let place = &arguments[0];
-                debug_assert!(place.is_place());
-
-                // We want to temporarly unfold `place`
-                let predicate_type = place.get_type();
-                let predicate = preds.get(predicate_type).unwrap();
-
-                let pred_self_place: vir::Expr = predicate.self_place();
-                let places_in_pred: FxHashSet<Perm> = predicate
-                    .get_body_footprint(variant)
-                    .into_iter()
-                    .map(|aop| {
-                        aop.map_place(|p| p.replace_place(&pred_self_place, place))
-                            .update_perm_amount(*permission)
-                    })
-                    .collect();
-
-                // Simulate temporary unfolding of `place`
-                let expr_req_places = base.get_all_required_expr_permissions(preds);
-                reqs.extend(perm_difference(expr_req_places, places_in_pred));
-            }
-            vir::Expr::Cond(vir::Cond {
-                guard,
-                then_expr,
-                else_expr,
-                ..
-            }) => {
-                reqs.extend(guard.get_all_required_expr_permissions(preds));
-                reqs.extend(then_expr.get_all_required_expr_permissions(preds));
-                reqs.extend(else_expr.get_all_required_expr_permissions(preds));
-            }
-            vir::Expr::LetExpr(vir::LetExpr { def, body, .. }) => {
-                reqs.extend(def.get_all_required_expr_permissions(preds));
-                reqs.extend(body.get_all_required_expr_permissions(preds));
-            }
-            _ => {}
-        }
-
-        trace!(
-            "[exit] get_all_required_expr_permissions(expr={}) {:#?}",
             self,
             reqs
         );
