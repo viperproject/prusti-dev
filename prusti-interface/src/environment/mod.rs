@@ -360,32 +360,54 @@ impl<'tcx> Environment<'tcx> {
         impl_method_substs: SubstsRef<'tcx>, // what are the substs on the call?
     ) -> Option<(ProcedureDefId, SubstsRef<'tcx>)> {
         let impl_def_id = self.tcx.impl_of_method(impl_method_def_id)?;
-        let trait_def_id = self.tcx.trait_id_of_impl(impl_def_id)?;
+        let trait_ref = self.tcx.impl_trait_ref(impl_def_id)?;
 
-        // the input method was in an impl for a trait: finding a `None` in
-        // further calls would be unexpected, so we unwrap instead of ?
-
+        // At this point, we know that the given method:
+        // - belongs to an impl block and
+        // - the impl block implements a trait.
+        // For the `get_assoc_item` call, we therefore `unwrap`, as not finding
+        // the associated item would be a (compiler) internal error.
+        let trait_def_id = trait_ref.def_id;
         let trait_method_def_id = self.get_assoc_item(
             trait_def_id,
             self.tcx().item_name(impl_method_def_id),
         ).unwrap().def_id;
-        let trait_ref = self.tcx.impl_trait_ref(impl_def_id).unwrap();
+
+        // sanity check: have we been given the correct number of substs?
         let identity_impl_method = self.identity_substs(impl_method_def_id);
-        let identity_trait_method = self.identity_substs(trait_method_def_id);
-
-        // sanity check: do the two methods have matching substs counts?
-        // (trait method substs include the substs for the trait itself, so we
-        // have to subtract here)
-        assert_eq!(identity_impl_method.len(), identity_trait_method.len() - trait_ref.substs.len());
-
-        // sanity check: have we provided the correct number of substs?
         assert_eq!(identity_impl_method.len(), impl_method_substs.len());
 
-        Some((
-            trait_method_def_id,
-            self.tcx.mk_substs(trait_ref.substs.iter()
-                .chain(impl_method_substs))
-        ))
+        // Given:
+        // ```
+        // trait Trait<Tp> {
+        //     fn f<Tx, Ty, Tz>();
+        // }
+        // struct Struct<Ex, Ey> { ... }
+        // impl<A, B, C> Trait<A> for Struct<B, C> {
+        //     fn f<X, Y, Z>() { ... }
+        // }
+        // ```
+        //
+        // The various substs look like this:
+        // - identity for Trait:           `[Self, Tp]`
+        // - identity for Trait::f:        `[Self, Tp, Tx, Ty, Tz]`
+        // - substs of the impl trait ref: `[Struct<B, C>, A]`
+        // - identity for the impl:        `[A, B, C]`
+        // - identity for Struct::f:       `[A, B, C, X, Y, Z]`
+        //
+        // What we need is a substs suitable for a call to Trait::f, whic is in
+        // this case `[Struct<B, C>, A, X, Y, Z]`. More generally, it is the
+        // concatenation of the trait ref substs with the identity of the impl
+        // method after skipping the identity of the impl.
+        let impl_substs = self.identity_substs(impl_def_id);
+        let trait_method_substs = self.tcx.mk_substs(trait_ref.substs.iter()
+            .chain(impl_method_substs.iter().skip(impl_substs.len())));
+
+        // sanity check: do we now have the correct number of substs?
+        let identity_trait_method = self.identity_substs(trait_method_def_id);
+        assert_eq!(trait_method_substs.len(), identity_trait_method.len());
+
+        Some((trait_method_def_id, trait_method_substs))
     }
 
     /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
