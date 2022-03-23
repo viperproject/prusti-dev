@@ -1,6 +1,3 @@
-//~ ERROR Prusti encountered an unexpected internal error
-//~| NOTE We would appreciate a bug report
-//~| NOTE Consistency error: expected the same type, but got Snap$struct$m_A and Ref
 extern crate prusti_contracts;
 use prusti_contracts::*;
 

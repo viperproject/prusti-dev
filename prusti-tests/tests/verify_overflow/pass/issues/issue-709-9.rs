@@ -17,9 +17,6 @@ impl B {
     /// Assign an ADT to a slice element directly
     #[requires(index < self.len())]
     pub fn set(&mut self, index: usize, a: A) {
-        //~^ ERROR Prusti encountered an unexpected internal error
-        //~| NOTE We would appreciate a bug report
-        //~| NOTE cannot generate fold-unfold Viper statements
         self.inner[index] = a;
     }
 }
