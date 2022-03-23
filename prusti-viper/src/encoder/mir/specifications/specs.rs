@@ -96,11 +96,7 @@ impl Specifications {
             self.user_typed_specs
                 .get(&query.def_id)
                 .and_then(|spec_set| spec_set.as_procedure())
-                .map(|spec_with_obligation| ObligationResolver {
-                    env,
-                    query,
-                    with_obligation: spec_with_obligation,
-                })
+                .map(|spec| ObligationResolver { env, query, spec })
                 .map(|resolver| resolver.resolve())
         })
     }

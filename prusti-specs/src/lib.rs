@@ -378,6 +378,16 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
             syn::ImplItem::Method(method) => {
                 let mut method_item = untyped::AnyFnItem::ImplMethod(method);
                 let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item);
+
+                let illegal_attribute_span = prusti_attributes.iter()
+                    .filter(|(kind, _)| kind == &SpecAttributeKind::GhostConstraint)
+                    .map(|(_, tokens)| tokens.span())
+                    .next();
+                if let Some(span) = illegal_attribute_span {
+                    let err = Err(syn::Error::new(span, "Ghost constraints in trait spec refinements not supported"));
+                    handle_result!(err);
+                }
+
                 let (spec_items, generated_attributes) = handle_result!(
                     generate_spec_and_assertions(prusti_attributes, &method_item)
                 );

@@ -1,8 +1,5 @@
 use crate::{
-    specs::typed::{
-        Pledge, ProcedureSpecification, SpecificationObligationKind,
-        WithPossibleObligation,
-    },
+    specs::typed::{Pledge, ProcedureSpecification, SpecificationObligationKind},
     utils::has_trait_bounds_ghost_constraint,
 };
 use rustc_hash::FxHashMap;
@@ -21,7 +18,7 @@ pub struct ProcSpecPartitioner<AttrsGetter: GetAttrs> {
     /// A contract without obligations ([SpecificationObligation::None])
     base_contract: ProcedureSpecification,
 
-    /// A partitioning of
+    /// A partitioning obligations to contracts under this obligation
     partition: FxHashMap<SpecificationObligationKind, ProcedureSpecification>,
 }
 
@@ -72,24 +69,20 @@ impl<AttrsGetter: GetAttrs> ProcSpecPartitioner<AttrsGetter> {
     /// are added. Note that currently it is not possible to have multiple different obligation kinds.
     /// # Panics
     /// When there are multiple different obligation kinds registered.
-    pub fn make_contract(self) -> WithPossibleObligation<ProcedureSpecification> {
+    pub fn make_contract(self) -> ProcedureSpecification {
         if self.partition.is_empty() {
-            WithPossibleObligation::WithoutObligation(self.base_contract)
+            self.base_contract
         } else if self.partition.len() == 1 {
             /*
                Note: We only partition by obligation "kind" and do not parse the actual contents ("semantics") of the obligation here.
                For example, one could define two trait bound obligations kinds with different bounds, which is not valid.
                This is not checked here, but later when evaluating the obligation.
             */
-            let (obligation, spec_under_obligation) = self.partition.into_iter().next().unwrap();
-            WithPossibleObligation::WithObligation(
-                obligation,
-                spec_under_obligation,
-                self.base_contract,
-            )
+            let mut base_contract = self.base_contract;
+            base_contract.obligations = self.partition;
+            base_contract
         } else {
-            // TODO hansenj: This should be a user error? Adjust method comment!
-            panic!("Multiple different specification obligations found, which is currently not supported in Prusti")
+            unreachable!("Multiple different specification obligations found, which is currently not supported in Prusti");
         }
     }
 

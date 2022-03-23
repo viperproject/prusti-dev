@@ -1,24 +1,21 @@
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
 use prusti_specs::specifications::common;
+use rustc_hash::FxHashMap;
 use rustc_hir::def_id::{DefId, LocalDefId};
-use std::{
-    collections::HashMap,
-    fmt::{Debug},
-};
-
-// TODO hansenj: Restructure this file
+use std::{collections::HashMap, fmt::Debug};
 
 #[derive(Debug, Clone)]
-#[allow(clippy::large_enum_variant)] // TODO hansenj: Put obligations somewhere else
 pub enum SpecificationSet {
-    Procedure(WithPossibleObligation<ProcedureSpecification>),
+    // The value of this variant is boxed because `ProcedureSpecification` and `LoopSpecification`
+    // have a rather large difference in size (speaking of "bytes").
+    Procedure(Box<ProcedureSpecification>),
     Loop(LoopSpecification),
 }
 
 impl SpecificationSet {
     pub fn empty_procedure_set() -> Self {
-        SpecificationSet::Procedure(WithPossibleObligation::WithoutObligation(ProcedureSpecification::empty()))
+        SpecificationSet::Procedure(Box::new(ProcedureSpecification::empty()))
     }
 
     pub fn is_procedure(&self) -> bool {
@@ -26,7 +23,7 @@ impl SpecificationSet {
     }
 
     #[track_caller]
-    pub fn expect_procedure(&self) -> &WithPossibleObligation<ProcedureSpecification> {
+    pub fn expect_procedure(&self) -> &ProcedureSpecification {
         if let SpecificationSet::Procedure(spec) = self {
             return spec;
         }
@@ -34,7 +31,7 @@ impl SpecificationSet {
     }
 
     #[track_caller]
-    pub fn as_procedure(&self) -> Option<&WithPossibleObligation<ProcedureSpecification>> {
+    pub fn as_procedure(&self) -> Option<&ProcedureSpecification> {
         if let SpecificationSet::Procedure(spec) = self {
             return Some(spec);
         }
@@ -42,7 +39,7 @@ impl SpecificationSet {
     }
 
     #[track_caller]
-    pub fn expect_mut_procedure(&mut self) -> &mut WithPossibleObligation<ProcedureSpecification> {
+    pub fn expect_mut_procedure(&mut self) -> &mut ProcedureSpecification {
         if let SpecificationSet::Procedure(spec) = self {
             return spec;
         }
@@ -50,9 +47,9 @@ impl SpecificationSet {
     }
 
     #[track_caller]
-    pub fn into_procedure(self) -> WithPossibleObligation<ProcedureSpecification> {
+    pub fn into_procedure(self) -> ProcedureSpecification {
         if let SpecificationSet::Procedure(spec) = self {
-            return spec;
+            return *spec;
         }
         unreachable!("expected Procedure: {:?}", self);
     }
@@ -75,27 +72,65 @@ impl SpecificationSet {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct ProcedureSpecification {
+    pub pres: SpecificationItem<Vec<LocalDefId>>,
+    pub posts: SpecificationItem<Vec<LocalDefId>>,
+    pub pledges: SpecificationItem<Vec<Pledge>>,
+    pub predicate_body: SpecificationItem<LocalDefId>,
+    pub pure: SpecificationItem<bool>,
+    pub trusted: SpecificationItem<bool>,
+
+    /// A mapping of obligations. Note that `this` is the base contract
+    /// of all specs (in the map), which themselves are under the obligation keyed by [SpecificationObligationKind]
+    /// Note: Obligations are not yet refinable, so they are not wrapped inside a [SpecificationItem]
+    pub obligations: FxHashMap<SpecificationObligationKind, ProcedureSpecification>,
+}
+
+impl ProcedureSpecification {
+    pub fn empty() -> Self {
+        ProcedureSpecification {
+            pres: SpecificationItem::Empty,
+            posts: SpecificationItem::Empty,
+            pledges: SpecificationItem::Empty,
+            predicate_body: SpecificationItem::Empty,
+            pure: SpecificationItem::Inherent(false),
+            trusted: SpecificationItem::Inherent(false),
+            obligations: FxHashMap::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LoopSpecification {
+    pub invariant: LocalDefId,
+}
+
+/// A map of specifications keyed by crate-local DefIds.
+#[derive(Default, Debug, Clone)]
+pub struct DefSpecificationMap {
+    pub specs: HashMap<LocalDefId, SpecificationSet>,
+    pub extern_specs: HashMap<DefId, LocalDefId>,
+}
+
+impl DefSpecificationMap {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet> {
+        let id = if let Some(spec_id) = self.extern_specs.get(def_id) {
+            *spec_id
+        } else {
+            def_id.as_local()?
+        };
+        self.specs.get(&id)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Pledge {
     pub reference: Option<()>, // TODO: pledge references
     pub lhs: Option<LocalDefId>,
     pub rhs: LocalDefId,
-}
-
-// TODO hansenj: Might want to add simplification method, i.e.
-// - And(None, Simple(A)) -> Simple(A)
-// - And(Simple(A), None) -> Simple(A)
-// - And(Simple(A), Simple(A)) -> Simple(A)
-// TODO hansenj: Rename (trait Obligation, SpecificationObligation: Can be confusing)
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum SpecificationObligationKind {
-    /// A specification without obligations
-    None,
-
-    /// A specification which may have trait bounds on generics
-    ResolveGenericParamTraitBounds,
-
-    /// A consolidated obligation, which is usually the case in trait specification refinement
-    Combined(Box<SpecificationObligationKind>, Box<SpecificationObligationKind>), // TODO: Only needed for refinement.
 }
 
 /// A specification, such as preconditions or a `#[pure]` annotation.
@@ -149,16 +184,46 @@ impl<T> SpecificationItem<T> {
     pub fn extract_with_selective_replacement(&self) -> Option<&T> {
         self.extract_with_strategy(|(_, refined)| refined)
     }
+
+    pub fn expect_empty_or_inherent(&self) -> Option<&T> {
+        match self {
+            SpecificationItem::Empty => None,
+            SpecificationItem::Inherent(item) => Some(item),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn expect_inherent(&self) -> &T {
+        match self {
+            SpecificationItem::Inherent(item) => item,
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn expect_inherited(&self) -> &T {
+        match self {
+            SpecificationItem::Inherited(item) => item,
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn expect_refined(&self) -> (&T, &T) {
+        match self {
+            SpecificationItem::Refined(a, b) => (a, b),
+            _ => unreachable!(),
+        }
+    }
 }
 
-// TODO hansenj: Test
 impl<T: Clone> SpecificationItem<T> {
     pub fn set(&mut self, new_value: T) {
         match self {
             SpecificationItem::Empty => *self = SpecificationItem::Inherent(new_value),
             SpecificationItem::Inherent(val) => *val = new_value,
             SpecificationItem::Refined(_, values) => *values = new_value,
-            SpecificationItem::Inherited(inherited) => *self = SpecificationItem::Refined(inherited.clone(), new_value)
+            SpecificationItem::Inherited(inherited) => {
+                *self = SpecificationItem::Refined(inherited.clone(), new_value)
+            }
         }
     }
 }
@@ -181,14 +246,14 @@ impl<T> SpecificationItem<Vec<T>> {
 }
 
 impl<T: Clone> SpecificationItem<Vec<T>> {
-    // TODO hansenj: Test this
-
     pub fn push(&mut self, value: T) {
         match self {
             SpecificationItem::Empty => *self = SpecificationItem::Inherent(vec![value]),
             SpecificationItem::Inherent(values) => values.push(value),
             SpecificationItem::Refined(_, values) => values.push(value),
-            SpecificationItem::Inherited(inherited) => *self = SpecificationItem::Refined(inherited.clone(), vec![value])
+            SpecificationItem::Inherited(inherited) => {
+                *self = SpecificationItem::Refined(inherited.clone(), vec![value])
+            }
         }
     }
 }
@@ -197,16 +262,6 @@ pub trait Refinable {
     fn refine(self, other: &Self) -> Self
     where
         Self: Sized;
-}
-
-// TODO hansenj: Test
-impl<T: Refinable> Refinable for Option<T> {
-    fn refine(self, other: &Self) -> Self where Self: Sized {
-        if let Some(other) = other {
-            return self.map(|s| s.refine(other));
-        }
-        self
-    }
 }
 
 impl<T: std::fmt::Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
@@ -256,6 +311,12 @@ impl<T: std::fmt::Debug + Clone + PartialEq> Refinable for SpecificationItem<T> 
 
 impl Refinable for ProcedureSpecification {
     fn refine(self, other: &Self) -> Self {
+        if !other.obligations.is_empty() {
+            // This is currently not supported and should be handled by validations
+            // when parsing the ghost constraint macro
+            unreachable!("Can not refine a procedure specification with a procedure specification which has obligations");
+        }
+
         ProcedureSpecification {
             pres: self.pres.refine(&other.pres),
             posts: self.posts.refine(&other.posts),
@@ -263,6 +324,7 @@ impl Refinable for ProcedureSpecification {
             predicate_body: self.predicate_body.refine(&other.predicate_body),
             pure: self.pure.refine(&other.pure),
             trusted: self.trusted.refine(&other.trusted),
+            obligations: self.obligations,
         }
     }
 }
@@ -273,107 +335,16 @@ impl Refinable for SpecificationSet {
             let self_proc = self.into_procedure();
             let other_proc = other.expect_procedure();
             let refined = self_proc.refine(other_proc);
-            return SpecificationSet::Procedure(refined);
+            return SpecificationSet::Procedure(Box::new(refined));
         }
         self
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum WithPossibleObligation<T: PartialEq> {
-    WithoutObligation(T),
-    WithObligation(SpecificationObligationKind, T, T)
-}
-
-// TODO hansenj: Test
-// TODO hansenj: Move code
-impl Refinable for SpecificationObligationKind {
-    fn refine(self, other: &Self) -> Self where Self: Sized {
-        if matches!(self, SpecificationObligationKind::None) {
-            other.clone()
-        } else if matches!(other, SpecificationObligationKind::None) {
-            self
-        } else {
-            SpecificationObligationKind::Combined(Box::new(self), Box::new(other.clone()))
-        }
-    }
-}
-
-// TODO hansenj: Test
-// TODO: hansenj: Is this what we want?
-impl<T: Refinable+Clone+PartialEq> Refinable for WithPossibleObligation<T> {
-    fn refine(self, other: &Self) -> Self where Self: Sized {
-        match self {
-            WithPossibleObligation::WithoutObligation(self_item) => {
-                match other {
-                    WithPossibleObligation::WithoutObligation(other_item) =>
-                        Self::WithoutObligation(self_item.refine(other_item))
-                    ,
-                    WithPossibleObligation::WithObligation(other_obligation, other_item, other_alternative) =>
-                        Self::WithObligation(other_obligation.clone(), self_item.refine(other_item), other_alternative.clone())
-                }
-            },
-            WithPossibleObligation::WithObligation(self_obligation, self_item, self_alternative) => {
-                match other {
-                    WithPossibleObligation::WithoutObligation(other_item) =>
-                        Self::WithObligation(self_obligation, self_item.refine(other_item), self_alternative)
-                    ,
-                    WithPossibleObligation::WithObligation(other_obligation, other_item, other_alternative) =>
-                        Self::WithObligation(self_obligation.refine(other_obligation), self_item.refine(other_item), self_alternative.refine(other_alternative))
-                }
-            }
-        }
-    }
-}
-
-// TODO hansenj: Since I introduce obligations, we probably need to make fields non-public, s.t. the obligation is always resolved
-#[derive(Debug, Clone, PartialEq)]
-pub struct ProcedureSpecification {
-    pub pres: SpecificationItem<Vec<LocalDefId>>,
-    pub posts: SpecificationItem<Vec<LocalDefId>>,
-    pub pledges: SpecificationItem<Vec<Pledge>>,
-    pub predicate_body: SpecificationItem<LocalDefId>,
-    pub pure: SpecificationItem<bool>,
-    pub trusted: SpecificationItem<bool>,
-}
-
-impl ProcedureSpecification {
-    pub fn empty() -> Self {
-        ProcedureSpecification {
-            pres: SpecificationItem::Empty,
-            posts: SpecificationItem::Empty,
-            pledges: SpecificationItem::Empty,
-            predicate_body: SpecificationItem::Empty,
-            pure: SpecificationItem::Inherent(false),
-            trusted: SpecificationItem::Inherent(false),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct LoopSpecification {
-    pub invariant: LocalDefId,
-}
-
-/// A map of specifications keyed by crate-local DefIds.
-#[derive(Default, Debug, Clone)]
-pub struct DefSpecificationMap {
-    pub specs: HashMap<LocalDefId, SpecificationSet>,
-    pub extern_specs: HashMap<DefId, LocalDefId>,
-}
-
-impl DefSpecificationMap {
-    pub fn new() -> Self {
-        Self::default()
-    }
-    pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet> {
-        let id = if let Some(spec_id) = self.extern_specs.get(def_id) {
-            *spec_id
-        } else {
-            def_id.as_local()?
-        };
-        self.specs.get(&id)
-    }
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum SpecificationObligationKind {
+    None,
+    ResolveGenericParamTraitBounds,
 }
 
 #[cfg(test)]
@@ -450,5 +421,71 @@ mod tests {
             refine_from_refined_with_inherited_unrefinable: (Refined(1, 2), Inherited(3)),
             refine_from_refined_with_refined: (Refined(1, 2), Refined(3,4)),
         );
+    }
+
+    mod specification_item {
+        use crate::specs::typed::SpecificationItem;
+
+        #[test]
+        fn set_value_of_empty() {
+            let mut item: SpecificationItem<i32> = SpecificationItem::Empty;
+            item.set(1);
+            assert!(matches!(item, SpecificationItem::Inherent(1)));
+        }
+
+        #[test]
+        fn set_value_of_inherent() {
+            let mut item = SpecificationItem::Inherent(1);
+            item.set(2);
+            assert!(matches!(item, SpecificationItem::Inherent(2)));
+        }
+
+        #[test]
+        fn set_value_of_inherited() {
+            let mut item = SpecificationItem::Inherited(1);
+            item.set(2);
+            assert!(matches!(item, SpecificationItem::Refined(1, 2)));
+        }
+
+        #[test]
+        fn set_value_of_refined() {
+            let mut item = SpecificationItem::Refined(1, 2);
+            item.set(3);
+            assert!(matches!(item, SpecificationItem::Refined(1, 3)));
+        }
+
+        #[test]
+        fn push_value_to_empty() {
+            let mut item: SpecificationItem<Vec<i32>> = SpecificationItem::Empty;
+            item.push(1);
+            let vec = item.expect_inherent();
+            assert_eq!(vec, &vec![1]);
+        }
+
+        #[test]
+        fn push_value_to_inherent() {
+            let mut item = SpecificationItem::Inherent(vec![1]);
+            item.push(2);
+            let vec = item.expect_inherent();
+            assert_eq!(vec, &vec![1, 2]);
+        }
+
+        #[test]
+        fn push_value_to_inherited() {
+            let mut item = SpecificationItem::Inherited(vec![1, 2]);
+            item.push(3);
+            let (refined_from, refined) = item.expect_refined();
+            assert_eq!(refined_from, &vec![1, 2]);
+            assert_eq!(refined, &vec![3]);
+        }
+
+        #[test]
+        fn push_value_to_refined() {
+            let mut item = SpecificationItem::Refined(vec![1, 2], vec![3, 4]);
+            item.push(5);
+            let (refined_from, refined) = item.expect_refined();
+            assert_eq!(refined_from, &vec![1, 2]);
+            assert_eq!(refined, &vec![3, 4, 5]);
+        }
     }
 }

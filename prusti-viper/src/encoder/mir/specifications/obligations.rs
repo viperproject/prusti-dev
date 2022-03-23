@@ -2,47 +2,49 @@ use crate::{encoder::mir::specifications::SpecQuery, rustc_middle::ty::subst::Su
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
-    specs::typed::{ProcedureSpecification, SpecificationObligationKind, WithPossibleObligation},
+    specs::typed::{ProcedureSpecification, SpecificationObligationKind},
 };
+use rustc_hir::def_id::LocalDefId;
 use rustc_middle::ty;
 use rustc_span::{MultiSpan, Span};
 
+/// Given a [ProcedureSpecification] with possible sub-contracts under obligation,
+/// returns the actual [ProcedureSpecification] that should hold for the given [SpecQuery]
 pub(super) struct ObligationResolver<'spec, 'env: 'spec, 'tcx: 'env> {
     pub env: &'env Environment<'tcx>,
-    pub with_obligation: &'spec WithPossibleObligation<ProcedureSpecification>,
+    pub spec: &'spec ProcedureSpecification,
     pub query: SpecQuery<'tcx>,
 }
 
 impl<'spec, 'env: 'spec, 'tcx: 'env> ObligationResolver<'spec, 'env, 'tcx> {
     pub fn resolve(self) -> &'spec ProcedureSpecification {
-        match self.with_obligation {
-            WithPossibleObligation::WithoutObligation(item) => item,
-            WithPossibleObligation::WithObligation(
-                obligation,
-                spec_under_obligation,
-                base_spec,
-            ) => {
-                if let Some(item) = self.resolve_with_obligation(obligation, spec_under_obligation)
-                {
-                    item
-                } else {
-                    base_spec
-                }
-            }
+        if self.spec.obligations.is_empty() {
+            return self.spec;
+        }
+
+        if self.spec.obligations.len() != 1 {
+            unreachable!("Multiple obligations are not yet supported");
+        }
+
+        let (obligation, spec_under_obligation) = self.spec.obligations.iter().next().unwrap();
+
+        if self.obligation_fulfilled(obligation, spec_under_obligation) {
+            spec_under_obligation
+        } else {
+            self.spec
         }
     }
 
-    fn resolve_with_obligation(
+    fn obligation_fulfilled(
         &self,
         obligation: &SpecificationObligationKind,
-        item: &'env ProcedureSpecification,
-    ) -> Option<&'spec ProcedureSpecification> {
+        item: &'spec ProcedureSpecification,
+    ) -> bool {
         match obligation {
-            SpecificationObligationKind::None => Some(item),
+            SpecificationObligationKind::None => true,
             SpecificationObligationKind::ResolveGenericParamTraitBounds => {
                 resolvers::trait_bounds::resolve(self.env, &self.query, item)
             }
-            SpecificationObligationKind::Combined(_, _) => None,
         }
     }
 }
@@ -59,7 +61,7 @@ mod resolvers {
             env: &'env Environment<'tcx>,
             query: &SpecQuery<'tcx>,
             item: &'spec ProcedureSpecification,
-        ) -> Option<&'spec ProcedureSpecification> {
+        ) -> bool {
             debug!("Trait bound obligation resolving for {:?}", query);
             let param_env_obligation = extract_param_env(env, item);
             let param_env_called_method = env.tcx().param_env(query.def_id);
@@ -92,10 +94,10 @@ mod resolvers {
 
             if all_bounds_satisfied {
                 trace!("\tObligation fulfilled");
-                Some(item)
+                true
             } else {
                 trace!("\tObligation not fulfilled");
-                None
+                false
             }
         }
 
@@ -117,12 +119,17 @@ mod resolvers {
         ) -> ty::ParamEnv<'tcx> {
             let mut param_envs: FxHashMap<ty::ParamEnv<'tcx>, Vec<Span>> = FxHashMap::default();
 
-            // TODO hansenj: Not sure about this
-            let pres_iter = item.pres.extract_with_selective_replacement_iter();
-            let posts_iter = item.posts.extract_with_selective_replacement_iter();
-            let specs_iter = pres_iter.chain(posts_iter);
-
-            for spec_id in specs_iter {
+            let pres: Vec<LocalDefId> = item
+                .pres
+                .expect_empty_or_inherent()
+                .cloned()
+                .unwrap_or_default();
+            let posts: Vec<LocalDefId> = item
+                .posts
+                .expect_empty_or_inherent()
+                .cloned()
+                .unwrap_or_default();
+            for spec_id in pres.iter().chain(posts.iter()) {
                 let param_env = env.tcx().param_env(spec_id.to_def_id());
                 let spec_span = env.tcx().def_span(spec_id.to_def_id());
                 param_envs
@@ -131,7 +138,11 @@ mod resolvers {
                     .push(spec_span);
             }
 
-            // TODO hansenj: Add case param_envs.len() == 0
+            assert_ne!(
+                param_envs.len(),
+                0,
+                "Could not extract trait bound obligations from contract"
+            );
             if param_envs.len() > 1 {
                 let spans = param_envs.values().flatten().cloned().collect();
                 PrustiError::unsupported(
