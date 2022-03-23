@@ -103,9 +103,10 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             partitioner.set_trusted(refs.trusted);
 
             let proc_spec = partitioner.make_contract();
+            
             def_spec.specs.insert(
                 *local_id,
-                typed::SpecificationSet::Procedure(proc_spec),
+                typed::SpecificationSet::Procedure(Box::new(proc_spec)),
             );
         }
     }
