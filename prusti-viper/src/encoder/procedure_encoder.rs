@@ -529,10 +529,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let expr = self.fold(statement.expr.clone());
                 self.preconds.push(expr);
             }
-            fn walk_assert(&mut self, statement: &vir::Assert) {
-                let expr = self.fold(statement.expr.clone());
-                self.preconds.push(expr);
-            }
             fn walk_expr(&mut self, expr: &vir::Expr) {
                 self.fold(expr.clone());
             }
@@ -593,17 +589,40 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let bb = &self.cfg_method.basic_blocks[block.block_index];
         let mut preconds: Vec<_> = bb.stmts.iter().flat_map(|stmt| self.stmt_preconditions(stmt)).collect();
         match &bb.successor {
-            Successor::Undefined => {}
-            Successor::Return => {}
+            Successor::Undefined => (),
+            Successor::Return => (),
             Successor::Goto(cbi) => preconds.extend(self.block_preconditions(cbi)),
             Successor::GotoSwitch(succs, def) => {
                 preconds.extend(
                     succs.iter().flat_map(|cond_bb| self.block_preconditions(&cond_bb.1))
                 );
                 preconds.extend(self.block_preconditions(def));
-            },
+            }
         }
         preconds
+    }
+    fn block_assert_to_assume(&mut self, block: &CfgBlockIndex) {
+        let bb = &mut self.cfg_method.basic_blocks[block.block_index];
+        for stmt in &mut bb.stmts {
+            match stmt {
+                vir::Stmt::Assert(assert) => {
+                    let expr = assert.expr.clone();
+                    *stmt = vir::Stmt::Inhale(vir::Inhale { expr });
+                }
+                _ => (),
+            }
+        }
+        match bb.successor.clone() {
+            Successor::Undefined => (),
+            Successor::Return => (),
+            Successor::Goto(cbi) => self.block_assert_to_assume(&cbi),
+            Successor::GotoSwitch(succs, def) => {
+                for (_, succ) in succs {
+                    self.block_assert_to_assume(&succ);
+                }
+                self.block_assert_to_assume(&def)
+            }
+        }
     }
 
     /// Encodes a loop.
@@ -803,6 +822,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 loop_depth,
                 return_block,
             )?;
+            if let Some(mid_g_head) = &mid_g.0 {
+                self.block_assert_to_assume(mid_g_head);
+            }
 
             // Encode the mid B1 group (start - G - B1 - invariant_perm - G - *B1* - invariant_fnspec - B2 - G - B1 - end)
             let mid_b1 = self.encode_blocks_group(
@@ -811,6 +833,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 loop_depth,
                 return_block,
             )?;
+            if let Some(mid_b1_head) = &mid_b1.0 {
+                self.block_assert_to_assume(mid_b1_head);
+            }
             // Save for later linking up
             Some((mid_g, mid_b1))
         } else {
