@@ -239,13 +239,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .encoder
                     .encode_type_of_place_high(self.mir, *place)
                     .with_span(span)?;
-                // TODO: add real lifetime here?
-                let fake_lft = vir_high::ty::Lifetime {
-                    name: String::from("lft_fake"),
+                let pure_lifetime = vir_high::ty::Lifetime {
+                    name: String::from("pure_erased"),
                 };
                 let encoded_ref = vir_high::Expression::addr_of_no_pos(
                     encoded_place,
-                    vir_high::Type::reference(ty, fake_lft),
+                    vir_high::Type::reference(ty, pure_lifetime),
                 );
                 // Substitute the place
                 state.substitute_value(&encoded_lhs, encoded_ref);
