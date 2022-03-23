@@ -146,68 +146,6 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -229,100 +167,73 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::high</span>::{<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#128-162">types::HighTypeEncoderInterface</a>, <a class="ident" href="../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#146-160">builtin_functions::HighBuiltinFunctionEncoderInterface</a>};
 
 
-<span class="doccomment">/// The result of `ArrayEncoder::encode_array_types`. Contains types, type predicates and length of the given array type.</span>
+<span class="doccomment">/// The result of `ArrayEncoder::encode_sequence_types`. Contains types, type predicates and length (if array) of the given sequence type.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EncodedArrayTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Array type, e.g. TypedRef(Array$3$i32)</span>
-    <span class="kw">pub</span> <span class="ident">array_pred_type</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EncodedSequenceTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Array/Slice type, e.g. TypedRef(Array$3$i32)</span>
+    <span class="kw">pub</span> <span class="ident">sequence_pred_type</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
     <span class="doccomment">/// Element type, e.g. TypedRef(i32)</span>
     <span class="kw">pub</span> <span class="ident">elem_pred_type</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
     <span class="doccomment">/// The non-encoded element type as passed by rustc</span>
     <span class="kw">pub</span> <span class="ident">elem_ty_rs</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The length of the array, e.g. 3</span>
-    <span class="kw">pub</span> <span class="ident">array_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// The length of the array, e.g. 3, for slices this is None</span>
+    <span class="kw">pub</span> <span class="ident">sequence_len</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">EncodedArrayTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_lookup_pure_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">array</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">idx</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">ret_ty</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let</span> (<span class="ident">lookup_pure</span>, <span class="ident">type_arguments</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#151-154">encode_builtin_function_use</a>(
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#32-37">BuiltinFunctionKind::ArrayLookupPure</a> {
-                <span class="ident">array_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">self</a>.<span class="ident">array_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">elem_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">self</a>.<span class="ident">elem_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">array_len</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">self</a>.<span class="ident">array_len</span>,
-                <span class="ident">return_ty</span>: <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">ret_ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            }
-        );
-
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">EncodedSequenceTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_lookup_pure_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">seq</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">idx</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">ret_ty</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">let</span> (<span class="ident">lookup_pure</span>, <span class="ident">type_arguments</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">len</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">self</a>.<span class="ident">sequence_len</span> {
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#151-154">encode_builtin_function_use</a>(
+                <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#32-37">BuiltinFunctionKind::ArrayLookupPure</a> {
+                    <span class="ident">array_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">self</a>.<span class="ident">sequence_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <span class="ident">elem_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">self</a>.<span class="ident">elem_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <span class="ident">array_len</span>: <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#37">len</a>,
+                    <span class="ident">return_ty</span>: <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">ret_ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                }
+            )
+        } <span class="kw">else</span> {
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#151-154">encode_builtin_function_use</a>(
+                <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#39-43">BuiltinFunctionKind::SliceLookupPure</a> {
+                    <span class="ident">slice_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">self</a>.<span class="ident">sequence_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <span class="ident">elem_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">self</a>.<span class="ident">elem_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <span class="ident">return_ty</span>: <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">ret_ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                }
+            )
+        };
         <span class="ident">vir::Expr::func_app</span>(
             <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#37">lookup_pure</a>,
             <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#37">type_arguments</a>,
             <span class="macro">vec!</span>[
-                <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">array</a>,
+                <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">seq</a>,
                 <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">idx</a>,
             ],
             <span class="macro">vec!</span>[
-                <span class="macro">vir_local!</span>{ <span class="self">self</span>: {<a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">self</a>.<span class="ident">array_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()} },
+                <span class="macro">vir_local!</span>{ <span class="self">self</span>: {<a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">self</a>.<span class="ident">sequence_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()} },
                 <span class="macro">vir_local!</span>{ <span class="ident">idx</span>: <span class="ident">Int</span> },
             ],
             <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#36">ret_ty</a>,
             <span class="ident">vir::Position::default</span>(),
         )
     }
-}
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">sequence</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">len</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#70">self</a>.<span class="ident">sequence_len</span> {
+            <span class="kw">return</span> <span class="ident">vir::Expr::from</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#71">len</a>);
+        }
 
-<span class="doccomment">/// The result of `ArrayEncoder::encode_slice_types`. Contains types and type predicates of the given array type.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EncodedSliceTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Slice type, e.g. TypedRef(Slice$i32)</span>
-    <span class="kw">pub</span> <span class="ident">slice_pred_type</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
-    <span class="doccomment">/// Element type, e.g. TypedRef(i32)</span>
-    <span class="kw">pub</span> <span class="ident">elem_pred_type</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>,
-    <span class="doccomment">/// The non-encoded element type as passed by rustc</span>
-    <span class="kw">pub</span> <span class="ident">elem_ty_rs</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">EncodedSliceTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_lookup_pure_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">slice</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">idx</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, <span class="ident">ret_ty</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let</span> (<span class="ident">lookup_pure</span>, <span class="ident">type_arguments</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#75">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#151-154">encode_builtin_function_use</a>(
-            <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#39-43">BuiltinFunctionKind::SliceLookupPure</a> {
-                <span class="ident">slice_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#75">self</a>.<span class="ident">slice_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">elem_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#75">self</a>.<span class="ident">elem_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">return_ty</span>: <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#75">ret_ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            }
-        );
-
-        <span class="ident">vir::Expr::func_app</span>(
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#76">lookup_pure</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#76">type_arguments</a>,
-            <span class="macro">vec!</span>[
-                <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#75">slice</a>,
-                <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#75">idx</a>,
-            ],
-            <span class="macro">vec!</span>[
-                <span class="macro">vir_local!</span>{ <span class="self">self</span>: {<a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#75">self</a>.<span class="ident">slice_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()} },
-                <span class="macro">vir_local!</span>{ <span class="ident">idx</span>: <span class="ident">Int</span> },
-            ],
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#75">ret_ty</a>,
-            <span class="ident">vir::Position::default</span>(),
-        )
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_slice_len_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">slice</span>: <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; <a class="ident" href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
-        <span class="kw">let</span> (<span class="ident">slice_len</span>, <span class="ident">type_arguments</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#100">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#151-154">encode_builtin_function_use</a>(
+        <span class="kw">let</span> (<span class="ident">slice_len</span>, <span class="ident">type_arguments</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#70">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#151-154">encode_builtin_function_use</a>(
             <a class="ident" href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#45-48">BuiltinFunctionKind::SliceLen</a> {
-                <span class="ident">slice_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#100">self</a>.<span class="ident">slice_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">elem_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#100">self</a>.<span class="ident">elem_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                <span class="ident">slice_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#70">self</a>.<span class="ident">sequence_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                <span class="ident">elem_pred_type</span>: <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#70">self</a>.<span class="ident">elem_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             }
         );
-
         <span class="ident">vir::Expr::func_app</span>(
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#101">slice_len</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#101">type_arguments</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#75">slice_len</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#75">type_arguments</a>,
             <span class="macro">vec!</span>[
-                <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#100">slice</a>,
+                <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#70">sequence</a>,
             ],
             <span class="macro">vec!</span>[
-                <span class="macro">vir_local!</span>{ <span class="self">self</span>: {<a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#100">self</a>.<span class="ident">slice_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()} },
+                <span class="macro">vir_local!</span>{ <span class="self">self</span>: {<a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#70">self</a>.<span class="ident">sequence_pred_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()} },
             ],
             <span class="ident">vir::Type::Int</span>,
             <span class="ident">vir::Position::default</span>(),
@@ -332,85 +243,50 @@
 
 
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArrayTypesEncoder</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="ident">array_types_cache</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">EncodedArrayTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">slice_types_cache</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">EncodedSliceTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SequenceTypesEncoder</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="ident">sequence_types_cache</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">EncodedSequenceTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">ArrayTypesEncoder</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">SequenceTypesEncoder</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#125-128">ArrayTypesEncoder</a> {
-            <span class="ident">array_types_cache</span>: <span class="ident">FxHashMap::default</span>(),
-            <span class="ident">slice_types_cache</span>: <span class="ident">FxHashMap::default</span>(),
+        <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#98-100">SequenceTypesEncoder</a> {
+            <span class="ident">sequence_types_cache</span>: <span class="ident">FxHashMap::default</span>(),
         }
     }
 
-    <span class="doccomment">/// Encode types, type predicates and builtin lookup functions required for handling slices of</span>
-    <span class="doccomment">/// type `slice_ty`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_slice_types</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_sequence_types</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">slice_ty_rs</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><span class="ident">EncodedSliceTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cached</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#141">self</a>.<span class="ident">slice_types_cache</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#143">slice_ty_rs</a>) {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#145">cached</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="ident">sequence_ty_rs</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><span class="ident">EncodedSequenceTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cached</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#110">self</a>.<span class="ident">sequence_types_cache</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#112">sequence_ty_rs</a>) {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#114">cached</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         }
 
-        <span class="kw">let</span> <span class="ident">slice_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#142">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#138">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#143">slice_ty_rs</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">elem_ty_rs</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#143">slice_ty_rs</a>.<span class="ident">kind</span>() {
-            <span class="ident">ty::TyKind::Slice</span>(<span class="ident">elem_ty</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#151">elem_ty</a>,
+        <span class="kw">let</span> (<span class="ident">elem_ty_rs</span>, <span class="ident">sequence_len</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#112">sequence_ty_rs</a>.<span class="ident">kind</span>() {
+            <span class="ident">ty::TyKind::Array</span>(<span class="ident">elem_ty</span>, <span class="ident">array_len</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#111">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#299-302">const_eval_intlike</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#119">array_len</a>.<span class="ident">val</span>())<span class="question-mark">?</span>.<span class="ident">to_u64</span>().<span class="ident">unwrap</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().<span class="ident">unwrap</span>();
+                (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#119">elem_ty</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#120">len</a>))
+            }
+            <span class="ident">ty::TyKind::Slice</span>(<span class="ident">elem_ty</span>) =&gt; (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#123">elem_ty</a>, <span class="prelude-val">None</span>),
             <span class="ident">ty::TyKind::Str</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(
                 <span class="ident">EncodingError::unsupported</span>(<span class="string">&quot;Encoding of Str slice type&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
             ),
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>()
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         };
 
-        <span class="kw">let</span> <span class="ident">elem_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#142">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#138">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#150">elem_ty_rs</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">sequence_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#111">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#138">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#112">sequence_ty_rs</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">elem_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#111">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#138">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#118">elem_ty_rs</a>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#65-72">EncodedSliceTypes</a> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#149">slice_pred_type</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#158">elem_pred_type</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#150">elem_ty_rs</a>,
+        <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#24-33">EncodedSequenceTypes</a> {
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#130">sequence_pred_type</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#131">elem_pred_type</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#118">elem_ty_rs</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#118">sequence_len</a>,
         };
-        <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#141">self</a>.<span class="ident">slice_types_cache</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#143">slice_ty_rs</a>, <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#160">encoded</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#110">self</a>.<span class="ident">sequence_types_cache</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#112">sequence_ty_rs</a>, <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#133">encoded</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#160">encoded</a>)
-    }
-
-    <span class="doccomment">/// Encode types, type predicates and builtin lookup functions required for handling arrays of</span>
-    <span class="doccomment">/// type `array_ty`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_array_types</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">array_ty_rs</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><span class="ident">EncodedArrayTypes</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cached</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#173">self</a>.<span class="ident">array_types_cache</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#175">array_ty_rs</a>) {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#177">cached</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        }
-
-        <span class="comment">// type predicates</span>
-        <span class="kw">let</span> (<span class="ident">elem_ty_rs</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Array</span>(<span class="ident">elem_ty</span>, <span class="ident">len</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#175">array_ty_rs</a>.<span class="ident">kind</span>() {
-            (<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#182">elem_ty</a>, <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#182">len</a>)
-        } <span class="kw">else</span> {
-            <span class="macro">unreachable!</span>()
-        };
-
-        <span class="comment">// types</span>
-        <span class="kw">let</span> <span class="ident">array_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#174">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#138">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#175">array_ty_rs</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">elem_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#174">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#138">encode_type</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#182">elem_ty_rs</a>)<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="ident">array_len</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#174">encoder</a>.<a class="ident" href="../../../src/prusti_viper/encoder/encoder.rs.html#299-302">const_eval_intlike</a>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#182">len</a>.<span class="ident">val</span>())<span class="question-mark">?</span>
-            .<span class="ident">to_u64</span>().<span class="ident">unwrap</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().<span class="ident">unwrap</span>();
-
-        <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#24-33">EncodedArrayTypes</a> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#189">array_pred_type</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#190">elem_pred_type</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#182">elem_ty_rs</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#192">array_len</a>,
-        };
-        <a class="self" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#173">self</a>.<span class="ident">array_types_cache</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#175">array_ty_rs</a>, <a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#195">encoded</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#195">encoded</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/array_encoder.rs.html#133">encoded</a>)
     }
 }
 </code></pre></div>

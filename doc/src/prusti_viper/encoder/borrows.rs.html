@@ -508,6 +508,9 @@
 <span id="503">503</span>
 <span id="504">504</span>
 <span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -986,32 +989,35 @@
     <span class="kw">let</span> <span class="ident">borrow_infos</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#471">visitor</a>
         .<span class="ident">borrow_infos</span>
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#479">info</a>.<span class="ident">blocked_paths</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#479">info</a>.<span class="ident">blocking_paths</span>.<span class="ident">is_empty</span>())
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span>
+            <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#479">info</a>.<span class="ident">blocked_paths</span>.<span class="ident">is_empty</span>()
+            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#479">info</a>.<span class="ident">blocking_paths</span>.<span class="ident">is_empty</span>()
+            <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#479">info</a>.<span class="ident">blocked_paths</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">mutability</span>)<span class="op">|</span> <span class="macro">matches!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#482">mutability</a>, <span class="ident">Mutability::Mut</span>))
+        ).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <span class="kw">let</span> <span class="ident">is_not_blocked</span> <span class="op">=</span> <span class="op">|</span><span class="ident">place</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">|</span> {
         <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#476">borrow_infos</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#482">info</a>.<span class="ident">blocked_paths</span>
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#485">info</a>.<span class="ident">blocked_paths</span>
                 .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span>(<span class="ident">blocked_place</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#485">blocked_place</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#481">place</a>)
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span>(<span class="ident">blocked_place</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#488">blocked_place</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#484">place</a>)
         })
     };
 
     <span class="kw">let</span> <span class="ident">returned_refs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#471">visitor</a>
         .<span class="ident">references_in</span>
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">place</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#481">is_not_blocked</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#492">place</a>))
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">place</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#484">is_not_blocked</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#495">place</a>))
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <span class="kw">let</span> <span class="ident">contract</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#73-99">ProcedureContractGeneric</a> {
         <span class="ident">def_id</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#419">proc_def_id</a>,
         <span class="ident">args</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#459">fake_mir_args</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#489">returned_refs</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#492">returned_refs</a>,
         <span class="ident">returned_value</span>: <span class="ident">mir::RETURN_PLACE</span>,
         <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#476">borrow_infos</a>,
         <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#421">specification</a>,
     };
 
-    <span class="macro">trace!</span>(<span class="string">&quot;[compute_borrow_infos] exit result={}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#494">contract</a>);
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#494">contract</a>)
+    <span class="macro">trace!</span>(<span class="string">&quot;[compute_borrow_infos] exit result={}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#497">contract</a>);
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#497">contract</a>)
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
