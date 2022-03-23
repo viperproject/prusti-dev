@@ -48,7 +48,8 @@ mod private {
     /// of just Rust expressions.
     pub use prusti_contracts_impl::predicate;
 
-    /// TODO hansenj: Comment
+    /// A macro to add trait bounds on a generic type parameter and specifications
+    /// which are active only when these bounds are satisfied for a call.
     pub use prusti_contracts_impl::ghost_constraint;
 }
 
@@ -88,7 +89,8 @@ mod private {
     /// of just Rust expressions.
     pub use prusti_contracts_internal::predicate;
 
-    /// TODO hansenj: Comment
+    /// A macro to add trait bounds on a generic type parameter and specifications
+    /// which are active only when these bounds are satisfied for a call.
     pub use prusti_contracts_internal::ghost_constraint;
 }
 
