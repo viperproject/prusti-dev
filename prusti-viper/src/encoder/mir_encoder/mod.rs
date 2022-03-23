@@ -245,12 +245,12 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let offset = *offset as usize;
                         match base_ty.kind() {
                             ty::TyKind::Array(..) => {
-                                let array_type = self.encoder().encode_array_types(base_ty)?;
-                                (array_type.array_len - offset).into()
+                                let array_type = self.encoder().encode_sequence_types(base_ty)?;
+                                (array_type.sequence_len.unwrap() - offset).into()
                             }
                             ty::TyKind::Slice(_) => {
-                                let slice_type = self.encoder().encode_slice_types(base_ty)?;
-                                let slice_len = slice_type.encode_slice_len_call(
+                                let slice_type = self.encoder().encode_sequence_types(base_ty)?;
+                                let slice_len = slice_type.len(
                                     self.encoder(),
                                     encoded_base.clone().try_into_expr()?,
                                 );
