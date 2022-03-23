@@ -92,12 +92,11 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         // FIXME: Should use encode_builtin_function_use.
         let name = "subslice";
         let element_type = extract_container_element_type(&container)?;
-        // TODO: add real lifetime here
-        let fake_lft = vir_high::ty::Lifetime {
-            name: "lft_fake".to_string(),
+        let pure_lifetime = vir_high::ty::Lifetime {
+            name: String::from("pure_erased"),
         };
         let return_type =
-            vir_high::Type::reference(vir_high::Type::slice(element_type.clone()), fake_lft);
+            vir_high::Type::reference(vir_high::Type::slice(element_type.clone()), pure_lifetime);
         Ok(vir_high::Expression::function_call(
             name,
             vec![element_type.clone()],
