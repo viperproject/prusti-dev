@@ -15,6 +15,7 @@ use crate::encoder::{
         generics::MirGenericsEncoderInterface,
         places::PlacesEncoderInterface,
         pure::{PureFunctionEncoderInterface, SpecificationEncoderInterface},
+        specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
     mir_encoder::MirEncoder,
@@ -127,10 +128,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             mir::AggregateKind::Adt(adt_did, variant_index, _, _, _) => {
                 let tcx = self.encoder.env().tcx();
                 let adt_def = tcx.adt_def(*adt_did);
-                let ty_with_variant = if adt_def.variants.len() > 1 {
+                let ty_with_variant = if adt_def.variants().len() > 1 {
                     // FIXME: Shouls use adt_def.is_enum() as a check.
                     // FIXME: Most likely need to substitute the discriminant here.
-                    let variant_def = &adt_def.variants[*variant_index];
+                    let variant_def = &adt_def.variants()[*variant_index];
                     let variant_name = variant_def.ident(tcx).to_string();
                     ty.variant(variant_name.into())
                 } else {
@@ -239,9 +240,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .encoder
                     .encode_type_of_place_high(self.mir, *place)
                     .with_span(span)?;
+                // TODO: add real lifetime here?
+                let fake_lft = vir_high::ty::Lifetime {
+                    name: String::from("lft_fake"),
+                };
                 let encoded_ref = vir_high::Expression::addr_of_no_pos(
                     encoded_place,
-                    vir_high::Type::reference(ty),
+                    vir_high::Type::reference(ty, fake_lft),
                 );
                 // Substitute the place
                 state.substitute_value(&encoded_lhs, encoded_ref);
@@ -257,7 +262,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     self.mir,
                     self.caller_def_id,
                     operand,
-                    dst_ty,
+                    *dst_ty,
                     &self.tymap,
                     span,
                 )?;
@@ -297,7 +302,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let encoded_operand = self.encode_operand(operand, span)?;
                 let len: usize = self
                     .encoder
-                    .const_eval_intlike(&times.val)
+                    .const_eval_intlike(times.val())
                     .with_span(span)?
                     .to_u64()
                     .unwrap()
@@ -474,7 +479,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                             span,
                         )?
                     }
-                    "std::ops::Index::index" | "core::ops::Index::index" => {
+                    "std::ops::IndexMut::index_mut"
+                    | "core::ops::IndexMut::index_mut"
+                    | "std::ops::Index::index"
+                    | "core::ops::Index::index" => {
                         assert_eq!(args.len(), 2);
                         self.encode_call_index(
                             *target_block,
@@ -547,10 +555,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
                     _ => ErrorCtxt::DivergingCallInPureFunction,
                 };
-                let pos =
-                    self.encoder
-                        .error_manager()
-                        .register(span, error_ctxt, self.caller_def_id);
+                let pos = self.encoder.error_manager().register_error(
+                    span,
+                    error_ctxt,
+                    self.caller_def_id,
+                );
                 ExprBackwardInterpreterState::new_defined(
                     self.unreachable_expr(pos.into()).with_span(span)?,
                 )
@@ -615,7 +624,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             .encode_pure_function_use_high(def_id, self.caller_def_id, tymap, substs)
             .with_span(span)?;
         trace!("Encoding pure function call '{}'", function_name);
-        let pos = self.encoder.error_manager().register(
+        let pos = self.encoder.error_manager().register_error(
             span,
             ErrorCtxt::PureFunctionCall,
             self.caller_def_id,
@@ -690,7 +699,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         let state = match &terminator.kind {
             TerminatorKind::Unreachable => {
                 assert!(states.is_empty());
-                let pos = self.encoder.error_manager().register(
+                let pos = self.encoder.error_manager().register_error(
                     span,
                     ErrorCtxt::Unexpected,
                     self.caller_def_id,
@@ -705,7 +714,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let pos = self
                     .encoder
                     .error_manager()
-                    .register(span, ErrorCtxt::Unexpected, self.caller_def_id)
+                    .register_error(span, ErrorCtxt::Unexpected, self.caller_def_id)
                     .into();
                 ExprBackwardInterpreterState::new_defined(
                     self.unreachable_expr(pos).with_span(span)?,
@@ -749,20 +758,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 switch_ty,
                 discr,
                 targets,
-            } => self.apply_switch_int_terminator(switch_ty, discr, targets, states, span)?,
+            } => self.apply_switch_int_terminator(*switch_ty, discr, targets, states, span)?,
 
             TerminatorKind::DropAndReplace { .. } => unimplemented!(),
 
             TerminatorKind::Call {
                 args,
                 destination,
-                func:
-                    mir::Operand::Constant(box mir::Constant {
-                        literal: mir::ConstantKind::Ty(ty::Const { ty, val: _ }),
-                        ..
-                    }),
+                func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 ..
-            } => self.apply_call_terminator(args, destination, ty, states, span)?,
+            } => self.apply_call_terminator(args, destination, literal.ty(), states, span)?,
 
             TerminatorKind::Call { .. } => {
                 return Err(SpannedEncodingError::unsupported(
@@ -792,7 +797,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     ErrorCtxt::PureFunctionAssertTerminator(assert_msg)
                 };
 
-                let pos = self.encoder.error_manager().register(
+                let pos = self.encoder.error_manager().register_error(
                     terminator.source_info.span,
                     error_ctxt,
                     self.caller_def_id,

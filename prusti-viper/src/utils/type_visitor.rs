@@ -6,7 +6,7 @@
 
 use rustc_hir::Mutability;
 use rustc_middle::ty::{
-    AdtDef, FieldDef, ParamTy, ProjectionTy, Region, Ty, TyCtxt,
+    AdtDef, FieldDef, List, ParamTy, ProjectionTy, Region, Ty, TyCtxt,
     TypeFlags, TyKind, IntTy, UintTy, FloatTy, VariantDef, subst::SubstsRef, Const
 };
 use rustc_hir::def_id::DefId;
@@ -49,8 +49,8 @@ pub trait TypeVisitor<'tcx>: Sized {
             TyKind::Ref(region, ty, mutability) => {
                 self.visit_ref(region, ty, mutability)
             }
-            TyKind::Tuple(parts) => {
-                self.visit_tuple(parts)
+            TyKind::Tuple(types) => {
+                self.visit_tuple(types)
             }
             TyKind::RawPtr(ty_and_mutbl) => {
                 self.visit_raw_ptr(ty_and_mutbl.ty, ty_and_mutbl.mutbl)
@@ -125,7 +125,7 @@ pub trait TypeVisitor<'tcx>: Sized {
 
     fn visit_adt(
         &mut self,
-        adt_def: &'tcx AdtDef,
+        adt_def: AdtDef<'tcx>,
         substs: SubstsRef<'tcx>
     ) -> Result<(), Self::Error> {
         trace!("visit_adt({:?})", adt_def);
@@ -173,10 +173,10 @@ pub trait TypeVisitor<'tcx>: Sized {
 
     fn visit_tuple(
         &mut self,
-        parts: SubstsRef<'tcx>
+        types: &'tcx List<Ty<'tcx>>
     ) -> Result<(), Self::Error> {
-        trace!("visit_tuple({:?})", parts);
-        walk_tuple(self, parts)
+        trace!("visit_tuple({:?})", types);
+        walk_tuple(self, types)
     }
 
     fn visit_raw_ptr(
@@ -209,7 +209,7 @@ pub trait TypeVisitor<'tcx>: Sized {
     fn visit_array(
         &mut self,
         ty: Ty<'tcx>,
-        len: &'tcx Const<'tcx>,
+        len: Const<'tcx>,
     ) -> Result<(), Self::Error> {
         trace!("visit_array({:?}, {:?})", ty, len);
         walk_array(self, ty, len)
@@ -218,10 +218,10 @@ pub trait TypeVisitor<'tcx>: Sized {
 
 pub fn walk_adt<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
-    adt_def: &'tcx AdtDef,
+    adt_def: AdtDef<'tcx>,
     substs: SubstsRef<'tcx>,
 ) -> Result<(), E> {
-    for variant in adt_def.variants.iter() {
+    for variant in adt_def.variants().iter() {
         visitor.visit_adt_variant(variant, substs)?;
     }
     Ok(())
@@ -266,10 +266,10 @@ pub fn walk_ref_type<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
 
 pub fn walk_tuple<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
-    parts: SubstsRef<'tcx>,
+    types: &'tcx List<Ty<'tcx>>,
 ) -> Result<(), E> {
-    for part in parts.iter() {
-        visitor.visit_ty(part.expect_ty())?;
+    for ty in types {
+        visitor.visit_ty(ty)?;
     }
     Ok(())
 }
@@ -292,9 +292,9 @@ pub fn walk_closure<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     let fn_sig =
         cl_substs.sig()
                  .no_bound_vars()
-                 .ok_or_else(|| visitor.unsupported("higher-ranked lifetimes and types are not supported"))?; 
+                 .ok_or_else(|| visitor.unsupported("higher-ranked lifetimes and types are not supported"))?;
     for ty in fn_sig.inputs() {
-        visitor.visit_ty(ty)?;
+        visitor.visit_ty(*ty)?;
     }
     visitor.visit_ty(fn_sig.output())
 }
@@ -313,7 +313,7 @@ pub fn walk_fndef<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
 pub fn walk_array<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
     ty: Ty<'tcx>,
-    _len: &'tcx Const<'tcx>,
+    _len: Const<'tcx>,
 ) -> Result<(), E> {
     visitor.visit_ty(ty)?;
 

@@ -9,7 +9,7 @@ use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use rustc_hir::{self as hir, Mutability};
 use rustc_hir::def_id::LocalDefId;
-use rustc_middle::{mir, ty::FnSig, ty::subst::SubstsRef};
+use rustc_middle::{mir, ty::FnSig};
 use rustc_index::vec::Idx;
 use rustc_middle::ty::{self, Ty, TyCtxt, TyKind};
 // use rustc_data_structures::indexed_vec::Idx;
@@ -20,7 +20,7 @@ use prusti_interface::specs::typed;
 use log::{trace};
 use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingResult;
-
+use prusti_interface::environment::tymap::SubstMap;
 
 
 #[derive(Clone, Debug)]
@@ -99,25 +99,25 @@ where
 }
 
 impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
-    pub fn functional_precondition(&self) -> &[LocalDefId] {
+    pub fn functional_precondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            &spec.pres
+            spec.pres.extract_with_selective_replacement_iter()
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
     }
 
-    pub fn functional_postcondition(&self) -> &[LocalDefId] {
+    pub fn functional_postcondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            &spec.posts
+            spec.posts.extract_with_selective_replacement_iter()
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
     }
 
-    pub fn pledges(&self) -> &[typed::Pledge] {
+    pub fn pledges(&self) -> impl Iterator<Item = &typed::Pledge> + '_ {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            &spec.pledges
+            spec.pledges.extract_with_selective_replacement_iter()
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
@@ -278,16 +278,16 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
     }
 
     fn extract_bound_region(&self, region: ty::Region<'tcx>) -> Option<ty::BoundRegionKind> {
-        match region {
-            &ty::RegionKind::ReFree(free_region) => Some(free_region.bound_region),
+        match region.kind() {
+            ty::RegionKind::ReFree(free_region) => Some(free_region.bound_region),
             // TODO: is this correct?!
-            &ty::RegionKind::ReLateBound(_, bound_region) => Some(bound_region.kind),
-            &ty::RegionKind::ReEarlyBound(early_region) => Some(
+            ty::RegionKind::ReLateBound(_, bound_region) => Some(bound_region.kind),
+            ty::RegionKind::ReEarlyBound(early_region) => Some(
                 ty::BoundRegionKind::BrNamed(early_region.def_id, early_region.name),
             ),
-            &ty::RegionKind::ReStatic => None,
-            &ty::RegionKind::ReErased => None,
-            &ty::RegionKind::ReVar(_) => None,
+            ty::RegionKind::ReStatic => None,
+            ty::RegionKind::ReErased => None,
+            ty::RegionKind::ReVar(_) => None,
             // &ty::RegionKind::ReScope(_scope) => None,
             x => unimplemented!("{:?}", x),
         }
@@ -385,12 +385,11 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
 
     fn visit_tuple(
         &mut self,
-        parts: SubstsRef<'tcx>,
+        types: &'tcx ty::List<ty::Ty<'tcx>>,
     ) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
-        for (i, part) in parts.iter().enumerate() {
+        for (i, ty) in types.into_iter().enumerate() {
             let field = mir::Field::new(i);
-            let ty = part.expect_ty();
             self.current_path = Some(
                 self.tcx().mk_place_field(old_path, field, ty)
             );
@@ -420,7 +419,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     env: &Environment<'tcx>,
     specification: typed::SpecificationSet,
-    maybe_tymap: Option<&FxHashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
+    maybe_tymap: Option<&SubstMap<'tcx>>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>>
 where
     'a: 'p,
@@ -462,8 +461,8 @@ where
 
     for (local, arg_ty) in args_ty {
         fake_mir_args.push(local);
-        fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
-            replaced_arg_ty
+        fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(&arg_ty)) {
+            *replaced_arg_ty
         } else {
             arg_ty
         });
@@ -477,8 +476,11 @@ where
     let borrow_infos: Vec<_> = visitor
         .borrow_infos
         .into_iter()
-        .filter(|info| !info.blocked_paths.is_empty() && !info.blocking_paths.is_empty())
-        .collect();
+        .filter(|info|
+            !info.blocked_paths.is_empty()
+            && !info.blocking_paths.is_empty()
+            && info.blocked_paths.iter().any(|(_, mutability)| matches!(mutability, Mutability::Mut))
+        ).collect();
     let is_not_blocked = |place: &mir::Place<'tcx>| {
         !borrow_infos.iter().any(|info| {
             info.blocked_paths

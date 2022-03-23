@@ -263,11 +263,13 @@ impl ApplyOnState for vir::Stmt {
             }) => {
                 let original_state = state.clone();
 
-                debug_assert!(
-                    !left.is_simple_place() || state.is_prefix_of_some_acc(left) || state.is_prefix_of_some_pred(left),
-                    "The fold/unfold state does not contain the permission for an expiring borrow: {}",
-                    left
-                );
+                if !unchecked {
+                    debug_assert!(
+                        !left.is_simple_place() || state.is_prefix_of_some_acc(left) || state.is_prefix_of_some_pred(left),
+                        "The fold/unfold state does not contain the permission for an expiring borrow: {}",
+                        left
+                    );
+                }
                 /*assert!(
                     state.is_prefix_of_some_pred(lhs_place),
                     "The fold/unfold state does not contain the permission for an expiring borrow: {}",

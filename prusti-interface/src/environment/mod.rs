@@ -13,10 +13,10 @@ use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_middle::ty::subst::SubstsRef;
-use rustc_trait_selection::infer::{TyCtxtInferExt, InferCtxtExt};
+use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
 
-use rustc_span::{Span, MultiSpan, symbol::Symbol};
+use rustc_span::{MultiSpan, Span, symbol::Symbol};
 use std::collections::HashSet;
 use log::{debug, trace};
 use std::rc::Rc;
@@ -37,6 +37,7 @@ pub mod polonius_info;
 mod procedure;
 pub mod mir_dump;
 mod traits;
+pub mod tymap;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
@@ -291,7 +292,7 @@ impl<'tcx> Environment<'tcx> {
         let mut res = HashSet::new();
         let traits = self.tcx().all_traits();
         for trait_id in traits {
-            self.tcx().for_each_relevant_impl(trait_id, ty, |impl_id| {
+            self.tcx().for_each_relevant_impl(trait_id, *ty, |impl_id| {
                 if let Some(relevant_trait_id) = self.tcx().trait_id_of_impl(impl_id) {
                     res.insert(relevant_trait_id);
                 }
@@ -305,6 +306,27 @@ impl<'tcx> Environment<'tcx> {
         // FIXME: Probably we should use https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.AssociatedItems.html#method.find_by_name_and_namespace
         // instead.
         self.tcx().associated_items(id).filter_by_name_unhygienic(name).next().cloned()
+    }
+
+    /// Returns true iff `def_id` is a trait method
+    pub fn is_trait_method(&self, def_id: ProcedureDefId) -> bool {
+        self.tcx.trait_of_item(def_id).is_some()
+    }
+
+    /// Returns true iff `def_id` is an implementation of a trait method
+    pub fn is_trait_method_impl(&self, def_id: ProcedureDefId) -> bool {
+        self.tcx.impl_of_method(def_id)
+            .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
+            .is_some()
+    }
+
+    /// Returns the `DefId` of the corresponding trait method
+    pub fn find_trait_method(&self, impl_def_id: ProcedureDefId) -> Option<DefId> {
+        self.tcx
+            .impl_of_method(impl_def_id)
+            .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
+            .and_then(|trait_id| self.get_assoc_item(trait_id, self.tcx().item_name(impl_def_id)))
+            .map(|assoc_item| assoc_item.def_id)
     }
 
     /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.

@@ -24,6 +24,7 @@ use prusti_interface::environment::mir_utils::MirPlace;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 use super::encoder::SubstMap;
 use super::high::types::HighTypeEncoderInterface;
+use rustc_span::MultiSpan;
 
 mod downcast_detector;
 mod place_encoding;
@@ -106,7 +107,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 match base_ty.kind() {
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
-                        let field_ty = elems[field.index()].expect_ty();
+                        let field_ty = elems[field.index()];
                         let encoded_field = self.encoder()
                             .encode_raw_ref_field(field_name, field_ty)?;
                         let encoded_projection = encoded_base.field(encoded_field);
@@ -115,7 +116,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
                     ty::TyKind::Adt(adt_def, ref subst) if !adt_def.is_box() => {
                         debug!("subst {:?}", subst);
-                        let num_variants = adt_def.variants.len();
+                        let num_variants = adt_def.variants().len();
                         // FIXME: why this can be None?
                         let variant_index = if let Some(num) = opt_variant_index {
                             num
@@ -134,7 +135,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             0
                         };
                         let tcx = self.encoder().env().tcx();
-                        let variant_def = &adt_def.variants[variant_index.into()];
+                        let variant_def = &adt_def.variants()[variant_index.into()];
                         let encoded_variant = if num_variants != 1 {
                             encoded_base.variant(variant_def.ident(tcx).as_str())
                         } else {
@@ -244,12 +245,12 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let offset = *offset as usize;
                         match base_ty.kind() {
                             ty::TyKind::Array(..) => {
-                                let array_type = self.encoder().encode_array_types(base_ty)?;
-                                (array_type.array_len - offset).into()
+                                let array_type = self.encoder().encode_sequence_types(base_ty)?;
+                                (array_type.sequence_len.unwrap() - offset).into()
                             }
                             ty::TyKind::Slice(_) => {
-                                let slice_type = self.encoder().encode_slice_types(base_ty)?;
-                                let slice_len = slice_type.encode_slice_len_call(
+                                let slice_type = self.encoder().encode_sequence_types(base_ty)?;
+                                let slice_len = slice_type.len(
                                     self.encoder(),
                                     encoded_base.clone().try_into_expr()?,
                                 );
@@ -268,10 +269,10 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             PlaceEncoding::ArrayAccess {
                                 base: box encoded_base,
                                 index,
-                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                                encoded_elem_ty: self.encoder().encode_type(*elem_ty)?,
                                 rust_array_ty: base_ty,
                             },
-                            elem_ty,
+                            *elem_ty,
                             None,
                         )
                     },
@@ -280,10 +281,10 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             PlaceEncoding::SliceAccess {
                                 base: box encoded_base,
                                 index,
-                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                                encoded_elem_ty: self.encoder().encode_type(*elem_ty)?,
                                 rust_slice_ty: base_ty,
                             },
-                            elem_ty,
+                            *elem_ty,
                             None,
                         )
                     },
@@ -314,10 +315,10 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     encoded_base.get_parent().unwrap()
                 } else {
                     let ref_field = self.encoder()
-                        .encode_dereference_field(ty)?;
+                        .encode_dereference_field(*ty)?;
                     encoded_base.field(ref_field)
                 };
-                (access, ty, None)
+                (access, *ty, None)
             }
             ty::TyKind::Adt(adt_def, _subst) if adt_def.is_box() => {
                 let access = if encoded_base.is_addr_of() {
@@ -442,13 +443,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
             mir::Operand::Constant(box mir::Constant {
-                literal: mir::ConstantKind::Ty(ty::Const { ty, val }),
+                literal: mir::ConstantKind::Ty(ty::Const(ty_val)),
                 ..
-            }) => self.encoder.encode_const_expr(ty, val)?,
+            }) => self.encoder.encode_const_expr(ty_val.ty, ty_val.val)?,
             mir::Operand::Constant(box mir::Constant {
                 literal: mir::ConstantKind::Val(val, ty),
                 ..
-            }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(*val))?,
+            }) => self.encoder.encode_const_expr(*ty, ty::ConstKind::Value(*val))?,
             mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
@@ -477,7 +478,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             //             .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
             //                 encoded_type.clone(),
             //             ));
-            //     let pos = self.encoder.error_manager().register(
+            //     let pos = self.encoder.error_manager().register_error(
             //         // TODO: use a proper span
             //         self.mir.span,
             //         ErrorCtxt::PureFunctionCall,
@@ -777,10 +778,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         String::from("number"),
                         self.encode_operand_expr_type(operand, tymap).with_span(span)?,
                     )];
-                    let pos = self
-                        .encoder
-                        .error_manager()
-                        .register(span, ErrorCtxt::TypeCast, self.def_id);
+                    let pos = self.register_error(span, ErrorCtxt::TypeCast);
                     let return_type = self.encoder.encode_snapshot_type(dst_ty, tymap).with_span(span)?;
                     return Ok(vir::Expr::func_app(
                         function_name,
@@ -852,10 +850,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         bb_data.terminator().source_info.span
     }
 
-    pub fn encode_expr_pos(&self, span: Span) -> vir::Position {
-        self.encoder
-            .error_manager()
-            .register(span, ErrorCtxt::GenericExpression, self.def_id)
+    pub fn register_span<T: Into<MultiSpan>>(&self, span: T) -> vir::Position {
+        self.encoder.error_manager().register_span(self.def_id, span)
+    }
+
+    pub fn register_error<T: Into<MultiSpan>>(&self, span: T, error_ctxt: ErrorCtxt) -> vir::Position {
+        self.encoder.error_manager().register_error(span, error_ctxt, self.def_id)
     }
 
     /// Return the cause of a call to `begin_panic`

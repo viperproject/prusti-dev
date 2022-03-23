@@ -129,7 +129,7 @@ impl Ord for PermAmount {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Float {
     F32,
     F64,
@@ -171,7 +171,7 @@ impl fmt::Display for BitVector {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Type {
     Int,
     Bool,
@@ -278,20 +278,6 @@ impl Type {
             Type::Snapshot(_) => TypeId::Snapshot,
             Type::Seq(_) => TypeId::Seq,
         }
-    }
-}
-
-impl PartialEq for Type {
-    fn eq(&self, other: &Self) -> bool {
-        discriminant(self) == discriminant(other)
-    }
-}
-
-impl Eq for Type {}
-
-impl Hash for Type {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
     }
 }
 

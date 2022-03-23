@@ -4,7 +4,7 @@ use super::encoder::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder
 use crate::encoder::{
     encoder::SubstMap,
     errors::{SpannedEncodingResult, WithSpan},
-    mir::generics::MirGenericsEncoderInterface,
+    mir::{generics::MirGenericsEncoderInterface, specifications::SpecificationsInterface},
     snapshot::interface::SnapshotEncoderInterface,
     stub_function_encoder::StubFunctionEncoder,
 };
@@ -284,7 +284,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 let (mut function, needs_patching) =
                     if let Some(predicate_body) = self.get_predicate_body(proc_def_id) {
                         (
-                            pure_function_encoder.encode_predicate_function(predicate_body)?,
+                            pure_function_encoder.encode_predicate_function(&predicate_body)?,
                             false,
                         )
                     } else if self.is_trusted(proc_def_id) {

@@ -24,7 +24,7 @@ pub(super) fn extract_closure_from_ty<'tcx>(
             (
                 *def_id,
                 tcx.def_span(*def_id),
-                sig.inputs()[0].tuple_fields().collect::<Vec<_>>(),
+                sig.inputs()[0].tuple_fields().to_vec(),
                 cl_substs.upvar_tys().collect(),
             )
         }
