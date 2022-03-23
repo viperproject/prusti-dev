@@ -1,7 +1,7 @@
 use crate::encoder::{errors::EncodingResult, mir::types::MirTypeEncoderInterface};
 
 use rustc_hir::def_id::DefId;
-use rustc_middle::ty::subst::SubstsRef;
+use rustc_middle::ty::{self, subst::SubstsRef};
 use rustc_span::symbol::Symbol;
 use vir_crate::high::{self as vir_high};
 
@@ -47,13 +47,14 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
         substs: SubstsRef<'tcx>,
     ) -> EncodingResult<Vec<vir_high::ty::Type>> {
         assert_eq!(substs.len(), self.env().identity_substs(def_id).len());
-
-        // FIXME: why can try_as_type_list not be called here?
-        //rustc_middle::ty::subst::InternalSubsts::try_as_type_list(substs)
         Ok(substs
             .iter()
-            .map(|subst| subst.expect_ty())
-            .map(|subst| self.encode_type_high(subst))
+            // TODO(tymap): ignoring const params and lifetimes for now
+            .filter_map(|generic| match generic.unpack() {
+                ty::subst::GenericArgKind::Type(ty) => Some(ty),
+                _ => None,
+            })
+            .map(|ty| self.encode_type_high(ty))
             .collect::<Result<Vec<_>, _>>()?)
     }
     fn encode_param(&self, name: Symbol, index: u32) -> vir_high::ty::TypeVar {
