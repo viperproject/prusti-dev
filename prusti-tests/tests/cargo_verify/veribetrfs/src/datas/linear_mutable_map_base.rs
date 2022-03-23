@@ -36,22 +36,15 @@ impl Slot {
     }
 }
 
-#[pure] 
-#[trusted] // since no flags right now
+#[pure]
 pub fn hash64(k: usize) -> usize {
-    let k0 = !k + k << 21;
-    let k1 = k0 ^ (k0 >> 24);
-    let k2 = k1 + k1 << 3 + k1 << 8;
-    let k3 = k2 ^ k2 >> 14;
-    let k4 = k3 + k3 << 2 + k3 << 4;
-    let k5 = k4 ^ (k4 >> 28);
-    let k6 = k5 + k5 << 31;
-    k6
+    k // TODO
 }
 
 #[requires(len > 0)]
+#[requires(slot < len)]
 pub fn slot_succ(len: usize, slot: usize) -> usize {
-    if slot >= len - 1 {
+    if slot == len - 1 {
         0
     } else {
         slot + 1
