@@ -10,15 +10,13 @@ pub struct B(pub [A; 16]);
 impl B {
     /// Mutably slice into an array of ADTs
     #[requires(index <= self.0.len())]
+    #[ensures(result.len() == index)]
     pub fn get_mut(&mut self, index: usize) -> &mut [A] {
         &mut self.0[0..index]
     }
 }
 
 pub fn test(b: &mut B) {
-    //~^ ERROR Prusti encountered an unexpected internal error
-    //~| NOTE We would appreciate a bug report
-    //~| NOTE cannot generate fold-unfold Viper statements
     b.get_mut(1)[0] = A(1);
 }
 

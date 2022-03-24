@@ -127,6 +127,8 @@ lazy_static! {
         allowed_keys.insert("config".to_string());
         allowed_keys.insert("log".to_string());
         allowed_keys.insert("log_style".to_string());
+        allowed_keys.insert("rustc_log_args".to_string());
+        allowed_keys.insert("rustc_log_env".to_string());
 
         // 2. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
         settings.merge(
