@@ -1,3 +1,4 @@
+use crate::{environment::Environment, utils::has_trait_bounds_ghost_constraint};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
 use prusti_specs::specifications::common;
@@ -7,15 +8,13 @@ use std::{collections::HashMap, fmt::Debug};
 
 #[derive(Debug, Clone)]
 pub enum SpecificationSet {
-    // The value of this variant is boxed because `ProcedureSpecification` and `LoopSpecification`
-    // have a rather large difference in size (speaking of "bytes").
-    Procedure(Box<ProcedureSpecification>),
+    Procedure(ProcedureSpecification),
     Loop(LoopSpecification),
 }
 
 impl SpecificationSet {
     pub fn empty_procedure_set() -> Self {
-        SpecificationSet::Procedure(Box::new(ProcedureSpecification::empty()))
+        SpecificationSet::Procedure(ProcedureSpecification::empty())
     }
 
     pub fn is_procedure(&self) -> bool {
@@ -49,7 +48,7 @@ impl SpecificationSet {
     #[track_caller]
     pub fn into_procedure(self) -> ProcedureSpecification {
         if let SpecificationSet::Procedure(spec) = self {
-            return *spec;
+            return spec;
         }
         unreachable!("expected Procedure: {:?}", self);
     }
@@ -79,11 +78,6 @@ pub struct ProcedureSpecification {
     pub predicate_body: SpecificationItem<LocalDefId>,
     pub pure: SpecificationItem<bool>,
     pub trusted: SpecificationItem<bool>,
-
-    /// A mapping of obligations. Note that `this` is the base contract
-    /// of all specs (in the map), which themselves are under the obligation keyed by [SpecificationObligationKind]
-    /// Note: Obligations are not yet refinable, so they are not wrapped inside a [SpecificationItem]
-    pub obligations: FxHashMap<SpecificationObligationKind, ProcedureSpecification>,
 }
 
 impl ProcedureSpecification {
@@ -95,7 +89,6 @@ impl ProcedureSpecification {
             predicate_body: SpecificationItem::Empty,
             pure: SpecificationItem::Inherent(false),
             trusted: SpecificationItem::Inherent(false),
-            obligations: FxHashMap::default(),
         }
     }
 }
@@ -108,7 +101,8 @@ pub struct LoopSpecification {
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
 pub struct DefSpecificationMap {
-    pub specs: HashMap<LocalDefId, SpecificationSet>,
+    pub proc_specs: HashMap<LocalDefId, SpecsWithConstraints<ProcedureSpecification>>,
+    pub loop_specs: HashMap<LocalDefId, SpecsWithConstraints<LoopSpecification>>,
     pub extern_specs: HashMap<DefId, LocalDefId>,
 }
 
@@ -116,13 +110,114 @@ impl DefSpecificationMap {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet> {
-        let id = if let Some(spec_id) = self.extern_specs.get(def_id) {
-            *spec_id
+
+    pub fn get_loop_spec(&self, def_id: &DefId) -> Option<&SpecsWithConstraints<LoopSpecification>> {
+        let id = self.map_to_spec(def_id)?;
+        self.loop_specs.get(&id)
+    }
+
+    pub fn get_proc_spec(&self, def_id: &DefId) -> Option<&SpecsWithConstraints<ProcedureSpecification>> {
+        let id = self.map_to_spec(def_id)?;
+        self.proc_specs.get(&id)
+    }
+
+    fn map_to_spec(&self, def_id: &DefId) -> Option<LocalDefId> {
+        if let Some(spec_id) = self.extern_specs.get(def_id) {
+            Some(*spec_id)
         } else {
-            def_id.as_local()?
-        };
-        self.specs.get(&id)
+            def_id.as_local()
+        }
+    }
+}
+
+// TODO hansenj: I dont like this name
+#[derive(Default, Debug, Clone)]
+pub struct SpecsWithConstraints<T> {
+    /// The base specification which has no constraints
+    pub base_spec: T,
+
+    /// Specs which are active when the corresponding [SpecConstraintKind] holds on callsite
+    pub specs_with_constraints: FxHashMap<SpecConstraintKind, T>,
+}
+
+impl<T> SpecsWithConstraints<T> {
+    pub fn new(spec: T) -> Self {
+        Self {
+            base_spec: spec,
+            specs_with_constraints: FxHashMap::default(),
+        }
+    }
+}
+
+impl SpecsWithConstraints<ProcedureSpecification> {
+    pub fn add_precondition<'tcx>(&mut self, pre: LocalDefId, env: &Environment<'tcx>) {
+        match self.get_constraint(pre, env) {
+            None => {
+                self.base_spec.pres.push(pre);
+                self.specs_with_constraints.values_mut().for_each(|s| s.pres.push(pre));
+            }
+            Some(obligation) => {
+                self.get_partitioned_mut(obligation).pres.push(pre);
+            }
+        }
+    }
+
+    pub fn add_postcondition<'tcx>(&mut self, post: LocalDefId, env: &Environment<'tcx>) {
+        match self.get_constraint(post, env) {
+            None => {
+                self.base_spec.posts.push(post);
+                self.specs_with_constraints.values_mut().for_each(|s| s.posts.push(post));
+            }
+            Some(obligation) => {
+                self.get_partitioned_mut(obligation).posts.push(post);
+            }
+        }
+    }
+
+    pub fn add_pledge(&mut self, pledge: Pledge) {
+        self.base_spec.pledges.push(pledge.clone());
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.pledges.push(pledge.clone()));
+    }
+
+    pub fn set_trusted(&mut self, trusted: bool) {
+        self.base_spec.trusted.set(trusted);
+        self.specs_with_constraints.values_mut().for_each(|s| s.trusted.set(trusted));
+    }
+
+    pub fn set_pure(&mut self, pure: bool) {
+        self.base_spec.pure.set(pure);
+        self.specs_with_constraints.values_mut().for_each(|s| s.pure.set(pure));
+    }
+
+    pub fn set_predicate(&mut self, predicate_id: LocalDefId) {
+        self.base_spec.predicate_body.set(predicate_id);
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.predicate_body.set(predicate_id));
+    }
+
+    fn get_partitioned_mut(
+        &mut self,
+        obligation: SpecConstraintKind,
+    ) -> &mut ProcedureSpecification {
+        self.specs_with_constraints
+            .entry(obligation)
+            .or_insert_with(|| self.base_spec.clone())
+    }
+
+    /// Note: First wins, we do currently support not multiple constraints
+    fn get_constraint<'tcx>(
+        &self,
+        spec: LocalDefId,
+        env: &Environment<'tcx>,
+    ) -> Option<SpecConstraintKind> {
+        let attrs = env.tcx().get_attrs(spec.to_def_id());
+        if has_trait_bounds_ghost_constraint(attrs) {
+            return Some(SpecConstraintKind::ResolveGenericParamTraitBounds);
+        }
+        None
     }
 }
 
@@ -311,12 +406,6 @@ impl<T: std::fmt::Debug + Clone + PartialEq> Refinable for SpecificationItem<T> 
 
 impl Refinable for ProcedureSpecification {
     fn refine(self, other: &Self) -> Self {
-        if !other.obligations.is_empty() {
-            // This is currently not supported and should be handled by validations
-            // when parsing the ghost constraint macro
-            unreachable!("Can not refine a procedure specification with a procedure specification which has obligations");
-        }
-
         ProcedureSpecification {
             pres: self.pres.refine(&other.pres),
             posts: self.posts.refine(&other.posts),
@@ -324,7 +413,6 @@ impl Refinable for ProcedureSpecification {
             predicate_body: self.predicate_body.refine(&other.predicate_body),
             pure: self.pure.refine(&other.pure),
             trusted: self.trusted.refine(&other.trusted),
-            obligations: self.obligations,
         }
     }
 }
@@ -335,15 +423,14 @@ impl Refinable for SpecificationSet {
             let self_proc = self.into_procedure();
             let other_proc = other.expect_procedure();
             let refined = self_proc.refine(other_proc);
-            return SpecificationSet::Procedure(Box::new(refined));
+            return SpecificationSet::Procedure(refined);
         }
         self
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum SpecificationObligationKind {
-    None,
+pub enum SpecConstraintKind {
     ResolveGenericParamTraitBounds,
 }
 

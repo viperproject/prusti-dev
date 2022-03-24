@@ -2,49 +2,84 @@ use crate::{encoder::mir::specifications::SpecQuery, rustc_middle::ty::subst::Su
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
-    specs::typed::{ProcedureSpecification, SpecificationObligationKind},
+    specs::typed::{ProcedureSpecification, SpecConstraintKind, SpecsWithConstraints},
+    PrustiError,
 };
 use rustc_hir::def_id::LocalDefId;
 use rustc_middle::ty;
 use rustc_span::{MultiSpan, Span};
 
-/// Given a [ProcedureSpecification] with possible sub-contracts under obligation,
-/// returns the actual [ProcedureSpecification] that should hold for the given [SpecQuery]
-pub(super) struct ObligationResolver<'spec, 'env: 'spec, 'tcx: 'env> {
-    pub env: &'env Environment<'tcx>,
-    pub spec: &'spec ProcedureSpecification,
-    pub query: SpecQuery<'tcx>,
-}
+pub(crate) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
+    fn resolve(
+        &'spec self,
+        env: &'env Environment<'tcx>,
+        query: &SpecQuery<'tcx>,
+    ) -> Result<&'spec ProcedureSpecification, PrustiError>;
 
-impl<'spec, 'env: 'spec, 'tcx: 'env> ObligationResolver<'spec, 'env, 'tcx> {
-    pub fn resolve(self) -> &'spec ProcedureSpecification {
-        if self.spec.obligations.is_empty() {
-            return self.spec;
-        }
-
-        if self.spec.obligations.len() != 1 {
-            unreachable!("Multiple obligations are not yet supported");
-        }
-
-        let (obligation, spec_under_obligation) = self.spec.obligations.iter().next().unwrap();
-
-        if self.obligation_fulfilled(obligation, spec_under_obligation) {
-            spec_under_obligation
-        } else {
-            self.spec
+    fn resolve_emit_err(
+        &'spec self,
+        env: &'env Environment<'tcx>,
+        query: &SpecQuery<'tcx>,
+    ) -> Option<&'spec ProcedureSpecification> {
+        match self.resolve(env, query) {
+            Ok(r) => Some(r),
+            Err(e) => {
+                e.emit(env);
+                None
+            }
         }
     }
+}
 
-    fn obligation_fulfilled(
-        &self,
-        obligation: &SpecificationObligationKind,
-        item: &'spec ProcedureSpecification,
-    ) -> bool {
-        match obligation {
-            SpecificationObligationKind::None => true,
-            SpecificationObligationKind::ResolveGenericParamTraitBounds => {
-                resolvers::trait_bounds::resolve(self.env, &self.query, item)
+impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
+    for SpecsWithConstraints<ProcedureSpecification>
+{
+    fn resolve(
+        &'spec self,
+        env: &'env Environment<'tcx>,
+        query: &SpecQuery<'tcx>,
+    ) -> Result<&'spec ProcedureSpecification, PrustiError> {
+        if self.specs_with_constraints.is_empty() {
+            return Ok(&self.base_spec);
+        }
+
+        let mut applicable_specs =
+            self.specs_with_constraints
+                .iter()
+                .filter(|(obligation_kind, spec)| {
+                    constraint_fulfilled(env, query, obligation_kind, spec)
+                });
+
+        if let Some((_, spec_under_obligation)) = applicable_specs.next() {
+            if applicable_specs.next().is_some() {
+                let span = env.tcx().def_span(query.def_id);
+                return Err(PrustiError::unsupported("Multiple different applicable specification obligations found, which is currently not supported in Prusti", MultiSpan::from_span(span)));
             }
+
+            if let Some(false) = self.base_spec.trusted.extract_inherit() {
+                let span = env.tcx().def_span(query.def_id);
+                return Err(PrustiError::unsupported(
+                    "Ghost constraints can only be used on trusted functions",
+                    MultiSpan::from_span(span),
+                ));
+            }
+
+            Ok(spec_under_obligation)
+        } else {
+            Ok(&self.base_spec)
+        }
+    }
+}
+
+fn constraint_fulfilled<'spec, 'env: 'spec, 'tcx: 'env>(
+    env: &'env Environment<'tcx>,
+    query: &SpecQuery<'tcx>,
+    obligation: &SpecConstraintKind,
+    proc_spec: &'spec ProcedureSpecification,
+) -> bool {
+    match obligation {
+        SpecConstraintKind::ResolveGenericParamTraitBounds => {
+            resolvers::trait_bounds::resolve(env, query, proc_spec)
         }
     }
 }
@@ -60,10 +95,10 @@ mod resolvers {
         pub fn resolve<'spec, 'env: 'spec, 'tcx: 'env>(
             env: &'env Environment<'tcx>,
             query: &SpecQuery<'tcx>,
-            item: &'spec ProcedureSpecification,
+            proc_spec: &'spec ProcedureSpecification,
         ) -> bool {
             debug!("Trait bound obligation resolving for {:?}", query);
-            let param_env_obligation = extract_param_env(env, item);
+            let param_env_obligation = extract_param_env(env, proc_spec);
             let param_env_called_method = env.tcx().param_env(query.def_id);
 
             let mut all_bounds_satisfied = true;
