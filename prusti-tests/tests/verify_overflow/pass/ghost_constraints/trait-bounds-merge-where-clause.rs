@@ -20,9 +20,10 @@ impl B for i32 {
 }
 
 // The specs under the constraint `T: B` are also aware of the fact that `T: A` (defined on the function)
+#[trusted]
 #[ghost_constraint(T: B, [
-requires(x.a() == 42),
-ensures(result == x.b())
+    requires(x.a() == 42),
+    ensures(result == x.b())
 ])]
 fn foo<T>(x: T) -> i32 where T: A {
     x.a()

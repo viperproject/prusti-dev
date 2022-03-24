@@ -22,7 +22,7 @@ use typed::SpecIdRef;
 
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
-use crate::specs::partitioning::{GetAttrs, ProcSpecPartitioner};
+use crate::specs::partitioning::{Extension, ProcSpecPartitioner};
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -74,7 +74,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (local_id, refs) in self.procedure_specs.iter() {
-            let mut partitioner = ProcSpecPartitioner::new(self.tcx);
+            let mut partitioner = ProcSpecPartitioner::new(self.tcx, local_id.to_def_id());
 
             // Process specs for function `local_id`
             for spec_id_ref in &refs.spec_id_refs {
@@ -102,12 +102,15 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             partitioner.set_pure(refs.pure);
             partitioner.set_trusted(refs.trusted);
 
-            let proc_spec = partitioner.make_contract();
-            
-            def_spec.specs.insert(
-                *local_id,
-                typed::SpecificationSet::Procedure(Box::new(proc_spec)),
-            );
+            match partitioner.make_contract() {
+                Ok(proc_spec) => {
+                    def_spec.specs.insert(
+                        *local_id,
+                        typed::SpecificationSet::Procedure(Box::new(proc_spec)),
+                    );
+                },
+                Err(err) => err.emit(self.env)
+            }
         }
     }
 
@@ -290,8 +293,12 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 }
 
 /// Implementing required interface of [ProcSpecPartitioner
-impl<'tcx> GetAttrs for rustc_middle::ty::TyCtxt<'tcx> {
+impl<'tcx> Extension for rustc_middle::ty::TyCtxt<'tcx> {
     fn attrs_of(&self, local_def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
         self.get_attrs(local_def_id.to_def_id())
+    }
+
+    fn get_span(&self, def_id: DefId) -> rustc_span::Span {
+        self.def_span(def_id)
     }
 }
