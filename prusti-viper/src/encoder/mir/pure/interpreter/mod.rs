@@ -479,7 +479,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                             span,
                         )?
                     }
-                    "std::ops::Index::index" | "core::ops::Index::index" => {
+                    "std::ops::IndexMut::index_mut"
+                    | "core::ops::IndexMut::index_mut"
+                    | "std::ops::Index::index"
+                    | "core::ops::Index::index" => {
                         assert_eq!(args.len(), 2);
                         self.encode_call_index(
                             *target_block,

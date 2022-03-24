@@ -39,7 +39,7 @@ use crate::encoder::errors::SpannedEncodingResult;
 use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::interface::{SnapshotEncoderInterface, SnapshotEncoderState};
 use crate::encoder::purifier;
-use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
+use crate::encoder::array_encoder::{SequenceTypesEncoder, EncodedSequenceTypes};
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
 use super::mir::procedures::MirProcedureEncoderState;
@@ -84,7 +84,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_cast_functions: RefCell<FxHashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
     pub(super) snapshot_encoder_state: SnapshotEncoderState,
     pub(super) mirror_encoder: RefCell<MirrorEncoder>,
-    array_types_encoder: RefCell<ArrayTypesEncoder<'tcx>>,
+    array_types_encoder: RefCell<SequenceTypesEncoder<'tcx>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
     encoding_queue: RefCell<Vec<EncodingTask<'tcx>>>,
     vir_program_before_foldunfold_writer: Option<RefCell<Box<dyn Write>>>,
@@ -159,7 +159,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             vir_program_before_viper_writer,
             snapshot_encoder_state: Default::default(),
             mirror_encoder: RefCell::new(MirrorEncoder::new()),
-            array_types_encoder: RefCell::new(ArrayTypesEncoder::new()),
+            array_types_encoder: RefCell::new(SequenceTypesEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
             discriminants_info: RefCell::new(FxHashMap::default()),
@@ -510,15 +510,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     {
         trace!("encode_unsize_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         // at some point we may want to add support for other types of unsizing calls?
-        assert!(matches!(src_ty.kind(), ty::TyKind::Array(..)));
-        assert!(matches!(dst_ty.kind(), ty::TyKind::Slice(..)));
+        assert!(matches!(src_ty.kind(), ty::TyKind::Array(..) | ty::TyKind::Slice(..)));
+        assert!(matches!(dst_ty.kind(), ty::TyKind::Array(..) | ty::TyKind::Slice(..)));
 
-        let array_types = self.encode_array_types(src_ty)?;
-        let slice_types = self.encode_slice_types(dst_ty)?;
+        let array_types = self.encode_sequence_types(src_ty)?;
+        let slice_types = self.encode_sequence_types(dst_ty)?;
         let function_name = format!(
             "builtin$unsize${}${}",
-            &array_types.array_pred_type.name(),
-            &slice_types.slice_pred_type.name()
+            &array_types.sequence_pred_type.name(),
+            &slice_types.sequence_pred_type.name()
         );
 
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
@@ -526,7 +526,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let dst_snap_ty = self.encode_snapshot_type(dst_ty, tymap)?;
             let arg = vir_local!{ array: {src_snap_ty} };
             let arg_expr = vir::Expr::from(arg.clone());
-            let array_uncons = self.encode_snapshot_destructor(src_ty, vec![arg_expr], tymap)?;
+            let array_uncons = self.encode_snapshot_destructor(src_ty, vec![arg_expr.clone()], tymap)?;
             let slice_cons = self.encode_snapshot(dst_ty, None, vec![array_uncons.clone()], tymap)?;
             let data_len = vir::Expr::ContainerOp(vir::ContainerOp {
                 op_kind: vir::ContainerOpKind::SeqLen,
@@ -536,7 +536,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             });
             let result = vir::Expr::from(vir_local!{ __result: {dst_snap_ty.clone()} });
             let postcondition = vec![
-                vir_expr!{ [data_len] ==  [vir::Expr::from(array_types.array_len)] },
+                vir_expr!{ [data_len] ==  [array_types.len(self, arg_expr)] },
                 vir_expr!{ [result] == [slice_cons]},
             ];
             let function = vir::Function {
@@ -886,22 +886,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         result
     }
 
-    pub fn encode_array_types(
+    pub fn encode_sequence_types(
         &self,
-        array_ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<EncodedArrayTypes<'tcx>> {
+        sequence_ty: ty::Ty<'tcx>,
+    ) -> EncodingResult<EncodedSequenceTypes<'tcx>> {
         self.array_types_encoder
             .borrow_mut()
-            .encode_array_types(self, array_ty)
-    }
-
-    pub fn encode_slice_types(
-        &self,
-        slice_ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<EncodedSliceTypes<'tcx>> {
-        self.array_types_encoder
-            .borrow_mut()
-            .encode_slice_types(self, slice_ty)
+            .encode_sequence_types(self, sequence_ty)
     }
 
     pub fn encode_struct_field_value(

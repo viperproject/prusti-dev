@@ -476,8 +476,11 @@ where
     let borrow_infos: Vec<_> = visitor
         .borrow_infos
         .into_iter()
-        .filter(|info| !info.blocked_paths.is_empty() && !info.blocking_paths.is_empty())
-        .collect();
+        .filter(|info|
+            !info.blocked_paths.is_empty()
+            && !info.blocking_paths.is_empty()
+            && info.blocked_paths.iter().any(|(_, mutability)| matches!(mutability, Mutability::Mut))
+        ).collect();
     let is_not_blocked = |place: &mir::Place<'tcx>| {
         !borrow_infos.iter().any(|info| {
             info.blocked_paths
