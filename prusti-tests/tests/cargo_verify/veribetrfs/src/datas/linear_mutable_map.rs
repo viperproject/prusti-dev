@@ -5,7 +5,7 @@ use super::linear_mutable_map_base::*;
 
 pub struct FixedSizeLinearHashMap<V> {
     storage: Vector<Item<V>>,
-    count: usize,
+    count: u64,
 }
 
 impl<V: Clone> FixedSizeLinearHashMap<V> {
@@ -16,7 +16,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
 
     #[requires(128 <= size)]
     #[ensures(result.inv())]
-    pub fn with_size(size: usize) -> Self {
+    pub fn with_size(size: u64) -> Self {
         let storage = Vector::init(Empty, size);
         Self { storage, count: 0 }
     }
@@ -37,7 +37,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
 
     #[requires(self.inv())]
     #[ensures(self.inv())]
-    pub fn slot_for_key(&self, key: usize) -> usize {
+    pub fn slot_for_key(&self, key: u64) -> u64 {
         let h = hash64(key);
         let len = self.storage.len();
         h % len
@@ -45,7 +45,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
 
     #[requires(self.inv())]
     #[ensures(self.inv())]
-    pub fn get_empty_witness(&self, i: usize) -> usize {
+    pub fn get_empty_witness(&self, i: u64) -> u64 {
         let entry = self.storage.index(i);
         match entry {
             Empty => i,
@@ -55,7 +55,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
 
     #[requires(self.inv())]
     #[ensures(self.inv())]
-    pub fn probe(&self, key: usize) -> usize {
+    pub fn probe(&self, key: u64) -> u64 {
         let mut slot_idx = self.slot_for_key(key);
         let start_slot_idx = slot_idx;
         let mut done = false;
@@ -85,7 +85,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
 
     #[requires(self.inv())]
     #[ensures(self.inv())]
-    pub fn insert(&mut self, key: usize, value: V) -> Opt<V> {
+    pub fn insert(&mut self, key: u64, value: V) -> Opt<V> {
         let mut slot_idx = self.probe(key);
         let slot = self.storage.index_mut(slot_idx);
         let original = replace(slot, Entry{key, value});
@@ -100,7 +100,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
 
     #[requires(self.inv())]
     #[ensures(self.inv())]
-    pub fn update_slot(&mut self, slot_idx: usize, value: V) {
+    pub fn update_slot(&mut self, slot_idx: u64, value: V) {
         let slot = self.storage.index_mut(slot_idx);
         match slot {
             Entry{key: _, value: val} => {*val = value;},
@@ -110,7 +110,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
 
     #[requires(self.inv())]
     #[ensures(self.inv())]
-    pub fn remove(&mut self, key: usize) -> Opt<V> {
+    pub fn remove(&mut self, key: u64) -> Opt<V> {
         let slot_idx = self.probe(key);
         let slot = self.storage.index_mut(slot_idx);
         if slot.is_entry() {
@@ -129,7 +129,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
 
     #[requires(self.inv())]
     #[ensures(self.inv())]
-    pub fn get(&self, key: usize) -> Opt<V> {
+    pub fn get(&self, key: u64) -> Opt<V> {
         let slot_idx = self.probe(key);
         let slot = self.storage.index(slot_idx);
         match slot {
@@ -142,12 +142,12 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
 
 pub struct LinearHashMap<V> {
     inner: FixedSizeLinearHashMap<V>,
-    count: usize,
+    count: u64,
 }
 
 impl<V: Clone> LinearHashMap<V> {
     #[requires(128 <= size)]
-    pub fn with_size(size: usize) -> Self {
+    pub fn with_size(size: u64) -> Self {
         Self { inner: FixedSizeLinearHashMap::with_size(size), count: 0 }
     }
 
@@ -167,7 +167,7 @@ impl<V: Clone> LinearHashMap<V> {
         self.inner = new_inner;
     }
 
-    pub fn insert(&mut self, key: usize, value: V) -> Opt<V> {
+    pub fn insert(&mut self, key: u64, value: V) -> Opt<V> {
         if self.inner.storage.len() / 2 < self.inner.count {
             self.realloc();
         }
@@ -178,7 +178,7 @@ impl<V: Clone> LinearHashMap<V> {
         replaced
     }
 
-    pub fn remove(&mut self, key: usize) -> Opt<V> {
+    pub fn remove(&mut self, key: u64) -> Opt<V> {
         let removed = self.inner.remove(key);
         if removed.is_some() {
             self.count -= 1;
@@ -186,7 +186,7 @@ impl<V: Clone> LinearHashMap<V> {
         removed
     }
 
-    pub fn get(&self,  key: usize) -> Opt<V> {
+    pub fn get(&self,  key: u64) -> Opt<V> {
         self.inner.get(key)
     }
 }
