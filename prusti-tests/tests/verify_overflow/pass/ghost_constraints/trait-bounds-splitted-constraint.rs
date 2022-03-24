@@ -4,6 +4,7 @@ trait A {}
 
 impl A for i32 {}
 
+#[trusted]
 #[ghost_constraint(T: A, [
     ensures(result % 2 == 0)
 ])]

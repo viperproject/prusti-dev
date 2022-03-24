@@ -8,6 +8,7 @@ impl A for i32 {}
 impl B<i32> for i32 {}
 impl B<u32> for i32 {}
 
+#[trusted]
 #[ghost_constraint(T: A + B<i32> + B<u32>, [
     ensures(result > 0)
 ])]

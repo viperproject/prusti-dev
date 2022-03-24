@@ -54,7 +54,7 @@ mod resolvers {
 
     pub mod trait_bounds {
         use super::*;
-        use prusti_interface::PrustiError;
+        use prusti_interface::{utils::has_trait_bounds_ghost_constraint, PrustiError};
         use rustc_hash::FxHashMap;
 
         pub fn resolve<'spec, 'env: 'spec, 'tcx: 'env>(
@@ -132,10 +132,13 @@ mod resolvers {
             for spec_id in pres.iter().chain(posts.iter()) {
                 let param_env = env.tcx().param_env(spec_id.to_def_id());
                 let spec_span = env.tcx().def_span(spec_id.to_def_id());
-                param_envs
-                    .entry(param_env)
-                    .or_insert(vec![])
-                    .push(spec_span);
+                let attrs = env.tcx().get_attrs(spec_id.to_def_id());
+                if has_trait_bounds_ghost_constraint(attrs) {
+                    param_envs
+                        .entry(param_env)
+                        .or_insert(vec![])
+                        .push(spec_span);
+                }
             }
 
             assert_ne!(
