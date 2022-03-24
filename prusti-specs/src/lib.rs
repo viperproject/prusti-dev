@@ -434,7 +434,7 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     // TODO: move some of this to AstRewriter?
     // see AstRewriter::generate_spec_item_fn for explanation of syntax below
     let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
-        #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
+        #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
         #[prusti::spec_only]
         #[prusti::type_invariant_spec]
         #[prusti::spec_id = #spec_id_str]
