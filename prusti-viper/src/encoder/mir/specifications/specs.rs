@@ -1,4 +1,4 @@
-use crate::encoder::mir::specifications::{interface::SpecQuery, obligations::ObligationResolver};
+use crate::encoder::mir::specifications::{constraints::ConstraintResolver, interface::SpecQuery};
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
@@ -30,10 +30,15 @@ impl Specifications {
         &self.get_user_typed_specs().extern_specs
     }
 
-    pub(super) fn get_loop_spec(&self, def_id: DefId) -> Option<&LoopSpecification> {
-        trace!("Get loop specs of {:?}", def_id);
-        let spec = self.get_user_typed_specs().get(&def_id)?;
-        spec.as_loop()
+    pub(super) fn get_loop_spec<'a, 'env: 'a, 'tcx>(
+        &'a self,
+        _env: &'env Environment<'tcx>,
+        query: SpecQuery<'tcx>,
+    ) -> Option<&'a LoopSpecification> {
+        trace!("Get loop specs of {:?}", query);
+        self.user_typed_specs
+            .get_loop_spec(&query.def_id)
+            .map(|spec| &spec.base_spec)
     }
 
     pub(super) fn get_and_refine_proc_spec<'a, 'env: 'a, 'tcx>(
@@ -94,10 +99,8 @@ impl Specifications {
     ) -> Option<&'a ProcedureSpecification> {
         self.refined_specs.get(&query.def_id).or_else(|| {
             self.user_typed_specs
-                .get(&query.def_id)
-                .and_then(|spec_set| spec_set.as_procedure())
-                .map(|spec| ObligationResolver { env, query, spec })
-                .map(|resolver| resolver.resolve())
+                .get_proc_spec(&query.def_id)
+                .and_then(|spec| spec.resolve_emit_err(env, &query))
         })
     }
 

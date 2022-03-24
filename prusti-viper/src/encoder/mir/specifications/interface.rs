@@ -47,7 +47,7 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
-    fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification>;
+    fn get_loop_specs(&self, query: SpecQuery<'tcx>) -> Option<typed::LoopSpecification>;
 
     /// Get the specifications attached to a function.
     fn get_procedure_specs(&self, query: SpecQuery<'tcx>) -> Option<typed::ProcedureSpecification>;
@@ -110,11 +110,11 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         result
     }
 
-    fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification> {
+    fn get_loop_specs(&self, query: SpecQuery<'tcx>) -> Option<typed::LoopSpecification> {
         self.specifications_state
             .specs
             .borrow()
-            .get_loop_spec(def_id)
+            .get_loop_spec(self.env(), query)
             .cloned()
     }
 

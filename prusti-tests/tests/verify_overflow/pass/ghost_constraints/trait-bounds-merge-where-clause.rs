@@ -1,5 +1,4 @@
 use prusti_contracts::*;
-use prusti_contracts::*;
 
 trait A {
     #[pure]
