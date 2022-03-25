@@ -29,7 +29,7 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
         while i < storage.len() {
             if storage.index(i).is_entry() {
                 count += 1;
-            } 
+            }
             i += 1;
         }
         Self { storage, count }
@@ -88,9 +88,9 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
     pub fn insert(&mut self, key: u64, value: V) -> Opt<V> {
         let mut slot_idx = self.probe(key);
         let slot = self.storage.index_mut(slot_idx);
-        let original = replace(slot, Entry{key, value});
+        let original = replace(slot, Entry { key, value });
         match original {
-            Entry{key: _, value} => Opt::Some(value),
+            Entry { key: _, value } => Opt::Some(value),
             _ => {
                 self.count += 1;
                 Opt::None
@@ -103,7 +103,9 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
     pub fn update_slot(&mut self, slot_idx: u64, value: V) {
         let slot = self.storage.index_mut(slot_idx);
         match slot {
-            Entry{key: _, value: val} => {*val = value;},
+            Entry { key: _, value: val } => {
+                *val = value;
+            }
             _ => (),
         }
     }
@@ -114,12 +116,12 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
         let slot_idx = self.probe(key);
         let slot = self.storage.index_mut(slot_idx);
         if slot.is_entry() {
-            let old = replace(slot, Tombstone{key});
+            let old = replace(slot, Tombstone { key });
             match old {
-                Entry{key: _, value} => {
+                Entry { key: _, value } => {
                     self.count -= 1;
                     Opt::Some(value)
-                },
+                }
                 _ => unreachable!(),
             }
         } else {
@@ -133,11 +135,10 @@ impl<V: Clone> FixedSizeLinearHashMap<V> {
         let slot_idx = self.probe(key);
         let slot = self.storage.index(slot_idx);
         match slot {
-            Entry{key: _, value: val} => Opt::Some(val.clone()),
+            Entry { key: _, value: val } => Opt::Some(val.clone()),
             _ => Opt::None,
         }
     }
-
 }
 
 pub struct LinearHashMap<V> {
@@ -148,7 +149,10 @@ pub struct LinearHashMap<V> {
 impl<V: Clone> LinearHashMap<V> {
     #[requires(128 <= size)]
     pub fn with_size(size: u64) -> Self {
-        Self { inner: FixedSizeLinearHashMap::with_size(size), count: 0 }
+        Self {
+            inner: FixedSizeLinearHashMap::with_size(size),
+            count: 0,
+        }
     }
 
     pub fn realloc(&mut self) {
@@ -158,7 +162,7 @@ impl<V: Clone> LinearHashMap<V> {
         let mut i = 0;
         while i < self.inner.storage.len() {
             let item = self.inner.storage.index(i).clone();
-            if let Entry{key, value} = item {
+            if let Entry { key, value } = item {
                 new_inner.insert(key, value);
             }
             i += 1;
@@ -186,7 +190,7 @@ impl<V: Clone> LinearHashMap<V> {
         removed
     }
 
-    pub fn get(&self,  key: u64) -> Opt<V> {
+    pub fn get(&self, key: u64) -> Opt<V> {
         self.inner.get(key)
     }
 }

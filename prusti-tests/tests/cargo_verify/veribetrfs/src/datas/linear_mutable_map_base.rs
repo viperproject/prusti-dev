@@ -3,8 +3,8 @@ use prusti_contracts::*;
 #[derive(Clone)]
 pub enum Item<V> {
     Empty,
-    Entry{key: u64, value: V},
-    Tombstone{key: u64}
+    Entry { key: u64, value: V },
+    Tombstone { key: u64 },
 }
 
 pub use Item::{Empty, Entry, Tombstone};
@@ -16,16 +16,16 @@ impl<V> Item<V> {
     }
     #[pure]
     pub fn is_entry(&self) -> bool {
-        matches!(self, Entry{..})
+        matches!(self, Entry { .. })
     }
     #[pure]
     pub fn is_tombstone(&self) -> bool {
-        matches!(self, Tombstone{..})
+        matches!(self, Tombstone { .. })
     }
 }
 
 #[derive(Copy, Clone)]
-pub struct Slot{
+pub struct Slot {
     ghost_slot: u64,
 }
 

@@ -12,7 +12,7 @@ impl<T> Opt<T> {
     pub fn is_none(&self) -> bool {
         match self {
             None => true,
-            _ => false
+            _ => false,
         }
     }
 
