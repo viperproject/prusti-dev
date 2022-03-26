@@ -1,6 +1,7 @@
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
+        addresses::AddressesInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{IntoSnapshot, SnapshotAdtsInterface, SnapshotDomainsInterface},
         types::TypesInterface,
@@ -8,7 +9,7 @@ use crate::encoder::{
 };
 use vir_crate::{
     common::identifier::WithIdentifier,
-    low::{self as vir_low, operations::ToLow},
+    low::{self as vir_low},
     middle::{self as vir_mid},
 };
 
@@ -172,6 +173,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         let low_type = match &ty {
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
+            vir_mid::Type::Pointer(_) => self.address_type()?,
             x => unimplemented!("{:?}", x),
         };
         vir_low::operations::ty::Typed::set_type(&mut argument, low_type);
@@ -188,7 +190,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         // FIXME: Encode evaluation and simplification axioms.
         let domain_name = self.encode_snapshot_domain_name(ty)?;
-        let op = op.to_low(self)?;
         let variant = self.encode_unary_op_variant(op, ty)?;
         let function_name =
             self.snapshot_constructor_struct_alternative_name(&domain_name, &variant)?;
@@ -212,7 +213,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         // FIXME: Encode evaluation and simplification axioms.
         let domain_name = self.encode_snapshot_domain_name(ty)?;
-        let op = op.to_low(self)?;
         let variant = self.encode_binary_op_variant(op, arg_type)?;
         let function_name =
             self.snapshot_constructor_struct_alternative_name(&domain_name, &variant)?;

@@ -74,7 +74,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             self.encode_memory_block_bytes_expression(compute_address.clone(), size_of.clone())?;
         let mut predicates = Vec::new();
         let predicate = match &type_decl {
-            vir_mid::TypeDecl::Bool | vir_mid::TypeDecl::Int(_) | vir_mid::TypeDecl::Float(_) => {
+            vir_mid::TypeDecl::Bool
+            | vir_mid::TypeDecl::Int(_)
+            | vir_mid::TypeDecl::Float(_)
+            | vir_mid::TypeDecl::Pointer(_) => {
                 predicate! {
                     OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
                     {(

@@ -32,6 +32,15 @@ pub(in super::super::super) fn valid_call2(
     Ok((call.clone(), call))
 }
 
+fn get_non_primitive_domain(ty: &vir_low::Type) -> Option<&str> {
+    if let vir_low::Type::Domain(domain) = ty {
+        if domain.name != "Address" {
+            return Some(&domain.name);
+        }
+    }
+    None
+}
+
 pub(in super::super::super) trait SnapshotValidityInterface {
     fn encode_snapshot_valid_call_for_type(
         &mut self,
@@ -116,8 +125,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         use vir_low::macros::*;
         let mut valid_parameters = Vec::new();
         for parameter in &parameters {
-            if let vir_low::Type::Domain(parameter_domain) = &parameter.ty {
-                valid_parameters.push(valid_call(&parameter_domain.name, parameter)?);
+            if let Some(domain_name) = get_non_primitive_domain(&parameter.ty) {
+                valid_parameters.push(valid_call(domain_name, parameter)?);
             }
         }
         let constructor_call = self.adt_constructor_main_call(
@@ -139,7 +148,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         let mut conjuncts = vec![invariant]; // FIXME: We need to replace the fields here.
         conjuncts.extend(valid_parameters.clone());
         let validity_expression = conjuncts.into_iter().conjoin();
-        if parameters.iter().any(|parameter| parameter.ty.is_domain()) {
+        if parameters
+            .iter()
+            .any(|parameter| get_non_primitive_domain(&parameter.ty).is_some())
+        {
             // The top-down axiom allows proving that any of the fields is valid
             // if we know that the whole data strucure is valid. With no
             // parameters, the bottom-up and top-down axioms are equivalent.
@@ -149,7 +161,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 self.encode_snapshot_valid_call(domain_name, snapshot.clone().into())?;
             let mut triggers = Vec::new();
             for parameter in &parameters {
-                if let vir_low::Type::Domain(parameter_domain) = &parameter.ty {
+                if let Some(parameter_domain) = get_non_primitive_domain(&parameter.ty) {
                     let field = self.snapshot_destructor_struct_call(
                         domain_name,
                         &parameter.name,
@@ -158,8 +170,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                     )?;
                     top_down_validity_expression = top_down_validity_expression
                         .replace_place(&parameter.clone().into(), &field);
-                    let valid_field =
-                        self.encode_snapshot_valid_call(&parameter_domain.name, field)?;
+                    let valid_field = self.encode_snapshot_valid_call(parameter_domain, field)?;
                     triggers.push(vir_low::Trigger::new(vec![
                         valid_constructor.clone(),
                         valid_field.clone(),

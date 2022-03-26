@@ -10,16 +10,25 @@ use crate::common::display;
 #[derive(derive_more::From, derive_more::IsVariant)]
 #[allow(clippy::large_enum_variant)]
 pub enum Rvalue {
-    UnaryOp(UnaryOp),
+    // Use(Use),
+    // Repeat(Repeat),
+    // Ref(Ref),
+    // ThreadLocalRef(ThreadLocalRef),
+    AddressOf(AddressOf),
+    // Len(Len),
+    // Cast(Cast),
     BinaryOp(BinaryOp),
+    // CheckedBinaryOp(CheckedBinaryOp),
+    // NullaryOp(NullaryOp),
+    UnaryOp(UnaryOp),
     Discriminant(Discriminant),
     Aggregate(Aggregate),
+    // ShallowInitBox(ShallowInitBox),
 }
 
-#[display(fmt = "{}({})", kind, argument)]
-pub struct UnaryOp {
-    pub kind: UnaryOpKind,
-    pub argument: Operand,
+#[display(fmt = "&raw({})", place)]
+pub struct AddressOf {
+    pub place: Expression,
 }
 
 #[display(fmt = "{}({}, {})", kind, left, right)]
@@ -27,6 +36,12 @@ pub struct BinaryOp {
     pub kind: BinaryOpKind,
     pub left: Operand,
     pub right: Operand,
+}
+
+#[display(fmt = "{}({})", kind, argument)]
+pub struct UnaryOp {
+    pub kind: UnaryOpKind,
+    pub argument: Operand,
 }
 
 #[display(fmt = "discriminant({})", place)]
