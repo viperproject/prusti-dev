@@ -3,7 +3,8 @@ use crate::common::display;
 
 #[derive_helpers]
 #[derive_visitors]
-#[derive(derive_more::From, derive_more::IsVariant)]
+#[derive(derive_more::From, derive_more::IsVariant, derive_more::Unwrap)]
+#[allow(clippy::large_enum_variant)]
 pub enum TypeDecl {
     Bool,
     Int(Int),
@@ -84,6 +85,7 @@ pub struct Struct {
 #[display(fmt = "{}", name)]
 pub struct Enum {
     pub name: String,
+    pub discriminant_type: Type,
     pub discriminant_bounds: Expression,
     pub discriminant_values: Vec<Expression>,
     pub variants: Vec<Struct>,

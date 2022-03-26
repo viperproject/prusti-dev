@@ -246,4 +246,28 @@ impl Expression {
                 .unwrap_or(false)
         }
     }
+
+    /// Assuming that `self` is an enum and is a prefix of `guiding_place`
+    /// return the variant that matches the guiding place.
+    pub fn get_variant_name<'a>(&self, guiding_place: &'a Expression) -> &'a VariantIndex {
+        let parent = guiding_place.get_parent_ref().unwrap();
+        if self == parent {
+            match guiding_place {
+                Expression::Variant(Variant { variant_index, .. }) => variant_index,
+                _ => unreachable!(
+                    "self: {} ({}), guiding_place: {}",
+                    self,
+                    self.get_type(),
+                    guiding_place
+                ),
+            }
+        } else {
+            self.get_variant_name(parent)
+        }
+    }
+
+    pub fn into_variant(self, variant_name: VariantIndex) -> Self {
+        let ty = self.get_type().clone().variant(variant_name.clone());
+        self.variant_no_pos(variant_name, ty)
+    }
 }

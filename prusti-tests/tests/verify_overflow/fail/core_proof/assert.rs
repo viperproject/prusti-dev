@@ -6,4 +6,8 @@ fn assert1() {
     assert!(false);     //~ ERROR: the asserted expression might not hold
 }
 
+fn assert2() {
+    assert!(true);
+}
+
 fn main() {}

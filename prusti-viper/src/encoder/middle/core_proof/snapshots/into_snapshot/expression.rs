@@ -1,7 +1,10 @@
-use super::{IntoSnapshot, SnapshotsInterface};
+use super::IntoSnapshot;
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    middle::core_proof::{into_low::IntoLowInterface, lowerer::Lowerer},
+    high::types::HighTypeEncoderInterface,
+    middle::core_proof::{
+        into_low::IntoLowInterface, lowerer::Lowerer, snapshots::SnapshotValuesInterface,
+    },
 };
 use vir_crate::{
     low::{self as vir_low},
@@ -17,7 +20,7 @@ impl IntoSnapshot for vir_mid::Expression {
         match self {
             Self::Local(expression) => expression.create_snapshot(lowerer),
             Self::Constructor(expression) => expression.create_snapshot(lowerer),
-            // Self::Variant(expression) => expression.create_snapshot(lowerer),
+            Self::Variant(expression) => expression.create_snapshot(lowerer),
             Self::Field(expression) => expression.create_snapshot(lowerer),
             // Self::Deref(expression) => expression.create_snapshot(lowerer),
             // Self::AddrOf(expression) => expression.create_snapshot(lowerer),
@@ -58,7 +61,23 @@ impl IntoSnapshot for vir_mid::Constructor {
         for argument in &self.arguments {
             arguments.push(argument.create_snapshot(lowerer)?);
         }
-        lowerer.encode_snapshot_constructor_base_call(&self.ty, arguments, self.position)
+        lowerer.construct_struct_snapshot(&self.ty, arguments, self.position)
+    }
+}
+
+impl IntoSnapshot for vir_mid::Variant {
+    type Target = vir_low::Expression;
+    fn create_snapshot<'p, 'v: 'p, 'tcx: 'v>(
+        &self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    ) -> SpannedEncodingResult<Self::Target> {
+        let base_snapshot = self.base.create_snapshot(lowerer)?;
+        lowerer.obtain_enum_variant_snapshot(
+            self.base.get_type(),
+            &self.variant_index,
+            base_snapshot,
+            self.position,
+        )
     }
 }
 
@@ -69,12 +88,26 @@ impl IntoSnapshot for vir_mid::Field {
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
     ) -> SpannedEncodingResult<Self::Target> {
         let base_snapshot = self.base.create_snapshot(lowerer)?;
-        lowerer.encode_field_snapshot(
-            self.base.get_type(),
-            &self.field,
-            base_snapshot,
-            self.position,
-        )
+        if self.field.is_discriminant() {
+            let ty = self.base.get_type();
+            // FIXME: Create a method for obtainging the discriminant type.
+            let type_decl = lowerer.encoder.get_type_decl_mid(ty)?;
+            let enum_decl = type_decl.unwrap_enum();
+            let discriminant_call =
+                lowerer.obtain_enum_discriminant(base_snapshot, ty, Default::default())?;
+            lowerer.construct_constant_snapshot(
+                &enum_decl.discriminant_type,
+                discriminant_call,
+                self.position,
+            )
+        } else {
+            lowerer.obtain_struct_field_snapshot(
+                self.base.get_type(),
+                &self.field,
+                base_snapshot,
+                self.position,
+            )
+        }
     }
 }
 
@@ -85,7 +118,7 @@ impl IntoSnapshot for vir_mid::Constant {
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
     ) -> SpannedEncodingResult<Self::Target> {
         let argument = lowerer.lower_expression(self.clone().into())?;
-        lowerer.encode_constant_snapshot(&self.ty, argument, self.position)
+        lowerer.construct_constant_snapshot(&self.ty, argument, self.position)
     }
 }
 
@@ -96,7 +129,7 @@ impl IntoSnapshot for vir_mid::UnaryOp {
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
     ) -> SpannedEncodingResult<Self::Target> {
         let argument_snapshot = self.argument.create_snapshot(lowerer)?;
-        lowerer.encode_unary_op_call(
+        lowerer.construct_unary_op_snapshot(
             self.op_kind,
             self.get_type(),
             argument_snapshot,
@@ -113,9 +146,12 @@ impl IntoSnapshot for vir_mid::BinaryOp {
     ) -> SpannedEncodingResult<Self::Target> {
         let left_snapshot = self.left.create_snapshot(lowerer)?;
         let right_snapshot = self.right.create_snapshot(lowerer)?;
-        lowerer.encode_binary_op_call(
+        let arg_type = self.left.get_type();
+        assert_eq!(arg_type, self.right.get_type());
+        lowerer.construct_binary_op_snapshot(
             self.op_kind,
             self.get_type(),
+            arg_type,
             left_snapshot,
             right_snapshot,
             self.position,

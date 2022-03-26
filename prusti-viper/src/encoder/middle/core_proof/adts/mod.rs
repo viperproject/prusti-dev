@@ -1,5 +1,6 @@
-// mod builder;
-mod interface;
-mod types;
+//! Functions for axiomatizing generic ADTs. Allows registering constructors and
+//! automatically derives destructors and injectivity axioms.
 
-pub(super) use self::{interface::AdtsInterface, types::AdtConstructor};
+mod interface;
+
+pub(super) use self::interface::{AdtsInterface, AdtsState};

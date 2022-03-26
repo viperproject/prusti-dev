@@ -7,4 +7,5 @@ copy_module!(crate::high::operations_internal::procedure);
 copy_module!(crate::high::operations_internal::successor);
 copy_module!(crate::high::operations_internal::ty);
 copy_module!(crate::high::operations_internal::type_decl);
+copy_module!(crate::high::operations_internal::special_variables);
 pub mod position;

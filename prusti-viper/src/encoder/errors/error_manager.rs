@@ -37,6 +37,7 @@ pub enum PanicCause {
 pub enum BuiltinMethodKind {
     WritePlace,
     MovePlace,
+    IntoMemoryBlock,
 }
 
 /// In case of verification error, this enum will contain additional information
@@ -67,7 +68,6 @@ pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes an `abort` Rust terminator
     AbortTerminator,
     /// A Viper `assert false` that encodes an `unreachable` Rust terminator
-    #[allow(dead_code)]
     UnreachableTerminator,
     /// An error that should never happen
     Unexpected,
