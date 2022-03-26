@@ -33,7 +33,8 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
         let expansion = match type_decl {
             vir_high::TypeDecl::Bool
             | vir_high::TypeDecl::Int(_)
-            | vir_high::TypeDecl::Float(_) => {
+            | vir_high::TypeDecl::Float(_)
+            | vir_high::TypeDecl::Pointer(_) => {
                 // Primitive type. Convert.
                 vec![(ExpandedPermissionKind::MemoryBlock, place.clone())]
             }

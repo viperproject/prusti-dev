@@ -4,11 +4,18 @@ use crate::common::identifier::WithIdentifier;
 impl WithIdentifier for Rvalue {
     fn get_identifier(&self) -> String {
         match self {
-            Self::UnaryOp(value) => value.get_identifier(),
+            Self::AddressOf(value) => value.get_identifier(),
             Self::BinaryOp(value) => value.get_identifier(),
-            Self::Discriminant(value) => value.get_identifier(),
+            Self::UnaryOp(value) => value.get_identifier(),
             Self::Aggregate(value) => value.get_identifier(),
+            Self::Discriminant(value) => value.get_identifier(),
         }
+    }
+}
+
+impl WithIdentifier for AddressOf {
+    fn get_identifier(&self) -> String {
+        format!("address_of${}", self.place.get_type().get_identifier())
     }
 }
 

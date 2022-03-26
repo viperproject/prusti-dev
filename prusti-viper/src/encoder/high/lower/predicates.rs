@@ -29,6 +29,7 @@ impl IntoPredicates for vir_high::TypeDecl {
             vir_high::TypeDecl::Enum(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Array(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Reference(ty_decl) => ty_decl.lower(ty, encoder),
+            vir_high::TypeDecl::Pointer(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Never => construct_never_predicate(encoder),
             vir_high::TypeDecl::Closure(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Unsupported(ty_decl) => ty_decl.lower(ty, encoder),
@@ -187,6 +188,18 @@ impl IntoPredicates for vir_high::type_decl::Reference {
     ) -> Predicates {
         let field = create_value_field(ty.clone())?.lower(encoder);
         let predicate = Predicate::new_struct(ty.lower(encoder), vec![field]);
+        Ok(vec![predicate])
+    }
+}
+
+impl IntoPredicates for vir_high::type_decl::Pointer {
+    fn lower(
+        &self,
+        ty: &vir_high::Type,
+        encoder: &impl HighTypeEncoderInterfacePrivate,
+    ) -> Predicates {
+        // Pointers are unsupported.
+        let predicate = Predicate::new_abstract(ty.lower(encoder));
         Ok(vec![predicate])
     }
 }
