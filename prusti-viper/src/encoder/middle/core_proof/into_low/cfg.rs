@@ -1,6 +1,7 @@
 use super::{IntoLow, IntoLowInterface};
 use crate::encoder::{
     errors::SpannedEncodingResult,
+    high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         addresses::AddressesInterface,
         block_markers::BlockMarkersInterface,
@@ -9,13 +10,15 @@ use crate::encoder::{
         places::PlacesInterface,
         predicates_memory_block::PredicatesMemoryBlockInterface,
         predicates_owned::PredicatesOwnedInterface,
-        snapshots::{IntoSnapshot, SnapshotsInterface},
+        snapshots::{
+            IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
+            SnapshotVariablesInterface,
+        },
     },
 };
-
 use vir_crate::{
     common::identifier::WithIdentifier,
-    low::{self as vir_low},
+    low::{self as vir_low, operations::ToLow},
     middle::{self as vir_mid, operations::ty::Typed},
 };
 
@@ -156,11 +159,37 @@ impl IntoLow for vir_mid::Statement {
                 let ty = statement.place.get_type();
                 lowerer.encode_memory_block_join_method(ty)?;
                 let address = lowerer.encode_expression_as_place_address(&statement.place)?;
+                let discriminant = if let Some(variant_index) = &statement.enum_variant {
+                    // TODO: Remove code duplication with SplitBlock variant.
+                    let type_decl = lowerer.encoder.get_type_decl_mid(ty)?;
+                    let enum_decl = type_decl.unwrap_enum();
+                    Some(
+                        enum_decl
+                            .get_discriminant(variant_index)
+                            .unwrap()
+                            .clone()
+                            .to_low(lowerer)?,
+                    )
+                } else {
+                    None
+                };
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                    if let Some(discriminant) = discriminant {
+                        stmtp! {
+                            statement.position =>
+                            call<low_condition> memory_block_join<ty>([address], [discriminant])
+                        }
+                    } else {
+                        stmtp! {
+                            statement.position =>
+                            call<low_condition> memory_block_join<ty>([address])
+                        }
+                    }
+                } else if let Some(discriminant) = discriminant {
                     stmtp! {
                         statement.position =>
-                        call<low_condition> memory_block_join<ty>([address])
+                        call memory_block_join<ty>([address], [discriminant])
                     }
                 } else {
                     stmtp! {
@@ -174,16 +203,62 @@ impl IntoLow for vir_mid::Statement {
                 let ty = statement.place.get_type();
                 lowerer.encode_memory_block_split_method(ty)?;
                 let address = lowerer.encode_expression_as_place_address(&statement.place)?;
+                let discriminant = if let Some(variant_index) = &statement.enum_variant {
+                    // TODO: Remove code duplication with JoinBlock variant.
+                    let type_decl = lowerer.encoder.get_type_decl_mid(ty)?;
+                    let enum_decl = type_decl.unwrap_enum();
+                    Some(
+                        enum_decl
+                            .get_discriminant(variant_index)
+                            .unwrap()
+                            .clone()
+                            .to_low(lowerer)?,
+                    )
+                } else {
+                    None
+                };
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                    if let Some(discriminant) = discriminant {
+                        stmtp! {
+                            statement.position =>
+                            call<low_condition> memory_block_split<ty>([address], [discriminant])
+                        }
+                    } else {
+                        stmtp! {
+                            statement.position =>
+                            call<low_condition> memory_block_split<ty>([address])
+                        }
+                    }
+                } else if let Some(discriminant) = discriminant {
                     stmtp! {
                         statement.position =>
-                        call<low_condition> memory_block_split<ty>([address])
+                        call memory_block_split<ty>([address], [discriminant])
                     }
                 } else {
                     stmtp! {
                         statement.position =>
                         call memory_block_split<ty>([address])
+                    }
+                };
+                Ok(vec![low_statement])
+            }
+            Self::ConvertOwnedIntoMemoryBlock(statement) => {
+                let ty = statement.place.get_type();
+                lowerer.encode_into_memory_block_method(ty)?;
+                let place = lowerer.encode_expression_as_place(&statement.place)?;
+                let address = lowerer.extract_root_address(&statement.place)?;
+                let snapshot = lowerer.lower_expression_into_snapshot(&statement.place)?;
+                let low_statement = if let Some(condition) = statement.condition {
+                    let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                    stmtp! {
+                        statement.position =>
+                        call<low_condition> into_memory_block<ty>([place], [address], [snapshot])
+                    }
+                } else {
+                    stmtp! {
+                        statement.position =>
+                        call into_memory_block<ty>([place], [address], [snapshot])
                     }
                 };
                 Ok(vec![low_statement])
@@ -328,7 +403,7 @@ impl IntoLow for vir_mid::Predicate {
                 let address = lowerer.extract_root_address(&predicate.place)?;
                 let snapshot = lowerer.lower_expression_into_snapshot(&predicate.place)?;
                 let ty = predicate.place.get_type();
-                let valid = lowerer.encode_snapshot_validity_expression(snapshot.clone(), ty)?;
+                let valid = lowerer.encode_snapshot_valid_call_for_type(snapshot.clone(), ty)?;
                 exprp! {
                     predicate.position =>
                     (acc(OwnedNonAliased<ty>([place], [address], [snapshot]))) &&
@@ -365,7 +440,7 @@ impl IntoLow for vir_mid::Successor {
                 let mut new_targets = Vec::new();
                 for (test, target) in targets {
                     let test_snapshot = test.create_snapshot(lowerer)?;
-                    let test_low = lowerer.encode_snapshot_deconstructor_constant_call(
+                    let test_low = lowerer.obtain_constant_value(
                         test.get_type(),
                         test_snapshot,
                         Default::default(),

@@ -1,7 +1,9 @@
 pub(crate) use super::super::{
     expression::{BinaryOpKind, Expression, UnaryOpKind},
+    ty::Type,
     Position,
 };
+use crate::common::display;
 
 #[derive_helpers]
 #[derive_visitors]
@@ -10,6 +12,8 @@ pub(crate) use super::super::{
 pub enum Rvalue {
     UnaryOp(UnaryOp),
     BinaryOp(BinaryOp),
+    Discriminant(Discriminant),
+    Aggregate(Aggregate),
 }
 
 #[display(fmt = "{}({})", kind, argument)]
@@ -23,6 +27,17 @@ pub struct BinaryOp {
     pub kind: BinaryOpKind,
     pub left: Operand,
     pub right: Operand,
+}
+
+#[display(fmt = "discriminant({})", place)]
+pub struct Discriminant {
+    pub place: Expression,
+}
+
+#[display(fmt = "aggregate<{}>({})", ty, "display::cjoin(operands)")]
+pub struct Aggregate {
+    pub ty: Type,
+    pub operands: Vec<Operand>,
 }
 
 #[display(fmt = "{}({})", kind, expression)]

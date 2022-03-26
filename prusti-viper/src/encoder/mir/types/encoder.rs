@@ -793,7 +793,38 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
                 let encoded_variant = encode_variant(encoder, name, substs, variant)?;
                 variants.push(encoded_variant);
             }
-            vir::TypeDecl::enum_(name, discriminant_bounds, discriminant_values, variants)
+            let mir_discriminant_type = match adt_def.repr().discr_type() {
+                rustc_attr::IntType::SignedInt(int) => {
+                    let int = match int {
+                        rustc_ast::ast::IntTy::Isize => rustc_middle::ty::IntTy::Isize,
+                        rustc_ast::ast::IntTy::I8 => rustc_middle::ty::IntTy::I8,
+                        rustc_ast::ast::IntTy::I16 => rustc_middle::ty::IntTy::I16,
+                        rustc_ast::ast::IntTy::I32 => rustc_middle::ty::IntTy::I32,
+                        rustc_ast::ast::IntTy::I64 => rustc_middle::ty::IntTy::I64,
+                        rustc_ast::ast::IntTy::I128 => rustc_middle::ty::IntTy::I128,
+                    };
+                    encoder.env().tcx().mk_ty(ty::TyKind::Int(int))
+                }
+                rustc_attr::IntType::UnsignedInt(uint) => {
+                    let uint = match uint {
+                        rustc_ast::ast::UintTy::Usize => rustc_middle::ty::UintTy::Usize,
+                        rustc_ast::ast::UintTy::U8 => rustc_middle::ty::UintTy::U8,
+                        rustc_ast::ast::UintTy::U16 => rustc_middle::ty::UintTy::U16,
+                        rustc_ast::ast::UintTy::U32 => rustc_middle::ty::UintTy::U32,
+                        rustc_ast::ast::UintTy::U64 => rustc_middle::ty::UintTy::U64,
+                        rustc_ast::ast::UintTy::U128 => rustc_middle::ty::UintTy::U128,
+                    };
+                    encoder.env().tcx().mk_ty(ty::TyKind::Uint(uint))
+                }
+            };
+            let discriminant_type = encoder.encode_type_high(mir_discriminant_type)?;
+            vir::TypeDecl::enum_(
+                name,
+                discriminant_type,
+                discriminant_bounds,
+                discriminant_values,
+                variants,
+            )
         };
         Ok(type_decl)
     } else {

@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
@@ -5,7 +7,7 @@ use crate::encoder::{
         casts::CastsEncoderInterface, constants::ConstantsEncoderInterface, errors::ErrorInterface,
         panics::MirPanicsEncoderInterface, places::PlacesEncoderInterface,
         predicates::MirPredicateEncoderInterface, spans::SpanInterface,
-        type_layouts::MirTypeLayoutsEncoderInterface, types::MirTypeEncoderInterface,
+        type_layouts::MirTypeLayoutsEncoderInterface,
     },
     Encoder,
 };
@@ -23,6 +25,7 @@ use vir_crate::{
         builders::procedure::{
             BasicBlockBuilder, ProcedureBuilder, SuccessorBuilder, SuccessorExitKind,
         },
+        operations::ty::Typed,
     },
 };
 
@@ -49,6 +52,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         mir: procedure.get_mir(),
         _lifetimes: lifetimes,
         check_panics: config::check_panics(),
+        discriminants: Default::default(),
     };
     procedure_encoder.encode()
 }
@@ -60,6 +64,7 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     mir: &'p mir::Body<'tcx>,
     _lifetimes: Lifetimes,
     check_panics: bool,
+    discriminants: BTreeSet<mir::Local>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -75,6 +80,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             deallocate_returns,
         );
         self.encode_body(&mut procedure_builder)?;
+        self.encode_discriminants(&mut procedure_builder)?;
         Ok(procedure_builder.build())
     }
 
@@ -144,6 +150,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok((vec![alloc_statement], vec![dealloc_statement]))
     }
 
+    fn encode_discriminants(
+        &mut self,
+        procedure_builder: &mut ProcedureBuilder,
+    ) -> SpannedEncodingResult<()> {
+        for discriminant in std::mem::take(&mut self.discriminants) {
+            let local = self.encode_local(discriminant)?;
+            let mir_type = self.encoder.get_local_type(self.mir, discriminant)?;
+            let size = self.encoder.encode_type_size_expression(mir_type)?;
+            let position_alloc = self
+                .encoder
+                .change_error_context(local.position, ErrorCtxt::UnexpectedStorageLive);
+            let position_dealloc = self
+                .encoder
+                .change_error_context(local.position, ErrorCtxt::UnexpectedStorageDead);
+            let predicate =
+                vir_high::Predicate::memory_block_stack_no_pos(local.clone().into(), size);
+            procedure_builder.add_alloc_statement(
+                vir_high::Statement::inhale_no_pos(predicate.clone())
+                    .set_default_position(position_alloc),
+            );
+            procedure_builder.add_dealloc_statement(
+                vir_high::Statement::exhale_no_pos(predicate.clone())
+                    .set_default_position(position_dealloc),
+            );
+        }
+        Ok(())
+    }
+
     fn encode_body(
         &mut self,
         procedure_builder: &mut ProcedureBuilder,
@@ -198,7 +232,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_statement(
-        &self,
+        &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
         statement: &mir::Statement<'tcx>,
@@ -240,6 +274,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::StatementKind::Assign(box (target, source)) => {
                 let encoded_target = self.encoder.encode_place_high(self.mir, *target)?;
                 self.encode_statement_assign(block_builder, location, encoded_target, source)?;
+                if let mir::Rvalue::Discriminant(_) = source {
+                    let local = target.as_local().expect("unimplemented");
+                    // FIXME: This assert is very likely to fail.
+                    assert!(
+                        self.discriminants.insert(local),
+                        "Duplicate discriminant temporary."
+                    );
+                }
             }
             _ => {
                 block_builder.add_comment("encode_statement: not encoded".to_string());
@@ -249,7 +291,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_statement_assign(
-        &self,
+        &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
         encoded_target: vir_crate::high::Expression,
@@ -281,6 +323,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.register_error(location, ErrorCtxt::Assign),
                 ));
             }
+            mir::Rvalue::Discriminant(place) => {
+                let encoded_place = self.encoder.encode_place_high(self.mir, *place)?;
+                let encoded_rvalue = vir_high::Rvalue::discriminant(encoded_place);
+                block_builder.add_statement(vir_high::Statement::assign(
+                    encoded_target,
+                    encoded_rvalue,
+                    self.register_error(location, ErrorCtxt::Assign),
+                ));
+            }
             _ => {
                 block_builder.add_comment("encode_statement_assign: not encoded".to_string());
                 unimplemented!("{:?}", source);
@@ -297,40 +348,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         aggregate_kind: &mir::AggregateKind<'tcx>,
         operands: &[mir::Operand<'tcx>],
     ) -> SpannedEncodingResult<()> {
-        let span = self.encoder.get_span_of_location(self.mir, location);
         match aggregate_kind {
-            mir::AggregateKind::Adt(adt_did, variant_index, substs, _, active_field_index) => {
-                let adt_def = self.encoder.env().tcx().adt_def(*adt_did);
+            mir::AggregateKind::Adt(adt_did, variant_index, _substs, _, active_field_index) => {
                 assert!(
                     active_field_index.is_none(),
                     "field index should be set only for unions"
                 );
-                assert_eq!(variant_index.index(), 0, "variant for structs should be 0");
-                let encoded_adt_def = self.encoder.encode_adt_def(adt_def, substs, None)?;
-                match encoded_adt_def {
-                    vir_high::TypeDecl::Struct(decl) => {
-                        assert_eq!(decl.fields.len(), operands.len());
-                        for (field, operand) in decl.fields.into_iter().zip(operands.iter()) {
-                            let encoded_target_with_field =
-                                encoded_target.clone().field_no_pos(field);
-                            self.encode_assign_operand(
-                                block_builder,
-                                location,
-                                encoded_target_with_field,
-                                operand,
-                            )?;
-                        }
-                    }
-                    vir_high::TypeDecl::Enum(_decl) => {
-                        unimplemented!();
-                    }
-                    _ => {
-                        return Err(SpannedEncodingError::internal(
-                            format!("expected adt, got: {:?}", adt_def),
-                            span,
-                        ));
-                    }
+                let mut ty = encoded_target.get_type().clone();
+                if ty.is_enum() {
+                    let adt_def = self.encoder.env().tcx().adt_def(*adt_did);
+                    let variant_def = &adt_def.variants()[*variant_index];
+                    let variant_name = variant_def.ident(self.encoder.env().tcx()).to_string();
+                    ty = ty.variant(variant_name.into());
                 }
+                let mut encoded_operands = Vec::new();
+                for operand in operands {
+                    encoded_operands.push(self.encode_statement_operand(location, operand)?);
+                }
+                let encoded_rvalue = vir_high::Rvalue::aggregate(ty, encoded_operands);
+                block_builder.add_statement(vir_high::Statement::assign(
+                    encoded_target,
+                    encoded_rvalue,
+                    self.register_error(location, ErrorCtxt::Assign),
+                ));
             }
             _ => {
                 block_builder
@@ -429,9 +469,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             //     graph.add_exit_edge(bb, "abort");
             // }
             TerminatorKind::Return => SuccessorBuilder::exit_return(),
-            // TerminatorKind::Unreachable => {
-            //     graph.add_exit_edge(bb, "unreachable");
-            // }
+            TerminatorKind::Unreachable => {
+                let position = self.encoder.register_error(
+                    span,
+                    ErrorCtxt::UnreachableTerminator,
+                    self.def_id,
+                );
+                block_builder
+                    .add_comment("Target marked as unreachable by the compiler".to_string());
+                block_builder.add_statement(vir_high::Statement::assert(false.into(), position));
+                SuccessorBuilder::exit_resume_panic()
+            }
             // TerminatorKind::DropAndReplace { target, unwind, .. }
             // | TerminatorKind::Drop { target, unwind, .. } => {
             //     graph.add_regular_edge(bb, target);
@@ -469,13 +517,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // TerminatorKind::GeneratorDrop => {
             //     graph.add_exit_edge(bb, "generator_drop");
             // }
-            // TerminatorKind::FalseEdge {
-            //     real_target,
-            //     imaginary_target,
-            // } => {
-            //     graph.add_regular_edge(bb, real_target);
-            //     graph.add_imaginary_edge(bb, imaginary_target);
-            // }
+            TerminatorKind::FalseEdge {
+                real_target,
+                imaginary_target: _,
+            } => SuccessorBuilder::jump(vir_high::Successor::Goto(
+                self.encode_basic_block_label(*real_target),
+            )),
             // TerminatorKind::FalseUnwind {
             //     real_target,
             //     unwind,
