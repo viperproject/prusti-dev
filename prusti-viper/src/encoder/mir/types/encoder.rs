@@ -788,7 +788,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         let discriminant_values = (0..num_variants).map(|value| value.into()).collect();
         let mut variants = Vec::new();
         for field in &variant.fields {
-            let field_name = crate::encoder::encoder::encode_field_name(field.ident(tcx).as_str());
+            let field_name = field.ident(tcx).as_str().to_string();
             let field_ty = field.ty(tcx, substs);
             let encoded_field = vir::FieldDecl::new("value", encoder.encode_type_high(field_ty)?);
             let variant = vir::type_decl::Struct::new(field_name, vec![encoded_field]);
