@@ -169,6 +169,52 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     )}
                 }
             }
+            vir_mid::TypeDecl::Union(decl) => {
+                let position = Default::default();
+                let mut variant_predicates = Vec::new();
+                let discriminant_call =
+                    self.obtain_enum_discriminant(snapshot.clone().into(), ty, position)?;
+                for (discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants) {
+                    let variant_index = variant.name.clone().into();
+                    let variant_place = self.encode_enum_variant_place(
+                        ty,
+                        &variant_index,
+                        place.clone().into(),
+                        position,
+                    )?;
+                    let variant_snapshot = self.obtain_enum_variant_snapshot(
+                        ty,
+                        &variant_index,
+                        snapshot.clone().into(),
+                        position,
+                    )?;
+                    let variant_type = ty.clone().variant(variant_index);
+                    if !unfolded_owned_non_aliased_predicates.contains(&variant_type) {
+                        // TODO: Optimization: This variant is never unfolded,
+                        // encode it as abstract predicate.
+                        predicates.extend(self.encode_owned_non_aliased(
+                            &variant_type,
+                            unfolded_owned_non_aliased_predicates,
+                            encoded_predicates,
+                        )?);
+                    }
+                    let variant_type = &variant_type;
+                    let acc = expr! {
+                        ([ discriminant_call.clone() ] == [ discriminant.clone().to_low(self)? ]) ==>
+                        (acc(OwnedNonAliased<variant_type>(
+                            [variant_place], root_address, [variant_snapshot]
+                        )))
+                    };
+                    variant_predicates.push(acc);
+                }
+                predicate! {
+                    OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
+                    {(
+                        ([validity]) &&
+                        ([variant_predicates.into_iter().conjoin()])
+                    )}
+                }
+            }
             // vir_mid::TypeDecl::Array(Array) => {},
             // vir_mid::TypeDecl::Reference(Reference) => {},
             // vir_mid::TypeDecl::Never => {},

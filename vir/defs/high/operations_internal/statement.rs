@@ -1,7 +1,12 @@
 use super::super::ast::{
     expression::Expression,
     position::Position,
-    statement::{visitors::StatementFolder, *},
+    predicate::Predicate,
+    rvalue::Rvalue,
+    statement::{
+        visitors::{StatementFolder, StatementWalker},
+        *,
+    },
 };
 
 impl Statement {
@@ -23,5 +28,23 @@ impl Statement {
             }
         }
         DefaultPositionReplacer { new_position }.fold_statement(self)
+    }
+    pub fn check_no_default_position(&self) {
+        struct Checker;
+        impl StatementWalker for Checker {
+            fn walk_position(&mut self, position: &Position) {
+                assert!(!position.is_default());
+            }
+            fn walk_expression(&mut self, expression: &Expression) {
+                expression.check_no_default_position();
+            }
+            fn walk_predicate(&mut self, predicate: &Predicate) {
+                predicate.check_no_default_position();
+            }
+            fn walk_rvalue(&mut self, rvalue: &Rvalue) {
+                rvalue.check_no_default_position();
+            }
+        }
+        Checker.walk_statement(self)
     }
 }

@@ -53,6 +53,7 @@ impl PredicateState {
     }
 
     fn places_mut(&mut self, kind: PermissionKind) -> &mut BTreeSet<vir_high::Expression> {
+        self.check_no_default_position();
         match kind {
             PermissionKind::MemoryBlock => &mut self.memory_block_stack,
             PermissionKind::Owned => &mut self.owned_non_aliased,
@@ -60,6 +61,7 @@ impl PredicateState {
     }
 
     fn places(&self, kind: PermissionKind) -> &BTreeSet<vir_high::Expression> {
+        self.check_no_default_position();
         match kind {
             PermissionKind::MemoryBlock => &self.memory_block_stack,
             PermissionKind::Owned => &self.owned_non_aliased,
@@ -86,6 +88,7 @@ impl PredicateState {
         kind: PermissionKind,
         place: vir_high::Expression,
     ) -> SpannedEncodingResult<()> {
+        place.check_no_default_position();
         assert!(place.is_place());
         assert!(
             self.places_mut(kind).insert(place),
@@ -95,6 +98,7 @@ impl PredicateState {
     }
 
     pub(super) fn contains(&self, kind: PermissionKind, place: &vir_high::Expression) -> bool {
+        self.check_no_default_position();
         assert!(place.is_place());
         self.places(kind).contains(place)
     }
@@ -108,6 +112,7 @@ impl PredicateState {
         kind: PermissionKind,
         prefix: &vir_high::Expression,
     ) -> Option<&vir_high::Expression> {
+        self.check_no_default_position();
         self.places(kind).iter().find(|p| {
             p.has_prefix(prefix) && {
                 if let vir_high::Expression::Field(field) = p {
@@ -119,11 +124,21 @@ impl PredicateState {
         })
     }
 
+    pub(super) fn get_all_with_prefix<'a>(
+        &'a self,
+        kind: PermissionKind,
+        prefix: &'a vir_high::Expression,
+    ) -> impl Iterator<Item = &'a vir_high::Expression> {
+        self.check_no_default_position();
+        self.places(kind).iter().filter(|p| p.has_prefix(prefix))
+    }
+
     pub(super) fn contains_prefix_of(
         &self,
         kind: PermissionKind,
         place: &vir_high::Expression,
     ) -> bool {
+        self.check_no_default_position();
         self.places(kind).iter().any(|p| place.has_prefix(p))
     }
 
@@ -132,9 +147,13 @@ impl PredicateState {
         kind: PermissionKind,
         place: &vir_high::Expression,
     ) -> Option<vir_high::Expression> {
+        self.check_no_default_position();
         self.places(kind)
             .iter()
-            .find(|p| place.has_prefix(p))
+            .find(|p| {
+                p.check_no_default_position();
+                place.has_prefix(p)
+            })
             .cloned()
     }
 
@@ -142,6 +161,7 @@ impl PredicateState {
         &self,
         prefix: &vir_high::Expression,
     ) -> SpannedEncodingResult<Vec<vir_high::Expression>> {
+        self.check_no_default_position();
         let collected_places = self
             .owned_non_aliased
             .iter()
@@ -154,7 +174,18 @@ impl PredicateState {
     fn clear(&mut self) -> SpannedEncodingResult<()> {
         self.owned_non_aliased.clear();
         self.memory_block_stack.clear();
+        self.check_no_default_position();
         Ok(())
+    }
+
+    fn check_no_default_position(&self) {
+        for expr in self
+            .owned_non_aliased
+            .iter()
+            .chain(&self.memory_block_stack)
+        {
+            expr.check_no_default_position();
+        }
     }
 }
 
@@ -219,6 +250,7 @@ impl FoldUnfoldState {
             })
             .collect();
         self.incoming_labels = vec![incoming_label];
+        self.check_no_default_position();
         Ok(())
     }
 
@@ -270,6 +302,7 @@ impl FoldUnfoldState {
                 .insert(vec![incoming_label.clone()], incoming_conditional);
         }
         self.incoming_labels.push(incoming_label);
+        self.check_no_default_position();
         Ok(())
     }
 
@@ -303,6 +336,7 @@ impl FoldUnfoldState {
     ) -> SpannedEncodingResult<()> {
         assert!(place.is_place());
         assert!(self.unconditional.memory_block_stack.insert(place));
+        self.check_no_default_position();
         Ok(())
     }
 
@@ -312,6 +346,7 @@ impl FoldUnfoldState {
     ) -> SpannedEncodingResult<()> {
         assert!(place.is_place());
         assert!(self.unconditional.owned_non_aliased.insert(place));
+        self.check_no_default_position();
         Ok(())
     }
 
@@ -325,6 +360,7 @@ impl FoldUnfoldState {
             "not found place: {}",
             place
         );
+        self.check_no_default_position();
         Ok(())
     }
 
@@ -338,6 +374,7 @@ impl FoldUnfoldState {
             "not found place: {}",
             place
         );
+        self.check_no_default_position();
         Ok(())
     }
 
@@ -348,6 +385,7 @@ impl FoldUnfoldState {
         for permission in permissions {
             self.insert_permission(permission)?;
         }
+        self.check_no_default_position();
         Ok(())
     }
 
@@ -355,10 +393,12 @@ impl FoldUnfoldState {
         &mut self,
         permission: Permission,
     ) -> SpannedEncodingResult<()> {
+        self.check_no_default_position();
         match permission {
             Permission::MemoryBlock(place) => self.insert_memory_block(place)?,
             Permission::Owned(place) => self.insert_owned(place)?,
         }
+        self.check_no_default_position();
         Ok(())
     }
 
@@ -366,6 +406,7 @@ impl FoldUnfoldState {
         &mut self,
         permissions: &[Permission],
     ) -> SpannedEncodingResult<()> {
+        self.check_no_default_position();
         for permission in permissions {
             self.remove_permission(permission)?;
         }
@@ -376,6 +417,7 @@ impl FoldUnfoldState {
         &mut self,
         permission: &Permission,
     ) -> SpannedEncodingResult<()> {
+        self.check_no_default_position();
         match permission {
             Permission::MemoryBlock(place) => self.remove_memory_block(place)?,
             Permission::Owned(place) => self.remove_owned(place)?,
@@ -384,6 +426,7 @@ impl FoldUnfoldState {
     }
 
     pub(super) fn get_unconditional_state(&mut self) -> SpannedEncodingResult<&mut PredicateState> {
+        self.check_no_default_position();
         Ok(&mut self.unconditional)
     }
 
@@ -392,18 +435,28 @@ impl FoldUnfoldState {
     ) -> SpannedEncodingResult<
         impl Iterator<Item = (&Vec<vir_mid::BasicBlockId>, &mut PredicateState)>,
     > {
+        self.check_no_default_position();
         Ok(self.conditional.iter_mut())
     }
 
     pub(super) fn remove_empty_conditional_states(&mut self) -> SpannedEncodingResult<()> {
+        self.check_no_default_position();
         self.conditional.retain(|_, state| !state.is_empty());
         Ok(())
     }
 
     /// Remove all permissions. This is intended to be used only by `LeakAll` statement.
     pub(super) fn clear(&mut self) -> SpannedEncodingResult<()> {
+        self.check_no_default_position();
         self.unconditional.clear()?;
         self.conditional.clear();
         Ok(())
+    }
+
+    pub(super) fn check_no_default_position(&self) {
+        self.unconditional.check_no_default_position();
+        for predicates in self.conditional.values() {
+            predicates.check_no_default_position();
+        }
     }
 }

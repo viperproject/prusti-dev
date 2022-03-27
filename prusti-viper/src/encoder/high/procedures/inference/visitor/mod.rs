@@ -177,52 +177,65 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     place,
                     enum_variant: _,
                     condition,
-                }) => vir_mid::Statement::unfold_owned(
-                    place.to_middle_expression(self.encoder)?,
-                    condition,
-                    statement.position(),
-                ),
+                }) => {
+                    let position = place.position();
+                    vir_mid::Statement::unfold_owned(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        position,
+                    )
+                }
                 Action::Fold(FoldingActionState {
                     kind: PermissionKind::Owned,
                     place,
                     enum_variant: _,
                     condition,
-                }) => vir_mid::Statement::fold_owned(
-                    place.to_middle_expression(self.encoder)?,
-                    condition,
-                    statement.position(),
-                ),
+                }) => {
+                    let position = place.position();
+                    vir_mid::Statement::fold_owned(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        position,
+                    )
+                }
                 Action::Unfold(FoldingActionState {
                     kind: PermissionKind::MemoryBlock,
                     place,
                     enum_variant,
                     condition,
-                }) => vir_mid::Statement::split_block(
-                    place.to_middle_expression(self.encoder)?,
-                    condition,
-                    enum_variant
-                        .map(|variant| variant.to_middle_expression(self.encoder))
-                        .transpose()?,
-                    statement.position(),
-                ),
+                }) => {
+                    let position = place.position();
+                    vir_mid::Statement::split_block(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        enum_variant
+                            .map(|variant| variant.to_middle_expression(self.encoder))
+                            .transpose()?,
+                        position,
+                    )
+                }
                 Action::Fold(FoldingActionState {
                     kind: PermissionKind::MemoryBlock,
                     place,
                     enum_variant,
                     condition,
-                }) => vir_mid::Statement::join_block(
-                    place.to_middle_expression(self.encoder)?,
-                    condition,
-                    enum_variant
-                        .map(|variant| variant.to_middle_expression(self.encoder))
-                        .transpose()?,
-                    statement.position(),
-                ),
+                }) => {
+                    let position = place.position();
+                    vir_mid::Statement::join_block(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        enum_variant
+                            .map(|variant| variant.to_middle_expression(self.encoder))
+                            .transpose()?,
+                        position,
+                    )
+                }
                 Action::OwnedIntoMemoryBlock(ConversionState { place, condition }) => {
+                    let position = place.position();
                     vir_mid::Statement::convert_owned_into_memory_block(
                         place.to_middle_expression(self.encoder)?,
                         condition,
-                        statement.position(),
+                        position,
                     )
                 }
             };

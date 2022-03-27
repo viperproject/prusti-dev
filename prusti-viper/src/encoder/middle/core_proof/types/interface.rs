@@ -122,6 +122,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     discriminant_bounds,
                 )?;
             }
+            vir_mid::TypeDecl::Union(decl) => {
+                let mut variants = Vec::new();
+                for (variant, discriminant) in decl.variants.iter().zip(&decl.discriminant_values) {
+                    let variant_type = ty.clone().variant(variant.name.clone().into());
+                    let variant_domain = self.encode_snapshot_domain_name(&variant_type)?;
+                    let discriminant = discriminant.clone().to_low(self)?;
+                    self.register_enum_variant_constructor(
+                        &domain_name,
+                        &variant.name,
+                        &variant_domain,
+                        discriminant.clone(),
+                    )?;
+                    self.ensure_type_definition(&variant_type)?;
+                    variants.push((variant.name.clone(), variant_domain, discriminant));
+                }
+                let discriminant_bounds = decl.discriminant_bounds.clone().to_low(self)?;
+                self.encode_validity_axioms_enum(
+                    ty,
+                    &domain_name,
+                    variants.clone(),
+                    true.into(),
+                    discriminant_bounds,
+                )?;
+            }
             vir_mid::TypeDecl::Pointer(decl) => {
                 self.ensure_type_definition(&decl.target_type)?;
                 let address_type = self.address_type()?;
