@@ -21,12 +21,12 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::Type::Float(_)
             | vir_mid::Type::Pointer(_) => self.before_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
-            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_)
+            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_) | vir_mid::Type::Union(_)
                 if is_empty && Self::IS_EMPTY_PRIMITIVE =>
             {
                 self.before_primitive(ty, parameters, lowerer)
             }
-            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_) => {
+            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_) | vir_mid::Type::Union(_) => {
                 self.before_composite(ty, parameters, lowerer)
             }
             // vir_mid::Type::Array(Array) => {},
@@ -105,6 +105,22 @@ pub(in super::super) trait TypeDeclWalker {
         }
         Ok(())
     }
+    fn walk_uion(
+        &mut self,
+        ty: &vir_mid::Type,
+        decl: &vir_mid::type_decl::Union,
+        parameters: &Self::Parameters,
+        lowerer: &mut Lowerer,
+    ) -> SpannedEncodingResult<()> {
+        for variant in &decl.variants {
+            let variant_ty = ty.clone().variant(variant.name.clone().into());
+            if self.need_walk_type(ty, parameters, lowerer)? {
+                self.before(ty, parameters, lowerer)?;
+                self.walk_variant(&variant_ty, variant, parameters, lowerer)?;
+            }
+        }
+        Ok(())
+    }
     fn walk_variant(
         &mut self,
         ty: &vir_mid::Type,
@@ -155,6 +171,7 @@ pub(in super::super) trait TypeDeclWalker {
             vir_mid::TypeDecl::Tuple(_)
             | vir_mid::TypeDecl::Struct(_)
             | vir_mid::TypeDecl::Enum(_)
+            | vir_mid::TypeDecl::Union(_)
                 if is_empty && Self::IS_EMPTY_PRIMITIVE =>
             {
                 self.walk_primitive(ty, &parameters, lowerer)?;
@@ -167,6 +184,9 @@ pub(in super::super) trait TypeDeclWalker {
             }
             vir_mid::TypeDecl::Enum(decl) => {
                 self.walk_enum(ty, decl, &parameters, lowerer)?;
+            }
+            vir_mid::TypeDecl::Union(decl) => {
+                self.walk_uion(ty, decl, &parameters, lowerer)?;
             }
             // vir_mid::TypeDecl::Array(Array) => {},
             // vir_mid::TypeDecl::Reference(Reference) => {},
@@ -191,12 +211,12 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::Type::Float(_)
             | vir_mid::Type::Pointer(_) => self.after_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
-            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_)
+            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_) | vir_mid::Type::Union(_)
                 if is_empty && Self::IS_EMPTY_PRIMITIVE =>
             {
                 self.after_primitive(ty, parameters, lowerer)
             }
-            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_) => {
+            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_)  | vir_mid::Type::Union(_)=> {
                 self.after_composite(ty, parameters, lowerer)
             }
             // vir_mid::Type::Array(Array) => {},

@@ -1,5 +1,4 @@
 use std::collections::BTreeSet;
-
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
@@ -397,16 +396,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         match aggregate_kind {
             mir::AggregateKind::Adt(adt_did, variant_index, _substs, _, active_field_index) => {
-                assert!(
-                    active_field_index.is_none(),
-                    "field index should be set only for unions"
-                );
+                // assert!(
+                //     active_field_index.is_none(),
+                //     "field index should be set only for unions"
+                // );
                 let mut ty = encoded_target.get_type().clone();
+                let tcx = self.encoder.env().tcx();
                 if ty.is_enum() {
-                    let adt_def = self.encoder.env().tcx().adt_def(*adt_did);
+                    let adt_def = tcx.adt_def(*adt_did);
                     let variant_def = &adt_def.variants()[*variant_index];
-                    let variant_name = variant_def.ident(self.encoder.env().tcx()).to_string();
+                    let variant_name = variant_def.ident(tcx).to_string();
                     ty = ty.variant(variant_name.into());
+                } else {
+                    assert_eq!(variant_index.index(), 0, "Unexpected value of the variant index.");
+                }
+                if let Some(active_field_index) = active_field_index {
+                    assert!(ty.is_union());
+                    let adt_def = tcx.adt_def(*adt_did);
+                    let variant_def = adt_def.non_enum_variant();
+                    let field_name = variant_def.fields[*active_field_index].ident(tcx).to_string();
+                    ty = ty.variant(field_name.into());
                 }
                 let mut encoded_operands = Vec::new();
                 for operand in operands {

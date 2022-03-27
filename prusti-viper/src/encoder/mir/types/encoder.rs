@@ -20,7 +20,7 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::ty;
 use rustc_span::MultiSpan;
 
-use vir_crate::high::{self as vir};
+use vir_crate::{high::{self as vir}, common::expression::BinaryOperationHelpers};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -131,6 +131,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_union() => vir::Type::union_(
                 self.encode_union_name(adt_def.did()),
                 self.encode_substs(substs),
+                None,
             ),
 
             ty::TyKind::Adt(_adt_def, _substs) => {
@@ -748,6 +749,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
     substs: ty::subst::SubstsRef<'tcx>,
     variant_index: Option<rustc_target::abi::VariantIdx>,
 ) -> SpannedEncodingResult<vir::TypeDecl> {
+    let tcx = encoder.env().tcx();
     if adt_def.is_box() {
         debug!("ADT {:?} is a box", adt_def);
         assert!(variant_index.is_none());
@@ -764,10 +766,37 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         )?))
     } else if adt_def.is_union() {
         debug!("ADT {:?} is a union", adt_def);
-        assert!(variant_index.is_none());
-        Err(SpannedEncodingError::unsupported(
+        if !config::unsafe_core_proof() {
+        return Err(SpannedEncodingError::unsupported(
             "unions are not supported",
             encoder.env().get_def_span(adt_def.did()),
+        ));
+    }
+        assert!(variant_index.is_none());
+        let name = encode_struct_name(encoder, adt_def.did());
+        // We treat union fields as variants.
+        let variant = adt_def.non_enum_variant();
+        let num_variants = variant.fields.len();
+        let discriminant = vir::Expression::discriminant();
+        let discriminant_bounds = vir::Expression::and(
+            vir::Expression::less_equals(0.into(), discriminant.clone()),
+            vir::Expression::less_equals(discriminant.clone(), num_variants.into()),
+        );
+        let discriminant_values = (0..num_variants).map(|value| value.into()).collect();
+        let mut variants = Vec::new();
+        for field in &variant.fields {
+            let field_name = crate::encoder::encoder::encode_field_name(field.ident(tcx).as_str());
+            let field_ty = field.ty(tcx, substs);
+            let encoded_field = vir::FieldDecl::new("value", encoder.encode_type_high(field_ty)?);
+            let variant = vir::type_decl::Struct::new(field_name, vec![encoded_field]);
+            variants.push(variant);
+        }
+        Ok(vir::TypeDecl::union_(
+            name,
+            vir::Type::Int(vir::ty::Int::Usize),
+            discriminant_bounds,
+            discriminant_values,
+            variants,
         ))
     } else if adt_def.is_enum() {
         debug!("ADT {:?} is an enum", adt_def);
@@ -784,7 +813,6 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
             // vir::TypeDecl::Struct(encode_variant(encoder, name, substs, variant)?)
             unimplemented!("FIXME: How this should be implemented?")
         } else {
-            let tcx = encoder.env().tcx();
             let discriminant = vir::Expression::discriminant();
             let discriminant_bounds = compute_discriminant_bounds_high(adt_def, tcx, &discriminant);
             let discriminant_values = compute_discriminant_values(adt_def, tcx)

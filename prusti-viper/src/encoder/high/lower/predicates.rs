@@ -27,6 +27,7 @@ impl IntoPredicates for vir_high::TypeDecl {
             vir_high::TypeDecl::Tuple(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Struct(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Enum(ty_decl) => ty_decl.lower(ty, encoder),
+            vir_high::TypeDecl::Union(ty_decl) => unreachable!("Unions are not supported"),
             vir_high::TypeDecl::Array(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Reference(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Pointer(ty_decl) => ty_decl.lower(ty, encoder),

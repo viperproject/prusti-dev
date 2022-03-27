@@ -13,7 +13,7 @@ pub enum TypeDecl {
     Tuple(Tuple),
     Struct(Struct),
     Enum(Enum),
-    // Union(Union),
+    Union(Union),
     Array(Array),
     // Slice(Slice),
     Reference(Reference),
@@ -84,6 +84,15 @@ pub struct Struct {
 
 #[display(fmt = "{}", name)]
 pub struct Enum {
+    pub name: String,
+    pub discriminant_type: Type,
+    pub discriminant_bounds: Expression,
+    pub discriminant_values: Vec<Expression>,
+    pub variants: Vec<Struct>,
+}
+
+#[display(fmt = "{}", name)]
+pub struct Union {
     pub name: String,
     pub discriminant_type: Type,
     pub discriminant_bounds: Expression,

@@ -18,8 +18,20 @@ impl Type {
                 arguments,
                 variant: Some(variant),
             }),
-            Type::Enum(Enum { .. }) => {
+            Type::Union(Union {
+                name,
+                arguments,
+                variant: None
+            }) => Type::Union(Union {
+                name,
+                arguments,
+                variant: Some(variant)
+            }),
+            Type::Enum(_) => {
                 unreachable!("setting variant on enum type that already has variant set");
+            }
+            Type::Union(_) => {
+                unreachable!("setting variant on union type that already has variant set");
             }
             _ => {
                 unreachable!("setting variant on non-enum type");
@@ -35,6 +47,15 @@ impl Type {
                 arguments,
                 variant: Some(_),
             }) => Some(Type::Enum(Enum {
+                name: name.clone(),
+                arguments: arguments.clone(),
+                variant: None,
+            })),
+            Type::Union(Union {
+                name,
+                arguments,
+                variant: Some(_),
+            }) => Some(Type::Union(Union {
                 name: name.clone(),
                 arguments: arguments.clone(),
                 variant: None,

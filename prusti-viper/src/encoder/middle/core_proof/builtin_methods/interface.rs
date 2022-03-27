@@ -355,6 +355,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     arguments.push(operand_value.into());
                 }
                 let assigned_value = match &value.ty {
+                    vir_mid::Type::Union(_) |
                     vir_mid::Type::Enum(_) => {
                         let variant_constructor =
                             self.construct_struct_snapshot(&value.ty, arguments, position)?;
@@ -693,6 +694,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         call memory_block_join<ty>([source_address], [discriminant_call])
                     });
                 }
+                vir_mid::TypeDecl::Union(decl) => {
+                    unimplemented!();
+                }
                 vir_mid::TypeDecl::Array(_) => {
                     unimplemented!()
                 }
@@ -938,6 +942,42 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             [discriminant_place], root_address, [discriminant_value]
                         )
                     });
+                }
+                vir_mid::TypeDecl::Union(decl) => {
+                    let discriminant_call =
+                        self.obtain_enum_discriminant(value.clone().into(), ty, position)?;
+                    self.encode_memory_block_split_method(ty)?;
+                    statements.push(stmtp! {
+                        position =>
+                        call memory_block_split<ty>([address.clone()], [discriminant_call.clone()])
+                    });
+                    for (discriminant_value, variant) in
+                        decl.discriminant_values.iter().zip(&decl.variants)
+                    {
+                        let variant_index = variant.name.clone().into();
+                        let condition = expr! {
+                            [discriminant_call.clone()] == [discriminant_value.clone().to_low(self)?]
+                        };
+                        let variant_place = self.encode_enum_variant_place(
+                            ty,
+                            &variant_index,
+                            place.clone().into(),
+                            position,
+                        )?;
+                        let variant_value = self.obtain_enum_variant_snapshot(
+                            ty,
+                            &variant_index,
+                            value.clone().into(),
+                            position,
+                        )?;
+                        let variant_ty = &ty.clone().variant(variant_index);
+                        self.encode_write_place_method(variant_ty)?;
+                        statements.push(stmtp! { position =>
+                            call<condition> write_place<variant_ty>(
+                                [variant_place], root_address, [variant_value]
+                            )
+                        });
+                    }
                 }
                 vir_mid::TypeDecl::Array(_) => {
                     unimplemented!()
@@ -1290,6 +1330,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                     position =>
                                     call into_memory_block<discriminant_type>([discriminant_place], root_address, [discriminant_value])
                                 });
+                                for (discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants) {
+                                    let variant_index = variant.name.clone().into();
+                                    let variant_place = self.encode_enum_variant_place(
+                                        ty, &variant_index, place.clone().into(), position,
+                                    )?;
+                                    let variant_value = self.obtain_enum_variant_snapshot(ty, &variant_index, value.clone().into(), position)?;
+                                    let variant_ty = &ty.clone().variant(variant_index);
+                                    self.encode_into_memory_block_method(variant_ty)?;
+                                    let condition = expr! {
+                                        [discriminant_call.clone()] == [discriminant.clone().to_low(self)?]
+                                    };
+                                    let condition1 = condition.clone();
+                                    statements.push(stmtp! {
+                                        position =>
+                                        call<condition1> into_memory_block<variant_ty>([variant_place], root_address, [variant_value])
+                                    });
+                                    self.encode_memory_block_join_method(ty)?;
+                                    statements.push(stmtp! {
+                                        position =>
+                                        call<condition> memory_block_join<ty>([address.clone()], [discriminant.clone().to_low(self)?])
+                                    });
+                                }
+                            }
+                            vir_mid::TypeDecl::Union(decl) => {
+                                let discriminant_call =
+                                    self.obtain_enum_discriminant(value.clone().into(), ty, Default::default())?;
                                 for (discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants) {
                                     let variant_index = variant.name.clone().into();
                                     let variant_place = self.encode_enum_variant_place(

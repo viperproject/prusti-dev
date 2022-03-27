@@ -43,6 +43,13 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
             vir_high::TypeDecl::Struct(struct_decl) => {
                 expand_fields(place, struct_decl.iter_fields())
             }
+            vir_high::TypeDecl::Union(_) => {
+                let variant_name = place.get_variant_name(guiding_place);
+                let variant_place = place.clone().into_variant(variant_name.clone());
+                vec![
+                    (ExpandedPermissionKind::Same, variant_place),
+                ]
+            }
             vir_high::TypeDecl::Enum(decl) => {
                 let discriminant_field = decl.discriminant_field();
                 let discriminant_place =
