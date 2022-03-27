@@ -346,6 +346,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .patch_snapshots_function(function, &self.tymap)
             .with_span(self.mir.span)?;
 
+        // Fix arguments
+        if let Some(mut body) = function.body.take() {
+            for arg in self.mir.args_iter() {
+                let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
+                let span = self.get_local_span(arg);
+                let target_place = self
+                    .encoder
+                    .encode_value_expr(
+                        vir::Expr::local(self.interpreter.mir_encoder().encode_local(arg)?),
+                        arg_ty,
+                    )
+                    .with_span(span)?;
+                let mut new_place: vir::Expr = self.encode_local(arg)?.into();
+                if let ty::TyKind::Ref(_, _, _) = arg_ty.kind() {
+                    // patch references with an explicit snap app
+                    // TODO: this probably needs to be adjusted when snapshots of
+                    //       references are implemented
+                    new_place = vir::Expr::snap_app(new_place);
+                }
+                body = body.replace_place(&target_place, &new_place);
+            }
+            function.body = Some(body)
+        }
+
         // Add folding/unfolding
         Ok(function)
     }
