@@ -783,7 +783,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         let discriminant = vir::Expression::discriminant();
         let discriminant_bounds = vir::Expression::and(
             vir::Expression::less_equals(0.into(), discriminant.clone()),
-            vir::Expression::less_equals(discriminant.clone(), num_variants.into()),
+            vir::Expression::less_than(discriminant.clone(), num_variants.into()),
         );
         let discriminant_values = (0..num_variants).map(|value| value.into()).collect();
         let mut variants = Vec::new();
