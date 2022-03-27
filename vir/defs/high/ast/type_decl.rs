@@ -17,7 +17,7 @@ pub enum TypeDecl {
     Array(Array),
     // Slice(Slice),
     Reference(Reference),
-    // Pointer(Pointer),
+    Pointer(Pointer),
     // FnPointer,
     Never,
     // Str,
@@ -101,6 +101,11 @@ pub struct Array {
 pub struct Reference {
     pub target_type: Type,
     pub lifetime: Lifetime,
+}
+
+#[display(fmt = "*{}", target_type)]
+pub struct Pointer {
+    pub target_type: Type,
 }
 
 #[display(fmt = "{}", name)]

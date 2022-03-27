@@ -113,6 +113,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         value: &vir_mid::Rvalue,
     ) -> SpannedEncodingResult<()> {
         match value {
+            vir_mid::Rvalue::AddressOf(value) => {
+                self.encode_place_arguments(arguments, &value.place)?;
+            }
             vir_mid::Rvalue::UnaryOp(value) => {
                 self.encode_operand_arguments(arguments, &value.argument)?;
             }
@@ -246,6 +249,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
         let assigned_value = match value {
+            vir_mid::Rvalue::AddressOf(value) => {
+                let ty = value.place.get_type();
+                var_decls! {
+                    operand_place: Place,
+                    operand_address: Address,
+                    operand_value: { ty.create_snapshot(self)? }
+                };
+                let predicate = expr! {
+                    acc(OwnedNonAliased<ty>(operand_place, operand_address, operand_value))
+                };
+                let compute_address = ty!(Address);
+                let address =
+                    expr! { ComputeAddress::compute_address(operand_place, operand_address) };
+                pres.push(predicate.clone());
+                posts.push(predicate);
+                parameters.push(operand_place);
+                parameters.push(operand_address);
+                parameters.push(operand_value);
+                self.construct_constant_snapshot(result_type, address, position)?
+            }
             vir_mid::Rvalue::UnaryOp(value) => {
                 let operand_value = self.encode_assign_operand(
                     parameters,
@@ -264,14 +287,41 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     position,
                 )?
             }
-            vir_mid::Rvalue::BinaryOp(_value) => {
-                unimplemented!();
+            vir_mid::Rvalue::BinaryOp(value) => {
+                let operand_left = self.encode_assign_operand(
+                    parameters,
+                    pres,
+                    posts,
+                    pre_write_statements,
+                    post_write_statements,
+                    1,
+                    &value.left,
+                    position,
+                )?;
+                let operand_right = self.encode_assign_operand(
+                    parameters,
+                    pres,
+                    posts,
+                    pre_write_statements,
+                    post_write_statements,
+                    2,
+                    &value.right,
+                    position,
+                )?;
+                self.construct_binary_op_snapshot(
+                    value.kind,
+                    value.kind.get_result_type(value.left.expression.get_type()),
+                    value.left.expression.get_type(),
+                    operand_left.into(),
+                    operand_right.into(),
+                    position,
+                )?
             }
             vir_mid::Rvalue::Discriminant(value) => {
                 let ty = value.place.get_type();
                 var_decls! {
-                    operand_place: Place ,
-                    operand_address: Address ,
+                    operand_place: Place,
+                    operand_address: Address,
                     operand_value: { ty.create_snapshot(self)? }
                 };
                 let predicate = expr! {
@@ -351,6 +401,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let post_predicate = if operand.kind == vir_mid::OperandKind::Copy {
                     expr! { acc(OwnedNonAliased<ty>(place, root_address, value)) }
                 } else {
+                    self.encode_into_memory_block_method(ty)?;
                     pre_write_statements
                         .push(stmt! { call into_memory_block<ty>(place, root_address, value) });
                     let compute_address = ty!(Address);
@@ -489,7 +540,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             match type_decl {
                 vir_mid::TypeDecl::Bool
                 | vir_mid::TypeDecl::Int(_)
-                | vir_mid::TypeDecl::Float(_) => {
+                | vir_mid::TypeDecl::Float(_)
+                | vir_mid::TypeDecl::Pointer(_) => {
                     self.encode_write_address_method(ty)?;
                     statements.push(stmtp! { position =>
                         // TODO: Replace with memcopy.
@@ -781,7 +833,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             match type_decl {
                 vir_mid::TypeDecl::Bool
                 | vir_mid::TypeDecl::Int(_)
-                | vir_mid::TypeDecl::Float(_) => {
+                | vir_mid::TypeDecl::Float(_)
+                | vir_mid::TypeDecl::Pointer(_) => {
                     self.encode_write_address_method(ty)?;
                     statements.push(stmtp! { position =>
                         call write_address<ty>([address.clone()], value)
@@ -1128,6 +1181,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+    // FIXME: This method has to be inlined if the converted type has a resource
+    // invariant in it. Otherwise, that resource would be leaked.
     fn encode_into_memory_block_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
         if !self
             .builtin_methods_state
@@ -1168,7 +1223,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         match type_decl {
                             vir_mid::TypeDecl::Bool
                             | vir_mid::TypeDecl::Int(_)
-                            | vir_mid::TypeDecl::Float(_) => {
+                            | vir_mid::TypeDecl::Float(_)
+                            | vir_mid::TypeDecl::Pointer(_) => {
                                 // Primitive type. Nothing to do.
                             }
                             vir_mid::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", ty),

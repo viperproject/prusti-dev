@@ -18,6 +18,27 @@ impl From<VariableDecl> for Expression {
     }
 }
 
+impl BinaryOpKind {
+    pub fn get_result_type(self, argument_type: &Type) -> &Type {
+        match self {
+            BinaryOpKind::EqCmp
+            | BinaryOpKind::NeCmp
+            | BinaryOpKind::GtCmp
+            | BinaryOpKind::GeCmp
+            | BinaryOpKind::LtCmp
+            | BinaryOpKind::LeCmp
+            | BinaryOpKind::And
+            | BinaryOpKind::Or
+            | BinaryOpKind::Implies => &Type::Bool,
+            BinaryOpKind::Add
+            | BinaryOpKind::Sub
+            | BinaryOpKind::Mul
+            | BinaryOpKind::Div
+            | BinaryOpKind::Mod => argument_type,
+        }
+    }
+}
+
 impl Expression {
     /// Only defined for places.
     pub fn get_base(&self) -> VariableDecl {

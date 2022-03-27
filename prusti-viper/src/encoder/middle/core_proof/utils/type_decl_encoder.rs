@@ -16,9 +16,10 @@ pub(in super::super) trait TypeDeclWalker {
     ) -> SpannedEncodingResult<()> {
         let is_empty = lowerer.encoder.is_type_empty(ty)?;
         match ty {
-            vir_mid::Type::Bool | vir_mid::Type::Int(_) | vir_mid::Type::Float(_) => {
-                self.before_primitive(ty, parameters, lowerer)
-            }
+            vir_mid::Type::Bool
+            | vir_mid::Type::Int(_)
+            | vir_mid::Type::Float(_)
+            | vir_mid::Type::Pointer(_) => self.before_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
             vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_)
                 if is_empty && Self::IS_EMPTY_PRIMITIVE =>
@@ -144,7 +145,10 @@ pub(in super::super) trait TypeDeclWalker {
         self.before(ty, &parameters, lowerer)?;
         let is_empty = lowerer.encoder.is_type_empty(ty)?;
         match type_decl {
-            vir_mid::TypeDecl::Bool | vir_mid::TypeDecl::Int(_) | vir_mid::TypeDecl::Float(_) => {
+            vir_mid::TypeDecl::Bool
+            | vir_mid::TypeDecl::Int(_)
+            | vir_mid::TypeDecl::Float(_)
+            | vir_mid::TypeDecl::Pointer(_) => {
                 self.walk_primitive(ty, &parameters, lowerer)?;
             }
             // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
@@ -182,9 +186,10 @@ pub(in super::super) trait TypeDeclWalker {
     ) -> SpannedEncodingResult<()> {
         let is_empty = lowerer.encoder.is_type_empty(ty)?;
         match ty {
-            vir_mid::Type::Bool | vir_mid::Type::Int(_) | vir_mid::Type::Float(_) => {
-                self.after_primitive(ty, parameters, lowerer)
-            }
+            vir_mid::Type::Bool
+            | vir_mid::Type::Int(_)
+            | vir_mid::Type::Float(_)
+            | vir_mid::Type::Pointer(_) => self.after_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
             vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_)
                 if is_empty && Self::IS_EMPTY_PRIMITIVE =>

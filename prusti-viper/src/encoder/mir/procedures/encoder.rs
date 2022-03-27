@@ -301,15 +301,52 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Use(operand) => {
                 self.encode_assign_operand(block_builder, location, encoded_target, operand)?;
             }
-            mir::Rvalue::Aggregate(box aggregate_kind, operands) => {
-                self.encode_statement_assign_aggregate(
-                    block_builder,
-                    location,
+            // mir::Rvalue::Repeat(Operand<'tcx>, Const<'tcx>),
+            // mir::Rvalue::Ref(Region<'tcx>, BorrowKind, Place<'tcx>),
+            // mir::Rvalue::ThreadLocalRef(DefId),
+            mir::Rvalue::AddressOf(_, place) => {
+                let encoded_place = self.encoder.encode_place_high(self.mir, *place)?;
+                let encoded_rvalue = vir_high::Rvalue::address_of(encoded_place);
+                block_builder.add_statement(vir_high::Statement::assign(
                     encoded_target,
-                    aggregate_kind,
-                    operands,
-                )?;
+                    encoded_rvalue,
+                    self.register_error(location, ErrorCtxt::Assign),
+                ));
             }
+            // mir::Rvalue::Len(Place<'tcx>),
+            // mir::Rvalue::Cast(CastKind, Operand<'tcx>, Ty<'tcx>),
+            mir::Rvalue::BinaryOp(op, box (left, right)) => {
+                let encoded_left = self.encode_statement_operand(location, left)?;
+                let encoded_right = self.encode_statement_operand(location, right)?;
+                let kind = match op {
+                    mir::BinOp::Add => vir_high::BinaryOpKind::Add,
+                    mir::BinOp::Sub => vir_high::BinaryOpKind::Sub,
+                    mir::BinOp::Mul => vir_high::BinaryOpKind::Mul,
+                    mir::BinOp::Div => vir_high::BinaryOpKind::Div,
+                    mir::BinOp::Rem => vir_high::BinaryOpKind::Mod,
+                    // mir::BinOp::BitXor => vir_high::BinaryOpKind::BitXor,
+                    // mir::BinOp::BitAnd => vir_high::BinaryOpKind::BitAnd,
+                    // mir::BinOp::BitOr => vir_high::BinaryOpKind::BitOr,
+                    // mir::BinOp::Shl => vir_high::BinaryOpKind::Shl,
+                    // mir::BinOp::Shr => vir_high::BinaryOpKind::Shr,
+                    mir::BinOp::Eq => vir_high::BinaryOpKind::EqCmp,
+                    mir::BinOp::Lt => vir_high::BinaryOpKind::LtCmp,
+                    mir::BinOp::Le => vir_high::BinaryOpKind::LeCmp,
+                    mir::BinOp::Ne => vir_high::BinaryOpKind::NeCmp,
+                    mir::BinOp::Ge => vir_high::BinaryOpKind::GeCmp,
+                    mir::BinOp::Gt => vir_high::BinaryOpKind::GtCmp,
+                    // mir::BinOp::Offset => vir_high::BinaryOpKind::Offset,
+                    _ => unimplemented!("op kind: {:?}", op),
+                };
+                let encoded_rvalue = vir_high::Rvalue::binary_op(kind, encoded_left, encoded_right);
+                block_builder.add_statement(vir_high::Statement::assign(
+                    encoded_target,
+                    encoded_rvalue,
+                    self.register_error(location, ErrorCtxt::Assign),
+                ));
+            }
+            // mir::Rvalue::CheckedBinaryOp(BinOp, Box<(Operand<'tcx>, Operand<'tcx>)>),
+            // mir::Rvalue::NullaryOp(NullOp, Ty<'tcx>),
             mir::Rvalue::UnaryOp(op, operand) => {
                 let encoded_operand = self.encode_statement_operand(location, operand)?;
                 let kind = match op {
@@ -332,6 +369,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.register_error(location, ErrorCtxt::Assign),
                 ));
             }
+            mir::Rvalue::Aggregate(box aggregate_kind, operands) => {
+                self.encode_statement_assign_aggregate(
+                    block_builder,
+                    location,
+                    encoded_target,
+                    aggregate_kind,
+                    operands,
+                )?;
+            }
+            // mir::Rvalue::ShallowInitBox(Operand<'tcx>, Ty<'tcx>),
             _ => {
                 block_builder.add_comment("encode_statement_assign: not encoded".to_string());
                 unimplemented!("{:?}", source);

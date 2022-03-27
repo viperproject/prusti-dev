@@ -2,6 +2,7 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
+        addresses::AddressesInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{
             IntoSnapshot, SnapshotAdtsInterface, SnapshotDomainsInterface,
@@ -9,6 +10,7 @@ use crate::encoder::{
         },
     },
 };
+use rustc_hash::FxHashSet;
 use std::collections::BTreeSet;
 use vir_crate::{
     common::{
@@ -23,30 +25,9 @@ use vir_crate::{
 pub(in super::super) struct TypesState {
     /// The types for which the definitions were ensured.
     ensured_definitions: BTreeSet<vir_mid::Type>,
+    encoded_binary_operations: FxHashSet<String>,
+    encoded_unary_operations: FxHashSet<String>,
 }
-
-const BOOLEAN_OPERATORS: &[vir_low::BinaryOpKind] = &[
-    vir_low::BinaryOpKind::EqCmp,
-    vir_low::BinaryOpKind::And,
-    vir_low::BinaryOpKind::Or,
-    vir_low::BinaryOpKind::Implies,
-];
-
-const COMPARISON_OPERATORS: &[vir_low::BinaryOpKind] = &[
-    vir_low::BinaryOpKind::EqCmp,
-    vir_low::BinaryOpKind::NeCmp,
-    vir_low::BinaryOpKind::GtCmp,
-    vir_low::BinaryOpKind::GeCmp,
-    vir_low::BinaryOpKind::LtCmp,
-    vir_low::BinaryOpKind::LeCmp,
-];
-const ARITHMETIC_OPERATORS: &[vir_low::BinaryOpKind] = &[
-    vir_low::BinaryOpKind::Add,
-    vir_low::BinaryOpKind::Sub,
-    vir_low::BinaryOpKind::Mul,
-    vir_low::BinaryOpKind::Div,
-    vir_low::BinaryOpKind::Mod,
-];
 
 trait Private {
     fn ensure_type_definition_for_decl(
@@ -62,7 +43,6 @@ trait Private {
         parameter_type: &vir_mid::Type,
         simplification_result: vir_low::Expression,
     ) -> SpannedEncodingResult<()>;
-    fn declare_simplification_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
@@ -76,42 +56,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         match type_decl {
             vir_mid::TypeDecl::Bool => {
                 self.register_constant_constructor(&domain_name, vir_low::Type::Bool)?;
-                let snapshot_type = ty.create_snapshot(self)?;
-                let variant_name =
-                    self.encode_unary_op_variant(vir_low::UnaryOpKind::Not, &vir_mid::Type::Bool)?;
-                self.register_alternative_constructor(
-                    &domain_name,
-                    &variant_name,
-                    vars! { argument: {snapshot_type.clone()} },
-                )?;
-                var_decls! { constant: Bool };
-                self.declare_simplification_axiom(
-                    ty,
-                    &variant_name,
-                    vec![constant.clone()],
-                    ty,
-                    expr! { !constant },
-                )?;
-                for op in BOOLEAN_OPERATORS {
-                    // FIXME: Make these on demand.
-                    let variant_name = self.encode_binary_op_variant(*op, &vir_mid::Type::Bool)?;
-                    self.register_alternative_constructor(
-                        &domain_name,
-                        &variant_name,
-                        vars! { left: {snapshot_type.clone()}, right: {snapshot_type.clone()} },
-                    )?;
-                    var_decls! { left: Bool, right: Bool };
-                    let result =
-                        vir_low::Expression::binary_op_no_pos(*op, expr! {left}, expr! {right});
-                    self.declare_simplification_axiom(
-                        ty,
-                        &variant_name,
-                        vec![left, right],
-                        ty,
-                        result,
-                    )?;
-                }
-
                 self.encode_validity_axioms_primitive(
                     &domain_name,
                     vir_low::Type::Bool,
@@ -121,60 +65,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             vir_mid::TypeDecl::Int(decl) => {
                 self.ensure_type_definition(&vir_mid::Type::Bool)?;
                 self.register_constant_constructor(&domain_name, vir_low::Type::Int)?;
-                let snapshot_type = ty.create_snapshot(self)?;
-                let variant_name = self.encode_unary_op_variant(vir_low::UnaryOpKind::Minus, ty)?;
-                self.register_alternative_constructor(
-                    &domain_name,
-                    &variant_name,
-                    vars! { argument: {snapshot_type.clone()} },
-                )?;
-                var_decls! { constant: Int };
-                self.declare_simplification_axiom(
-                    ty,
-                    &variant_name,
-                    vec![constant.clone()],
-                    ty,
-                    expr! { -constant },
-                )?;
-                for op in ARITHMETIC_OPERATORS {
-                    // FIXME: Make these on demand.
-                    let variant_name = self.encode_binary_op_variant(*op, ty)?;
-                    self.register_alternative_constructor(
-                        &domain_name,
-                        &variant_name,
-                        vars! { left: {snapshot_type.clone()}, right: {snapshot_type.clone()} },
-                    )?;
-                    var_decls! { left: Int, right: Int };
-                    let result =
-                        vir_low::Expression::binary_op_no_pos(*op, expr! {left}, expr! {right});
-                    self.declare_simplification_axiom(
-                        ty,
-                        &variant_name,
-                        vec![left, right],
-                        ty,
-                        result,
-                    )?;
-                }
-                let bool_domain_name = self.encode_snapshot_domain_name(&vir_mid::Type::Bool)?;
-                for op in COMPARISON_OPERATORS {
-                    // FIXME: Make these on demand.
-                    let variant_name = self.encode_binary_op_variant(*op, ty)?;
-                    self.register_alternative_constructor(
-                        &bool_domain_name,
-                        &variant_name,
-                        vars! { left: {snapshot_type.clone()}, right: {snapshot_type.clone()} },
-                    )?;
-                    var_decls! { left: Int, right: Int };
-                    let result =
-                        vir_low::Expression::binary_op_no_pos(*op, expr! {left}, expr! {right});
-                    self.declare_simplification_axiom(
-                        &vir_mid::Type::Bool,
-                        &variant_name,
-                        vec![left, right],
-                        ty,
-                        result,
-                    )?;
-                }
                 var_decls! { value: Int };
                 let mut conjuncts = Vec::new();
                 if let Some(lower_bound) = &decl.lower_bound {
@@ -232,6 +122,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     discriminant_bounds,
                 )?;
             }
+            vir_mid::TypeDecl::Pointer(decl) => {
+                self.ensure_type_definition(&decl.target_type)?;
+                let address_type = self.address_type()?;
+                self.register_constant_constructor(&domain_name, address_type.clone())?;
+                self.encode_validity_axioms_primitive(&domain_name, address_type, true.into())?;
+            }
             _ => unimplemented!("type: {:?}", type_decl),
         };
         Ok(())
@@ -275,56 +171,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         self.declare_axiom(&domain_name, axiom)?;
         Ok(())
     }
-    fn declare_simplification_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        use vir_low::macros::*;
-        match ty {
-            vir_mid::Type::Bool => {
-                let variant = self.encode_unary_op_variant(vir_low::UnaryOpKind::Not, ty)?;
-                var_decls! { constant: Bool };
-                let result = expr! { !constant };
-                self.declare_simplification_axiom(ty, &variant, vec![constant], ty, result)?;
-                for op in BOOLEAN_OPERATORS {
-                    let variant = self.encode_binary_op_variant(*op, ty)?;
-                    var_decls! { left: Bool, right: Bool };
-                    let result =
-                        vir_low::Expression::binary_op_no_pos(*op, expr! {left}, expr! {right});
-                    self.declare_simplification_axiom(ty, &variant, vec![left, right], ty, result)?;
-                }
-            }
-            vir_mid::Type::Int(_) => {
-                let variant = self.encode_unary_op_variant(vir_low::UnaryOpKind::Minus, ty)?;
-                var_decls! { constant: Int };
-                let result = expr! { -constant };
-                self.declare_simplification_axiom(ty, &variant, vec![constant], ty, result)?;
-                for op in ARITHMETIC_OPERATORS {
-                    let variant = self.encode_binary_op_variant(*op, ty)?;
-                    var_decls! { left: Int, right: Int };
-                    let result =
-                        vir_low::Expression::binary_op_no_pos(*op, expr! {left}, expr! {right});
-                    self.declare_simplification_axiom(ty, &variant, vec![left, right], ty, result)?;
-                }
-                // FIXME: This should be more fine grained instead of including all Bool axioms.
-                self.ensure_type_definition(&vir_mid::Type::Bool)?;
-                for op in COMPARISON_OPERATORS {
-                    let variant = self.encode_binary_op_variant(*op, ty)?;
-                    var_decls! { left: Int, right: Int };
-                    let result =
-                        vir_low::Expression::binary_op_no_pos(*op, expr! {left}, expr! {right});
-                    self.declare_simplification_axiom(
-                        &vir_mid::Type::Bool,
-                        &variant,
-                        vec![left, right],
-                        ty,
-                        result,
-                    )?;
-                }
-            }
-            _ => {
-                // Other types do not need simplification axioms.
-            }
-        }
-        Ok(())
-    }
 }
 
 pub(in super::super) trait TypesInterface {
@@ -333,13 +179,13 @@ pub(in super::super) trait TypesInterface {
     fn ensure_type_definition(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_unary_op_variant(
         &mut self,
-        op: vir_low::UnaryOpKind,
+        op: vir_mid::UnaryOpKind,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<String>;
     fn encode_binary_op_variant(
         &mut self,
-        op: vir_low::BinaryOpKind,
-        ty: &vir_mid::Type,
+        op: vir_mid::BinaryOpKind,
+        argument_type: &vir_mid::Type,
     ) -> SpannedEncodingResult<String>;
     fn decode_type_low_into_mid(&self, ty: &vir_low::Type) -> SpannedEncodingResult<vir_mid::Type>;
 }
@@ -358,17 +204,98 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
     }
     fn encode_unary_op_variant(
         &mut self,
-        op: vir_low::UnaryOpKind,
-        ty: &vir_mid::Type,
+        op: vir_mid::UnaryOpKind,
+        argument_type: &vir_mid::Type,
     ) -> SpannedEncodingResult<String> {
-        Ok(format!("{}_{}", op, ty.get_identifier()))
+        let variant_name = format!("{}_{}", op, argument_type.get_identifier());
+        if !self
+            .types_state
+            .encoded_unary_operations
+            .contains(&variant_name)
+        {
+            self.types_state
+                .encoded_unary_operations
+                .insert(variant_name.clone());
+            use vir_low::macros::*;
+            let snapshot_type = argument_type.create_snapshot(self)?;
+            let result_type = argument_type;
+            let result_domain = self.encode_snapshot_domain_name(result_type)?;
+            self.register_alternative_constructor(
+                &result_domain,
+                &variant_name,
+                vars! { argument: {snapshot_type} },
+            )?;
+            // Simplification axioms.
+            let op = op.to_low(self)?;
+            let simplification = match argument_type {
+                vir_mid::Type::Bool => {
+                    assert_eq!(op, vir_low::UnaryOpKind::Not);
+                    var_decls! { constant: Bool };
+                    Some((expr! { !constant }, constant))
+                }
+                vir_mid::Type::Int(_) => {
+                    assert_eq!(op, vir_low::UnaryOpKind::Minus);
+                    var_decls! { constant: Int };
+                    Some((expr! { -constant }, constant))
+                }
+                _ => None,
+            };
+            if let Some((simplification_result, parameter)) = simplification {
+                self.declare_simplification_axiom(
+                    result_type,
+                    &variant_name,
+                    vec![parameter],
+                    argument_type,
+                    simplification_result,
+                )?;
+            }
+        }
+        Ok(variant_name)
     }
     fn encode_binary_op_variant(
         &mut self,
-        op: vir_low::BinaryOpKind,
-        ty: &vir_mid::Type,
+        op: vir_mid::BinaryOpKind,
+        argument_type: &vir_mid::Type,
     ) -> SpannedEncodingResult<String> {
-        Ok(format!("{}_{}", op, ty.get_identifier()))
+        let variant_name = format!("{}_{}", op, argument_type.get_identifier());
+        if !self
+            .types_state
+            .encoded_binary_operations
+            .contains(&variant_name)
+        {
+            self.types_state
+                .encoded_binary_operations
+                .insert(variant_name.clone());
+            use vir_low::macros::*;
+            let snapshot_type = argument_type.create_snapshot(self)?;
+            let result_type = op.get_result_type(argument_type);
+            let result_domain = self.encode_snapshot_domain_name(result_type)?;
+            self.register_alternative_constructor(
+                &result_domain,
+                &variant_name,
+                vars! { left: {snapshot_type.clone()}, right: {snapshot_type} },
+            )?;
+            // Simplification axioms.
+            let op = op.to_low(self)?;
+            let constant_type = match argument_type {
+                vir_mid::Type::Bool => Some(ty! { Bool }),
+                vir_mid::Type::Int(_) => Some(ty! {Int}),
+                vir_mid::Type::Pointer(_) => Some(ty!(Address)),
+                _ => None,
+            };
+            if let Some(constant_type) = constant_type {
+                var_decls! { left: {constant_type.clone()}, right: {constant_type} };
+                let result = vir_low::Expression::binary_op_no_pos(op, expr! {left}, expr! {right});
+                self.declare_simplification_axiom(
+                    result_type,
+                    &variant_name,
+                    vec![left, right],
+                    argument_type,
+                    result,
+                )?;
+            }
+        }
+        Ok(variant_name)
     }
     fn decode_type_low_into_mid(&self, ty: &vir_low::Type) -> SpannedEncodingResult<vir_mid::Type> {
         let decoded_type = match ty {

@@ -297,6 +297,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 }
                 vir::TypeDecl::float(lower_bound, upper_bound)
             }
+            ty::TyKind::RawPtr(rustc_middle::ty::TypeAndMut { ty, mutbl: _ }) => {
+                let target_type = self.encoder.encode_type_high(*ty)?;
+                vir::TypeDecl::pointer(target_type)
+            }
             ty::TyKind::Ref(_, ty, _) => {
                 let target_type = self.encoder.encode_type_high(*ty)?;
                 // TODO: add real lifetime here?

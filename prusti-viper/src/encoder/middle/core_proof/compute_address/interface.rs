@@ -102,7 +102,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
             match type_decl {
                 vir_mid::TypeDecl::Bool
                 | vir_mid::TypeDecl::Int(_)
-                | vir_mid::TypeDecl::Float(_) => {
+                | vir_mid::TypeDecl::Float(_)
+                | vir_mid::TypeDecl::Pointer(_) => {
                     // Nothing to do.
                 }
                 // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
@@ -167,7 +168,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                 // vir_mid::TypeDecl::Never => {},
                 // vir_mid::TypeDecl::Closure(Closure) => {},
                 // vir_mid::TypeDecl::Unsupported(Unsupported) => {},
-                x => unimplemented!("{}", x),
+                x => unimplemented!("{:?}", x),
             }
         }
         Ok(())
