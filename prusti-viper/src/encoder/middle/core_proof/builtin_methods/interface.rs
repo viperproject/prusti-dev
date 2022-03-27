@@ -355,8 +355,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     arguments.push(operand_value.into());
                 }
                 let assigned_value = match &value.ty {
-                    vir_mid::Type::Union(_) |
-                    vir_mid::Type::Enum(_) => {
+                    vir_mid::Type::Union(_) | vir_mid::Type::Enum(_) => {
                         let variant_constructor =
                             self.construct_struct_snapshot(&value.ty, arguments, position)?;
                         self.construct_enum_snapshot(&value.ty, variant_constructor, position)?
@@ -1027,48 +1026,90 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let method = if ty.has_variants() {
                 // TODO: remove code duplication with encode_memory_block_join_method
                 let type_decl = self.encoder.get_type_decl_mid(ty)?;
-                let enum_decl = type_decl.unwrap_enum();
-                var_decls!(address: Address, discriminant: Int);
-                let size_of = self.encode_type_size_expression(ty)?;
-                let whole_block = expr!(acc(MemoryBlock(address, [size_of])));
-                let discriminant_field = enum_decl.discriminant_field();
-                let discriminant_size_of =
-                    self.encode_type_size_expression(&enum_decl.discriminant_type)?;
-                let discriminant_address = self.encode_field_address(
-                    ty,
-                    &discriminant_field,
-                    address.clone().into(),
-                    Default::default(),
-                )?;
-                let mut postconditions =
-                    vec![expr! { acc(MemoryBlock([discriminant_address], [discriminant_size_of]))}];
-                for (discriminant_value, variant) in enum_decl
-                    .discriminant_values
-                    .iter()
-                    .zip(&enum_decl.variants)
-                {
-                    let variant_index = variant.name.clone().into();
-                    let variant_address = self.encode_enum_variant_address(
-                        ty,
-                        &variant_index,
-                        address.clone().into(),
-                        Default::default(),
-                    )?;
-                    let variant_type = ty.clone().variant(variant_index);
-                    let variant_size_of = self.encode_type_size_expression(&variant_type)?;
-                    postconditions.push(expr! {
-                        (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
-                        (acc(MemoryBlock([variant_address], [variant_size_of])))
-                    })
+                match type_decl {
+                    vir_mid::TypeDecl::Enum(enum_decl) => {
+                        var_decls!(address: Address, discriminant: Int);
+                        let size_of = self.encode_type_size_expression(ty)?;
+                        let whole_block = expr!(acc(MemoryBlock(address, [size_of])));
+                        let discriminant_field = enum_decl.discriminant_field();
+                        let discriminant_size_of =
+                            self.encode_type_size_expression(&enum_decl.discriminant_type)?;
+                        let discriminant_address = self.encode_field_address(
+                            ty,
+                            &discriminant_field,
+                            address.clone().into(),
+                            Default::default(),
+                        )?;
+                        let mut postconditions = vec![
+                            expr! { acc(MemoryBlock([discriminant_address], [discriminant_size_of]))},
+                        ];
+                        for (discriminant_value, variant) in enum_decl
+                            .discriminant_values
+                            .iter()
+                            .zip(&enum_decl.variants)
+                        {
+                            let variant_index = variant.name.clone().into();
+                            let variant_address = self.encode_enum_variant_address(
+                                ty,
+                                &variant_index,
+                                address.clone().into(),
+                                Default::default(),
+                            )?;
+                            let variant_type = ty.clone().variant(variant_index);
+                            let variant_size_of =
+                                self.encode_type_size_expression(&variant_type)?;
+                            postconditions.push(expr! {
+                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (acc(MemoryBlock([variant_address], [variant_size_of])))
+                            })
+                        }
+                        vir_low::MethodDecl::new(
+                            method_name! { memory_block_split<ty> },
+                            vec![address, discriminant],
+                            Vec::new(),
+                            vec![whole_block],
+                            postconditions,
+                            None,
+                        )
+                    }
+                    vir_mid::TypeDecl::Union(enum_decl) => {
+                        var_decls!(address: Address, discriminant: Int);
+                        let size_of = self.encode_type_size_expression(ty)?;
+                        let whole_block = expr!(acc(MemoryBlock(address, [size_of])));
+                        let mut postconditions = Vec::new();
+                        for (discriminant_value, variant) in enum_decl
+                            .discriminant_values
+                            .iter()
+                            .zip(&enum_decl.variants)
+                        {
+                            let variant_index = variant.name.clone().into();
+                            let variant_address = self.encode_enum_variant_address(
+                                ty,
+                                &variant_index,
+                                address.clone().into(),
+                                Default::default(),
+                            )?;
+                            let variant_type = ty.clone().variant(variant_index);
+                            let variant_size_of =
+                                self.encode_type_size_expression(&variant_type)?;
+                            postconditions.push(expr! {
+                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (acc(MemoryBlock([variant_address], [variant_size_of])))
+                            })
+                        }
+                        vir_low::MethodDecl::new(
+                            method_name! { memory_block_split<ty> },
+                            vec![address, discriminant],
+                            Vec::new(),
+                            vec![whole_block],
+                            postconditions,
+                            None,
+                        )
+                    }
+                    _ => {
+                        unreachable!("only enums and unions has variants")
+                    }
                 }
-                vir_low::MethodDecl::new(
-                    method_name! { memory_block_split<ty> },
-                    vec![address, discriminant],
-                    Vec::new(),
-                    vec![whole_block],
-                    postconditions,
-                    None,
-                )
             } else {
                 let mut helper = SplitJoinHelper::new(false);
                 helper.walk_type(ty, (), self)?;
@@ -1099,95 +1140,184 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let method = if ty.has_variants() {
                 // TODO: remove code duplication with encode_memory_block_split_method
                 let type_decl = self.encoder.get_type_decl_mid(ty)?;
-                let enum_decl = type_decl.unwrap_enum();
-                var_decls!(address: Address, discriminant: Int);
-                let size_of = self.encode_type_size_expression(ty)?;
-                let whole_block = expr!(acc(MemoryBlock(address, [size_of.clone()])));
-                let discriminant_field = enum_decl.discriminant_field();
-                let discriminant_size_of =
-                    self.encode_type_size_expression(&enum_decl.discriminant_type)?;
-                let discriminant_address = self.encode_field_address(
-                    ty,
-                    &discriminant_field,
-                    address.clone().into(),
-                    Default::default(),
-                )?;
-                let discriminant_bounds = enum_decl.discriminant_bounds.to_low(self)?;
-                let mut preconditions = vec![
-                    expr! { acc(MemoryBlock([discriminant_address.clone()], [discriminant_size_of.clone()]))},
-                    discriminant_bounds.replace_discriminant(&discriminant.clone().into()),
-                ];
-                let to_bytes = ty! { Bytes };
-                let mut bytes_quantifier_conjuncts = Vec::new();
-                let memory_block_bytes =
-                    self.encode_memory_block_bytes_expression(address.clone().into(), size_of)?;
-                let snapshot: vir_low::Expression =
-                    var! { snapshot: {ty.create_snapshot(self)?} }.into();
-                for (discriminant_value, variant) in enum_decl
-                    .discriminant_values
-                    .iter()
-                    .zip(&enum_decl.variants)
-                {
-                    let variant_index = variant.name.clone().into();
-                    let variant_address = self.encode_enum_variant_address(
-                        ty,
-                        &variant_index,
-                        address.clone().into(),
-                        Default::default(),
-                    )?;
+                match type_decl {
+                    vir_mid::TypeDecl::Enum(enum_decl) => {
+                        var_decls!(address: Address, discriminant: Int);
+                        let size_of = self.encode_type_size_expression(ty)?;
+                        let whole_block = expr!(acc(MemoryBlock(address, [size_of.clone()])));
+                        let discriminant_field = enum_decl.discriminant_field();
+                        let discriminant_size_of =
+                            self.encode_type_size_expression(&enum_decl.discriminant_type)?;
+                        let discriminant_address = self.encode_field_address(
+                            ty,
+                            &discriminant_field,
+                            address.clone().into(),
+                            Default::default(),
+                        )?;
+                        let discriminant_bounds = enum_decl.discriminant_bounds.to_low(self)?;
+                        let mut preconditions = vec![
+                            expr! { acc(MemoryBlock([discriminant_address.clone()], [discriminant_size_of.clone()]))},
+                            discriminant_bounds.replace_discriminant(&discriminant.clone().into()),
+                        ];
+                        let to_bytes = ty! { Bytes };
+                        let mut bytes_quantifier_conjuncts = Vec::new();
+                        let memory_block_bytes = self.encode_memory_block_bytes_expression(
+                            address.clone().into(),
+                            size_of,
+                        )?;
+                        let snapshot: vir_low::Expression =
+                            var! { snapshot: {ty.create_snapshot(self)?} }.into();
+                        for (discriminant_value, variant) in enum_decl
+                            .discriminant_values
+                            .iter()
+                            .zip(&enum_decl.variants)
+                        {
+                            let variant_index = variant.name.clone().into();
+                            let variant_address = self.encode_enum_variant_address(
+                                ty,
+                                &variant_index,
+                                address.clone().into(),
+                                Default::default(),
+                            )?;
 
-                    let variant_snapshot = self.obtain_enum_variant_snapshot(
-                        ty,
-                        &variant_index,
-                        snapshot.clone(),
-                        Default::default(),
-                    )?;
-                    let variant_type = &ty.clone().variant(variant_index);
-                    let variant_size_of = self.encode_type_size_expression(variant_type)?;
-                    preconditions.push(expr! {
-                        (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
-                        (acc(MemoryBlock([variant_address.clone()], [variant_size_of.clone()])))
-                    });
-                    let memory_block_field_bytes = self.encode_memory_block_bytes_expression(
-                        discriminant_address.clone(),
-                        discriminant_size_of.clone(),
-                    )?;
-                    let discriminant_type = &enum_decl.discriminant_type;
-                    let discriminant_call =
-                        self.obtain_enum_discriminant(snapshot.clone(), ty, Default::default())?;
-                    let discriminant_snapshot = self.construct_constant_snapshot(
-                        discriminant_type,
-                        discriminant_call,
-                        Default::default(),
-                    )?;
-                    let memory_block_variant_bytes = self
-                        .encode_memory_block_bytes_expression(variant_address, variant_size_of)?;
-                    bytes_quantifier_conjuncts.push(expr! {
-                        (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
-                        (
-                            (
-                                ((old([memory_block_field_bytes])) == (Snap<discriminant_type>::to_bytes([discriminant_snapshot]))) &&
-                                ((old([memory_block_variant_bytes])) == (Snap<variant_type>::to_bytes([variant_snapshot])))
-                            ) ==>
-                            ([memory_block_bytes.clone()] == (Snap<ty>::to_bytes([snapshot.clone()])))
+                            let variant_snapshot = self.obtain_enum_variant_snapshot(
+                                ty,
+                                &variant_index,
+                                snapshot.clone(),
+                                Default::default(),
+                            )?;
+                            let variant_type = &ty.clone().variant(variant_index);
+                            let variant_size_of = self.encode_type_size_expression(variant_type)?;
+                            preconditions.push(expr! {
+                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (acc(MemoryBlock([variant_address.clone()], [variant_size_of.clone()])))
+                            });
+                            let memory_block_field_bytes = self
+                                .encode_memory_block_bytes_expression(
+                                    discriminant_address.clone(),
+                                    discriminant_size_of.clone(),
+                                )?;
+                            let discriminant_type = &enum_decl.discriminant_type;
+                            let discriminant_call = self.obtain_enum_discriminant(
+                                snapshot.clone(),
+                                ty,
+                                Default::default(),
+                            )?;
+                            let discriminant_snapshot = self.construct_constant_snapshot(
+                                discriminant_type,
+                                discriminant_call,
+                                Default::default(),
+                            )?;
+                            let memory_block_variant_bytes = self
+                                .encode_memory_block_bytes_expression(
+                                    variant_address,
+                                    variant_size_of,
+                                )?;
+                            bytes_quantifier_conjuncts.push(expr! {
+                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (
+                                    (
+                                        ((old([memory_block_field_bytes])) == (Snap<discriminant_type>::to_bytes([discriminant_snapshot]))) &&
+                                        ((old([memory_block_variant_bytes])) == (Snap<variant_type>::to_bytes([variant_snapshot])))
+                                    ) ==>
+                                    ([memory_block_bytes.clone()] == (Snap<ty>::to_bytes([snapshot.clone()])))
+                                )
+                            });
+                        }
+                        let bytes_quantifier = expr! {
+                            forall(
+                                snapshot: {ty.create_snapshot(self)?} ::
+                                [ { (Snap<ty>::to_bytes(snapshot)) } ]
+                                [ bytes_quantifier_conjuncts.into_iter().conjoin() ]
+                            )
+                        };
+                        vir_low::MethodDecl::new(
+                            method_name! { memory_block_join<ty> },
+                            vec![address, discriminant],
+                            Vec::new(),
+                            preconditions,
+                            vec![whole_block, bytes_quantifier],
+                            None,
                         )
-                    });
+                    }
+                    vir_mid::TypeDecl::Union(enum_decl) => {
+                        var_decls!(address: Address, discriminant: Int);
+                        let size_of = self.encode_type_size_expression(ty)?;
+                        let whole_block = expr!(acc(MemoryBlock(address, [size_of.clone()])));
+                        let discriminant_size_of =
+                            self.encode_type_size_expression(&enum_decl.discriminant_type)?;
+                        let discriminant_bounds = enum_decl.discriminant_bounds.to_low(self)?;
+                        let mut preconditions = vec![
+                            discriminant_bounds.replace_discriminant(&discriminant.clone().into()),
+                        ];
+                        let to_bytes = ty! { Bytes };
+                        let mut bytes_quantifier_conjuncts = Vec::new();
+                        let memory_block_bytes = self.encode_memory_block_bytes_expression(
+                            address.clone().into(),
+                            size_of,
+                        )?;
+                        let snapshot: vir_low::Expression =
+                            var! { snapshot: {ty.create_snapshot(self)?} }.into();
+                        for (discriminant_value, variant) in enum_decl
+                            .discriminant_values
+                            .iter()
+                            .zip(&enum_decl.variants)
+                        {
+                            let variant_index = variant.name.clone().into();
+                            let variant_address = self.encode_enum_variant_address(
+                                ty,
+                                &variant_index,
+                                address.clone().into(),
+                                Default::default(),
+                            )?;
+
+                            let variant_snapshot = self.obtain_enum_variant_snapshot(
+                                ty,
+                                &variant_index,
+                                snapshot.clone(),
+                                Default::default(),
+                            )?;
+                            let variant_type = &ty.clone().variant(variant_index);
+                            let variant_size_of = self.encode_type_size_expression(variant_type)?;
+                            preconditions.push(expr! {
+                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (acc(MemoryBlock([variant_address.clone()], [variant_size_of.clone()])))
+                            });
+                            let memory_block_variant_bytes = self
+                                .encode_memory_block_bytes_expression(
+                                    variant_address,
+                                    variant_size_of,
+                                )?;
+                            bytes_quantifier_conjuncts.push(expr! {
+                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (
+                                    (
+                                        ((old([memory_block_variant_bytes])) == (Snap<variant_type>::to_bytes([variant_snapshot])))
+                                    ) ==>
+                                    ([memory_block_bytes.clone()] == (Snap<ty>::to_bytes([snapshot.clone()])))
+                                )
+                            });
+                        }
+                        let bytes_quantifier = expr! {
+                            forall(
+                                snapshot: {ty.create_snapshot(self)?} ::
+                                [ { (Snap<ty>::to_bytes(snapshot)) } ]
+                                [ bytes_quantifier_conjuncts.into_iter().conjoin() ]
+                            )
+                        };
+                        vir_low::MethodDecl::new(
+                            method_name! { memory_block_join<ty> },
+                            vec![address, discriminant],
+                            Vec::new(),
+                            preconditions,
+                            vec![whole_block, bytes_quantifier],
+                            None,
+                        )
+                    }
+                    _ => {
+                        unreachable!("only enums and unions has variants")
+                    }
                 }
-                let bytes_quantifier = expr! {
-                    forall(
-                        snapshot: {ty.create_snapshot(self)?} ::
-                        [ { (Snap<ty>::to_bytes(snapshot)) } ]
-                        [ bytes_quantifier_conjuncts.into_iter().conjoin() ]
-                    )
-                };
-                vir_low::MethodDecl::new(
-                    method_name! { memory_block_join<ty> },
-                    vec![address, discriminant],
-                    Vec::new(),
-                    preconditions,
-                    vec![whole_block, bytes_quantifier],
-                    None,
-                )
             } else {
                 let mut helper = SplitJoinHelper::new(true);
                 helper.walk_type(ty, (), self)?;

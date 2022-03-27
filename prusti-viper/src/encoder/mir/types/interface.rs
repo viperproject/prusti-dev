@@ -238,13 +238,13 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
                     arguments,
                 }) => {
                     let encoded_enum = self
-                    .encode_type_def(&vir_high::Type::enum_(
-                        name.clone(),
-                        arguments.clone(),
-                        None,
-                    ))?
-                    .unwrap_enum();
-                vir_high::TypeDecl::Struct(encoded_enum.into_variant(&variant.index).unwrap())
+                        .encode_type_def(&vir_high::Type::enum_(
+                            name.clone(),
+                            arguments.clone(),
+                            None,
+                        ))?
+                        .unwrap_enum();
+                    vir_high::TypeDecl::Struct(encoded_enum.into_variant(&variant.index).unwrap())
                 }
                 vir_high::Type::Union(vir_high::ty::Union {
                     variant: Some(variant),
@@ -252,18 +252,18 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
                     arguments,
                 }) => {
                     let encoded_union = self
-                    .encode_type_def(&vir_high::Type::union_(
-                        name.clone(),
-                        arguments.clone(),
-                        None,
-                    ))?
-                    .unwrap_union();
-                vir_high::TypeDecl::Struct(encoded_union.into_variant(&variant.index).unwrap())
+                        .encode_type_def(&vir_high::Type::union_(
+                            name.clone(),
+                            arguments.clone(),
+                            None,
+                        ))?
+                        .unwrap_union();
+                    vir_high::TypeDecl::Struct(encoded_union.into_variant(&variant.index).unwrap())
                 }
                 _ => {
                     let original_ty = self.decode_type_high(ty);
-                let type_encoder = TypeEncoder::new(self, original_ty);
-                type_encoder.encode_type_def()?
+                    let type_encoder = TypeEncoder::new(self, original_ty);
+                    type_encoder.encode_type_def()?
                 }
             };
             self.mir_type_encoder_state

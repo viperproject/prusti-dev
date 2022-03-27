@@ -21,14 +21,18 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::Type::Float(_)
             | vir_mid::Type::Pointer(_) => self.before_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
-            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_) | vir_mid::Type::Union(_)
+            vir_mid::Type::Tuple(_)
+            | vir_mid::Type::Struct(_)
+            | vir_mid::Type::Enum(_)
+            | vir_mid::Type::Union(_)
                 if is_empty && Self::IS_EMPTY_PRIMITIVE =>
             {
                 self.before_primitive(ty, parameters, lowerer)
             }
-            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_) | vir_mid::Type::Union(_) => {
-                self.before_composite(ty, parameters, lowerer)
-            }
+            vir_mid::Type::Tuple(_)
+            | vir_mid::Type::Struct(_)
+            | vir_mid::Type::Enum(_)
+            | vir_mid::Type::Union(_) => self.before_composite(ty, parameters, lowerer),
             // vir_mid::Type::Array(Array) => {},
             // vir_mid::Type::Reference(Reference) => {},
             // vir_mid::Type::Never => {},
@@ -211,14 +215,18 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::Type::Float(_)
             | vir_mid::Type::Pointer(_) => self.after_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
-            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_) | vir_mid::Type::Union(_)
+            vir_mid::Type::Tuple(_)
+            | vir_mid::Type::Struct(_)
+            | vir_mid::Type::Enum(_)
+            | vir_mid::Type::Union(_)
                 if is_empty && Self::IS_EMPTY_PRIMITIVE =>
             {
                 self.after_primitive(ty, parameters, lowerer)
             }
-            vir_mid::Type::Tuple(_) | vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_)  | vir_mid::Type::Union(_)=> {
-                self.after_composite(ty, parameters, lowerer)
-            }
+            vir_mid::Type::Tuple(_)
+            | vir_mid::Type::Struct(_)
+            | vir_mid::Type::Enum(_)
+            | vir_mid::Type::Union(_) => self.after_composite(ty, parameters, lowerer),
             // vir_mid::Type::Array(Array) => {},
             // vir_mid::Type::Reference(Reference) => {},
             // vir_mid::Type::Never => {},

@@ -46,9 +46,7 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
             vir_high::TypeDecl::Union(_) => {
                 let variant_name = place.get_variant_name(guiding_place);
                 let variant_place = place.clone().into_variant(variant_name.clone());
-                vec![
-                    (ExpandedPermissionKind::Same, variant_place),
-                ]
+                vec![(ExpandedPermissionKind::Same, variant_place)]
             }
             vir_high::TypeDecl::Enum(decl) => {
                 let discriminant_field = decl.discriminant_field();

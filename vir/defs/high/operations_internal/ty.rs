@@ -21,11 +21,11 @@ impl Type {
             Type::Union(Union {
                 name,
                 arguments,
-                variant: None
+                variant: None,
             }) => Type::Union(Union {
                 name,
                 arguments,
-                variant: Some(variant)
+                variant: Some(variant),
             }),
             Type::Enum(_) => {
                 unreachable!("setting variant on enum type that already has variant set");
@@ -67,10 +67,10 @@ impl Type {
         self.is_bool() || self.is_int() || self.is_float()
     }
     pub fn has_variants(&self) -> bool {
-        if let Type::Enum(enum_ty) = self {
-            enum_ty.variant.is_none()
-        } else {
-            false
+        match self {
+            Type::Enum(enum_ty) => enum_ty.variant.is_none(),
+            Type::Union(union_ty) => union_ty.variant.is_none(),
+            _ => false,
         }
     }
 }

@@ -20,7 +20,10 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::ty;
 use rustc_span::MultiSpan;
 
-use vir_crate::{high::{self as vir}, common::expression::BinaryOperationHelpers};
+use vir_crate::{
+    common::expression::BinaryOperationHelpers,
+    high::{self as vir},
+};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -767,11 +770,11 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
     } else if adt_def.is_union() {
         debug!("ADT {:?} is a union", adt_def);
         if !config::unsafe_core_proof() {
-        return Err(SpannedEncodingError::unsupported(
-            "unions are not supported",
-            encoder.env().get_def_span(adt_def.did()),
-        ));
-    }
+            return Err(SpannedEncodingError::unsupported(
+                "unions are not supported",
+                encoder.env().get_def_span(adt_def.did()),
+            ));
+        }
         assert!(variant_index.is_none());
         let name = encode_struct_name(encoder, adt_def.did());
         // We treat union fields as variants.

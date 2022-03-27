@@ -1,4 +1,3 @@
-use std::collections::BTreeSet;
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
@@ -17,6 +16,7 @@ use rustc_data_structures::graph::WithStartNode;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
 use rustc_span::Span;
+use std::collections::BTreeSet;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
     high::{
@@ -408,13 +408,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let variant_name = variant_def.ident(tcx).to_string();
                     ty = ty.variant(variant_name.into());
                 } else {
-                    assert_eq!(variant_index.index(), 0, "Unexpected value of the variant index.");
+                    assert_eq!(
+                        variant_index.index(),
+                        0,
+                        "Unexpected value of the variant index."
+                    );
                 }
                 if let Some(active_field_index) = active_field_index {
                     assert!(ty.is_union());
                     let adt_def = tcx.adt_def(*adt_did);
                     let variant_def = adt_def.non_enum_variant();
-                    let field_name = variant_def.fields[*active_field_index].ident(tcx).to_string();
+                    let field_name = variant_def.fields[*active_field_index]
+                        .ident(tcx)
+                        .to_string();
                     ty = ty.variant(field_name.into());
                 }
                 let mut encoded_operands = Vec::new();
