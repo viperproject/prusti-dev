@@ -193,6 +193,7 @@ impl CollectPermissionChanges for vir_high::Rvalue {
         produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
         match self {
+            Self::AddressOf(rvalue) => rvalue.collect(consumed_permissions, produced_permissions),
             Self::UnaryOp(rvalue) => rvalue.collect(consumed_permissions, produced_permissions),
             Self::BinaryOp(rvalue) => rvalue.collect(consumed_permissions, produced_permissions),
             Self::Discriminant(rvalue) => {
@@ -200,6 +201,35 @@ impl CollectPermissionChanges for vir_high::Rvalue {
             }
             Self::Aggregate(rvalue) => rvalue.collect(consumed_permissions, produced_permissions),
         }
+    }
+}
+
+impl CollectPermissionChanges for vir_high::ast::rvalue::AddressOf {
+    fn collect(
+        &self,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        // To take an address of a place on a stack, it must not be moved out.
+        // The following fails to compile:
+        // ```rust
+        // struct T {
+        //     g: u32,
+        // }
+        // struct G {
+        //     f: T,
+        // }
+        // fn test1() {
+        //     let a = 4u32;
+        //     let b = T { g: a };
+        //     let c = G { f: b };
+        //     let _d = c.f;
+        //     let _x = std::ptr::addr_of!(c);
+        // }
+        // ```
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
     }
 }
 
