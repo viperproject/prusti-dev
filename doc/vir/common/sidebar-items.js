@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["constants",""],["expression",""],["graphviz",""],["identifier",""],["position",""],["positions",""]]});
+initSidebarItems({"mod":[["constants",""],["display",""],["expression",""],["graphviz",""],["identifier",""],["position",""],["positions",""]]});

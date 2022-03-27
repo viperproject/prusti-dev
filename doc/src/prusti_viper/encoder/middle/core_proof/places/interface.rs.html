@@ -52,12 +52,28 @@
 <span id="47">47</span>
 <span id="48">48</span>
 <span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{
-    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/place_domain_encoder.rs.html#10-40"><span class="kw">super</span>::utils::place_domain_encoder::PlaceExpressionDomainEncoder</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/encoder.rs.html#14">encoder::PlaceEncoder</a>,
+    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/place_domain_encoder.rs.html#10-52"><span class="kw">super</span>::utils::place_domain_encoder::PlaceExpressionDomainEncoder</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/encoder.rs.html#14">encoder::PlaceEncoder</a>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#21">errors::SpannedEncodingResult</a>,
-    <span class="ident">middle::core_proof::lowerer</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#43-79">DomainsLowererInterface</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#51-65">Lowerer</a>},
+    <span class="ident">middle::core_proof::lowerer</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#43-87">DomainsLowererInterface</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#52-67">Lowerer</a>},
 };
 <span class="kw">use</span> <span class="ident">vir_crate</span>::{
     <a class="ident" href="../../../../../../vir/low/index.html">low</a> <span class="kw">as</span> <span class="ident">vir_low</span>,
@@ -66,6 +82,10 @@
 
 <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/mod.rs.html#1"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">trait</span> <span class="ident">PlacesInterface</span> {
     <span class="kw">fn</span> <span class="ident">place_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/ty/enum.Type.html">vir_low::Type</a><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">encode_expression_as_place</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::ast::expression::Expression</a><span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">encode_field_place</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">base_type</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
@@ -73,15 +93,26 @@
         <span class="ident">base_place</span>: <a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
         <span class="ident">position</span>: <a class="ident" href="../../../../../../vir/common/position/struct.Position.html">vir_mid::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::ast::expression::Expression</a><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">encode_expression_as_place</span>(
+    <span class="kw">fn</span> <span class="ident">encode_enum_variant_place</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a>,
+        <span class="ident">base_type</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
+        <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/ty/struct.VariantIndex.html">vir_mid::ty::VariantIndex</a>,
+        <span class="ident">base_place</span>: <a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
+        <span class="ident">position</span>: <a class="ident" href="../../../../../../vir/common/position/struct.Position.html">vir_mid::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::ast::expression::Expression</a><span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#13-26">PlacesInterface</a> <span class="kw">for</span> <span class="ident">Lowerer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#13-33">PlacesInterface</a> <span class="kw">for</span> <span class="ident">Lowerer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">place_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/ty/enum.Type.html">vir_low::Type</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#29">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#45">domain_type</a>(<span class="string">&quot;Place&quot;</span>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#36">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#45">domain_type</a>(<span class="string">&quot;Place&quot;</span>)
+    }
+    <span class="doccomment">/// Emits code that represents the place.</span>
+    <span class="kw">fn</span> <span class="ident">encode_expression_as_place</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/encoder.rs.html#14">PlaceEncoder</a> {};
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#44">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/place_domain_encoder.rs.html#17-21">encode_expression</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#42">place</a>, <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#41">self</a>)
     }
     <span class="kw">fn</span> <span class="ident">encode_field_place</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
@@ -90,15 +121,16 @@
         <span class="ident">base_place</span>: <a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
         <span class="ident">position</span>: <a class="ident" href="../../../../../../vir/common/position/struct.Position.html">vir_mid::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::ast::expression::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#33">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#71-78">encode_field_access_function_app</a>(<span class="string">&quot;Place&quot;</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#36">base_place</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#34">base_type</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#35">field</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#37">position</a>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#48">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#71-78">encode_field_access_function_app</a>(<span class="string">&quot;Place&quot;</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#51">base_place</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#49">base_type</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#50">field</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#52">position</a>)
     }
-    <span class="doccomment">/// Emits code that represents the place.</span>
-    <span class="kw">fn</span> <span class="ident">encode_expression_as_place</span>(
+    <span class="kw">fn</span> <span class="ident">encode_enum_variant_place</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/encoder.rs.html#14">PlaceEncoder</a> {};
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#46">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/place_domain_encoder.rs.html#17-21">encode_expression</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#44">place</a>, <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#43">self</a>)
+        <span class="ident">base_type</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
+        <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/ty/struct.VariantIndex.html">vir_mid::ty::VariantIndex</a>,
+        <span class="ident">base_place</span>: <a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
+        <span class="ident">position</span>: <a class="ident" href="../../../../../../vir/common/position/struct.Position.html">vir_mid::Position</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::ast::expression::Expression</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#57">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#79-86">encode_variant_access_function_app</a>(<span class="string">&quot;Place&quot;</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#60">base_place</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#58">base_type</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#59">variant</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#61">position</a>)
     }
 }
 </code></pre></div>

@@ -47,46 +47,106 @@
 <span id="42">42</span>
 <span id="43">43</span>
 <span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10-13"><span class="kw">super</span>::permission::PermissionKind</a>;
 <span class="kw">use</span> <span class="ident">vir_crate</span>::{<a class="ident" href="../../../../../../vir/high/index.html">high</a> <span class="kw">as</span> <span class="ident">vir_high</span>, <a class="ident" href="../../../../../../vir/middle/index.html">middle</a> <span class="kw">as</span> <span class="ident">vir_mid</span>};
 
 <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">enum</span> <span class="ident">Action</span> {
-    <span class="ident">Unfold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#9-13">ActionState</a>),
-    <span class="ident">Fold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#9-13">ActionState</a>),
+    <span class="ident">Unfold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#11-17">FoldingActionState</a>),
+    <span class="ident">Fold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#11-17">FoldingActionState</a>),
+    <span class="doccomment">/// Convert the specified `Owned(place)` into `MemoryBlock(place)`.</span>
+    <span class="ident">OwnedIntoMemoryBlock</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#19-22">ConversionState</a>),
 }
 
-<span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">struct</span> <span class="ident">ActionState</span> {
+<span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">struct</span> <span class="ident">FoldingActionState</span> {
     <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10-13">PermissionKind</a>,
+    <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
+    <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="ident">condition</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// If un/folding an enum, which of its variants.</span>
+    <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="ident">enum_variant</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.VariantIndex.html">vir_high::ty::VariantIndex</a><span class="op">&gt;</span>,
+}
+
+<span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">struct</span> <span class="ident">ConversionState</span> {
     <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
     <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="ident">condition</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#4-7">Action</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#4-9">Action</a> {
     <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">fn</span> <span class="ident">set_condition</span>(<span class="self">self</span>, <span class="ident">condition</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>]) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#16">self</a> {
-            <span class="ident"><span class="self">Self</span>::Unfold</span>(<span class="ident">state</span>) =&gt; <span class="ident"><span class="self">Self</span>::Unfold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#9-13">ActionState</a> {
-                <span class="ident">condition</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#16">condition</a>.<span class="ident">to_vec</span>()),
-                ..<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#18">state</a>
+        <span class="kw">match</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#25">self</a> {
+            <span class="ident"><span class="self">Self</span>::Unfold</span>(<span class="ident">state</span>) =&gt; <span class="ident"><span class="self">Self</span>::Unfold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#11-17">FoldingActionState</a> {
+                <span class="ident">condition</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#25">condition</a>.<span class="ident">to_vec</span>()),
+                ..<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#27">state</a>
             }),
-            <span class="ident"><span class="self">Self</span>::Fold</span>(<span class="ident">state</span>) =&gt; <span class="ident"><span class="self">Self</span>::Fold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#9-13">ActionState</a> {
-                <span class="ident">condition</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#16">condition</a>.<span class="ident">to_vec</span>()),
-                ..<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#22">state</a>
+            <span class="ident"><span class="self">Self</span>::Fold</span>(<span class="ident">state</span>) =&gt; <span class="ident"><span class="self">Self</span>::Fold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#11-17">FoldingActionState</a> {
+                <span class="ident">condition</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#25">condition</a>.<span class="ident">to_vec</span>()),
+                ..<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#31">state</a>
+            }),
+            <span class="ident"><span class="self">Self</span>::OwnedIntoMemoryBlock</span>(<span class="ident">state</span>) =&gt; <span class="ident"><span class="self">Self</span>::OwnedIntoMemoryBlock</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#19-22">ConversionState</a> {
+                <span class="ident">condition</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#25">condition</a>.<span class="ident">to_vec</span>()),
+                ..<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#35">state</a>
             }),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">fn</span> <span class="ident">unfold</span>(<span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10-13">PermissionKind</a>, <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Unfold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#9-13">ActionState</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#29">kind</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#29">place</a>,
+    <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">fn</span> <span class="ident">unfold</span>(
+        <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10-13">PermissionKind</a>,
+        <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
+        <span class="ident">enum_variant</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.VariantIndex.html">vir_high::ty::VariantIndex</a><span class="op">&gt;</span>,
+    ) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::Unfold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#11-17">FoldingActionState</a> {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#43">kind</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#44">place</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#45">enum_variant</a>,
             <span class="ident">condition</span>: <span class="prelude-val">None</span>,
         })
     }
 
-    <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">fn</span> <span class="ident">fold</span>(<span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10-13">PermissionKind</a>, <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Fold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#9-13">ActionState</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#37">kind</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#37">place</a>,
+    <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">fn</span> <span class="ident">fold</span>(
+        <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10-13">PermissionKind</a>,
+        <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
+        <span class="ident">enum_variant</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.VariantIndex.html">vir_high::ty::VariantIndex</a><span class="op">&gt;</span>,
+    ) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::Fold</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#11-17">FoldingActionState</a> {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#56">kind</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#57">place</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#58">enum_variant</a>,
+            <span class="ident">condition</span>: <span class="prelude-val">None</span>,
+        })
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/mod.rs.html#10"><span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">fn</span> <span class="ident">owned_into_memory_block</span>(<span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::OwnedIntoMemoryBlock</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#19-22">ConversionState</a> {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/action.rs.html#68">place</a>,
             <span class="ident">condition</span>: <span class="prelude-val">None</span>,
         })
     }
