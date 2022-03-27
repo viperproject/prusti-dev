@@ -98,6 +98,12 @@ impl WithIdentifier for ty::Enum {
 impl WithIdentifier for ty::Union {
     fn get_identifier(&self) -> String {
         let mut identifier = self.name.clone();
+        identifier.push('$');
+        if let Some(variant) = &self.variant {
+            identifier.push_str(&variant.index);
+        } else {
+            identifier.push('_');
+        }
         append_type_arguments(&mut identifier, &self.arguments);
         identifier
     }

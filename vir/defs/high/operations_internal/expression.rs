@@ -61,6 +61,23 @@ impl Expression {
             expr => unreachable!("{}", expr),
         }
     }
+    pub fn iter_prefixes(&self) -> impl Iterator<Item = &Expression> {
+        struct PrefixIterator<'a> {
+            expr: Option<&'a Expression>,
+        }
+        impl<'a> Iterator for PrefixIterator<'a> {
+            type Item = &'a Expression;
+            fn next(&mut self) -> Option<Self::Item> {
+                if let Some(current) = self.expr.take() {
+                    self.expr = current.get_parent_ref();
+                    Some(current)
+                } else {
+                    None
+                }
+            }
+        }
+        PrefixIterator { expr: Some(self) }
+    }
     pub fn is_place(&self) -> bool {
         match self {
             Expression::Local(_) => true,
@@ -258,6 +275,27 @@ impl Expression {
         }
         DefaultPositionReplacer { new_position }.fold_expression(self)
     }
+    #[must_use]
+    pub fn replace_position(self, new_position: Position) -> Self {
+        struct PositionReplacer {
+            new_position: Position,
+        }
+        impl ExpressionFolder for PositionReplacer {
+            fn fold_position(&mut self, _position: Position) -> Position {
+                self.new_position
+            }
+        }
+        PositionReplacer { new_position }.fold_expression(self)
+    }
+    pub fn check_no_default_position(&self) {
+        struct Checker;
+        impl ExpressionWalker for Checker {
+            fn walk_position(&mut self, position: &Position) {
+                assert!(!position.is_default());
+            }
+        }
+        Checker.walk_expression(self)
+    }
     pub fn has_prefix(&self, potential_prefix: &Expression) -> bool {
         if self == potential_prefix {
             true
@@ -288,7 +326,9 @@ impl Expression {
     }
 
     pub fn into_variant(self, variant_name: VariantIndex) -> Self {
+        use crate::common::position::Positioned;
         let ty = self.get_type().clone().variant(variant_name.clone());
-        self.variant_no_pos(variant_name, ty)
+        let position = self.position();
+        self.variant(variant_name, ty, position)
     }
 }

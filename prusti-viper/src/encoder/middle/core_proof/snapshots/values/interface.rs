@@ -243,10 +243,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         argument: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let variant_name = if let vir_mid::Type::Enum(ty) = ty {
-            ty.variant.as_ref().unwrap().as_ref()
-        } else {
-            unreachable!("missing variant: {}", ty);
+        let variant_name = match ty {
+            vir_mid::Type::Enum(ty) => ty.variant.as_ref().unwrap().as_ref(),
+            vir_mid::Type::Union(ty) => ty.variant.as_ref().unwrap().as_ref(),
+            _ => unreachable!("expected enum or union, got: {}", ty),
         };
         let enum_ty = ty.forget_variant().unwrap();
         let domain_name = self.encode_snapshot_domain_name(&enum_ty)?;
