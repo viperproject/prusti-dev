@@ -1247,9 +1247,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         let discriminant_size_of =
                             self.encode_type_size_expression(&enum_decl.discriminant_type)?;
                         let discriminant_bounds = enum_decl.discriminant_bounds.to_low(self)?;
-                        let mut preconditions = vec![
-                            discriminant_bounds.replace_discriminant(&discriminant.clone().into()),
-                        ];
+                        let mut preconditions =
+                            vec![discriminant_bounds
+                                .replace_discriminant(&discriminant.clone().into())];
                         let to_bytes = ty! { Bytes };
                         let mut bytes_quantifier_conjuncts = Vec::new();
                         let memory_block_bytes = self.encode_memory_block_bytes_expression(
