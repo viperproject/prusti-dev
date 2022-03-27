@@ -6,70 +6,6 @@ use rustc_hash::FxHashMap;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::{collections::HashMap, fmt::Debug};
 
-#[derive(Debug, Clone)]
-pub enum SpecificationSet {
-    Procedure(ProcedureSpecification),
-    Loop(LoopSpecification),
-}
-
-impl SpecificationSet {
-    pub fn empty_procedure_set() -> Self {
-        SpecificationSet::Procedure(ProcedureSpecification::empty())
-    }
-
-    pub fn is_procedure(&self) -> bool {
-        matches!(self, SpecificationSet::Procedure(_))
-    }
-
-    #[track_caller]
-    pub fn expect_procedure(&self) -> &ProcedureSpecification {
-        if let SpecificationSet::Procedure(spec) = self {
-            return spec;
-        }
-        unreachable!("expected Procedure: {:?}", self);
-    }
-
-    #[track_caller]
-    pub fn as_procedure(&self) -> Option<&ProcedureSpecification> {
-        if let SpecificationSet::Procedure(spec) = self {
-            return Some(spec);
-        }
-        None
-    }
-
-    #[track_caller]
-    pub fn expect_mut_procedure(&mut self) -> &mut ProcedureSpecification {
-        if let SpecificationSet::Procedure(spec) = self {
-            return spec;
-        }
-        unreachable!("expected Procedure: {:?}", self);
-    }
-
-    #[track_caller]
-    pub fn into_procedure(self) -> ProcedureSpecification {
-        if let SpecificationSet::Procedure(spec) = self {
-            return spec;
-        }
-        unreachable!("expected Procedure: {:?}", self);
-    }
-
-    #[track_caller]
-    pub fn expect_loop(&self) -> &LoopSpecification {
-        if let SpecificationSet::Loop(spec) = self {
-            return spec;
-        }
-        unreachable!("expected Loop: {:?}", self);
-    }
-
-    #[track_caller]
-    pub fn as_loop(&self) -> Option<&LoopSpecification> {
-        if let SpecificationSet::Loop(spec) = self {
-            return Some(spec);
-        }
-        None
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct ProcedureSpecification {
     pub pres: SpecificationItem<Vec<LocalDefId>>,
@@ -130,7 +66,6 @@ impl DefSpecificationMap {
     }
 }
 
-// TODO hansenj: I dont like this name
 #[derive(Default, Debug, Clone)]
 pub struct SpecsWithConstraints<T> {
     /// The base specification which has no constraints
@@ -414,18 +349,6 @@ impl Refinable for ProcedureSpecification {
             pure: self.pure.refine(&other.pure),
             trusted: self.trusted.refine(&other.trusted),
         }
-    }
-}
-
-impl Refinable for SpecificationSet {
-    fn refine(self, other: &Self) -> Self {
-        if self.is_procedure() && other.is_procedure() {
-            let self_proc = self.into_procedure();
-            let other_proc = other.expect_procedure();
-            let refined = self_proc.refine(other_proc);
-            return SpecificationSet::Procedure(refined);
-        }
-        self
     }
 }
 
