@@ -8,7 +8,8 @@ union MyUnion {
 }
 
 fn test1() {
-    let u = MyUnion { f1: 1 };
+    let a = MyUnion { f1: 1 };
+    let _x = unsafe { a.f1 };
 }
 
 fn main() {}

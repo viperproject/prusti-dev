@@ -202,8 +202,15 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     let parent_type = self
                         .encode_place_type_high(parent_mir_type)
                         .with_span(span)?;
-                    let encoded_field = self.encode_field(&parent_type, field).with_span(span)?;
-                    expr.field_no_pos(encoded_field)
+                    if parent_type.is_union() {
+                        // We treat union fields as variants.
+                        let union_decl = self.encode_type_def(&parent_type)?.unwrap_union();
+                        let variant_index = union_decl.variants[field.index()].name.clone().into();
+                        vir_high::Expression::variant_no_pos(expr, variant_index, ty)
+                    } else {
+                        let encoded_field = self.encode_field(&parent_type, field).with_span(span)?;
+                        expr.field_no_pos(encoded_field)
+                    }
                 }
                 mir::ProjectionElem::Index(index) => {
                     debug!("index: {:?}[{:?}]", expr, index);
