@@ -91,6 +91,7 @@ lazy_static! {
         settings.set_default("assert_timeout", 10_000).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
+        settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
         settings.set_default("no_verify", false).unwrap();
         settings.set_default("no_verify_deps", false).unwrap();
@@ -506,6 +507,11 @@ pub fn delete_basic_blocks() -> Vec<String> {
 /// Skip features that are unsupported or partially supported
 pub fn skip_unsupported_features() -> bool {
     read_setting("skip_unsupported_features")
+}
+
+/// Report internal errors as warnings instead of errors. Used for testing.
+pub fn internal_errors_as_warnings() -> bool {
+    read_setting("internal_errors_as_warnings")
 }
 
 /// Encode unsupported code as `assert false`, so that we report error messages
