@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 use std::collections::LinkedList;
@@ -25,7 +24,7 @@ impl<T> std::option::Option<T> {
 #[trusted]
 #[pure]
 #[requires(index < list.len())]
-fn get(list: &LinkedList<i32>, index: usize) -> i32 {
+fn get<T: Copy>(list: &LinkedList<T>, index: usize) -> T {
     for (i, elem) in list.iter().enumerate() {
         if i == index {
             return *elem;
@@ -34,13 +33,11 @@ fn get(list: &LinkedList<i32>, index: usize) -> i32 {
     unreachable!()
 }
 
-/// Using i32 instead of a generic type because Prusti does not currently support it.
-/// However, it is not possible to define specifications for different variants of the same type and if
-/// attempted, will result in an error indicating duplicate specifications.
 #[extern_spec]
-impl LinkedList<i32> {
+impl<T> LinkedList<T>
+    where T: Copy + PartialEq {
     #[ensures(result.is_empty())]
-    pub fn new() -> LinkedList<i32>;
+    pub fn new() -> LinkedList<T>;
 
     #[pure]
     #[ensures(result ==> self.len() == 0)]
@@ -56,36 +53,34 @@ impl LinkedList<i32> {
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(get(self, 0) == elt)]
     #[ensures(forall (|i: usize| (i < old(self.len())) ==>
-    get(self, i + 1) == old(get(self, i))))]
-    pub fn push_front(&mut self, elt: i32);
+        get(self, i + 1) == old(get(self, i))))]
+    pub fn push_front(&mut self, elt: T);
 
     #[ensures(old(self.len()) == 0 ==> (self.len() == old(self.len())) && result.is_none())]
     #[ensures(old(self.len()) > 0 ==> self.len() == old(self.len()) - 1 && result.is_some())]
     #[ensures(old(self.len()) > 0 ==> forall (|i: usize| (i < self.len()) ==>
     get(self, i) == old(get(self, i + 1))))]
-    pub fn pop_front(&mut self) -> Option<i32>;
+    pub fn pop_front(&mut self) -> Option<T>;
 
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(get(self, self.len() - 1) == elt)]
     #[ensures(forall (|i: usize| (i < old(self.len())) ==>
     get(self, i) == old(get(self, i))))]
-    pub fn push_back(&mut self, elt: i32);
+    pub fn push_back(&mut self, elt: T);
 
     #[ensures(old(self.len()) == 0 ==> (self.len() == old(self.len())) && result.is_none())]
     #[ensures(old(self.len()) > 0 ==> self.len() == old(self.len()) - 1 && result.is_some())]
     #[ensures(old(self.len()) > 0 ==> forall (|i: usize| (i < self.len()) ==>
     get(self, i) == old(get(self, i))))]
-    pub fn pop_back(&mut self) -> Option<i32>;
-
+    pub fn pop_back(&mut self) -> Option<T>;
 
     #[ensures(self.len() == old(self.len() + other.len()))]
     #[ensures(forall (|i: usize| (i < old(self.len())) ==>
-    get(self, i) == old(get(self, i))))]
+        get(self, i) == old(get(self, i))))]
     #[ensures(forall (|j: usize| (old(self.len()) <= j && j < self.len()) ==>
         get(self, j) == old(get(other, j - self.len()))))]
     #[ensures(other.len() == 0)]
-    pub fn append(&mut self, other: &mut LinkedList<i32>);
-
+    pub fn append(&mut self, other: &mut LinkedList<T>);
 
     #[requires(at <= self.len())]
     #[ensures(result.len() == old(self.len()) - at)]
@@ -94,24 +89,31 @@ impl LinkedList<i32> {
         get(self, i) == old(get(self, i))))]
     #[ensures(forall (|j: usize| (j < result.len()) ==>
         get(&result, j) == old(get(self, j + at))))]
-    pub fn split_off(&mut self, at: usize) -> LinkedList<i32>;
+    pub fn split_off(&mut self, at: usize) -> LinkedList<T>;
 }
 
-#[requires(index <= list.len())]
-#[ensures(list.len() == old(list.len()) + 1)]
-#[ensures(forall (|i: usize| (0 < i && i < index && i < old(list.len())) ==>
-    get(list, i) == old(get(list, i))))]
-#[ensures(get(list, index) == val)]
-#[ensures(forall (|j: usize| (index < j && j < list.len()) ==>
-    get(list, j) == old(get(list, j - 1))))]
-fn insert(list: &mut LinkedList<i32>, index: usize, val:i32) {
-    if index == 0 {
-        list.push_front(val);
-    } else {
-        let mut tail = list.split_off(index);
-        list.push_back(val);
-        list.append(&mut tail);
-    }
-}
+fn main() {
+    let mut l = LinkedList::new();
+    l.push_front(1);
 
-fn main() {}
+    assert!(get(&l, 0) == 1);
+
+    let mut ll2 = LinkedList::new();
+    ll2.push_front(2);
+    ll2.push_front(3);
+    ll2.push_front(4);
+    assert!(get(&ll2, 2) == 2);
+    assert!(get(&ll2, 1) == 3);
+    assert!(get(&ll2, 0) == 4);
+
+    l.append(&mut ll2);
+    assert!(l.len() == 4);
+
+    assert!(get(&l, 3) == 2);
+    assert!(get(&l, 2) == 3);
+    assert!(get(&l, 1) == 4);
+
+    assert!(matches!(l.pop_front(), Some(1)));
+
+    assert!(l.len() == 3);
+}

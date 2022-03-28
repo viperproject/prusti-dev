@@ -2,7 +2,6 @@
 
 use super::encoder::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder};
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{SpannedEncodingResult, WithSpan},
     mir::{generics::MirGenericsEncoderInterface, specifications::SpecificationsInterface},
     snapshot::interface::SnapshotEncoderInterface,
@@ -11,12 +10,17 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_interface::data::ProcedureDefId;
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_middle::{ty, ty::subst::SubstsRef};
+use rustc_middle::ty::subst::SubstsRef;
 
 use std::cell::RefCell;
 use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
 
+/// Key of stored call infos, consisting of the DefId of the called function
+/// and (the VIR encoding of) the type substitutions applied to it. This means
+/// that each generic variant of a pure function will be encoded as a separate
+/// pure function in Viper.
 type Key = (ProcedureDefId, Vec<vir_high::Type>);
+
 type FunctionConstructor<'v, 'tcx> = Box<
     dyn FnOnce(
         &crate::encoder::encoder::Encoder<'v, 'tcx>,
@@ -72,7 +76,7 @@ pub(crate) struct PureFunctionEncoderState<'v, 'tcx: 'v> {
 #[derive(Clone, Debug)]
 pub(crate) struct FunctionDescription<'tcx> {
     proc_def_id: ProcedureDefId,
-    tymap: SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 }
 
 pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
@@ -80,8 +84,7 @@ pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr>;
 
     /// Encode the body of the given procedure as a pure expression.
@@ -89,15 +92,14 @@ pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
-        substs: &SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression>;
 
     /// Encode the pure function definition.
     fn encode_pure_function_def(
         &self,
         proc_def_id: ProcedureDefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<()>;
 
     /// Ensure that the function with the specified identifier is encoded.
@@ -115,8 +117,7 @@ pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_poly::Type)>;
 
     /// Encode the use (call) of a pure function, returning the name of the
@@ -128,8 +129,7 @@ pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_high::Type)>;
 
     /// Get the encoded function declaration.
@@ -154,7 +154,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
-        substs: &SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let mir_span = self.env().tcx().def_span(proc_def_id);
         let substs_key = self
@@ -191,25 +191,25 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         let mir_span = self.env().tcx().def_span(proc_def_id);
         let substs_key = self
-            .encode_generic_arguments_high(proc_def_id, tymap)
+            .encode_generic_arguments_high(proc_def_id, substs)
             .with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
+
         if !self
             .pure_function_encoder_state
             .bodies_poly
             .borrow()
             .contains_key(&key)
         {
-            let procedure = self.env().get_procedure(proc_def_id);
+            let mir = self.env().local_mir(proc_def_id.expect_local(), substs);
             let pure_function_encoder = PureFunctionEncoder::new(
                 self,
                 proc_def_id,
-                procedure.get_mir(),
+                &mir,
                 if self.is_encoding_trigger.get() {
                     // quantifier triggers might not evaluate to boolean
                     PureEncodingContext::Trigger
@@ -217,7 +217,6 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                     PureEncodingContext::Assertion
                 },
                 parent_def_id,
-                tymap,
                 substs,
             );
             let body = pure_function_encoder.encode_body()?;
@@ -232,8 +231,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     fn encode_pure_function_def(
         &self,
         proc_def_id: ProcedureDefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<()> {
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
@@ -242,10 +240,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             proc_def_id
         );
 
-        // FIXME: Using substitutions as a key is most likely wrong.
         let mir_span = self.env().tcx().def_span(proc_def_id);
         let substs_key = self
-            .encode_generic_arguments_high(proc_def_id, tymap)
+            .encode_generic_arguments_high(proc_def_id, substs)
             .with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
 
@@ -268,15 +265,15 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 .insert(key.clone());
 
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
-            let procedure = self.env().get_procedure(wrapper_def_id);
 
+            let mir = self.env().local_mir(wrapper_def_id.expect_local(), substs);
+            let mir_span = mir.span;
             let pure_function_encoder = PureFunctionEncoder::new(
                 self,
                 proc_def_id,
-                procedure.get_mir(),
+                &mir,
                 PureEncodingContext::Code,
                 proc_def_id,
-                tymap,
                 substs,
             );
 
@@ -295,9 +292,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                         let _ = super::new_encoder::encode_function_decl(
                             self,
                             proc_def_id,
-                            procedure.get_mir(),
+                            &mir,
                             proc_def_id,
-                            tymap,
+                            substs,
                         )?;
                         (function, true)
                     };
@@ -309,8 +306,8 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 }
 
                 function = self
-                    .patch_snapshots_function(function, tymap)
-                    .with_span(procedure.get_span())?;
+                    .patch_snapshots_function(function)
+                    .with_span(mir_span)?;
 
                 self.log_vir_program_before_viper(function.to_string());
                 Ok(self.insert_function(function))
@@ -330,7 +327,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                         proc_def_id, wrapper_def_id
                     );
                     let body = self.env().external_mir(wrapper_def_id);
-                    let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, body, tymap);
+                    let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, body, substs);
                     let function = stub_encoder.encode_function()?;
                     self.log_vir_program_before_viper(function.to_string());
                     let identifier = self.insert_function(function);
@@ -361,8 +358,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             drop(function_descriptions);
             self.encode_pure_function_def(
                 function_description.proc_def_id,
-                &function_description.tymap,
-                &ty::List::empty(),
+                function_description.substs,
             )?;
         } else {
             // FIXME: We probably should not fail silently here…
@@ -374,8 +370,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_poly::Type)> {
         assert!(
             self.is_pure(proc_def_id),
@@ -385,7 +380,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
 
         let mir_span = self.env().tcx().def_span(proc_def_id);
         let substs_key = self
-            .encode_generic_arguments_high(proc_def_id, tymap)
+            .encode_generic_arguments_high(proc_def_id, substs)
             .with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
 
@@ -397,14 +392,14 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             // Compute information necessary to encode the function call and
             // memoize it.
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
-            let procedure = self.env().get_procedure(wrapper_def_id);
+
+            let mir = self.env().local_mir(wrapper_def_id.expect_local(), substs);
             let pure_function_encoder = PureFunctionEncoder::new(
                 self,
                 proc_def_id,
-                procedure.get_mir(),
+                &mir,
                 PureEncodingContext::Code,
                 parent_def_id,
-                tymap,
                 substs,
             );
             let function_call_info = pure_function_encoder.encode_function_call_info()?;
@@ -425,7 +420,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 .entry(function_identifier)
                 .or_insert(FunctionDescription {
                     proc_def_id,
-                    tymap: tymap.clone(),
+                    substs,
                 });
 
             call_infos.insert(key.clone(), function_call_info);
@@ -442,8 +437,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_high::Type)> {
         assert!(
             self.is_pure(proc_def_id),
@@ -453,7 +447,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
 
         let mir_span = self.env().tcx().def_span(proc_def_id);
         let substs_key = self
-            .encode_generic_arguments_high(proc_def_id, tymap)
+            .encode_generic_arguments_high(proc_def_id, substs)
             .with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
 
@@ -465,17 +459,18 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             // Compute information necessary to encode the function call and
             // memoize it.
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
-            let procedure = self.env().get_procedure(wrapper_def_id);
+
+            let mir = self.env().local_mir(wrapper_def_id.expect_local(), substs);
             let function_call_info = super::new_encoder::encode_function_call_info(
                 self,
                 proc_def_id,
-                procedure.get_mir(),
+                &mir,
                 parent_def_id,
-                tymap,
+                substs,
             )?;
 
             // FIXME: Refactor encode_pure_function_use to depend on this function.
-            let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, tymap, substs)?;
+            let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, substs)?;
 
             call_infos.insert(key.clone(), function_call_info);
         }

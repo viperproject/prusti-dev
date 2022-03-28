@@ -1,7 +1,6 @@
 use super::encoder::FunctionCallInfoHigh;
 use crate::encoder::{
     borrows::ProcedureContractMirDef,
-    encoder::SubstMap,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         generics::MirGenericsEncoderInterface,
@@ -19,7 +18,7 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::vir_high_local;
 use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
+use rustc_middle::{mir, ty::subst::SubstsRef};
 use rustc_span::Span;
 use vir_crate::{
     common::{expression::ExpressionIterator, position::Positioned},
@@ -31,22 +30,16 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     mir: &'p mir::Body<'tcx>,
     parent_def_id: DefId,
-    tymap: &'p SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::FunctionDecl> {
-    let interpreter = ExpressionBackwardInterpreter::new(
-        encoder,
-        mir,
-        proc_def_id,
-        false,
-        parent_def_id,
-        tymap.clone(),
-    );
+    let interpreter =
+        ExpressionBackwardInterpreter::new(encoder, mir, proc_def_id, false, parent_def_id, substs);
     let pure_encoder = PureEncoder {
         encoder,
         proc_def_id,
         mir,
         parent_def_id,
-        tymap,
+        substs,
         interpreter,
     };
     let function_decl = pure_encoder.encode_function_decl()?;
@@ -93,22 +86,16 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     mir: &'p mir::Body<'tcx>,
     parent_def_id: DefId,
-    tymap: &'p SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
-    let interpreter = ExpressionBackwardInterpreter::new(
-        encoder,
-        mir,
-        proc_def_id,
-        false,
-        parent_def_id,
-        tymap.clone(),
-    );
+    let interpreter =
+        ExpressionBackwardInterpreter::new(encoder, mir, proc_def_id, false, parent_def_id, substs);
     let encoder = PureEncoder {
         encoder,
         proc_def_id,
         mir,
         parent_def_id,
-        tymap,
+        substs,
         interpreter,
     };
     encoder.encode_pure_expression()
@@ -121,23 +108,17 @@ pub(super) fn encode_function_call_info<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     mir: &'p mir::Body<'tcx>,
     parent_def_id: DefId,
-    tymap: &'p SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<FunctionCallInfoHigh> {
     // FIXME: Refactor code to avoid creating the interpreter because it is unnecessary.
-    let interpreter = ExpressionBackwardInterpreter::new(
-        encoder,
-        mir,
-        proc_def_id,
-        false,
-        parent_def_id,
-        tymap.clone(),
-    );
+    let interpreter =
+        ExpressionBackwardInterpreter::new(encoder, mir, proc_def_id, false, parent_def_id, substs);
     let encoder = PureEncoder {
         encoder,
         proc_def_id,
         mir,
         parent_def_id,
-        tymap,
+        substs,
         interpreter,
     };
     Ok(FunctionCallInfoHigh {
@@ -154,7 +135,7 @@ pub(super) struct PureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     mir: &'p mir::Body<'tcx>,
     interpreter: ExpressionBackwardInterpreter<'p, 'v, 'tcx>,
     parent_def_id: DefId,
-    tymap: &'p SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
@@ -205,7 +186,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
         let contract = self
             .encoder
-            .get_mir_procedure_contract_for_def(self.proc_def_id)
+            .get_mir_procedure_contract_for_def(self.proc_def_id, self.substs)
             .with_span(self.mir.span)?;
         let func_precondition = self.encode_precondition_expr(&parameters, &contract)?;
         let func_postcondition = self.encode_postcondition_expr(&parameters, &contract)?;
@@ -229,7 +210,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
     fn encode_type_arguments(&self) -> SpannedEncodingResult<Vec<vir_high::Type>> {
         self.encoder
-            .encode_generic_arguments_high(self.proc_def_id, self.tymap)
+            .encode_generic_arguments_high(self.proc_def_id, self.substs)
             .with_span(self.mir.span)
     }
 
@@ -300,20 +281,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let parameter_expressions = self.convert_parameters_into_expressions(parameters);
         let mut conjuncts = Vec::new();
-        for item in contract.functional_precondition() {
-            let assertion = self.encoder.encode_assertion_high(
-                item,
+        for (assertion, assertion_substs) in
+            contract.functional_precondition(self.encoder.env(), self.substs)
+        {
+            let encoded_assertion = self.encoder.encode_assertion_high(
+                &assertion,
                 None,
                 &parameter_expressions,
                 None,
                 self.parent_def_id,
-                self.tymap,
+                assertion_substs,
             )?;
             self.encoder.error_manager().set_error(
-                assertion.position().into(),
+                encoded_assertion.position().into(),
                 ErrorCtxt::PureFunctionDefinition,
             );
-            conjuncts.push(assertion);
+            conjuncts.push(encoded_assertion);
         }
         Ok(conjuncts.into_iter().conjoin())
     }
@@ -326,20 +309,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let parameter_expressions = self.convert_parameters_into_expressions(parameters);
         let mut conjuncts = Vec::new();
         let encoded_return = self.encode_mir_local(contract.returned_value)?;
-        for item in contract.functional_postcondition() {
-            let assertion = self.encoder.encode_assertion_high(
-                item,
+        for (assertion, assertion_substs) in
+            contract.functional_postcondition(self.encoder.env(), self.substs)
+        {
+            let encoded_assertion = self.encoder.encode_assertion_high(
+                &assertion,
                 None,
                 &parameter_expressions,
                 Some(&vir_high::Expression::local_no_pos(encoded_return.clone())),
                 self.parent_def_id,
-                self.tymap,
+                assertion_substs,
             )?;
             self.encoder.error_manager().set_error(
-                assertion.position().into(),
+                encoded_assertion.position().into(),
                 ErrorCtxt::PureFunctionDefinition,
             );
-            conjuncts.push(assertion);
+            conjuncts.push(encoded_assertion);
         }
         let post = conjuncts.into_iter().conjoin();
 

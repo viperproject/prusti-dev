@@ -1,5 +1,5 @@
-// Extern trait specs for multiple generic instantiations are currently not supported
-extern crate prusti_contracts;
+// ignore-test #[concrete] currently not supported
+
 use prusti_contracts::*;
 
 trait MyTrait<T> {

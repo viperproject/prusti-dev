@@ -1,9 +1,7 @@
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
     high::lower::{predicates::IntoPredicates, IntoPolymorphic},
     mir::types::MirTypeEncoderInterface,
-    utils::transpose,
 };
 #[rustfmt::skip]
 use ::log::trace;
@@ -138,10 +136,6 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
     fn encode_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type>;
     fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Field>;
     fn decode_type_predicate_type(&self, typ: &vir_poly::Type) -> EncodingResult<ty::Ty<'tcx>>;
-    fn type_substitution_polymorphic_type_map(
-        &self,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<FxHashMap<vir_poly::TypeVar, vir_poly::Type>>;
     fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String>;
     fn encode_type_invariant_def(
         &self,
@@ -255,21 +249,6 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
                 typ.name()
             ))),
         }
-    }
-    fn type_substitution_polymorphic_type_map(
-        &self,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<FxHashMap<vir_poly::TypeVar, vir_poly::Type>> {
-        tymap
-            .iter()
-            .map(|(&typ, &subst)| {
-                let type_var = self.encode_type(typ)?.get_type_var().unwrap();
-                let substitution = self.encode_type(subst);
-
-                transpose((Ok(type_var), substitution))
-                // FIXME: unwrap
-            })
-            .collect::<Result<_, _>>()
     }
     fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String> {
         trace!("encode_type_invariant_use: {:?}", ty.kind());

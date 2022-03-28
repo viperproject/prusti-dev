@@ -1,5 +1,4 @@
-// ignore-test None of this Generics stuff currently works with Prusti...
-extern crate prusti_contracts;
+// ignore-test fails because of const generics
 use prusti_contracts::*;
 
 struct Foo<'a, T: PartialEq, const L: usize>(&'a [T; L]);

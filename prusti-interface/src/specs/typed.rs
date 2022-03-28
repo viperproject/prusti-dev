@@ -101,6 +101,9 @@ impl<T> SpecificationItem<T> {
 
     /// Returns the contained value of this item
     fn get(&self) -> Option<(Option<&T>, &T)> {
+        // TODO(tymap): this API is not good: it must be possible to tell that
+        //   the result was inherited, as we will e.g. need to rebase our substs
+        //   to the trait
         match self {
             SpecificationItem::Empty => None,
             SpecificationItem::Inherited(val) => Some((None, val)),
