@@ -1196,10 +1196,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
                         let encoded_val = self.mir_encoder
-                            .encode_cast_expr(operand, *dst_ty, stmt.source_info.span, &self.tymap)?;
+                            .encode_cast_expr(operand, *dst_ty, span, &self.tymap)?;
 
                         // Substitute a place of a value with an expression
-                        state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_val);
+                        state.substitute_value(&encoded_lhs, encoded_val);
                     }
 
                     mir::Rvalue::Len(ref place) => {
