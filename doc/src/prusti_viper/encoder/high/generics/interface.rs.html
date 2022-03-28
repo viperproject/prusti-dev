@@ -33,11 +33,13 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
+<span id="31">31</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
-    <a class="ident" href="../../../../../prusti_interface/environment/tymap/struct.SubstMap.html">encoder::SubstMap</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">errors::EncodingResult</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#14-16">high::lower::IntoPolymorphic</a>,
-    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/generics/interface.rs.html#13-39">mir::generics::MirGenericsEncoderInterface</a>,
+    <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">errors::EncodingResult</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#14-16">high::lower::IntoPolymorphic</a>,
+    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/generics/interface.rs.html#8-24">mir::generics::MirGenericsEncoderInterface</a>,
 };
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">rustc_hir::def_id::DefId</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">rustc_middle::ty::subst::SubstsRef</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../../vir/polymorphic/index.html">vir_crate::polymorphic</a> <span class="kw">as</span> <span class="ident">vir_poly</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">HighGenericsEncoderInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
@@ -45,22 +47,22 @@
     <span class="kw">fn</span> <span class="ident">encode_generic_arguments</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-        <span class="ident">tymap</span>: <span class="kw-2">&amp;</span><span class="ident">SubstMap</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+        <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir_poly::Type</a><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">HighGenericsEncoderInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">encode_generic_parameters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/struct.TypeVar.html">vir_poly::TypeVar</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">type_parameters</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#18">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/generics/interface.rs.html#26-29">encode_generic_parameters_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#18">def_id</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#19">type_parameters</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#18">self</a>))
+        <span class="kw">let</span> <span class="ident">type_parameters</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#19">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/generics/interface.rs.html#11-14">encode_generic_parameters_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#19">def_id</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#20">type_parameters</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#19">self</a>))
     }
     <span class="kw">fn</span> <span class="ident">encode_generic_arguments</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-        <span class="ident">tymap</span>: <span class="kw-2">&amp;</span><span class="ident">SubstMap</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+        <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir_poly::Type</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">type_arguments</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#23">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/generics/interface.rs.html#33-37">encode_generic_arguments_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#24">def_id</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#25">tymap</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#27">type_arguments</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#23">self</a>))
+        <span class="kw">let</span> <span class="ident">type_arguments</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#24">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/generics/interface.rs.html#18-22">encode_generic_arguments_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#25">def_id</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#26">substs</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#28">type_arguments</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/generics/interface.rs.html#24">self</a>))
     }
 }
 </code></pre></div>

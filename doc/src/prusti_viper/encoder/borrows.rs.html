@@ -511,13 +511,56 @@
 <span id="506">506</span>
 <span id="507">507</span>
 <span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../../src/prusti_viper/encoder/mod.rs.html#22"><span class="kw">crate</span>::encoder::places</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/prusti_viper/encoder/mod.rs.html#21"><span class="kw">crate</span>::encoder::places</a>;
 <span class="kw">use</span> <a class="ident" href="../../../prusti_interface/data/type.ProcedureDefId.html">prusti_interface::data::ProcedureDefId</a>;
 <span class="kw">use</span> <a class="ident" href="../../../prusti_interface/environment/struct.Environment.html">prusti_interface::environment::Environment</a>;
 <span class="kw">use</span> <span class="ident">rustc_hir</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">hir</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>};
@@ -525,6 +568,7 @@
 <span class="kw">use</span> <span class="ident">rustc_middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.FnSig.html">ty::FnSig</a>};
 <span class="kw">use</span> <span class="ident">rustc_index::vec::Idx</span>;
 <span class="kw">use</span> <span class="ident">rustc_middle::ty</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">Ty</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/enum.TyKind.html">TyKind</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">rustc_middle::ty::subst::SubstsRef</a>;
 <span class="comment">// use rustc_data_structures::indexed_vec::Idx;</span>
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::{<a class="ident" href="../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
@@ -533,7 +577,6 @@
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">trace</span>};
 <span class="kw">use</span> <a class="ident" href="../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18"><span class="kw">crate</span>::encoder::errors::EncodingError</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20"><span class="kw">crate</span>::encoder::errors::EncodingResult</a>;
-<span class="kw">use</span> <a class="ident" href="../../../prusti_interface/environment/tymap/struct.SubstMap.html">prusti_interface::environment::tymap::SubstMap</a>;
 
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -612,27 +655,72 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">L</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, <span class="ident">P</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <span class="ident">ProcedureContractGeneric</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">P</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">functional_precondition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">typed::SpecificationSet::Procedure</span>(<span class="ident">spec</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#102">self</a>.<span class="ident">specification</span> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#103">spec</a>.<span class="ident">pres</span>.<span class="ident">extract_with_selective_replacement_iter</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">functional_precondition</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
+        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+        <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>, <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">typed::SpecificationSet::Procedure</span>(<span class="ident">spec</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#103">self</a>.<span class="ident">specification</span> {
+            <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#107">spec</a>.<span class="ident">pres</span> {
+                <span class="ident">typed::SpecificationItem::Empty</span> =&gt; <span class="macro">vec!</span>[],
+                <span class="ident">typed::SpecificationItem::Inherent</span>(<span class="ident">pres</span>)
+                <span class="op">|</span> <span class="ident">typed::SpecificationItem::Refined</span>(<span class="kw">_</span>, <span class="ident">pres</span>) =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#110">pres</a>.<span class="ident">iter</span>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">inherent_def_id</span><span class="op">|</span> (
+                        <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#112">inherent_def_id</a>,
+                        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#105">substs</a>,
+                    ))
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                <span class="ident">typed::SpecificationItem::Inherited</span>(<span class="ident">pres</span>) =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#117">pres</a>.<span class="ident">iter</span>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">inherited_def_id</span><span class="op">|</span> (
+                        <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#118">inherited_def_id</a>,
+                        <span class="comment">// This uses the substs of the current method and</span>
+                        <span class="comment">// resolves them to the substs of the trait; however,</span>
+                        <span class="comment">// we are actually resolving to a specification item.</span>
+                        <span class="comment">// This works because the generics of the specification</span>
+                        <span class="comment">// items are the same as the generics of the method on</span>
+                        <span class="comment">// which they are declared.</span>
+                        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#104">env</a>.<span class="ident">find_trait_method_substs</span>(<a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#103">self</a>.<span class="ident">def_id</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#105">substs</a>).<span class="ident">unwrap</span>().<span class="number">1</span>,
+                    ))
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            }
         } <span class="kw">else</span> {
-            <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#102">self</a>.<span class="ident">specification</span>)
+            <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#103">self</a>.<span class="ident">specification</span>)
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">functional_postcondition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">typed::SpecificationSet::Procedure</span>(<span class="ident">spec</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#110">self</a>.<span class="ident">specification</span> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#111">spec</a>.<span class="ident">posts</span>.<span class="ident">extract_with_selective_replacement_iter</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">functional_postcondition</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
+        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+        <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>, <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">typed::SpecificationSet::Procedure</span>(<span class="ident">spec</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#136">self</a>.<span class="ident">specification</span> {
+            <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#140">spec</a>.<span class="ident">posts</span> {
+                <span class="ident">typed::SpecificationItem::Empty</span> =&gt; <span class="macro">vec!</span>[],
+                <span class="ident">typed::SpecificationItem::Inherent</span>(<span class="ident">posts</span>)
+                <span class="op">|</span> <span class="ident">typed::SpecificationItem::Refined</span>(<span class="kw">_</span>, <span class="ident">posts</span>) =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#143">posts</a>.<span class="ident">iter</span>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">inherent_def_id</span><span class="op">|</span> (
+                        <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#145">inherent_def_id</a>,
+                        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#138">substs</a>,
+                    ))
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                <span class="ident">typed::SpecificationItem::Inherited</span>(<span class="ident">posts</span>) =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#150">posts</a>.<span class="ident">iter</span>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">inherited_def_id</span><span class="op">|</span> (
+                        <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#151">inherited_def_id</a>,
+                        <span class="comment">// Same comment as `functional_precondition` applies.</span>
+                        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#137">env</a>.<span class="ident">find_trait_method_substs</span>(<a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#136">self</a>.<span class="ident">def_id</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#138">substs</a>).<span class="ident">unwrap</span>().<span class="number">1</span>,
+                    ))
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            }
         } <span class="kw">else</span> {
-            <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#110">self</a>.<span class="ident">specification</span>)
+            <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#136">self</a>.<span class="ident">specification</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pledges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../prusti_interface/specs/typed/struct.Pledge.html">typed::Pledge</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">typed::SpecificationSet::Procedure</span>(<span class="ident">spec</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#118">self</a>.<span class="ident">specification</span> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#119">spec</a>.<span class="ident">pledges</span>.<span class="ident">extract_with_selective_replacement_iter</span>()
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">typed::SpecificationSet::Procedure</span>(<span class="ident">spec</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#163">self</a>.<span class="ident">specification</span> {
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#164">spec</a>.<span class="ident">pledges</span>.<span class="ident">extract_with_selective_replacement_iter</span>()
         } <span class="kw">else</span> {
-            <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#118">self</a>.<span class="ident">specification</span>)
+            <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected: {:?}&quot;</span>, <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#163">self</a>.<span class="ident">specification</span>)
         }
     }
 }
@@ -645,20 +733,20 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">L</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>, <span class="ident">P</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">ProcedureContractGeneric</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">P</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">f</a>, <span class="string">&quot;ProcedureContract {{&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">f</a>, <span class="string">&quot;IN:&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">self</a>.<span class="ident">args</span>.<span class="ident">iter</span>() {
-            <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">f</a>, <span class="string">&quot;  {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#137">path</a>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">f</a>, <span class="string">&quot;ProcedureContract {{&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">f</a>, <span class="string">&quot;IN:&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">self</a>.<span class="ident">args</span>.<span class="ident">iter</span>() {
+            <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">f</a>, <span class="string">&quot;  {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#182">path</a>)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">f</a>, <span class="string">&quot;OUT:&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">self</a>.<span class="ident">returned_refs</span>.<span class="ident">iter</span>() {
-            <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">f</a>, <span class="string">&quot;  {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#141">path</a>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">f</a>, <span class="string">&quot;OUT:&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">self</a>.<span class="ident">returned_refs</span>.<span class="ident">iter</span>() {
+            <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">f</a>, <span class="string">&quot;  {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#186">path</a>)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">f</a>, <span class="string">&quot;MAGIC:&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">borrow_info</span> <span class="kw">in</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">self</a>.<span class="ident">borrow_infos</span>.<span class="ident">iter</span>() {
-            <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#145">borrow_info</a>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">f</a>, <span class="string">&quot;MAGIC:&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for</span> <span class="ident">borrow_info</span> <span class="kw">in</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">self</a>.<span class="ident">borrow_infos</span>.<span class="ident">iter</span>() {
+            <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#190">borrow_info</a>)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#134">f</a>, <span class="string">&quot;}}&quot;</span>)
+        <span class="macro">writeln!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#179">f</a>, <span class="string">&quot;}}&quot;</span>)
     }
 }
 
@@ -668,40 +756,40 @@
     <span class="comment">//     &amp;mir::Place::Projection(ref projection) =&gt; get_place_root(&amp;projection.base),</span>
     <span class="comment">//     _ =&gt; unimplemented!(),</span>
     <span class="comment">// }</span>
-    <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#152">place</a>.<span class="ident">local</span>
+    <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#197">place</a>.<span class="ident">local</span>
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">ProcedureContractMirDef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Specialize to the definition site contract.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_def_site_contract</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ProcedureContract</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">borrow_infos</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#163">self</a>
+        <span class="kw">let</span> <span class="ident">borrow_infos</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#208">self</a>
             .<span class="ident">borrow_infos</span>
             .<span class="ident">iter</span>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#27-36">BorrowInfo</a> {
-                <span class="ident">region</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#167">info</a>.<span class="ident">region</span>,
-                <span class="ident">blocking_paths</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#167">info</a>
+                <span class="ident">region</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#212">info</a>.<span class="ident">region</span>,
+                <span class="ident">blocking_paths</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#212">info</a>
                     .<span class="ident">blocking_paths</span>
                     .<span class="ident">iter</span>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="ident">m</span>)<span class="op">|</span> (<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#172">p</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#172">m</a>))
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="ident">m</span>)<span class="op">|</span> (<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#217">p</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#217">m</a>))
                     .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <span class="ident">blocked_paths</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#167">info</a>
+                <span class="ident">blocked_paths</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#212">info</a>
                     .<span class="ident">blocked_paths</span>
                     .<span class="ident">iter</span>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="ident">m</span>)<span class="op">|</span> (<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#177">p</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#177">m</a>))
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="ident">m</span>)<span class="op">|</span> (<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#222">p</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#222">m</a>))
                     .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             })
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#131">ProcedureContract</a> {
-            <span class="ident">def_id</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#163">self</a>.<span class="ident">def_id</span>,
-            <span class="ident">args</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#163">self</a>.<span class="ident">args</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">a</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#183">a</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <span class="ident">returned_refs</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#163">self</a>
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#176">ProcedureContract</a> {
+            <span class="ident">def_id</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#208">self</a>.<span class="ident">def_id</span>,
+            <span class="ident">args</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#208">self</a>.<span class="ident">args</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">a</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#228">a</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <span class="ident">returned_refs</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#208">self</a>
                 .<span class="ident">returned_refs</span>
                 .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">r</span>, <span class="ident">m</span>)<span class="op">|</span> (<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#187">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#187">m</a>))
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">r</span>, <span class="ident">m</span>)<span class="op">|</span> (<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#232">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#232">m</a>))
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <span class="ident">returned_value</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#163">self</a>.<span class="ident">returned_value</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#164">borrow_infos</a>,
-            <span class="ident">specification</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#163">self</a>.<span class="ident">specification</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">returned_value</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#208">self</a>.<span class="ident">returned_value</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#209">borrow_infos</a>,
+            <span class="ident">specification</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#208">self</a>.<span class="ident">specification</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 
@@ -711,37 +799,37 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">places::Local</a>],
         <span class="ident">target</span>: <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">places::Local</a>,
     ) -&gt; <span class="ident">ProcedureContract</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <span class="macro">assert_eq!</span>(<a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#197">self</a>.<span class="ident">args</span>.<span class="ident">len</span>(), <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#198">args</a>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#242">self</a>.<span class="ident">args</span>.<span class="ident">len</span>(), <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#243">args</a>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">substitutions</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#202">substitutions</a>.<span class="ident">insert</span>(<a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#197">self</a>.<span class="ident">returned_value</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#199">target</a>);
-        <span class="kw">for</span> (<span class="ident">from</span>, <span class="ident">to</span>) <span class="kw">in</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#197">self</a>.<span class="ident">args</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#198">args</a>) {
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#202">substitutions</a>.<span class="ident">insert</span>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#204">from</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#204">to</a>);
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#247">substitutions</a>.<span class="ident">insert</span>(<a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#242">self</a>.<span class="ident">returned_value</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#244">target</a>);
+        <span class="kw">for</span> (<span class="ident">from</span>, <span class="ident">to</span>) <span class="kw">in</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#242">self</a>.<span class="ident">args</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#243">args</a>) {
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#247">substitutions</a>.<span class="ident">insert</span>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#249">from</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#249">to</a>);
         }
         <span class="kw">let</span> <span class="ident">substitute</span> <span class="op">=</span> <span class="op">|</span>(<span class="ident">place</span>, <span class="ident">mutability</span>): <span class="kw-2">&amp;</span>(<span class="kw">_</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">root</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#152">get_place_root</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#207">place</a>);
+            <span class="kw">let</span> <span class="ident">root</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#197">get_place_root</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#252">place</a>);
             <span class="kw">let</span> <span class="ident">substitute_place</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#109-112">places::Place::SubstitutedPlace</a> {
-                <span class="ident">substituted_root</span>: <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#202">substitutions</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#208">root</a>).<span class="ident">unwrap</span>(),
-                <span class="ident">place</span>: <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#207">place</a>,
+                <span class="ident">substituted_root</span>: <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#247">substitutions</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#253">root</a>).<span class="ident">unwrap</span>(),
+                <span class="ident">place</span>: <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#252">place</a>,
             };
-            (<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#209">substitute_place</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#207">mutability</a>)
+            (<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#254">substitute_place</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#252">mutability</a>)
         };
-        <span class="kw">let</span> <span class="ident">borrow_infos</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#197">self</a>
+        <span class="kw">let</span> <span class="ident">borrow_infos</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#242">self</a>
             .<span class="ident">borrow_infos</span>
             .<span class="ident">iter</span>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#27-36">BorrowInfo</a> {
-                <span class="ident">region</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#218">info</a>.<span class="ident">region</span>,
-                <span class="ident">blocking_paths</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#218">info</a>.<span class="ident">blocking_paths</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#207">substitute</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <span class="ident">blocked_paths</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#218">info</a>.<span class="ident">blocked_paths</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#207">substitute</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                <span class="ident">region</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#263">info</a>.<span class="ident">region</span>,
+                <span class="ident">blocking_paths</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#263">info</a>.<span class="ident">blocking_paths</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#252">substitute</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                <span class="ident">blocked_paths</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#263">info</a>.<span class="ident">blocked_paths</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#252">substitute</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             })
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> <span class="ident">returned_refs</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#197">self</a>.<span class="ident">returned_refs</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#207">substitute</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#131">ProcedureContract</a> {
-            <span class="ident">def_id</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#197">self</a>.<span class="ident">def_id</span>,
-            <span class="ident">args</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#198">args</a>.<span class="ident">to_vec</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#224">returned_refs</a>,
-            <span class="ident">returned_value</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#199">target</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#215">borrow_infos</a>,
-            <span class="ident">specification</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#197">self</a>.<span class="ident">specification</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <span class="kw">let</span> <span class="ident">returned_refs</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#242">self</a>.<span class="ident">returned_refs</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#252">substitute</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#176">ProcedureContract</a> {
+            <span class="ident">def_id</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#242">self</a>.<span class="ident">def_id</span>,
+            <span class="ident">args</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#243">args</a>.<span class="ident">to_vec</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#269">returned_refs</a>,
+            <span class="ident">returned_value</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#244">target</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#260">borrow_infos</a>,
+            <span class="ident">specification</span>: <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#242">self</a>.<span class="ident">specification</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
@@ -761,10 +849,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">BorrowInfoCollectingVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#236-247">BorrowInfoCollectingVisitor</a> {
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#281-292">BorrowInfoCollectingVisitor</a> {
             <span class="ident">borrow_infos</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">references_in</span>: <span class="ident">Vec::new</span>(),
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#250">tcx</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#295">tcx</a>,
             <span class="ident">is_path_blocking</span>: <span class="bool-val">false</span>,
             <span class="ident">current_path</span>: <span class="prelude-val">None</span>,
         }
@@ -773,36 +861,36 @@
     <span class="kw">fn</span> <span class="ident">analyse_return_ty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)
         -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     {
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#260">self</a>.<span class="ident">is_path_blocking</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#260">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">mir::RETURN_PLACE</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#260">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#260">ty</a>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#260">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#305">self</a>.<span class="ident">is_path_blocking</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#305">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">mir::RETURN_PLACE</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#305">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#305">ty</a>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#305">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn</span> <span class="ident">analyse_arg</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)
         -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     {
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#270">self</a>.<span class="ident">is_path_blocking</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#270">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#270">arg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#270">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#270">ty</a>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#270">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#315">self</a>.<span class="ident">is_path_blocking</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#315">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#315">arg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#315">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#315">ty</a>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#315">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn</span> <span class="ident">extract_bound_region</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">region</span>: <span class="ident">ty::Region</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/enum.BoundRegionKind.html">ty::BoundRegionKind</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#280">region</a>.<span class="ident">kind</span>() {
-            <span class="ident">ty::RegionKind::ReFree</span>(<span class="ident">free_region</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#282">free_region</a>.<span class="ident">bound_region</span>),
+        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#325">region</a>.<span class="ident">kind</span>() {
+            <span class="ident">ty::RegionKind::ReFree</span>(<span class="ident">free_region</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#327">free_region</a>.<span class="ident">bound_region</span>),
             <span class="comment">// TODO: is this correct?!</span>
-            <span class="ident">ty::RegionKind::ReLateBound</span>(<span class="kw">_</span>, <span class="ident">bound_region</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#284">bound_region</a>.<span class="ident">kind</span>),
+            <span class="ident">ty::RegionKind::ReLateBound</span>(<span class="kw">_</span>, <span class="ident">bound_region</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#329">bound_region</a>.<span class="ident">kind</span>),
             <span class="ident">ty::RegionKind::ReEarlyBound</span>(<span class="ident">early_region</span>) =&gt; <span class="prelude-val">Some</span>(
-                <span class="ident">ty::BoundRegionKind::BrNamed</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#285">early_region</a>.<span class="ident">def_id</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#285">early_region</a>.<span class="ident">name</span>),
+                <span class="ident">ty::BoundRegionKind::BrNamed</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#330">early_region</a>.<span class="ident">def_id</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#330">early_region</a>.<span class="ident">name</span>),
             ),
             <span class="ident">ty::RegionKind::ReStatic</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident">ty::RegionKind::ReErased</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident">ty::RegionKind::ReVar</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             <span class="comment">// &amp;ty::RegionKind::ReScope(_scope) =&gt; None,</span>
-            <span class="ident">x</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#292">x</a>),
+            <span class="ident">x</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#337">x</a>),
         }
     }
 
@@ -810,16 +898,16 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">region</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/enum.BoundRegionKind.html">ty::BoundRegionKind</a><span class="op">&gt;</span>,
     ) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">BorrowInfo</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#297">self</a>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#342">self</a>
             .<span class="ident">borrow_infos</span>
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#303">info</a>.<span class="ident">region</span> <span class="op">==</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#298">region</a>)
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#348">info</a>.<span class="ident">region</span> <span class="op">==</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#343">region</a>)
         {
-            <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#297">self</a>.<span class="ident">borrow_infos</span>[<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#300">index</a>]
+            <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#342">self</a>.<span class="ident">borrow_infos</span>[<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#345">index</a>]
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">borrow_info</span> <span class="op">=</span> <span class="ident">BorrowInfo::new</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#298">region</a>);
-            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#297">self</a>.<span class="ident">borrow_infos</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#307">borrow_info</a>);
-            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#297">self</a>.<span class="ident">borrow_infos</span>.<span class="ident">last_mut</span>().<span class="ident">unwrap</span>()
+            <span class="kw">let</span> <span class="ident">borrow_info</span> <span class="op">=</span> <span class="ident">BorrowInfo::new</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#343">region</a>);
+            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#342">self</a>.<span class="ident">borrow_infos</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#352">borrow_info</a>);
+            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#342">self</a>.<span class="ident">borrow_infos</span>.<span class="ident">last_mut</span>().<span class="ident">unwrap</span>()
         }
     }
 }
@@ -832,16 +920,16 @@
         <span class="ident">sty</span>: <span class="kw-2">&amp;</span><span class="ident">TyKind</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="prelude-val">Err</span>(<span class="ident">EncodingError::unsupported</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;unsupported type {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#319">sty</a>)
+            <span class="macro">format!</span>(<span class="string">&quot;unsupported type {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#364">sty</a>)
         ))
     }
 
     <span class="kw">fn</span> <span class="ident">tcx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#326">self</a>.<span class="ident">tcx</span>
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#371">self</a>.<span class="ident">tcx</span>
     }
 
     <span class="kw">fn</span> <span class="ident">unsupported</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">S</span>) -&gt; <span class="ident"><span class="self">Self</span>::Error</span> {
-        <span class="ident">EncodingError::unsupported</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#330">msg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+        <span class="ident">EncodingError::unsupported</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#375">msg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
     }
 
     <span class="kw">fn</span> <span class="ident">visit_field</span>(
@@ -850,15 +938,15 @@
         <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.FieldDef.html">ty::FieldDef</a>,
         <span class="ident">substs</span>: <span class="ident">ty::subst::SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;visit_field({}, {:?})&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#336">index</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#337">field</a>);
-        <span class="kw">let</span> <span class="ident">old_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#335">self</a>.<span class="ident">current_path</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#337">field</a>.<span class="ident">ty</span>(<a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#335">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#18">tcx</a>(), <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#338">substs</a>);
-        <span class="kw">let</span> <span class="ident">field_id</span> <span class="op">=</span> <span class="ident">mir::Field::new</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#336">index</a>);
-        <span class="kw">let</span> <span class="ident">new_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#335">self</a>.<span class="ident">tcx</span>.<span class="ident">mk_place_field</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#341">old_path</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#343">field_id</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#342">ty</a>);
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#335">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#344">new_path</a>);
+        <span class="macro">trace!</span>(<span class="string">&quot;visit_field({}, {:?})&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#381">index</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#382">field</a>);
+        <span class="kw">let</span> <span class="ident">old_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#380">self</a>.<span class="ident">current_path</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#382">field</a>.<span class="ident">ty</span>(<a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#380">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#18">tcx</a>(), <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#383">substs</a>);
+        <span class="kw">let</span> <span class="ident">field_id</span> <span class="op">=</span> <span class="ident">mir::Field::new</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#381">index</a>);
+        <span class="kw">let</span> <span class="ident">new_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#380">self</a>.<span class="ident">tcx</span>.<span class="ident">mk_place_field</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#386">old_path</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#388">field_id</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#387">ty</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#380">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#389">new_path</a>);
         <span class="comment">// self.current_path = Some(old_path.clone().field(field_id, ty));</span>
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#241-245">type_visitor::walk_field</a>(<a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#335">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#337">field</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#338">substs</a>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#335">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#341">old_path</a>);
+        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#241-245">type_visitor::walk_field</a>(<a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#380">self</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#382">field</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#383">substs</a>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#380">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#386">old_path</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -870,29 +958,29 @@
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="macro">trace!</span>(
             <span class="string">&quot;visit_ref({:?}, {:?}, {:?}) current_path={:?}&quot;</span>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#354">region</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#355">ty</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#356">mutability</a>,
-            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<span class="ident">current_path</span>
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#399">region</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#400">ty</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#401">mutability</a>,
+            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<span class="ident">current_path</span>
         );
-        <span class="kw">let</span> <span class="ident">bound_region</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#280">extract_bound_region</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#354">region</a>);
-        <span class="kw">let</span> <span class="ident">is_path_blocking</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<span class="ident">is_path_blocking</span>;
-        <span class="kw">let</span> <span class="ident">old_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<span class="ident">current_path</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">current_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<span class="ident">tcx</span>.<span class="ident">mk_place_deref</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#367">old_path</a>);
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#368">current_path</a>);
-        <span class="kw">let</span> <span class="ident">borrow_info</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#296-299">get_or_create_borrow_info</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#365">bound_region</a>);
-        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#366">is_path_blocking</a> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#370">borrow_info</a>.<span class="ident">blocking_paths</span>.<span class="ident">push</span>((<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#368">current_path</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#356">mutability</a>));
+        <span class="kw">let</span> <span class="ident">bound_region</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#325">extract_bound_region</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#399">region</a>);
+        <span class="kw">let</span> <span class="ident">is_path_blocking</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<span class="ident">is_path_blocking</span>;
+        <span class="kw">let</span> <span class="ident">old_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<span class="ident">current_path</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">current_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<span class="ident">tcx</span>.<span class="ident">mk_place_deref</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#412">old_path</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#413">current_path</a>);
+        <span class="kw">let</span> <span class="ident">borrow_info</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#341-344">get_or_create_borrow_info</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#410">bound_region</a>);
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#411">is_path_blocking</a> {
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#415">borrow_info</a>.<span class="ident">blocking_paths</span>.<span class="ident">push</span>((<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#413">current_path</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#401">mutability</a>));
         } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#370">borrow_info</a>
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#415">borrow_info</a>
                 .<span class="ident">blocked_paths</span>
-                .<span class="ident">push</span>((<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#368">current_path</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#356">mutability</a>));
-            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<span class="ident">references_in</span>.<span class="ident">push</span>((<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#368">current_path</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#356">mutability</a>));
+                .<span class="ident">push</span>((<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#413">current_path</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#401">mutability</a>));
+            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<span class="ident">references_in</span>.<span class="ident">push</span>((<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#413">current_path</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#401">mutability</a>));
         }
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<span class="ident">is_path_blocking</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<span class="ident">is_path_blocking</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="comment">//type_visitor::walk_ref(self, region, ty, mutability)?;</span>
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<span class="ident">is_path_blocking</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#366">is_path_blocking</a>;
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#353">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#367">old_path</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<span class="ident">is_path_blocking</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#411">is_path_blocking</a>;
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#398">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#412">old_path</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -900,15 +988,15 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">types</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">ty::List</span><span class="op">&lt;</span><span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">old_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#387">self</a>.<span class="ident">current_path</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ty</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#388">types</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
-            <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">mir::Field::new</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#391">i</a>);
-            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#387">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
-                <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#387">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#18">tcx</a>().<span class="ident">mk_place_field</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#390">old_path</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#392">field</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#391">ty</a>)
+        <span class="kw">let</span> <span class="ident">old_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#432">self</a>.<span class="ident">current_path</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ty</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#433">types</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+            <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">mir::Field::new</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#436">i</a>);
+            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#432">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
+                <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#432">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#18">tcx</a>().<span class="ident">mk_place_field</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#435">old_path</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#437">field</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#436">ty</a>)
             );
-            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#387">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#391">ty</a>)<span class="question-mark">?</span>;
+            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#432">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#436">ty</a>)<span class="question-mark">?</span>;
         }
-        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#387">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#390">old_path</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#432">self</a>.<span class="ident">current_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#435">old_path</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -919,9 +1007,9 @@
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="macro">trace!</span>(
             <span class="string">&quot;visit_raw_ptr({:?}, {:?}) current_path={:?}&quot;</span>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#404">ty</a>,
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#405">mutability</a>,
-            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#403">self</a>.<span class="ident">current_path</span>
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#449">ty</a>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#450">mutability</a>,
+            <a class="self" href="../../../src/prusti_viper/encoder/borrows.rs.html#448">self</a>.<span class="ident">current_path</span>
         );
         <span class="comment">// Do nothing.</span>
         <span class="prelude-val">Ok</span>(())
@@ -932,92 +1020,90 @@
     <span class="ident">proc_def_id</span>: <a class="ident" href="../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>,
     <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">specification</span>: <a class="ident" href="../../../prusti_interface/specs/typed/enum.SpecificationSet.html">typed::SpecificationSet</a>,
-    <span class="ident">maybe_tymap</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SubstMap</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><span class="ident">ProcedureContractMirDef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="lifetime">&#39;a</span>: <span class="lifetime">&#39;p</span>,
     <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span>,
 {
-    <span class="macro">trace!</span>(<span class="string">&quot;[compute_borrow_infos] enter name={:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#419">proc_def_id</a>);
+    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html"><span class="kw">crate</span>::rustc_middle::ty::subst::Subst</a>;
+
+    <span class="macro">trace!</span>(<span class="string">&quot;[compute_borrow_infos] enter name={:?}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#464">proc_def_id</a>);
 
     <span class="kw">let</span> <span class="ident">args_ty</span>:<span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">&gt;</span>;
     <span class="kw">let</span> <span class="ident">return_ty</span>;
 
-    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#420">env</a>.<span class="ident">tcx</span>().<span class="ident">is_closure</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#419">proc_def_id</a>) {
+    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#465">env</a>.<span class="ident">tcx</span>().<span class="ident">is_closure</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#464">proc_def_id</a>) {
         <span class="comment">// FIXME: &quot;skip_binder&quot; is most likely wrong</span>
         <span class="comment">// FIXME: Replace with FakeMirEncoder.</span>
-        <span class="kw">let</span> <span class="ident">fn_sig</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.FnSig.html">FnSig</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#420">env</a>.<span class="ident">tcx</span>().<span class="ident">fn_sig</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#419">proc_def_id</a>).<span class="ident">skip_binder</span>();
-        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#436">fn_sig</a>.<span class="ident">c_variadic</span> {
+        <span class="kw">let</span> <span class="ident">fn_sig</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.FnSig.html">FnSig</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#465">env</a>.<span class="ident">tcx</span>().<span class="ident">fn_sig</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#464">proc_def_id</a>).<span class="ident">skip_binder</span>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html">subst</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#465">env</a>.<span class="ident">tcx</span>(), <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#467">substs</a>);
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#483">fn_sig</a>.<span class="ident">c_variadic</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EncodingError::unsupported</span>(
                 <span class="string">&quot;variadic functions are not supported&quot;</span>
             ));
         }
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#430">args_ty</a> <span class="op">=</span> (<span class="number">0usize</span> .. <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#436">fn_sig</a>.<span class="ident">inputs</span>().<span class="ident">len</span>())
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> (<span class="ident">mir::Local::from_usize</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#443">i</a> <span class="op">+</span> <span class="number">1</span>), <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#436">fn_sig</a>.<span class="ident">inputs</span>()[<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#443">i</a>]))
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#477">args_ty</a> <span class="op">=</span> (<span class="number">0usize</span> .. <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#483">fn_sig</a>.<span class="ident">inputs</span>().<span class="ident">len</span>())
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> (<span class="ident">mir::Local::from_usize</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#491">i</a> <span class="op">+</span> <span class="number">1</span>), <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#483">fn_sig</a>.<span class="ident">inputs</span>()[<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#491">i</a>]))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#431">return_ty</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#436">fn_sig</a>.<span class="ident">output</span>(); <span class="comment">// FIXME: Shouldn&#39;t this also go through maybe_tymap?</span>
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#478">return_ty</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#483">fn_sig</a>.<span class="ident">output</span>();
     } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="ident">mir</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#420">env</a>.<span class="ident">local_mir</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#419">proc_def_id</a>.<span class="ident">expect_local</span>());
+        <span class="kw">let</span> <span class="ident">mir</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#465">env</a>.<span class="ident">local_mir</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#464">proc_def_id</a>.<span class="ident">expect_local</span>(), <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#467">substs</a>);
         <span class="comment">// local_decls:</span>
         <span class="comment">// _0    - return, with closure&#39;s return type</span>
         <span class="comment">// _1    - closure&#39;s self</span>
         <span class="comment">// _2... - actual arguments</span>
         <span class="comment">// arg_count includes the extra self _1</span>
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#430">args_ty</a> <span class="op">=</span> (<span class="number">1usize</span> ..<span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#447">mir</a>.<span class="ident">arg_count</span>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> (<span class="ident">mir::Local::from_usize</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#454">i</a>), <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#447">mir</a>.<span class="ident">local_decls</span>[<span class="ident">mir::Local::from_usize</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#454">i</a>)].<span class="ident">ty</span>))
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#477">args_ty</a> <span class="op">=</span> (<span class="number">1usize</span> ..<span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#495">mir</a>.<span class="ident">arg_count</span>)
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> (<span class="ident">mir::Local::from_usize</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#502">i</a>), <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#495">mir</a>.<span class="ident">local_decls</span>[<span class="ident">mir::Local::from_usize</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#502">i</a>)].<span class="ident">ty</span>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#431">return_ty</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#447">mir</a>.<span class="ident">local_decls</span>[<span class="ident">mir::Local::from_usize</span>(<span class="number">0</span>)].<span class="ident">ty</span>;
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#478">return_ty</a> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#495">mir</a>.<span class="ident">local_decls</span>[<span class="ident">mir::Local::from_usize</span>(<span class="number">0</span>)].<span class="ident">ty</span>;
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fake_mir_args</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fake_mir_args_ty</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-
-    <span class="kw">for</span> (<span class="ident">local</span>, <span class="ident">arg_ty</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#430">args_ty</a> {
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#459">fake_mir_args</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#462">local</a>);
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#460">fake_mir_args_ty</a>.<span class="ident">push</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replaced_arg_ty</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#422">maybe_tymap</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tymap</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#464">tymap</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#462">arg_ty</a>)) {
-            <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#464">replaced_arg_ty</a>
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#462">arg_ty</a>
-        });
+    <span class="kw">for</span> (<span class="ident">local</span>, <span class="ident">arg_ty</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#477">args_ty</a> {
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#507">fake_mir_args</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#509">local</a>);
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#508">fake_mir_args_ty</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#509">arg_ty</a>);
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">BorrowInfoCollectingVisitor::new</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#420">env</a>.<span class="ident">tcx</span>());
-    <span class="kw">for</span> (<span class="ident">arg</span>, <span class="ident">arg_ty</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#459">fake_mir_args</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#460">fake_mir_args_ty</a>) {
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#471">visitor</a>.<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#270-271">analyse_arg</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#472">arg</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#472">arg_ty</a>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">BorrowInfoCollectingVisitor::new</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#465">env</a>.<span class="ident">tcx</span>());
+    <span class="kw">for</span> (<span class="ident">arg</span>, <span class="ident">arg_ty</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#507">fake_mir_args</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#508">fake_mir_args_ty</a>) {
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#514">visitor</a>.<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#315-316">analyse_arg</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#515">arg</a>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#515">arg_ty</a>)<span class="question-mark">?</span>;
     }
-    <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#471">visitor</a>.<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#260-261">analyse_return_ty</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#431">return_ty</a>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">borrow_infos</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#471">visitor</a>
+    <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#514">visitor</a>.<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#305-306">analyse_return_ty</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#478">return_ty</a>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">borrow_infos</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#514">visitor</a>
         .<span class="ident">borrow_infos</span>
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span>
-            <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#479">info</a>.<span class="ident">blocked_paths</span>.<span class="ident">is_empty</span>()
-            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#479">info</a>.<span class="ident">blocking_paths</span>.<span class="ident">is_empty</span>()
-            <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#479">info</a>.<span class="ident">blocked_paths</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">mutability</span>)<span class="op">|</span> <span class="macro">matches!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#482">mutability</a>, <span class="ident">Mutability::Mut</span>))
+            <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#522">info</a>.<span class="ident">blocked_paths</span>.<span class="ident">is_empty</span>()
+            <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#522">info</a>.<span class="ident">blocking_paths</span>.<span class="ident">is_empty</span>()
+            <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#522">info</a>.<span class="ident">blocked_paths</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">mutability</span>)<span class="op">|</span> <span class="macro">matches!</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#525">mutability</a>, <span class="ident">Mutability::Mut</span>))
         ).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <span class="kw">let</span> <span class="ident">is_not_blocked</span> <span class="op">=</span> <span class="op">|</span><span class="ident">place</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">|</span> {
-        <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#476">borrow_infos</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> {
-            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#485">info</a>.<span class="ident">blocked_paths</span>
+        <span class="op">!</span><a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#519">borrow_infos</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> {
+            <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#528">info</a>.<span class="ident">blocked_paths</span>
                 .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span>(<span class="ident">blocked_place</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#488">blocked_place</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#484">place</a>)
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span>(<span class="ident">blocked_place</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#531">blocked_place</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#527">place</a>)
         })
     };
 
-    <span class="kw">let</span> <span class="ident">returned_refs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#471">visitor</a>
+    <span class="kw">let</span> <span class="ident">returned_refs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#514">visitor</a>
         .<span class="ident">references_in</span>
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">place</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#484">is_not_blocked</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#495">place</a>))
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span>(<span class="ident">place</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#527">is_not_blocked</a>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#538">place</a>))
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <span class="kw">let</span> <span class="ident">contract</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#73-99">ProcedureContractGeneric</a> {
-        <span class="ident">def_id</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#419">proc_def_id</a>,
-        <span class="ident">args</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#459">fake_mir_args</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#492">returned_refs</a>,
+        <span class="ident">def_id</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#464">proc_def_id</a>,
+        <span class="ident">args</span>: <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#507">fake_mir_args</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#535">returned_refs</a>,
         <span class="ident">returned_value</span>: <span class="ident">mir::RETURN_PLACE</span>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#476">borrow_infos</a>,
-        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#421">specification</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#519">borrow_infos</a>,
+        <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#466">specification</a>,
     };
 
-    <span class="macro">trace!</span>(<span class="string">&quot;[compute_borrow_infos] exit result={}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#497">contract</a>);
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#497">contract</a>)
+    <span class="macro">trace!</span>(<span class="string">&quot;[compute_borrow_infos] exit result={}&quot;</span>, <a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#540">contract</a>);
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_viper/encoder/borrows.rs.html#540">contract</a>)
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>

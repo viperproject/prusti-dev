@@ -36,6 +36,8 @@
 <span id="31">31</span>
 <span id="32">32</span>
 <span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
 </pre><pre class="rust"><code><span class="comment">// © 2022, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -43,7 +45,7 @@
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">rustc_hir::def_id::DefId</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">rustc_middle::ty</a>;
+<span class="kw">use</span> <span class="ident">rustc_middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">ty::subst::SubstsRef</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">rustc_span::Span</a>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">extract_closure_from_ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
@@ -51,19 +53,21 @@
     <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; (
     <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,             <span class="comment">// closure definition</span>
+    <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,   <span class="comment">// closure substitutions</span>
     <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,              <span class="comment">// definition span</span>
     <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="comment">// input types</span>
     <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="comment">// upvar types</span>
 ) {
     <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#13">ty</a>.<span class="ident">kind</span>() {
         <span class="ident">ty::TyKind::Closure</span>(<span class="ident">def_id</span>, <span class="ident">substs</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">cl_substs</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#21">substs</a>.<span class="ident">as_closure</span>();
-            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#22">cl_substs</a>.<span class="ident">sig</span>().<span class="ident">no_bound_vars</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">cl_substs</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#22">substs</a>.<span class="ident">as_closure</span>();
+            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#23">cl_substs</a>.<span class="ident">sig</span>().<span class="ident">no_bound_vars</span>().<span class="ident">unwrap</span>();
             (
-                <span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#21">def_id</a>,
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#12">tcx</a>.<span class="ident">def_span</span>(<span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#21">def_id</a>),
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#23">sig</a>.<span class="ident">inputs</span>()[<span class="number">0</span>].<span class="ident">tuple_fields</span>().<span class="ident">to_vec</span>(),
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#22">cl_substs</a>.<span class="ident">upvar_tys</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                <span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#22">def_id</a>,
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#22">substs</a>,
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#12">tcx</a>.<span class="ident">def_span</span>(<span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#22">def_id</a>),
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#24">sig</a>.<span class="ident">inputs</span>()[<span class="number">0</span>].<span class="ident">tuple_fields</span>().<span class="ident">to_vec</span>(),
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#23">cl_substs</a>.<span class="ident">upvar_tys</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             )
         }
         <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;expected closure type&quot;</span>),
