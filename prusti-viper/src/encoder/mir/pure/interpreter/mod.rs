@@ -4,7 +4,6 @@ pub(super) mod state;
 
 use self::state::ExprBackwardInterpreterState;
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{
         builtin_functions::{BuiltinFunctionHighKind, HighBuiltinFunctionEncoderInterface},
@@ -49,7 +48,7 @@ pub(super) struct ExpressionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encode_panic_to_false: bool,
     /// DefId of the caller. Used for error reporting.
     caller_def_id: DefId,
-    tymap: SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 }
 
 /// This encoding works backward, so there is the risk of generating expressions whose length
@@ -64,7 +63,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         def_id: DefId,
         encode_panic_to_false: bool,
         caller_def_id: DefId,
-        tymap: SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> Self {
         Self {
             encoder,
@@ -72,7 +71,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
             encode_panic_to_false,
             caller_def_id,
-            tymap,
+            substs,
         }
     }
 
@@ -263,7 +262,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     self.caller_def_id,
                     operand,
                     *dst_ty,
-                    &self.tymap,
                     span,
                 )?;
                 state.substitute_value(&encoded_lhs, encoded_rhs);
@@ -420,14 +418,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         span: Span,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
-        if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
+        if let ty::TyKind::FnDef(def_id, call_substs) = ty.kind() {
             let def_id = *def_id;
             let full_func_proc_name: &str = &self.encoder.env().tcx().def_path_str(def_id);
             let func_proc_name = &self.encoder.env().get_item_name(def_id);
-            let tymap = self
-                .encoder
-                .update_substitution_map(self.tymap.clone(), def_id, substs)
-                .with_span(span)?;
+
+            // compose substitutions
+            // TODO(tymap): do we need this?
+            use crate::rustc_middle::ty::subst::Subst;
+            let substs = call_substs.subst(self.encoder.env().tcx(), self.substs);
 
             let state = if let Some((lhs_place, target_block)) = destination {
                 let encoded_lhs = self.encode_place(*lhs_place).with_span(span)?;
@@ -503,10 +502,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                         let expr = self.encoder.encode_prusti_operation_high(
                             full_func_proc_name,
                             span,
-                            substs,
                             encoded_args,
                             self.caller_def_id,
-                            &self.tymap,
+                            substs,
                         )?;
                         let mut state = states[target_block].clone();
                         state.substitute_value(&encoded_lhs, expr);
@@ -522,7 +520,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                                 def_id,
                                 encoded_args,
                                 span,
-                                &tymap,
                                 substs,
                             )?
                         } else {
@@ -616,12 +613,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         def_id: DefId,
         args: Vec<vir_high::Expression>,
         span: Span,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
         let (function_name, return_type) = self
             .encoder
-            .encode_pure_function_use_high(def_id, self.caller_def_id, tymap, substs)
+            .encode_pure_function_use_high(def_id, self.caller_def_id, substs)
             .with_span(span)?;
         trace!("Encoding pure function call '{}'", function_name);
         let pos = self.encoder.error_manager().register_error(
@@ -631,7 +627,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         );
         let type_arguments = self
             .encoder
-            .encode_generic_arguments_high(def_id, tymap)
+            .encode_generic_arguments_high(def_id, substs)
             .with_span(span)?;
         let encoded_rhs =
             vir_high::Expression::function_call(function_name, type_arguments, args, return_type)

@@ -12,6 +12,7 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_middle::{mir, ty::FnSig};
 use rustc_index::vec::Idx;
 use rustc_middle::ty::{self, Ty, TyCtxt, TyKind};
+use rustc_middle::ty::subst::SubstsRef;
 // use rustc_data_structures::indexed_vec::Idx;
 use rustc_hash::{FxHashMap};
 use std::fmt;
@@ -20,7 +21,6 @@ use prusti_interface::specs::typed;
 use log::{trace};
 use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingResult;
-use prusti_interface::environment::tymap::SubstMap;
 
 
 #[derive(Clone, Debug)]
@@ -99,17 +99,62 @@ where
 }
 
 impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
-    pub fn functional_precondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
+    pub fn functional_precondition<'a, 'tcx>(
+        &'a self,
+        env: &'a Environment<'tcx>,
+        substs: SubstsRef<'tcx>,
+    ) -> Vec<(LocalDefId, SubstsRef<'tcx>)> {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            spec.pres.extract_with_selective_replacement_iter()
+            match &spec.pres {
+                typed::SpecificationItem::Empty => vec![],
+                typed::SpecificationItem::Inherent(pres)
+                | typed::SpecificationItem::Refined(_, pres) => pres.iter()
+                    .map(|inherent_def_id| (
+                        *inherent_def_id,
+                        substs,
+                    ))
+                    .collect(),
+                typed::SpecificationItem::Inherited(pres) => pres.iter()
+                    .map(|inherited_def_id| (
+                        *inherited_def_id,
+                        // This uses the substs of the current method and
+                        // resolves them to the substs of the trait; however,
+                        // we are actually resolving to a specification item.
+                        // This works because the generics of the specification
+                        // items are the same as the generics of the method on
+                        // which they are declared.
+                        env.find_trait_method_substs(self.def_id, substs).unwrap().1,
+                    ))
+                    .collect(),
+            }
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
     }
 
-    pub fn functional_postcondition(&self) -> impl Iterator<Item = &LocalDefId> + '_ {
+    pub fn functional_postcondition<'a, 'tcx>(
+        &'a self,
+        env: &'a Environment<'tcx>,
+        substs: SubstsRef<'tcx>,
+    ) -> Vec<(LocalDefId, SubstsRef<'tcx>)> {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
-            spec.posts.extract_with_selective_replacement_iter()
+            match &spec.posts {
+                typed::SpecificationItem::Empty => vec![],
+                typed::SpecificationItem::Inherent(posts)
+                | typed::SpecificationItem::Refined(_, posts) => posts.iter()
+                    .map(|inherent_def_id| (
+                        *inherent_def_id,
+                        substs,
+                    ))
+                    .collect(),
+                typed::SpecificationItem::Inherited(posts) => posts.iter()
+                    .map(|inherited_def_id| (
+                        *inherited_def_id,
+                        // Same comment as `functional_precondition` applies.
+                        env.find_trait_method_substs(self.def_id, substs).unwrap().1,
+                    ))
+                    .collect(),
+            }
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
@@ -419,12 +464,14 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     env: &Environment<'tcx>,
     specification: typed::SpecificationSet,
-    maybe_tymap: Option<&SubstMap<'tcx>>,
+    substs: SubstsRef<'tcx>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>>
 where
     'a: 'p,
     'tcx: 'a,
 {
+    use crate::rustc_middle::ty::subst::Subst;
+
     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
 
     let args_ty:Vec<(mir::Local, ty::Ty<'tcx>)>;
@@ -433,7 +480,8 @@ where
     if !env.tcx().is_closure(proc_def_id) {
         // FIXME: "skip_binder" is most likely wrong
         // FIXME: Replace with FakeMirEncoder.
-        let fn_sig: FnSig = env.tcx().fn_sig(proc_def_id).skip_binder();
+        let fn_sig: FnSig = env.tcx().fn_sig(proc_def_id).skip_binder()
+            .subst(env.tcx(), substs);
         if fn_sig.c_variadic {
             return Err(EncodingError::unsupported(
                 "variadic functions are not supported"
@@ -442,9 +490,9 @@ where
         args_ty = (0usize .. fn_sig.inputs().len())
             .map(|i| (mir::Local::from_usize(i + 1), fn_sig.inputs()[i]))
             .collect();
-        return_ty = fn_sig.output(); // FIXME: Shouldn't this also go through maybe_tymap?
+        return_ty = fn_sig.output();
     } else {
-        let mir = env.local_mir(proc_def_id.expect_local());
+        let mir = env.local_mir(proc_def_id.expect_local(), substs);
         // local_decls:
         // _0    - return, with closure's return type
         // _1    - closure's self
@@ -458,14 +506,9 @@ where
 
     let mut fake_mir_args = Vec::new();
     let mut fake_mir_args_ty = Vec::new();
-
     for (local, arg_ty) in args_ty {
         fake_mir_args.push(local);
-        fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(&arg_ty)) {
-            *replaced_arg_ty
-        } else {
-            arg_ty
-        });
+        fake_mir_args_ty.push(arg_ty);
     }
 
     let mut visitor = BorrowInfoCollectingVisitor::new(env.tcx());

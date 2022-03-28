@@ -3,7 +3,6 @@ use proc_macro2::TokenStream;
 use quote::quote_spanned;
 use syn::spanned::Spanned;
 use super::common::*;
-use std::collections::HashMap;
 
 pub fn rewrite_extern_spec(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
     let rewritten = rewrite_extern_spec_internal(item_impl)?;
@@ -83,14 +82,21 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
 
     for item in impl_item.items.iter_mut() {
         match item {
+            syn::ImplItem::Type(_) => {
+                return Err(syn::Error::new(
+                    item.span(),
+                    "Associated types in external impl specs should not be declared",
+                ));
+            }
             syn::ImplItem::Method(method) => rewrite_method(
                 method,
                 item_ty,
                 None,
                 ExternSpecKind::InherentImpl,
             ),
-            syn::ImplItem::Type(_) => (), // ignore
             _ => {
+                // TODO: this case also covers methods with `pub` modifier
+                // show a more meaningful message if that is the case
                 return Err(syn::Error::new(
                     item.span(),
                     "expected a method".to_string(),
@@ -114,42 +120,52 @@ fn rewrite_trait_impl(
         unreachable!("expected type path in extern spec trait impl");
     };
 
-    // Collect declared associated types
-    let mut assoc_type_decls = HashMap::<&syn::Ident, &syn::TypePath>::new();
-    for item in impl_item.items.iter() {
-        if let syn::ImplItem::Type(ty) = item {
-            if let syn::Type::Path(path) = &ty.ty {
-                assoc_type_decls.insert(&ty.ident, path);
-            }
-        }
-    }
-
     // Create new impl
     let mut new_impl = impl_item.clone();
     new_impl.self_ty = new_ty;
     new_impl.trait_ = None;
     new_impl.items.clear();
 
+    let item_trait_path = impl_item.trait_.as_ref().unwrap().1.clone();
+    let item_trait_typath = parse_quote_spanned! {item_trait_path.span()=> #item_trait_path };
+    let mut rewriter = AssociatedTypeRewriter::new(
+        &item_ty_path,
+        &item_trait_typath,
+    );
+
+    // TODO: reduce duplication with rewrite_plain_impl
     for item in impl_item.items.iter() {
-        if let syn::ImplItem::Method(method) = item {
-            let (_, trait_path, _) = &impl_item.trait_.as_ref().unwrap();
+        match item {
+            syn::ImplItem::Type(_) => {
+                return Err(syn::Error::new(
+                    item.span(),
+                    "Associated types in external impl specs should not be declared",
+                ));
+            }
+            syn::ImplItem::Method(method) => {
+                let (_, trait_path, _) = &impl_item.trait_.as_ref().unwrap();
 
-            let mut rewritten_method = method.clone();
-            rewrite_method(
-                &mut rewritten_method,
-                &item_ty,
-                Some(trait_path),
-                ExternSpecKind::TraitImpl,
-            );
+                let mut rewritten_method = method.clone();
+                rewrite_method(
+                    &mut rewritten_method,
+                    &item_ty,
+                    Some(trait_path),
+                    ExternSpecKind::TraitImpl,
+                );
 
-            // Rewrite occurences of associated types in method signature
-            let mut rewriter = AssociatedTypeRewriter::new(
-                &item_ty_path,
-                &assoc_type_decls,
-            );
-            rewriter.rewrite_method_sig(&mut rewritten_method.sig);
+                // Rewrite occurences of associated types in method signature
+                rewriter.rewrite_method_sig(&mut rewritten_method.sig);
 
-            new_impl.items.push(syn::ImplItem::Method(rewritten_method));
+                new_impl.items.push(syn::ImplItem::Method(rewritten_method));
+            }
+            _ => {
+                // TODO: this case also covers methods with `pub` modifier
+                // show a more meaningful message if that is the case
+                return Err(syn::Error::new(
+                    item.span(),
+                    "expected a method".to_string(),
+                ));
+            }
         }
     }
 
@@ -383,7 +399,6 @@ mod tests {
         fn associated_types() {
             let mut inp_impl: syn::ItemImpl = parse_quote!(
                 impl MyTrait for MyStruct {
-                    type Result = i32;
                     fn foo(&mut self) -> Self::Result;
                 }
             );
@@ -396,7 +411,7 @@ mod tests {
                     #[prusti::extern_spec = "trait_impl"]
                     #[trusted]
                     #[allow(dead_code)]
-                    fn foo(_self: &mut MyStruct) -> i32 {
+                    fn foo(_self: &mut MyStruct) -> <MyStruct as MyTrait> :: Result {
                         <MyStruct as MyTrait> :: foo(_self, );
                         unimplemented!()
                     }

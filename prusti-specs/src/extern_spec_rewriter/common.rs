@@ -1,7 +1,6 @@
 use proc_macro2::{TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use std::collections::HashMap;
 
 /// Rewrites every occurence of "self" to "_self" in a token stream
 pub fn rewrite_self(tokens: TokenStream) -> TokenStream {
@@ -112,36 +111,32 @@ pub fn rewrite_method_inputs<T: ToTokens>(
     args
 }
 
-/// Given a replacement for the `Self` type and a map from associated types to
-/// anything tokenizable, this type rewrites associated type paths to these tokens.
+/// Given a replacement for the `Self` type and the trait it should fulfill,
+/// this type rewrites `Self` and associated type paths.
 ///
 /// # Example
-/// Given a `Self` replacement
-/// `T_Self`
-/// and a mapping from associated types to generic type params
-/// `[AssocType1 -> T_AssocType1, AssocType2 -> T_AssocType2]`,
+/// Given a `Self` replacement `T_Self` and a self trait constraint `Foo<X>`,
 /// visiting a function
 /// ```
-/// fn foo(arg1: Self, arg2: Self::AssocType1) -> Self::AssocType2 { }
+/// fn foo(arg1: Self, arg2: Self::Assoc1) -> Self::Assoc2 { }
 /// ```
 /// results in
 /// ```
-/// fn foo(arg1: T_Self, arg2: T_AssocType1) -> T_AssocType2 { }
+/// fn foo(arg1: T_Self, arg2: <T_Self as Foo<X>::Assoc1) -> <T_Self as Foo<X>::Assoc2 { }
 /// ```
-///
-pub struct AssociatedTypeRewriter<'a, R: ToTokens> {
-    repl_self: R,
-    repl_assoc: &'a HashMap<&'a syn::Ident, R>,
+pub struct AssociatedTypeRewriter<'a> {
+    self_type: &'a syn::TypePath,
+    self_type_trait: &'a syn::TypePath,
 }
 
-impl<'a, R: ToTokens> AssociatedTypeRewriter<'a, R> {
+impl<'a> AssociatedTypeRewriter<'a> {
     pub fn new(
-        repl_self: R,
-        repl_assoc: &'a HashMap<&'a syn::Ident, R>,
+        self_type: &'a syn::TypePath,
+        self_type_trait: &'a syn::TypePath,
     ) -> Self {
         AssociatedTypeRewriter {
-            repl_self,
-            repl_assoc,
+            self_type,
+            self_type_trait,
         }
     }
 
@@ -150,25 +145,31 @@ impl<'a, R: ToTokens> AssociatedTypeRewriter<'a, R> {
     }
 }
 
-impl<'a, R: ToTokens> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a, R> {
+impl<'a> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a> {
     fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
-        // replace `Self` type
-        if ty_path.path.segments.len() == 1
-            && ty_path.path.segments[0].ident == "Self"
-        {
-            let replacement = &self.repl_self;
-            ty_path.path = syn::parse_quote!(#replacement);
+        if ty_path.qself.is_none()
+            && !ty_path.path.segments.is_empty()
+            && ty_path.path.segments[0].ident == "Self" {
+            if ty_path.path.segments.len() == 1 {
+                // replace `Self` type
+                *ty_path = self.self_type.clone();
+            } else if ty_path.path.segments.len() >= 2 {
+                // replace associated types
+                let mut path_rest = ty_path.path.segments.clone()
+                    .into_pairs()
+                    .skip(1)
+                    .collect::<syn::punctuated::Punctuated::<syn::PathSegment, _>>();
+                if ty_path.path.segments.trailing_punct() {
+                    path_rest.push_punct(<syn::Token![::]>::default());
+                }
+                let self_type = &self.self_type;
+                let self_type_trait = &self.self_type_trait;
+                *ty_path = parse_quote_spanned! {ty_path.span()=>
+                    < #self_type as #self_type_trait > :: #path_rest
+                };
+            }
         }
-
-        // replace associated types
-        if ty_path.path.segments.len() == 2
-            && ty_path.path.segments[0].ident == "Self"
-            && self.repl_assoc.contains_key(&ty_path.path.segments[1].ident)
-        {
-            let replacement = self.repl_assoc.get(&ty_path.path.segments[1].ident).unwrap();
-            ty_path.path = syn::parse_quote!(#replacement);
-        }
-
         syn::visit_mut::visit_type_path_mut(self, ty_path);
     }
 }
+
