@@ -106,10 +106,10 @@ pub enum ErrorCtxt {
     PanicInPureFunction(PanicCause),
     /// A Viper `assert e1 ==> e2` that encodes a weakening of the precondition
     /// of a method implementation of a trait
-    AssertMethodPreconditionWeakening(MultiSpan),
+    AssertMethodPreconditionWeakening,
     /// A Viper `assert e1 ==> e2` that encodes a strengthening of the precondition
     /// of a method implementation of a trait.
-    AssertMethodPostconditionStrengthening(MultiSpan),
+    AssertMethodPostconditionStrengthening,
     /// A cast like `usize as u32`.
     TypeCast,
     /// A Viper `assert false` that encodes an unsupported feature
@@ -493,17 +493,13 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening(impl_span)) => {
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening) => {
                 PrustiError::verification("the method's precondition may not be a valid weakening of the trait's precondition.".to_string(), error_span)
-                    //.push_primary_span(opt_cause_span)
-                    .push_primary_span(Some(impl_span))
                     .set_help("The trait's precondition should imply the implemented method's precondition.")
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening(impl_span)) => {
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening) => {
                 PrustiError::verification("the method's postcondition may not be a valid strengthening of the trait's postcondition.".to_string(), error_span)
-                    //.push_primary_span(opt_cause_span)
-                    .push_primary_span(Some(impl_span))
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 
