@@ -3,7 +3,6 @@ use std::vec::Vec;
 pub fn main() {
     let mut x = [-5, -4, -3, 1, 5151, 70, 5, 155, -65848, 151, 454, 8811, 5];
     merge_sort(&mut x);
-    println!("{:?}", x);
 }
 
 fn insert_head(v: &mut [i32]) {
@@ -100,7 +99,7 @@ fn collapse(runs: &[Run]) -> usize {
     {
         if n >= 3 && runs[n - 3].len < runs[n - 1].len { n - 3 } else { n - 2 }
     } else {
-        -1
+        0
     }
 }
 
