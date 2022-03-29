@@ -3448,8 +3448,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         pre_label: &str,
     ) -> SpannedEncodingResult<(
-        Option<vir::Expr>, // precondition weakening
-        Option<vir::Expr>, // postcondition strengthening
+        Option<PreconditionWeakening>, // precondition weakening
+        Option<PostconditionStrengthening>, // postcondition strengthening
     )> {
         // Encode arguments and return
         let encoded_args = self.procedure_contract()
@@ -3464,8 +3464,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let procedure_spec = self.procedure_contract().specification.expect_procedure();
 
-        let mut weakening: Option<vir::Expr> = None;
-        let mut strengthening: Option<vir::Expr> = None;
+        let mut weakening: Option<PreconditionWeakening> = None;
+        let mut strengthening: Option<PostconditionStrengthening> = None;
 
         if let SpecificationItem::Refined(from, to) = &procedure_spec.pres {
             // See comment in `ProcedureContractGeneric::functional_precondition`.
@@ -3501,8 +3501,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .into_iter()
                 .conjoin();
 
-            weakening = Some(vir_expr! {
-                [from_pre] ==> [to_pre]
+            // The spans are used for error reporting
+            let spec_functions_span = MultiSpan::from_spans(from.iter().chain(to.iter())
+                .map(|spec_def_id| self.encoder.env().tcx().def_span(spec_def_id.to_def_id())).collect()
+            );
+
+            weakening = Some(RefinementCheckExpr {
+                spec_functions_span,
+                refinement_check_expr: vir_expr! {[from_pre] ==> [to_pre]},
             });
         }
 
@@ -3542,14 +3548,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .into_iter()
                 .conjoin();
 
-            strengthening = Some(self.wrap_arguments_into_old(
-                vir_expr!{
+            // The spans are used for error reporting
+            let spec_functions_span = MultiSpan::from_spans(from.iter().chain(to.iter())
+                .map(|spec_def_id| self.encoder.env().tcx().def_span(spec_def_id.to_def_id())).collect()
+            );
+
+            let strengthening_expr = self.wrap_arguments_into_old(
+                vir_expr! {
                     [to_post] ==> [from_post]
                 },
                 pre_label,
                 self.procedure_contract(),
                 &encoded_args,
-            )?);
+            )?;
+
+            strengthening = Some(PostconditionStrengthening {
+                spec_functions_span,
+                refinement_check_expr: strengthening_expr,
+            });
         }
 
         if let SpecificationItem::Refined(_, _) = &procedure_spec.pledges {
@@ -3563,7 +3579,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_preconditions(
         &mut self,
         start_cfg_block: CfgBlockIndex,
-        weakening_spec: Option<vir::Expr>,
+        weakening_spec: Option<PreconditionWeakening>,
     ) -> SpannedEncodingResult<()> {
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
@@ -3593,11 +3609,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Weakening assertion must be put before inhaling the precondition, otherwise the weakening
         // soundness check becomes trivially satisfied.
         if let Some(weakening_spec) = weakening_spec {
-            let pos = weakening_spec.pos();
+            let pos = self.register_error(weakening_spec.spec_functions_span, ErrorCtxt::AssertMethodPreconditionWeakening);
             self.cfg_method.add_stmt(
                 start_cfg_block,
                 vir::Stmt::Assert( vir::Assert {
-                    expr: weakening_spec,
+                    expr: weakening_spec.refinement_check_expr,
                     position: pos
                 }),
             );
@@ -4159,7 +4175,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_postconditions(
         &mut self,
         return_cfg_block: CfgBlockIndex,
-        strengthening_spec: Option<vir::Expr>,
+        strengthening_spec: Option<PostconditionStrengthening>,
     ) -> SpannedEncodingResult<()> {
         // This clone is only due to borrow checker restrictions
         let contract = self.procedure_contract().clone();
@@ -4321,8 +4337,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         if let Some(strengthening_spec) = strengthening_spec {
             let patched_strengthening_spec =
-                self.replace_old_places_with_ghost_vars(None, strengthening_spec);
-            let pos = patched_strengthening_spec.pos();
+                self.replace_old_places_with_ghost_vars(None, strengthening_spec.refinement_check_expr);
+            let pos = self.register_error(strengthening_spec.spec_functions_span, ErrorCtxt::AssertMethodPostconditionStrengthening);
             self.cfg_method.add_stmt(
                 return_cfg_block,
                 vir::Stmt::Assert( vir::Assert {
@@ -6485,4 +6501,11 @@ fn is_str(ty: ty::Ty<'_>) -> bool {
         ty::TyKind::Ref(_, inner, _) => inner.is_str() || is_str(*inner),
         _ => false
     }
+}
+
+type PreconditionWeakening = RefinementCheckExpr;
+type PostconditionStrengthening = RefinementCheckExpr;
+struct RefinementCheckExpr {
+    spec_functions_span: MultiSpan,
+    refinement_check_expr: vir::Expr,
 }
