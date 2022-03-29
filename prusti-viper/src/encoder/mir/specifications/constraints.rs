@@ -22,7 +22,10 @@ pub(crate) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
         query: &SpecQuery<'tcx>,
     ) -> Option<&'spec ProcedureSpecification> {
         match self.resolve(env, query) {
-            Ok(r) => Some(r),
+            Ok(resolved_spec) => {
+                debug!("Resolved spec: {resolved_spec:?}");
+                Some(resolved_spec)
+            }
             Err(e) => {
                 e.emit(env);
                 None
@@ -39,18 +42,20 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
         env: &'env Environment<'tcx>,
         query: &SpecQuery<'tcx>,
     ) -> Result<&'spec ProcedureSpecification, PrustiError> {
+        debug!("Resolving spec constraints for {query:?}");
         if self.specs_with_constraints.is_empty() {
+            trace!("Spec has no constraints, using base spec");
             return Ok(&self.base_spec);
         }
 
         let mut applicable_specs =
             self.specs_with_constraints
                 .iter()
-                .filter(|(obligation_kind, spec)| {
-                    constraint_fulfilled(env, query, obligation_kind, spec)
+                .filter(|(constraint_kind, spec)| {
+                    constraint_fulfilled(env, query, constraint_kind, spec)
                 });
 
-        if let Some((_, spec_under_obligation)) = applicable_specs.next() {
+        if let Some((constraint_kind, spec_with_constraints)) = applicable_specs.next() {
             if applicable_specs.next().is_some() {
                 let span = env.tcx().def_span(query.def_id);
                 return Err(PrustiError::unsupported("Multiple different applicable specification obligations found, which is currently not supported in Prusti", MultiSpan::from_span(span)));
@@ -64,8 +69,10 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
                 ));
             }
 
-            Ok(spec_under_obligation)
+            trace!("Resolved to constrained spec with constraint {constraint_kind:?}");
+            Ok(spec_with_constraints)
         } else {
+            trace!("No constrained spec applicable, using base spec");
             Ok(&self.base_spec)
         }
     }
@@ -97,8 +104,8 @@ mod resolvers {
             query: &SpecQuery<'tcx>,
             proc_spec: &'spec ProcedureSpecification,
         ) -> bool {
-            debug!("Trait bound obligation resolving for {:?}", query);
-            let param_env_obligation = extract_param_env(env, proc_spec);
+            debug!("Trait bound constraint resolving for {:?}", query);
+            let param_env_constraint = extract_param_env(env, proc_spec);
             let param_env_called_method = env.tcx().param_env(query.def_id);
 
             let mut all_bounds_satisfied = true;
@@ -107,7 +114,7 @@ mod resolvers {
                 // We substitute the generics that appear in the param env of the obligation
                 // with the substitutions. This should "erase" the generic params of the function
                 // with the actual generic arguments used on callsite
-                let param_env_substituted = param_env_obligation.subst(env.tcx(), query.substs);
+                let param_env_substituted = param_env_constraint.subst(env.tcx(), query.substs);
                 let trait_predicates = extract_trait_predicates(param_env_substituted);
                 for trait_pred in trait_predicates {
                     let substituted_ty = trait_pred.self_ty();
@@ -119,7 +126,6 @@ mod resolvers {
                         trait_pred.trait_ref.substs,
                         param_env_called_method,
                     );
-                    trace!("\t{:?}: {}", trait_pred.trait_ref, does_implement_trait);
                     if !does_implement_trait {
                         all_bounds_satisfied = false;
                         break;
@@ -128,10 +134,10 @@ mod resolvers {
             }
 
             if all_bounds_satisfied {
-                trace!("\tObligation fulfilled");
+                trace!("Constraint fulfilled");
                 true
             } else {
-                trace!("\tObligation not fulfilled");
+                trace!("Constraint not fulfilled");
                 false
             }
         }
