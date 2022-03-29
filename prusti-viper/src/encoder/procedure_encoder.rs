@@ -3448,8 +3448,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         pre_label: &str,
     ) -> SpannedEncodingResult<(
-        Option<PreconditionWeakening>, // precondition weakening
-        Option<PostconditionStrengthening>, // postcondition strengthening
+        Option<PreconditionWeakening>,
+        Option<PostconditionStrengthening>,
     )> {
         // Encode arguments and return
         let encoded_args = self.procedure_contract()
