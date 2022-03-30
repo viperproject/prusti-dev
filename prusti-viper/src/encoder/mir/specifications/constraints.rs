@@ -1,4 +1,7 @@
-use crate::{encoder::mir::specifications::SpecQuery, rustc_middle::ty::subst::Subst};
+use crate::{
+    encoder::mir::specifications::{interface::SpecQueryCause, SpecQuery},
+    rustc_middle::ty::subst::Subst,
+};
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
@@ -48,6 +51,13 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
             return Ok(&self.base_spec);
         }
 
+        if let SpecQueryCause::PureOrTrustedCheck = query.cause {
+            trace!(
+                "No need to resolve obligations for checking whether function is pure or trusted"
+            );
+            return Ok(&self.base_spec);
+        }
+
         let mut applicable_specs =
             self.specs_with_constraints
                 .iter()
@@ -57,15 +67,22 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
 
         if let Some((constraint_kind, spec_with_constraints)) = applicable_specs.next() {
             if applicable_specs.next().is_some() {
-                let span = env.tcx().def_span(query.def_id);
-                return Err(PrustiError::unsupported("Multiple different applicable specification obligations found, which is currently not supported in Prusti", MultiSpan::from_span(span)));
+                let span = env.tcx().def_span(query.called_def_id);
+                return Err(PrustiError::unsupported("Multiple different applicable specification obligations found, which is currently not supported in Prusti", MultiSpan::from_span(span)).add_note(
+                    "This error is triggered because of a call to this function",
+                    query.caller_def_id.map(|caller| env.tcx().def_span(caller)),
+                ));
             }
 
             if let Some(false) = self.base_spec.trusted.extract_inherit() {
-                let span = env.tcx().def_span(query.def_id);
+                let span = env.tcx().def_span(query.called_def_id);
                 return Err(PrustiError::unsupported(
                     "Ghost constraints can only be used on trusted functions",
-                    MultiSpan::from_span(span),
+                    MultiSpan::from(span),
+                )
+                .add_note(
+                    "This error is triggered because of a call to this function",
+                    query.caller_def_id.map(|caller| env.tcx().def_span(caller)),
                 ));
             }
 
@@ -104,34 +121,34 @@ mod resolvers {
             query: &SpecQuery<'tcx>,
             proc_spec: &'spec ProcedureSpecification,
         ) -> bool {
+            assert!(
+                matches!(query.cause, SpecQueryCause::FunctionCallEncoding)
+                    || matches!(query.cause, SpecQueryCause::FunctionDefEncoding)
+            );
             debug!("Trait bound constraint resolving for {:?}", query);
+
             let param_env_constraint = extract_param_env(env, proc_spec);
-            let param_env_called_method = env.tcx().param_env(query.def_id);
+            let param_env_constraint =
+                perform_param_env_substitutions(env, query, param_env_constraint);
 
-            let mut all_bounds_satisfied = true;
+            let param_env_lookup = if let Some(caller_def_id) = query.caller_def_id {
+                env.tcx().param_env(caller_def_id)
+            } else {
+                // TODO hansenj: Is this correct?
+                env.tcx().param_env(query.called_def_id)
+            };
 
-            if !query.substs.is_empty() {
-                // We substitute the generics that appear in the param env of the obligation
-                // with the substitutions. This should "erase" the generic params of the function
-                // with the actual generic arguments used on callsite
-                let param_env_substituted = param_env_constraint.subst(env.tcx(), query.substs);
-                let trait_predicates = extract_trait_predicates(param_env_substituted);
-                for trait_pred in trait_predicates {
-                    let substituted_ty = trait_pred.self_ty();
-                    let trait_def_id = trait_pred.trait_ref.def_id;
-                    // TODO hansenj: Why param_env_called_method?
-                    let does_implement_trait = env.type_implements_trait_with_trait_substs(
-                        substituted_ty,
-                        trait_def_id,
-                        trait_pred.trait_ref.substs,
-                        param_env_called_method,
-                    );
-                    if !does_implement_trait {
-                        all_bounds_satisfied = false;
-                        break;
-                    }
-                }
-            }
+            let trait_predicates = extract_trait_predicates(param_env_constraint);
+            let all_bounds_satisfied = trait_predicates.iter().all(|trait_pred| {
+                let substituted_ty = trait_pred.self_ty();
+                let trait_def_id = trait_pred.trait_ref.def_id;
+                env.type_implements_trait_with_trait_substs(
+                    substituted_ty,
+                    trait_def_id,
+                    trait_pred.trait_ref.substs,
+                    param_env_lookup,
+                )
+            });
 
             if all_bounds_satisfied {
                 trace!("Constraint fulfilled");
@@ -140,6 +157,41 @@ mod resolvers {
                 trace!("Constraint not fulfilled");
                 false
             }
+        }
+
+        /// Substitutes the param
+        fn perform_param_env_substitutions<'env, 'tcx: 'env>(
+            env: &'env Environment<'tcx>,
+            query: &SpecQuery<'tcx>,
+            param_env: ty::ParamEnv<'tcx>,
+        ) -> ty::ParamEnv<'tcx> {
+            trace!("Unsubstituted constraints: {:#?}", param_env);
+
+            let maybe_trait_method =
+                env.find_trait_method_substs(query.called_def_id, query.call_substs);
+            let param_env = if let Some((_, trait_substs)) = maybe_trait_method {
+                param_env.subst(env.tcx(), trait_substs)
+            } else {
+                param_env
+            };
+
+            trace!(
+                "Constraints after substituting trait substs: {:#?}",
+                param_env
+            );
+
+            let param_env = if query.call_substs.is_empty() {
+                param_env
+            } else {
+                param_env.subst(env.tcx(), query.call_substs)
+            };
+
+            trace!(
+                "Constraints after substituting call substs: {:#?}",
+                param_env
+            );
+
+            param_env
         }
 
         fn extract_trait_predicates(param_env: ty::ParamEnv) -> Vec<ty::TraitPredicate> {
@@ -156,16 +208,16 @@ mod resolvers {
 
         fn extract_param_env<'a, 'tcx>(
             env: &'a Environment<'tcx>,
-            item: &ProcedureSpecification,
+            spec: &ProcedureSpecification,
         ) -> ty::ParamEnv<'tcx> {
             let mut param_envs: FxHashMap<ty::ParamEnv<'tcx>, Vec<Span>> = FxHashMap::default();
 
-            let pres: Vec<LocalDefId> = item
+            let pres: Vec<LocalDefId> = spec
                 .pres
                 .expect_empty_or_inherent()
                 .cloned()
                 .unwrap_or_default();
-            let posts: Vec<LocalDefId> = item
+            let posts: Vec<LocalDefId> = spec
                 .posts
                 .expect_empty_or_inherent()
                 .cloned()

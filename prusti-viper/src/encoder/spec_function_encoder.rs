@@ -17,7 +17,6 @@ use vir_crate::polymorphic as vir;
 use vir_crate::polymorphic::ExprIterator;
 use rustc_middle::{mir, ty::subst::SubstsRef};
 use rustc_span::Span;
-use crate::encoder::mir::specifications::SpecQuery;
 
 pub enum SpecFunctionKind {
     Pre,
@@ -57,7 +56,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         let _post_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                            SpecFunctionKind::Post);
 
-        let specs = self.encoder.get_procedure_specs(SpecQuery::new(self.proc_def_id, self.substs));
+        let specs = self.encoder.get_procedure_specs(self.proc_def_id,self.substs);
         if specs.is_none() {
             return Ok(vec![]);
         }

@@ -1,4 +1,7 @@
-use crate::encoder::mir::specifications::{constraints::ConstraintResolver, interface::SpecQuery};
+use crate::encoder::mir::specifications::{
+    constraints::ConstraintResolver,
+    interface::{SpecQuery, SpecQueryCause},
+};
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
@@ -11,7 +14,12 @@ use std::collections::HashMap;
 /// Provides access to specifications, handling refinement if needed
 pub(super) struct Specifications {
     user_typed_specs: DefSpecificationMap,
-    refined_specs: FxHashMap<DefId, ProcedureSpecification>,
+
+    /// A refinement can be different based on the query because for different [SpecQueryReason]s
+    /// we can resolve to different [ProcedureSpecification]s due to ghost constraints.
+    /// Since Prusti does currently not support refinements of ghost constraints, we
+    /// store different refined versions for different queries.
+    refined_specs: FxHashMap<(DefId, SpecQueryCause), ProcedureSpecification>,
 }
 
 impl Specifications {
@@ -37,7 +45,7 @@ impl Specifications {
     ) -> Option<&'a LoopSpecification> {
         trace!("Get loop specs of {:?}", query);
         self.user_typed_specs
-            .get_loop_spec(&query.def_id)
+            .get_loop_spec(&query.called_def_id)
             .map(|spec| &spec.base_spec)
     }
 
@@ -50,8 +58,11 @@ impl Specifications {
 
         // Refinement (if needed)
         if !self.is_refined(query) {
-            if let Some(trait_def_id) = env.find_trait_method(query.def_id) {
-                let refined = self.perform_proc_spec_refinement(env, query, trait_def_id);
+            if let Some((trait_def_id, trait_substs)) =
+                env.find_trait_method_substs(query.called_def_id, query.call_substs)
+            {
+                let trait_query = query.adapt_to_call(trait_def_id, trait_substs);
+                let refined = self.perform_proc_spec_refinement(env, query, trait_query);
                 assert!(
                     refined.is_some(),
                     "Could not perform refinement for {:?}",
@@ -67,20 +78,20 @@ impl Specifications {
     fn perform_proc_spec_refinement<'a, 'env: 'a, 'tcx: 'a>(
         &'a mut self,
         env: &'env Environment<'tcx>,
-        of_query: SpecQuery<'tcx>,
-        with_trait_def_id: DefId,
+        impl_query: SpecQuery<'tcx>,
+        trait_query: SpecQuery<'tcx>,
     ) -> Option<&'a ProcedureSpecification> {
         debug!(
             "Refining specs of {:?} with specs of {:?}",
-            of_query, with_trait_def_id
+            impl_query, trait_query
         );
 
         let impl_spec = self
-            .get_proc_spec(env, of_query)
+            .get_proc_spec(env, impl_query)
             .cloned()
             .unwrap_or_else(ProcedureSpecification::empty);
 
-        let trait_spec = self.get_proc_spec(env, SpecQuery::without_substs(with_trait_def_id));
+        let trait_spec = self.get_proc_spec(env, trait_query);
 
         let refined = if let Some(trait_spec_set) = trait_spec {
             impl_spec.refine(trait_spec_set)
@@ -88,8 +99,9 @@ impl Specifications {
             impl_spec
         };
 
-        self.refined_specs.insert(of_query.def_id, refined);
-        self.get_proc_spec(env, of_query)
+        self.refined_specs
+            .insert((impl_query.called_def_id, impl_query.cause), refined);
+        self.get_proc_spec(env, impl_query)
     }
 
     fn get_proc_spec<'a, 'env: 'a, 'tcx>(
@@ -97,14 +109,17 @@ impl Specifications {
         env: &'env Environment<'tcx>,
         query: SpecQuery<'tcx>,
     ) -> Option<&'a ProcedureSpecification> {
-        self.refined_specs.get(&query.def_id).or_else(|| {
-            self.user_typed_specs
-                .get_proc_spec(&query.def_id)
-                .and_then(|spec| spec.resolve_emit_err(env, &query))
-        })
+        self.refined_specs
+            .get(&(query.called_def_id, query.cause))
+            .or_else(|| {
+                self.user_typed_specs
+                    .get_proc_spec(&query.called_def_id)
+                    .and_then(|spec| spec.resolve_emit_err(env, &query))
+            })
     }
 
     fn is_refined(&self, query: SpecQuery) -> bool {
-        self.refined_specs.contains_key(&query.def_id)
+        self.refined_specs
+            .contains_key(&(query.called_def_id, query.cause))
     }
 }

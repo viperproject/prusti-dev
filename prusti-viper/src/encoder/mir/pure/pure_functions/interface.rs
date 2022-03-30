@@ -3,10 +3,7 @@
 use super::encoder::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder};
 use crate::encoder::{
     errors::{SpannedEncodingResult, WithSpan},
-    mir::{
-        generics::MirGenericsEncoderInterface,
-        specifications::{SpecQuery, SpecificationsInterface},
-    },
+    mir::{generics::MirGenericsEncoderInterface, specifications::SpecificationsInterface},
     snapshot::interface::SnapshotEncoderInterface,
     stub_function_encoder::StubFunctionEncoder,
 };
@@ -238,7 +235,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     ) -> SpannedEncodingResult<()> {
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
-            self.is_pure(SpecQuery::new(proc_def_id, substs)),
+            self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -281,27 +278,26 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             );
 
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
-                let (mut function, needs_patching) = if let Some(predicate_body) =
-                    self.get_predicate_body(SpecQuery::new(proc_def_id, substs))
-                {
-                    (
-                        pure_function_encoder.encode_predicate_function(&predicate_body)?,
-                        false,
-                    )
-                } else if self.is_trusted(SpecQuery::new(proc_def_id, substs)) {
-                    (pure_function_encoder.encode_bodyless_function()?, false)
-                } else {
-                    let function = pure_function_encoder.encode_function()?;
-                    // Test the new encoding.
-                    let _ = super::new_encoder::encode_function_decl(
-                        self,
-                        proc_def_id,
-                        &mir,
-                        proc_def_id,
-                        substs,
-                    )?;
-                    (function, true)
-                };
+                let (mut function, needs_patching) =
+                    if let Some(predicate_body) = self.get_predicate_body(proc_def_id, substs) {
+                        (
+                            pure_function_encoder.encode_predicate_function(&predicate_body)?,
+                            false,
+                        )
+                    } else if self.is_trusted(proc_def_id, Some(substs)) {
+                        (pure_function_encoder.encode_bodyless_function()?, false)
+                    } else {
+                        let function = pure_function_encoder.encode_function()?;
+                        // Test the new encoding.
+                        let _ = super::new_encoder::encode_function_decl(
+                            self,
+                            proc_def_id,
+                            &mir,
+                            proc_def_id,
+                            substs,
+                        )?;
+                        (function, true)
+                    };
 
                 if needs_patching {
                     self.mirror_encoder
@@ -377,7 +373,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_poly::Type)> {
         assert!(
-            self.is_pure(SpecQuery::new(proc_def_id, substs)),
+            self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -444,7 +440,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_high::Type)> {
         assert!(
-            self.is_pure(SpecQuery::new(proc_def_id, substs)),
+            self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
