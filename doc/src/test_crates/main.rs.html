@@ -292,6 +292,38 @@
 <span id="287">287</span>
 <span id="288">288</span>
 <span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -305,30 +337,37 @@
     <span class="ident">path</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>},
     <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">process::Command</a>,
 };
-
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">error</span>, <span class="ident">info</span>, <span class="ident">warn</span>, <a class="ident" href="../../log/enum.LevelFilter.html">LevelFilter</a>};
 <span class="kw">use</span> <span class="ident">rustwide</span>::{<a class="ident" href="../../rustwide/cmd/index.html">cmd</a>, <a class="ident" href="../../rustwide/logging/index.html">logging</a>, <a class="ident" href="../../rustwide/logging/struct.LogStorage.html">logging::LogStorage</a>, <a class="ident" href="../../rustwide/crates/struct.Crate.html">Crate</a>, <a class="ident" href="../../rustwide/toolchain/struct.Toolchain.html">Toolchain</a>, <a class="ident" href="../../rustwide/workspace/struct.WorkspaceBuilder.html">WorkspaceBuilder</a>};
 <span class="kw">use</span> <a class="ident" href="../../serde/de/trait.Deserialize.html">serde::Deserialize</a>;
+<span class="kw">use</span> <span class="ident">clap</span>::{<a class="self" href="../../clap/index.html">self</a>, <a class="ident" href="../../clap/app/struct.App.html">App</a>, <a class="ident" href="../../clap/args/arg/struct.Arg.html">Arg</a>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">struct</span> <a class="ident" href="../../src/test_crates/main.rs.html#20-23">CrateRecord</a> {
-    <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="ident">version</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+<span class="doccomment">/// How a crate should be tested. All tests use `check_panics=false`, `check_overflows=false` and</span>
+<span class="doccomment">/// `skip_unsupported_features=true`.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">enum</span> <a class="ident" href="../../src/test_crates/main.rs.html#22-29">TestKind</a> {
+    <span class="doccomment">/// Test that Prusti does not crash nor generate &quot;internal/invalid&quot; errors.</span>
+    <span class="ident">NoErrors</span>,
+    <span class="doccomment">/// Test that Prusti does not crash nor generate &quot;invalid&quot; errors.</span>
+    <span class="ident">NoCrash</span>,
+    <span class="doccomment">/// Skip the crate. Prusti crashes or the crate does not compile with the standard compiler.</span>
+    <span class="ident">Skip</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/test_crates/main.rs.html#20-23">CrateRecord</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../rustwide/crates/struct.Crate.html">Crate</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">record</span>: <a class="ident" href="../../src/test_crates/main.rs.html#20-23">CrateRecord</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Crate::crates_io</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#26">record</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#26">record</a>.<span class="ident">version</span>)
-    }
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="kw">struct</span> <a class="ident" href="../../src/test_crates/main.rs.html#32-36">CrateRecord</a> {
+    <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="ident">version</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="ident">test_kind</span>: <a class="ident" href="../../src/test_crates/main.rs.html#22-29">TestKind</a>,
 }
 
 <span class="kw">fn</span> <span class="ident">setup_logs</span>() {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">env_logger::Builder::new</span>();
-    <a class="ident" href="../../src/test_crates/main.rs.html#32">env</a>.<span class="ident">filter_module</span>(<span class="string">&quot;test_crates&quot;</span>, <span class="ident">log::LevelFilter::Info</span>);
+    <a class="ident" href="../../src/test_crates/main.rs.html#39">env</a>.<span class="ident">filter_module</span>(<span class="string">&quot;test_crates&quot;</span>, <span class="ident">log::LevelFilter::Info</span>);
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">content</span>) <span class="op">=</span> <span class="ident">std::env::var</span>(<span class="string">&quot;TEST_CRATES_LOG&quot;</span>) {
-        <a class="ident" href="../../src/test_crates/main.rs.html#32">env</a>.<span class="ident">parse_filters</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#34">content</a>);
+        <a class="ident" href="../../src/test_crates/main.rs.html#39">env</a>.<span class="ident">parse_filters</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#41">content</a>);
     }
-    <span class="ident">rustwide::logging::init_with</span>(<a class="ident" href="../../src/test_crates/main.rs.html#32">env</a>.<span class="ident">build</span>());
+    <span class="ident">rustwide::logging::init_with</span>(<a class="ident" href="../../src/test_crates/main.rs.html#39">env</a>.<span class="ident">build</span>());
 }
 
 <span class="kw">struct</span> <span class="ident">CargoPrusti</span> {
@@ -338,40 +377,40 @@
     <span class="ident">java_home</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../rustwide/cmd/trait.Runnable.html">cmd::Runnable</a> <span class="kw">for</span> <a class="ident" href="../../src/test_crates/main.rs.html#40-45">CargoPrusti</a> {
+<span class="kw">impl</span> <a class="ident" href="../../rustwide/cmd/trait.Runnable.html">cmd::Runnable</a> <span class="kw">for</span> <a class="ident" href="../../src/test_crates/main.rs.html#47-52">CargoPrusti</a> {
     <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../rustwide/cmd/enum.Binary.html">cmd::Binary</a> {
-        <span class="ident">cmd::Binary::Global</span>(<a class="self" href="../../src/test_crates/main.rs.html#48">self</a>.<span class="ident">prusti_home</span>.<span class="ident">join</span>(<span class="string">&quot;cargo-prusti&quot;</span>))
+        <span class="ident">cmd::Binary::Global</span>(<a class="self" href="../../src/test_crates/main.rs.html#55">self</a>.<span class="ident">prusti_home</span>.<span class="ident">join</span>(<span class="string">&quot;cargo-prusti&quot;</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">prepare_command</span><span class="op">&lt;</span><span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;pl</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cmd</span>: <span class="ident">cmd::Command</span><span class="op">&lt;</span><span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;pl</span><span class="op">&gt;</span>) -&gt; <span class="ident">cmd::Command</span><span class="op">&lt;</span><span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;pl</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">java_home</span> <span class="op">=</span> <a class="self" href="../../src/test_crates/main.rs.html#52">self</a>
+        <span class="kw">let</span> <span class="ident">java_home</span> <span class="op">=</span> <a class="self" href="../../src/test_crates/main.rs.html#59">self</a>
             .<span class="ident">java_home</span>
             .<span class="ident">as_ref</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/test_crates/main.rs.html#56">p</a>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>())
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/test_crates/main.rs.html#63">p</a>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>())
             .<span class="ident">unwrap_or</span>(<span class="string">&quot;/usr/lib/jvm/default-java&quot;</span>);
-        <a class="ident" href="../../src/test_crates/main.rs.html#52">cmd</a>.<span class="ident">env</span>(<span class="string">&quot;VIPER_HOME&quot;</span>, <a class="self" href="../../src/test_crates/main.rs.html#52">self</a>.<span class="ident">viper_home</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>())
-            .<span class="ident">env</span>(<span class="string">&quot;Z3_EXE&quot;</span>, <a class="self" href="../../src/test_crates/main.rs.html#52">self</a>.<span class="ident">z3_exe</span>.<span class="ident">join</span>(<span class="string">&quot;z3&quot;</span>).<span class="ident">to_str</span>().<span class="ident">unwrap</span>())
-            .<span class="ident">env</span>(<span class="string">&quot;JAVA_HOME&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#53">java_home</a>)
+        <a class="ident" href="../../src/test_crates/main.rs.html#59">cmd</a>.<span class="ident">env</span>(<span class="string">&quot;VIPER_HOME&quot;</span>, <a class="self" href="../../src/test_crates/main.rs.html#59">self</a>.<span class="ident">viper_home</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>())
+            .<span class="ident">env</span>(<span class="string">&quot;Z3_EXE&quot;</span>, <a class="self" href="../../src/test_crates/main.rs.html#59">self</a>.<span class="ident">z3_exe</span>.<span class="ident">join</span>(<span class="string">&quot;z3&quot;</span>).<span class="ident">to_str</span>().<span class="ident">unwrap</span>())
+            .<span class="ident">env</span>(<span class="string">&quot;JAVA_HOME&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#60">java_home</a>)
             .<span class="ident">env</span>(<span class="string">&quot;CARGO_PATH&quot;</span>, <span class="string">&quot;/opt/rustwide/cargo-home/bin/cargo&quot;</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
-<span class="kw">struct</span> <a class="ident" href="../../src/test_crates/main.rs.html#66-68">RustToolchainFile</a> {
-    <span class="ident">toolchain</span>: <a class="ident" href="../../src/test_crates/main.rs.html#71-74">RustToolchain</a>,
+<span class="kw">struct</span> <a class="ident" href="../../src/test_crates/main.rs.html#73-75">RustToolchainFile</a> {
+    <span class="ident">toolchain</span>: <a class="ident" href="../../src/test_crates/main.rs.html#78-81">RustToolchain</a>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
-<span class="kw">struct</span> <a class="ident" href="../../src/test_crates/main.rs.html#71-74">RustToolchain</a> {
+<span class="kw">struct</span> <a class="ident" href="../../src/test_crates/main.rs.html#78-81">RustToolchain</a> {
     <span class="ident">channel</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="ident">components</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">get_rust_toolchain</span>() -&gt; <a class="ident" href="../../src/test_crates/main.rs.html#71-74">RustToolchain</a> {
+<span class="kw">fn</span> <span class="ident">get_rust_toolchain</span>() -&gt; <a class="ident" href="../../src/test_crates/main.rs.html#78-81">RustToolchain</a> {
     <span class="kw">let</span> <span class="ident">content</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;../../rust-toolchain&quot;</span>);
-    <span class="kw">let</span> <span class="ident">rust_toolchain</span>: <a class="ident" href="../../src/test_crates/main.rs.html#66-68">RustToolchainFile</a> <span class="op">=</span>
-        <span class="ident">toml::from_str</span>(<a class="ident" href="../../src/test_crates/main.rs.html#77">content</a>).<span class="ident">expect</span>(<span class="string">&quot;failed to parse rust-toolchain file&quot;</span>);
-    <a class="ident" href="../../src/test_crates/main.rs.html#78">rust_toolchain</a>.<span class="ident">toolchain</span>
+    <span class="kw">let</span> <span class="ident">rust_toolchain</span>: <a class="ident" href="../../src/test_crates/main.rs.html#73-75">RustToolchainFile</a> <span class="op">=</span>
+        <span class="ident">toml::from_str</span>(<a class="ident" href="../../src/test_crates/main.rs.html#84">content</a>).<span class="ident">expect</span>(<span class="string">&quot;failed to parse rust-toolchain file&quot;</span>);
+    <a class="ident" href="../../src/test_crates/main.rs.html#85">rust_toolchain</a>.<span class="ident">toolchain</span>
 }
 
 <span class="doccomment">/// Find the Java home directory</span>
@@ -382,13 +421,13 @@
         .<span class="ident">output</span>()
         .<span class="ident">ok</span>()
         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">output</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#90">output</a>.<span class="ident">stdout</span>);
-            <span class="kw">let</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#90">output</a>.<span class="ident">stderr</span>);
-            <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <a class="ident" href="../../src/test_crates/main.rs.html#91">stdout</a>.<span class="ident">lines</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="ident" href="../../src/test_crates/main.rs.html#92">stderr</a>.<span class="ident">lines</span>()) {
-                <span class="kw">if</span> <a class="ident" href="../../src/test_crates/main.rs.html#93">line</a>.<span class="ident">contains</span>(<span class="string">&quot;java.home&quot;</span>) {
-                    <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#93">line</a>.<span class="ident">find</span>(<span class="string">&#39;=&#39;</span>).<span class="ident">unwrap</span>() <span class="op">+</span> <span class="number">1</span>;
-                    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#93">line</a>[<a class="ident" href="../../src/test_crates/main.rs.html#95">pos</a>..].<span class="ident">trim</span>();
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">PathBuf::from</span>(<a class="ident" href="../../src/test_crates/main.rs.html#96">path</a>));
+            <span class="kw">let</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#97">output</a>.<span class="ident">stdout</span>);
+            <span class="kw">let</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#97">output</a>.<span class="ident">stderr</span>);
+            <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <a class="ident" href="../../src/test_crates/main.rs.html#98">stdout</a>.<span class="ident">lines</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="ident" href="../../src/test_crates/main.rs.html#99">stderr</a>.<span class="ident">lines</span>()) {
+                <span class="kw">if</span> <a class="ident" href="../../src/test_crates/main.rs.html#100">line</a>.<span class="ident">contains</span>(<span class="string">&quot;java.home&quot;</span>) {
+                    <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#100">line</a>.<span class="ident">find</span>(<span class="string">&#39;=&#39;</span>).<span class="ident">unwrap</span>() <span class="op">+</span> <span class="number">1</span>;
+                    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#100">line</a>[<a class="ident" href="../../src/test_crates/main.rs.html#102">pos</a>..].<span class="ident">trim</span>();
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">PathBuf::from</span>(<a class="ident" href="../../src/test_crates/main.rs.html#103">path</a>));
                 }
             }
             <span class="prelude-val">None</span>
@@ -399,13 +438,23 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">collect_java_policies</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a><span class="op">&gt;</span> {
     <span class="ident">glob::glob</span>(<span class="string">&quot;/etc/java-*&quot;</span>)
         .<span class="ident">unwrap</span>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <a class="ident" href="../../src/test_crates/main.rs.html#108">result</a>.<span class="ident">unwrap</span>())
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <a class="ident" href="../../src/test_crates/main.rs.html#115">result</a>.<span class="ident">unwrap</span>())
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
 }
 
 <span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="ident">color_backtrace::install</span>();
-    <a class="ident" href="../../src/test_crates/main.rs.html#31">setup_logs</a>();
+    <a class="ident" href="../../src/test_crates/main.rs.html#38">setup_logs</a>();
+
+    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">App::new</span>(<span class="string">&quot;Test crates&quot;</span>)
+        .<span class="ident">version</span>(<span class="string">&quot;1.0&quot;</span>)
+        .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;skip-build-check&quot;</span>)
+            .<span class="ident">long</span>(<span class="string">&quot;skip-build-check&quot;</span>)
+            .<span class="ident">help</span>(<span class="string">&quot;Do not check that the crates compile successfully without Prusti.&quot;</span>)
+            .<span class="ident">takes_value</span>(<span class="bool-val">false</span>)
+            .<span class="ident">required</span>(<span class="bool-val">false</span>))
+        .<span class="ident">get_matches</span>();
+    <span class="kw">let</span> <span class="ident">skip_build_check</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#123">matches</a>.<span class="ident">is_present</span>(<span class="string">&quot;skip-build-check&quot;</span>);
 
     <span class="kw">let</span> <span class="ident">workspace_path</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;../workspaces/test-crates-builder&quot;</span>);
     <span class="kw">let</span> <span class="ident">host_prusti_home</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">debug_assertions</span>) {
@@ -417,46 +466,46 @@
     <span class="kw">let</span> <span class="ident">host_z3_home</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;viper_tools/z3/bin&quot;</span>);
     <span class="kw">let</span> <span class="ident">host_java_home</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;JAVA_HOME&quot;</span>)
         .<span class="ident">ok</span>()
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../src/test_crates/main.rs.html#126">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-        .<span class="ident">or_else</span>(<a class="ident" href="../../src/test_crates/main.rs.html#84">find_java_home</a>)
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../src/test_crates/main.rs.html#143">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        .<span class="ident">or_else</span>(<a class="ident" href="../../src/test_crates/main.rs.html#91">find_java_home</a>)
         .<span class="ident">expect</span>(<span class="string">&quot;Please set JAVA_HOME&quot;</span>);
-    <span class="kw">let</span> <span class="ident">host_java_policies</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#105">collect_java_policies</a>();
+    <span class="kw">let</span> <span class="ident">host_java_policies</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#112">collect_java_policies</a>();
     <span class="kw">let</span> <span class="ident">guest_prusti_home</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;/opt/rustwide/prusti-home&quot;</span>);
     <span class="kw">let</span> <span class="ident">guest_viper_home</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;/opt/rustwide/viper-home&quot;</span>);
     <span class="kw">let</span> <span class="ident">guest_z3_home</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;/opt/rustwide/z3-home&quot;</span>);
     <span class="comment">// Map JAVA at exactly the same location on the guest so that symlinks work.</span>
-    <span class="kw">let</span> <span class="ident">guest_java_home</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#124">host_java_home</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let</span> <span class="ident">guest_java_home</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#141">host_java_home</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-    <span class="macro">info!</span>(<span class="string">&quot;Using host&#39;s Java home {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#124">host_java_home</a>);
-    <span class="kw">let</span> <span class="ident">cargo_prusti</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#40-45">CargoPrusti</a> {
-        <span class="ident">prusti_home</span>: <a class="ident" href="../../src/test_crates/main.rs.html#130">guest_prusti_home</a>.<span class="ident">to_path_buf</span>(),
-        <span class="ident">viper_home</span>: <a class="ident" href="../../src/test_crates/main.rs.html#131">guest_viper_home</a>.<span class="ident">to_path_buf</span>(),
-        <span class="ident">z3_exe</span>: <a class="ident" href="../../src/test_crates/main.rs.html#132">guest_z3_home</a>.<span class="ident">to_path_buf</span>(),
-        <span class="ident">java_home</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/test_crates/main.rs.html#134">guest_java_home</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+    <span class="macro">info!</span>(<span class="string">&quot;Using host&#39;s Java home {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#141">host_java_home</a>);
+    <span class="kw">let</span> <span class="ident">cargo_prusti</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#47-52">CargoPrusti</a> {
+        <span class="ident">prusti_home</span>: <a class="ident" href="../../src/test_crates/main.rs.html#147">guest_prusti_home</a>.<span class="ident">to_path_buf</span>(),
+        <span class="ident">viper_home</span>: <a class="ident" href="../../src/test_crates/main.rs.html#148">guest_viper_home</a>.<span class="ident">to_path_buf</span>(),
+        <span class="ident">z3_exe</span>: <a class="ident" href="../../src/test_crates/main.rs.html#149">guest_z3_home</a>.<span class="ident">to_path_buf</span>(),
+        <span class="ident">java_home</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/test_crates/main.rs.html#151">guest_java_home</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
     };
 
     <span class="macro">info!</span>(<span class="string">&quot;Crate a new workspace...&quot;</span>);
-    <span class="kw">let</span> <span class="ident">workspace</span> <span class="op">=</span> <span class="ident">WorkspaceBuilder::new</span>(<a class="ident" href="../../src/test_crates/main.rs.html#116">workspace_path</a>, <span class="string">&quot;prusti-test-crates&quot;</span>).<span class="ident">init</span>()<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">workspace</span> <span class="op">=</span> <span class="ident">WorkspaceBuilder::new</span>(<a class="ident" href="../../src/test_crates/main.rs.html#133">workspace_path</a>, <span class="string">&quot;prusti-test-crates&quot;</span>).<span class="ident">init</span>()<span class="question-mark">?</span>;
 
     <span class="macro">info!</span>(<span class="string">&quot;Install the toolchain...&quot;</span>);
-    <span class="kw">let</span> <span class="ident">rust_toolchain</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#76">get_rust_toolchain</a>();
-    <span class="macro">info!</span>(<span class="string">&quot;toolchain: {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#148">rust_toolchain</a>.<span class="ident">channel</span>);
-    <span class="kw">let</span> <span class="ident">toolchain</span> <span class="op">=</span> <span class="ident">Toolchain::dist</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#148">rust_toolchain</a>.<span class="ident">channel</span>);
-    <a class="ident" href="../../src/test_crates/main.rs.html#150">toolchain</a>.<span class="ident">install</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>)<span class="question-mark">?</span>;
-    <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <a class="ident" href="../../src/test_crates/main.rs.html#148">rust_toolchain</a>.<span class="ident">components</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[]).<span class="ident">iter</span>() {
-        <span class="kw">if</span> <a class="ident" href="../../src/test_crates/main.rs.html#152">component</a> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;rustfmt&quot;</span> {
-            <a class="ident" href="../../src/test_crates/main.rs.html#150">toolchain</a>.<span class="ident">add_component</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>, <a class="ident" href="../../src/test_crates/main.rs.html#152">component</a>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">rust_toolchain</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#83">get_rust_toolchain</a>();
+    <span class="macro">info!</span>(<span class="string">&quot;toolchain: {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#165">rust_toolchain</a>.<span class="ident">channel</span>);
+    <span class="kw">let</span> <span class="ident">toolchain</span> <span class="op">=</span> <span class="ident">Toolchain::dist</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#165">rust_toolchain</a>.<span class="ident">channel</span>);
+    <a class="ident" href="../../src/test_crates/main.rs.html#167">toolchain</a>.<span class="ident">install</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#162">workspace</a>)<span class="question-mark">?</span>;
+    <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <a class="ident" href="../../src/test_crates/main.rs.html#165">rust_toolchain</a>.<span class="ident">components</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[]).<span class="ident">iter</span>() {
+        <span class="kw">if</span> <a class="ident" href="../../src/test_crates/main.rs.html#169">component</a> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;rustfmt&quot;</span> {
+            <a class="ident" href="../../src/test_crates/main.rs.html#167">toolchain</a>.<span class="ident">add_component</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#162">workspace</a>, <a class="ident" href="../../src/test_crates/main.rs.html#169">component</a>)<span class="question-mark">?</span>;
         }
     }
 
     <span class="macro">info!</span>(<span class="string">&quot;Read lists of crates...&quot;</span>);
-    <span class="comment">// TODO: do something to freeze the version of the dependencies.</span>
-    <span class="kw">let</span> <span class="ident">crates_list</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../rustwide/crates/struct.Crate.html">Crate</a><span class="op">&gt;</span> <span class="op">=</span>
-        <span class="ident">csv::Reader::from_reader</span>(<span class="ident">fs::File::open</span>(<span class="string">&quot;test-crates/successful_crates.csv&quot;</span>)<span class="question-mark">?</span>)
+    <span class="comment">// TODO: Use the appropriate file from `cargo-locks/` to freeze the version of the dependencies.</span>
+    <span class="kw">let</span> <span class="ident">crates_list</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="../../rustwide/crates/struct.Crate.html">Crate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#22-29">TestKind</a>)<span class="op">&gt;</span> <span class="op">=</span>
+        <span class="ident">csv::Reader::from_reader</span>(<span class="ident">fs::File::open</span>(<span class="string">&quot;test-crates/crates.csv&quot;</span>)<span class="question-mark">?</span>)
             .<span class="ident">deserialize</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/test_crates/main.rs.html#20-23">CrateRecord</a><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/test_crates/main.rs.html#32-36">CrateRecord</a><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/test_crates/main.rs.html#165">c</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">record</span><span class="op">|</span> (<span class="ident">Crate::crates_io</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#182">record</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#182">record</a>.<span class="ident">version</span>), <a class="ident" href="../../src/test_crates/main.rs.html#182">record</a>.<span class="ident">test_kind</span>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
     <span class="comment">// List of crates that don&#39;t compile with the standard compiler.</span>
@@ -466,118 +515,133 @@
     <span class="comment">// List of crates on which Prusti succeed.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">successful_crates</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-    <span class="macro">info!</span>(<span class="string">&quot;Iterate over all {} crates...&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#160">crates_list</a>.<span class="ident">len</span>());
-    <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">krate</span>) <span class="kw">in</span> <a class="ident" href="../../src/test_crates/main.rs.html#160">crates_list</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
-        <span class="macro">info!</span>(<span class="string">&quot;Crate {}/{}: {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#176">index</a> <span class="op">+</span> <span class="number">1</span>, <a class="ident" href="../../src/test_crates/main.rs.html#160">crates_list</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>);
+    <span class="macro">info!</span>(<span class="string">&quot;Iterate over all {} crates...&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#177">crates_list</a>.<span class="ident">len</span>());
+    <span class="kw">for</span> (<span class="ident">index</span>, (<span class="ident">krate</span>, <span class="ident">test_kind</span>)) <span class="kw">in</span> <a class="ident" href="../../src/test_crates/main.rs.html#177">crates_list</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+        <span class="macro">info!</span>(<span class="string">&quot;Crate {}/{}: {}, test kind: {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#193">index</a>, <a class="ident" href="../../src/test_crates/main.rs.html#177">crates_list</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/test_crates/main.rs.html#193">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#193">test_kind</a>);
+
+        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/test_crates/main.rs.html#28">TestKind::Skip</a> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#193">test_kind</a> {
+            <span class="macro">info!</span>(<span class="string">&quot;Skip crate&quot;</span>);
+            <span class="comment">// Do not try to verify this crate</span>
+            <a class="ident" href="../../src/test_crates/main.rs.html#186">skipped_crates</a>.<span class="ident">push</span>((<a class="ident" href="../../src/test_crates/main.rs.html#193">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#193">test_kind</a>));
+            <span class="kw">continue</span>;
+        }
 
         <span class="macro">info!</span>(<span class="string">&quot;Fetch crate...&quot;</span>);
-        <a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>.<span class="ident">fetch</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>)<span class="question-mark">?</span>;
+        <a class="ident" href="../../src/test_crates/main.rs.html#193">krate</a>.<span class="ident">fetch</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#162">workspace</a>)<span class="question-mark">?</span>;
 
-        <span class="macro">info!</span>(<span class="string">&quot;Build crate...&quot;</span>);
-        {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">build_dir</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>.<span class="ident">build_dir</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;build_{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#176">index</a>));
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#131">skip_build_check</a> {
+            <span class="macro">info!</span>(<span class="string">&quot;Build crate...&quot;</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">build_dir</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#162">workspace</a>.<span class="ident">build_dir</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;build_{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#193">index</a>));
 
             <span class="kw">let</span> <span class="ident">sandbox</span> <span class="op">=</span> <span class="ident">cmd::SandboxBuilder::new</span>()
                 .<span class="ident">memory_limit</span>(<span class="prelude-val">Some</span>(<span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>))
                 .<span class="ident">enable_networking</span>(<span class="bool-val">false</span>);
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">storage</span> <span class="op">=</span> <span class="ident">LogStorage::new</span>(<span class="ident">LevelFilter::Info</span>);
-            <a class="ident" href="../../src/test_crates/main.rs.html#190">storage</a>.<span class="ident">set_max_size</span>(<span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>);
+            <a class="ident" href="../../src/test_crates/main.rs.html#214">storage</a>.<span class="ident">set_max_size</span>(<span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>);
 
-            <span class="kw">let</span> <span class="ident">build_status</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#184">build_dir</a>.<span class="ident">build</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#150">toolchain</a>, <a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#186">sandbox</a>).<span class="ident">run</span>(<span class="op">|</span><span class="ident">build</span><span class="op">|</span> {
-                <span class="ident">logging::capture</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#190">storage</a>, <span class="op">|</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/test_crates/main.rs.html#193">build</a>.<span class="ident">cargo</span>().<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;check&quot;</span>]).<span class="ident">run</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">build_status</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#208">build_dir</a>.<span class="ident">build</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#167">toolchain</a>, <a class="ident" href="../../src/test_crates/main.rs.html#193">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#210">sandbox</a>).<span class="ident">run</span>(<span class="op">|</span><span class="ident">build</span><span class="op">|</span> {
+                <span class="ident">logging::capture</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#214">storage</a>, <span class="op">|</span><span class="op">|</span> {
+                    <a class="ident" href="../../src/test_crates/main.rs.html#217">build</a>.<span class="ident">cargo</span>().<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;check&quot;</span>]).<span class="ident">run</span>()<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(())
                 })
             });
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#193">build_status</a> {
-                <span class="macro">warn!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#200">err</a>);
-                <span class="macro">warn!</span>(<span class="string">&quot;Output:\n{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#190">storage</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#217">build_status</a> {
+                <span class="macro">warn!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#224">err</a>);
+                <span class="macro">warn!</span>(<span class="string">&quot;Output:\n{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#214">storage</a>);
 
-                <span class="comment">// Do not try to verify this crate</span>
-                <a class="ident" href="../../src/test_crates/main.rs.html#169">skipped_crates</a>.<span class="ident">push</span>(<a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>);
+                <span class="comment">// Report the failure</span>
+                <a class="ident" href="../../src/test_crates/main.rs.html#188">failed_crates</a>.<span class="ident">push</span>((<a class="ident" href="../../src/test_crates/main.rs.html#193">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#193">test_kind</a>));
                 <span class="kw">continue</span>;
             }
         }
 
         <span class="macro">info!</span>(<span class="string">&quot;Verify crate...&quot;</span>);
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">build_dir</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>.<span class="ident">build_dir</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;verify_{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#176">index</a>));
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">build_dir</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#162">workspace</a>.<span class="ident">build_dir</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;verify_{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#193">index</a>));
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sandbox</span> <span class="op">=</span> <span class="ident">cmd::SandboxBuilder::new</span>()
                 .<span class="ident">memory_limit</span>(<span class="prelude-val">Some</span>(<span class="number">4024</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>))
                 .<span class="ident">enable_networking</span>(<span class="bool-val">false</span>)
                 .<span class="ident">mount</span>(
-                    <a class="ident" href="../../src/test_crates/main.rs.html#117">host_prusti_home</a>,
-                    <a class="ident" href="../../src/test_crates/main.rs.html#130">guest_prusti_home</a>,
+                    <a class="ident" href="../../src/test_crates/main.rs.html#134">host_prusti_home</a>,
+                    <a class="ident" href="../../src/test_crates/main.rs.html#147">guest_prusti_home</a>,
                     <span class="ident">cmd::MountKind::ReadOnly</span>,
                 )
                 .<span class="ident">mount</span>(
-                    <a class="ident" href="../../src/test_crates/main.rs.html#122">host_viper_home</a>,
-                    <a class="ident" href="../../src/test_crates/main.rs.html#131">guest_viper_home</a>,
+                    <a class="ident" href="../../src/test_crates/main.rs.html#139">host_viper_home</a>,
+                    <a class="ident" href="../../src/test_crates/main.rs.html#148">guest_viper_home</a>,
                     <span class="ident">cmd::MountKind::ReadOnly</span>,
                 )
-                .<span class="ident">mount</span>(<a class="ident" href="../../src/test_crates/main.rs.html#123">host_z3_home</a>, <a class="ident" href="../../src/test_crates/main.rs.html#132">guest_z3_home</a>, <span class="ident">cmd::MountKind::ReadOnly</span>)
-                .<span class="ident">mount</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#124">host_java_home</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#134">guest_java_home</a>, <span class="ident">cmd::MountKind::ReadOnly</span>);
-            <span class="kw">for</span> <span class="ident">java_policy_path</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#129">host_java_policies</a> {
-                <a class="ident" href="../../src/test_crates/main.rs.html#214">sandbox</a> <span class="op">=</span>
-                    <a class="ident" href="../../src/test_crates/main.rs.html#214">sandbox</a>.<span class="ident">mount</span>(<a class="ident" href="../../src/test_crates/main.rs.html#229">java_policy_path</a>, <a class="ident" href="../../src/test_crates/main.rs.html#229">java_policy_path</a>, <span class="ident">cmd::MountKind::ReadOnly</span>);
+                .<span class="ident">mount</span>(<a class="ident" href="../../src/test_crates/main.rs.html#140">host_z3_home</a>, <a class="ident" href="../../src/test_crates/main.rs.html#149">guest_z3_home</a>, <span class="ident">cmd::MountKind::ReadOnly</span>)
+                .<span class="ident">mount</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#141">host_java_home</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#151">guest_java_home</a>, <span class="ident">cmd::MountKind::ReadOnly</span>);
+            <span class="kw">for</span> <span class="ident">java_policy_path</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#146">host_java_policies</a> {
+                <a class="ident" href="../../src/test_crates/main.rs.html#238">sandbox</a> <span class="op">=</span>
+                    <a class="ident" href="../../src/test_crates/main.rs.html#238">sandbox</a>.<span class="ident">mount</span>(<a class="ident" href="../../src/test_crates/main.rs.html#253">java_policy_path</a>, <a class="ident" href="../../src/test_crates/main.rs.html#253">java_policy_path</a>, <span class="ident">cmd::MountKind::ReadOnly</span>);
             }
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">storage</span> <span class="op">=</span> <span class="ident">LogStorage::new</span>(<span class="ident">LevelFilter::Info</span>);
-            <a class="ident" href="../../src/test_crates/main.rs.html#234">storage</a>.<span class="ident">set_max_size</span>(<span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>);
+            <a class="ident" href="../../src/test_crates/main.rs.html#258">storage</a>.<span class="ident">set_max_size</span>(<span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>);
 
-            <span class="kw">let</span> <span class="ident">verification_status</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#212">build_dir</a>.<span class="ident">build</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#150">toolchain</a>, <a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#214">sandbox</a>).<span class="ident">run</span>(<span class="op">|</span><span class="ident">build</span><span class="op">|</span> {
-                <span class="ident">logging::capture</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#234">storage</a>, <span class="op">|</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/test_crates/main.rs.html#237">build</a>
-                        .<span class="ident">cmd</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#137">cargo_prusti</a>)
+            <span class="kw">let</span> <span class="ident">verification_status</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#236">build_dir</a>.<span class="ident">build</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#167">toolchain</a>, <a class="ident" href="../../src/test_crates/main.rs.html#193">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#238">sandbox</a>).<span class="ident">run</span>(<span class="op">|</span><span class="ident">build</span><span class="op">|</span> {
+                <span class="ident">logging::capture</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#258">storage</a>, <span class="op">|</span><span class="op">|</span> {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#261">build</a>.<span class="ident">cmd</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#154">cargo_prusti</a>)
                         .<span class="ident">env</span>(<span class="string">&quot;RUST_BACKTRACE&quot;</span>, <span class="string">&quot;1&quot;</span>)
                         .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_ASSERT_TIMEOUT&quot;</span>, <span class="string">&quot;60000&quot;</span>)
+                        .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_LOG_DIR&quot;</span>, <span class="string">&quot;/tmp/prusti_log&quot;</span>)
                         .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_CHECK_PANICS&quot;</span>, <span class="string">&quot;false&quot;</span>)
                         .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_CHECK_OVERFLOWS&quot;</span>, <span class="string">&quot;false&quot;</span>)
                         <span class="comment">// Do not report errors for unsupported language features</span>
-                        .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_SKIP_UNSUPPORTED_FEATURES&quot;</span>, <span class="string">&quot;true&quot;</span>)
-                        .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_LOG_DIR&quot;</span>, <span class="string">&quot;/tmp/prusti_log&quot;</span>)
-                        .<span class="ident">run</span>()<span class="question-mark">?</span>;
+                        .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_SKIP_UNSUPPORTED_FEATURES&quot;</span>, <span class="string">&quot;true&quot;</span>);
+                    <span class="kw">match</span> <a class="ident" href="../../src/test_crates/main.rs.html#193">test_kind</a> {
+                        <a class="ident" href="../../src/test_crates/main.rs.html#24">TestKind::NoErrors</a> =&gt; {},
+                        <a class="ident" href="../../src/test_crates/main.rs.html#26">TestKind::NoCrash</a> =&gt; {
+                            <span class="comment">// Report internal errors as warnings</span>
+                            <a class="ident" href="../../src/test_crates/main.rs.html#263">command</a> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#263">command</a>.<span class="ident">env</span>(<span class="string">&quot;PRUSTI_INTERNAL_ERRORS_AS_WARNINGS&quot;</span>, <span class="string">&quot;true&quot;</span>);
+                        },
+                        <a class="ident" href="../../src/test_crates/main.rs.html#28">TestKind::Skip</a> =&gt; {
+                            <span class="macro">unreachable!</span>();
+                        }
+                    }
+                    <a class="ident" href="../../src/test_crates/main.rs.html#263">command</a>.<span class="ident">run</span>()<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(())
                 })
             });
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#237">verification_status</a> {
-                <span class="macro">error!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#253">err</a>);
-                <span class="macro">error!</span>(<span class="string">&quot;Output:\n{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#234">storage</a>);
-
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#261">verification_status</a> {
+                <span class="macro">error!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#286">err</a>);
+                <span class="macro">error!</span>(<span class="string">&quot;Output:\n{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#258">storage</a>);
                 <span class="comment">// Report the failure</span>
-                <a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a>.<span class="ident">push</span>(<a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>);
+                <a class="ident" href="../../src/test_crates/main.rs.html#188">failed_crates</a>.<span class="ident">push</span>((<a class="ident" href="../../src/test_crates/main.rs.html#193">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#193">test_kind</a>));
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/test_crates/main.rs.html#173">successful_crates</a>.<span class="ident">push</span>(<a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>);
+                <a class="ident" href="../../src/test_crates/main.rs.html#190">successful_crates</a>.<span class="ident">push</span>((<a class="ident" href="../../src/test_crates/main.rs.html#193">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#193">test_kind</a>));
             }
         }
     }
 
     <span class="comment">// Report summary</span>
-    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#173">successful_crates</a>.<span class="ident">is_empty</span>() {
-        <span class="macro">info!</span>(<span class="string">&quot;Successfully verified {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#173">successful_crates</a>.<span class="ident">len</span>());
-        <span class="kw">for</span> <span class="ident">krate</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#173">successful_crates</a> {
-            <span class="macro">info!</span>(<span class="string">&quot; - {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#268">krate</a>);
+    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#190">successful_crates</a>.<span class="ident">is_empty</span>() {
+        <span class="macro">info!</span>(<span class="string">&quot;Successfully verified {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#190">successful_crates</a>.<span class="ident">len</span>());
+        <span class="kw">for</span> (<span class="ident">krate</span>, <span class="ident">test_kind</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#190">successful_crates</a> {
+            <span class="macro">info!</span>(<span class="string">&quot; - {} ({:?})&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#300">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#300">test_kind</a>);
         }
     }
-    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#169">skipped_crates</a>.<span class="ident">is_empty</span>() {
-        <span class="macro">warn!</span>(<span class="string">&quot;Skipped {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#169">skipped_crates</a>.<span class="ident">len</span>());
-        <span class="kw">for</span> <span class="ident">krate</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#169">skipped_crates</a> {
-            <span class="macro">warn!</span>(<span class="string">&quot; - {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#274">krate</a>);
+    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#186">skipped_crates</a>.<span class="ident">is_empty</span>() {
+        <span class="macro">warn!</span>(<span class="string">&quot;Skipped {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#186">skipped_crates</a>.<span class="ident">len</span>());
+        <span class="kw">for</span> (<span class="ident">krate</span>, <span class="ident">test_kind</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#186">skipped_crates</a> {
+            <span class="macro">warn!</span>(<span class="string">&quot; - {} ({:?})&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#306">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#306">test_kind</a>);
         }
     }
-    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a>.<span class="ident">is_empty</span>() {
-        <span class="macro">error!</span>(<span class="string">&quot;Failed to verify {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a>.<span class="ident">len</span>());
-        <span class="kw">for</span> <span class="ident">krate</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a> {
-            <span class="macro">error!</span>(<span class="string">&quot; - {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#280">krate</a>);
+    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#188">failed_crates</a>.<span class="ident">is_empty</span>() {
+        <span class="macro">error!</span>(<span class="string">&quot;Failed to verify {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#188">failed_crates</a>.<span class="ident">len</span>());
+        <span class="kw">for</span> (<span class="ident">krate</span>, <span class="ident">test_kind</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#188">failed_crates</a> {
+            <span class="macro">error!</span>(<span class="string">&quot; - {} ({:?})&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#312">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#312">test_kind</a>);
         }
     }
 
     <span class="comment">// Panic</span>
-    <span class="macro">assert!</span>(<a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a>.<span class="ident">is_empty</span>(), <span class="string">&quot;Failed to verify {} crates&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a>.<span class="ident">len</span>());
+    <span class="macro">assert!</span>(<a class="ident" href="../../src/test_crates/main.rs.html#188">failed_crates</a>.<span class="ident">is_empty</span>(), <span class="string">&quot;Failed to verify {} crates&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#188">failed_crates</a>.<span class="ident">len</span>());
 
     <span class="prelude-val">Ok</span>(())
 }
