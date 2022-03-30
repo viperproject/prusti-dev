@@ -1,9 +1,8 @@
 use std::vec::Vec;
 
 pub fn main() {
-    let mut x = [-5, -4, -3, 1, 5151, 70, 5, 155, -65848, 151, 454, 8811, 5];
+    let mut x : [i32; 50] = [5; 50];
     merge_sort(&mut x);
-    println!("{:?}", x);
 }
 
 fn insert_head(v: &mut [i32]) {
@@ -12,7 +11,7 @@ fn insert_head(v: &mut [i32]) {
         v[0] = v[1];
         let mut i = 2;
         while i < v.len() {
-            if !(v[i] < tmp) {
+            if !(i < v.len() && v[i] < tmp) {
                 break;
             }
             v[i - 1] = v[i];
@@ -28,7 +27,7 @@ fn merge(v: &mut [i32], mid: usize, buf: &mut Vec<i32>) {
     if mid <= len - mid {
         let mut i = 0;
         while i < mid {
-            buf[i] = v[i];
+            buf.push(v[i]);
             i += 1;
         }
 
@@ -56,7 +55,7 @@ fn merge(v: &mut [i32], mid: usize, buf: &mut Vec<i32>) {
     } else {
         let mut i = mid;
         while i < len {
-            buf[i - mid] = v[i];
+            buf.push(v[i]);
             i += 1;
         }
 
@@ -84,7 +83,7 @@ fn merge(v: &mut [i32], mid: usize, buf: &mut Vec<i32>) {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 struct Run {
     start: usize,
     len: usize,
@@ -100,12 +99,12 @@ fn collapse(runs: &[Run]) -> usize {
     {
         if n >= 3 && runs[n - 3].len < runs[n - 1].len { n - 3 } else { n - 2 }
     } else {
-        0
+        n
     }
 }
 
 fn merge_sort(v: &mut [i32]) {
-    const MAX_INSERTION: usize = 5;
+    const MAX_INSERTION: usize = 20;
     const MIN_RUN: usize = 10;
 
     if v.len() == 0 {
@@ -117,7 +116,7 @@ fn merge_sort(v: &mut [i32]) {
     if len <= MAX_INSERTION {
         if len >= 2 {
             let mut i = len - 2;
-            while true {
+            loop {
                 insert_head(&mut v[i..]);
                 if i == 0 {
                     break;
@@ -158,9 +157,9 @@ fn merge_sort(v: &mut [i32]) {
         runs.push(Run { start, len: end - start });
         end = start;
 
-        while true {
+        loop {
             let r = collapse(&runs);
-            if r == 0 {
+            if r == runs.len() {
                 break;
             }
             let left = runs[r + 1];
@@ -175,5 +174,5 @@ fn merge_sort(v: &mut [i32]) {
         }
     }
 
-    //debug_assert!(runs.len() == 1 && runs[0].start == 0 && runs[0].len == len);
+    debug_assert!(runs.len() == 1 && runs[0].start == 0 && runs[0].len == len);
 }
