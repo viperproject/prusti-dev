@@ -70,7 +70,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             }
             VerificationResult::Failure => {
                 user::message("Verification failed");
-                assert!(env.has_errors());
+                assert!(env.has_errors() || config::internal_errors_as_warnings());
             }
         };
     }
