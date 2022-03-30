@@ -855,7 +855,6 @@ impl RustOp {
 
 #[cfg(test)]
 mod tests {
-    use crate::{rewrite_prusti_attributes, SpecAttributeKind};
     use super::*;
 
     macro_rules! assert_error {
@@ -897,26 +896,47 @@ mod tests {
         );
     }
 
-    #[test]
-    fn ghost_constraint_invalid_args() {
-        assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)");
-        assert_error!(parse_ghost_constraint(quote!{ }), "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)");
-    }
+    mod ghost_constraints {
+        use super::*;
 
-    #[test]
-    fn ghost_constraints_ok() {
-        let (bounds, nested_specs) = parse_ghost_constraint(quote!{ T: A+B+Foo<i32>, [requires(true), ensures(false)]}).unwrap();
-
-        assert_eq!(bounds.to_string(), "T : A + B + Foo < i32 >");
-
-        match &nested_specs[0] {
-            NestedSpec::Requires(ts) => assert_eq!(ts.to_string(), "true"),
-            _ => panic!(),
+        #[test]
+        fn invalid_args() {
+            let err_invalid_arguments = "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)";
+            assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), err_invalid_arguments);
+            assert_error!(parse_ghost_constraint(quote!{ }), err_invalid_arguments);
+            assert_error!(parse_ghost_constraint(quote!{T: A }), err_invalid_arguments);
+            assert_error!(parse_ghost_constraint(quote!{T: A, [requires(false)], "nope" }), err_invalid_arguments);
+            assert_error!(parse_ghost_constraint(quote!{[requires(false)], T: A }), "expected nested specification in brackets");
+            assert_error!(parse_ghost_constraint(quote!{T: A,  }), "expected nested specification in brackets");
+            assert_error!(parse_ghost_constraint(quote!{T: A, {} }), "expected nested specification in brackets");
         }
 
-        match &nested_specs[1] {
-            NestedSpec::Ensures(ts) => assert_eq!(ts.to_string(), "false"),
-            _ => panic!(),
+        #[test]
+        fn multiple_bounds_multiple_specs() {
+            let (bounds, nested_specs) = parse_ghost_constraint(quote!{ T: A+B+Foo<i32>, [requires(true), ensures(false)]}).unwrap();
+
+            assert_eq!(bounds.to_string(), "T : A + B + Foo < i32 >");
+            match &nested_specs[0] {
+                NestedSpec::Requires(ts) => assert_eq!(ts.to_string(), "true"),
+                _ => panic!(),
+            }
+            match &nested_specs[1] {
+                NestedSpec::Ensures(ts) => assert_eq!(ts.to_string(), "false"),
+                _ => panic!(),
+            }
+        }
+
+        #[test]
+        fn no_specs() {
+            let (bounds, nested_specs) = parse_ghost_constraint(quote!{ T: A, []}).unwrap();
+            assert_eq!(bounds.to_string(), "T : A");
+            assert!(nested_specs.is_empty());
+        }
+
+        #[test]
+        fn fully_qualified_trait_path() {
+            let (bounds, _) = parse_ghost_constraint(quote!{ T: path::to::A, [requires(true)]}).unwrap();
+            assert_eq!(bounds.to_string(), "T : path :: to :: A");
         }
     }
 }
