@@ -39,7 +39,6 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
             ));
 
             // Add attribute to mark this as a "specification with constraint" (used for processing the contract in `SpecCollector`)
-            // TODO hansenj: Magic string
             item_fn.attrs.push(parse_quote_spanned!(tokens_span=>
                 #[prusti::ghost_constraint_trait_bounds_in_where_clause]
             ));
