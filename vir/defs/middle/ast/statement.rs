@@ -1,8 +1,9 @@
 pub(crate) use super::{
     super::{cfg::procedure::BasicBlockId, operations_internal::ty::Typed, Expression, Position},
     predicate::Predicate,
-    rvalue::Rvalue,
-    ty::VariantIndex,
+    rvalue::{Operand, Rvalue},
+    ty::{Type, VariantIndex},
+    variable::VariableDecl,
 };
 use crate::common::display;
 
@@ -14,6 +15,7 @@ pub enum Statement {
     Comment(Comment),
     Inhale(Inhale),
     Exhale(Exhale),
+    Consume(Consume),
     Assert(Assert),
     FoldOwned(FoldOwned),
     UnfoldOwned(UnfoldOwned),
@@ -43,6 +45,13 @@ pub struct Inhale {
 /// Exhale the permission denoted by the place.
 pub struct Exhale {
     pub predicate: Predicate,
+    pub position: Position,
+}
+
+#[display(fmt = "consume {}", operand)]
+/// Consume the operand.
+pub struct Consume {
+    pub operand: Operand,
     pub position: Position,
 }
 

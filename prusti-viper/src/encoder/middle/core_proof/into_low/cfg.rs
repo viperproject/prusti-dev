@@ -6,7 +6,7 @@ use crate::encoder::{
         addresses::AddressesInterface,
         block_markers::BlockMarkersInterface,
         builtin_methods::BuiltinMethodsInterface,
-        lowerer::Lowerer,
+        lowerer::{Lowerer, VariablesLowererInterface},
         places::PlacesInterface,
         predicates_memory_block::PredicatesMemoryBlockInterface,
         predicates_owned::PredicatesOwnedInterface,
@@ -103,14 +103,33 @@ impl IntoLow for vir_mid::Statement {
         use vir_low::{macros::*, Statement};
         match self {
             Self::Comment(statement) => Ok(vec![Statement::comment(statement.comment)]),
-            Self::Inhale(statement) => Ok(vec![Statement::inhale(
-                statement.predicate.into_low(lowerer)?,
-                statement.position,
-            )]),
-            Self::Exhale(statement) => Ok(vec![Statement::exhale(
-                statement.predicate.into_low(lowerer)?,
-                statement.position,
-            )]),
+            Self::Inhale(statement) => {
+                if let vir_mid::Predicate::OwnedNonAliased(owned) = &statement.predicate {
+                    lowerer.mark_owned_non_aliased_as_unfolded(owned.place.get_type())?;
+                }
+                Ok(vec![Statement::inhale(
+                    statement.predicate.into_low(lowerer)?,
+                    statement.position,
+                )])
+            }
+            Self::Exhale(statement) => {
+                if let vir_mid::Predicate::OwnedNonAliased(owned) = &statement.predicate {
+                    lowerer.mark_owned_non_aliased_as_unfolded(owned.place.get_type())?;
+                }
+                Ok(vec![Statement::exhale(
+                    statement.predicate.into_low(lowerer)?,
+                    statement.position,
+                )])
+            }
+            Self::Consume(statement) => {
+                let mut statements = Vec::new();
+                lowerer.encode_consume_method_call(
+                    &mut statements,
+                    statement.operand,
+                    statement.position,
+                )?;
+                Ok(statements)
+            }
             Self::Assert(statement) => Ok(vec![Statement::assert(
                 statement.expression.into_low(lowerer)?,
                 statement.position,
@@ -455,6 +474,14 @@ impl IntoLow for vir_mid::Successor {
                     new_targets.push((test_low, target.into_low(lowerer)?))
                 }
                 Ok(vir_low::Successor::GotoSwitch(new_targets))
+            }
+            vir_mid::Successor::NonDetChoice(first, second) => {
+                use vir_low::macros::*;
+                let choice = lowerer.create_new_temporary_variable(vir_low::Type::Bool)?;
+                Ok(vir_low::Successor::GotoSwitch(vec![
+                    (expr! { choice }, first.into_low(lowerer)?),
+                    (expr! { !choice }, second.into_low(lowerer)?),
+                ]))
             }
         }
     }

@@ -18,6 +18,7 @@ impl Positioned for Statement {
             Self::WritePlace(statement) => statement.position(),
             Self::WriteAddress(statement) => statement.position(),
             Self::Assign(statement) => statement.position(),
+            Self::Consume(statement) => statement.position(),
         }
     }
 }
@@ -101,6 +102,12 @@ impl Positioned for WriteAddress {
 }
 
 impl Positioned for Assign {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for Consume {
     fn position(&self) -> Position {
         self.position
     }

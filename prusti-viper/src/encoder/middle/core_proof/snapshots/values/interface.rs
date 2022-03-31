@@ -91,13 +91,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         argument: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let domain_name = self.encode_snapshot_domain_name(ty)?;
-        let function_name = self.snapshot_destructor_constant_name(&domain_name)?;
         let return_type = match &ty {
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
             x => unimplemented!("{:?}", x),
         };
+        let domain_name = self.encode_snapshot_domain_name(ty)?;
+        let function_name = self.snapshot_destructor_constant_name(&domain_name)?;
         self.create_domain_func_app(
             domain_name,
             function_name,

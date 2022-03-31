@@ -118,6 +118,8 @@ pub enum ErrorCtxt {
     Unfold,
     /// Failed to obtain capability by unfolding an union variant.
     UnfoldUnionVariant,
+    /// Failed to call a procedure.
+    ProcedureCall,
 }
 
 /// The error manager
