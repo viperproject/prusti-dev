@@ -101,6 +101,18 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     );
                 }
             }
+            vir_mid::Successor::NonDetChoice(first, second) => {
+                graph.add_regular_annotated_edge(
+                    label.to_string(),
+                    first.to_string(),
+                    "*".to_string(),
+                );
+                graph.add_regular_annotated_edge(
+                    label.to_string(),
+                    second.to_string(),
+                    "*".to_string(),
+                );
+            }
         }
     }
 }

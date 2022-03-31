@@ -155,6 +155,14 @@ impl<'a> BasicBlockBuilder<'a> {
     pub fn set_successor_exit(&mut self, successor: SuccessorExitKind) {
         self.set_successor(SuccessorBuilder::Exit(successor));
     }
+    pub fn create_basic_block_builder(&mut self, id: vir_high::BasicBlockId) -> BasicBlockBuilder {
+        BasicBlockBuilder {
+            procedure_builder: self.procedure_builder,
+            id,
+            statements: Vec::new(),
+            successor: SuccessorBuilder::Undefined,
+        }
+    }
 }
 
 impl SuccessorBuilder {
