@@ -21,7 +21,7 @@ use typed::SpecIdRef;
 
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
-use crate::specs::typed::{ProcedureSpecification, SpecsWithConstraints};
+use crate::specs::typed::{ProcedureSpecification, SpecGraph};
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -73,7 +73,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (local_id, refs) in self.procedure_specs.iter() {
-            let mut spec = SpecsWithConstraints::new(ProcedureSpecification::empty());
+            let mut spec = SpecGraph::new(ProcedureSpecification::empty());
 
             // Process specs for function `local_id`
             for spec_id_ref in &refs.spec_id_refs {
@@ -142,7 +142,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
     fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for local_id in self.loop_specs.iter() {
-            def_spec.loop_specs.insert(*local_id, SpecsWithConstraints::new(typed::LoopSpecification {
+            def_spec.loop_specs.insert(*local_id, SpecGraph::new(typed::LoopSpecification {
                 invariant: *local_id,
             }));
         }
