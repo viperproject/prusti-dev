@@ -101,7 +101,15 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             spec.set_pure(refs.pure);
             spec.set_trusted(refs.trusted);
 
-            def_spec.proc_specs.insert(*local_id, spec);
+            if !spec.specs_with_constraints.is_empty() && !*spec.base_spec.trusted.expect_inherent() {
+                let span = self.env.tcx().def_span(*local_id);
+                PrustiError::unsupported(
+                    "Ghost constraints can only be used on trusted functions",
+                    MultiSpan::from(span),
+                ).emit(self.env);
+            } else {
+                def_spec.proc_specs.insert(*local_id, spec);
+            }
         }
     }
 

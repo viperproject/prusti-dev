@@ -74,17 +74,10 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
                 ));
             }
 
-            if let Some(false) = self.base_spec.trusted.extract_inherit() {
-                let span = env.tcx().def_span(query.called_def_id);
-                return Err(PrustiError::unsupported(
-                    "Ghost constraints can only be used on trusted functions",
-                    MultiSpan::from(span),
-                )
-                .add_note(
-                    "This error is triggered because of a call to this function",
-                    query.caller_def_id.map(|caller| env.tcx().def_span(caller)),
-                ));
-            }
+            // Sanity check: The base spec and spec with constraints is trusted
+            // This should be ensured when collecting the specs
+            assert_eq!(Some(true), self.base_spec.trusted.extract_inherit());
+            assert_eq!(Some(true), spec_with_constraints.trusted.extract_inherit());
 
             trace!("Resolved to constrained spec with constraint {constraint_kind:?}");
             Ok(spec_with_constraints)
