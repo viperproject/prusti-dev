@@ -37,8 +37,8 @@ pub struct LoopSpecification {
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
 pub struct DefSpecificationMap {
-    pub proc_specs: HashMap<LocalDefId, SpecsWithConstraints<ProcedureSpecification>>,
-    pub loop_specs: HashMap<LocalDefId, SpecsWithConstraints<LoopSpecification>>,
+    pub proc_specs: HashMap<LocalDefId, SpecGraph<ProcedureSpecification>>,
+    pub loop_specs: HashMap<LocalDefId, SpecGraph<LoopSpecification>>,
     pub extern_specs: HashMap<DefId, LocalDefId>,
 }
 
@@ -47,12 +47,12 @@ impl DefSpecificationMap {
         Self::default()
     }
 
-    pub fn get_loop_spec(&self, def_id: &DefId) -> Option<&SpecsWithConstraints<LoopSpecification>> {
+    pub fn get_loop_spec(&self, def_id: &DefId) -> Option<&SpecGraph<LoopSpecification>> {
         let id = self.map_to_spec(def_id)?;
         self.loop_specs.get(&id)
     }
 
-    pub fn get_proc_spec(&self, def_id: &DefId) -> Option<&SpecsWithConstraints<ProcedureSpecification>> {
+    pub fn get_proc_spec(&self, def_id: &DefId) -> Option<&SpecGraph<ProcedureSpecification>> {
         let id = self.map_to_spec(def_id)?;
         self.proc_specs.get(&id)
     }
@@ -67,7 +67,7 @@ impl DefSpecificationMap {
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct SpecsWithConstraints<T> {
+pub struct SpecGraph<T> {
     /// The base specification which has no constraints
     pub base_spec: T,
 
@@ -75,7 +75,7 @@ pub struct SpecsWithConstraints<T> {
     pub specs_with_constraints: FxHashMap<SpecConstraintKind, T>,
 }
 
-impl<T> SpecsWithConstraints<T> {
+impl<T> SpecGraph<T> {
     pub fn new(spec: T) -> Self {
         Self {
             base_spec: spec,
@@ -84,7 +84,7 @@ impl<T> SpecsWithConstraints<T> {
     }
 }
 
-impl SpecsWithConstraints<ProcedureSpecification> {
+impl SpecGraph<ProcedureSpecification> {
     pub fn add_precondition<'tcx>(&mut self, pre: LocalDefId, env: &Environment<'tcx>) {
         match self.get_constraint(pre, env) {
             None => {

@@ -5,7 +5,7 @@ use crate::{
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
-    specs::typed::{ProcedureSpecification, SpecConstraintKind, SpecsWithConstraints},
+    specs::typed::{ProcedureSpecification, SpecConstraintKind, SpecGraph},
     PrustiError,
 };
 use rustc_hir::def_id::LocalDefId;
@@ -38,7 +38,7 @@ pub(crate) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
 }
 
 impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
-    for SpecsWithConstraints<ProcedureSpecification>
+    for SpecGraph<ProcedureSpecification>
 {
     fn resolve(
         &'spec self,
