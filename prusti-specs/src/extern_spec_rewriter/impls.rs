@@ -1,6 +1,7 @@
 use crate::{ExternSpecKind, span_overrider::SpanOverrider, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
+use syn::parse_quote_spanned;
 use syn::spanned::Spanned;
 use super::common::*;
 
