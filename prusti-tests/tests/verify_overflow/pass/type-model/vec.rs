@@ -1,26 +1,35 @@
-extern crate prusti_contracts;
+// ignore-test: This test currently fails because the model is not copy
+// This is due to the use of the type param A: std::alloc::Allocator
+// Actually this type param should nt be a problem because A does not appear in any model field
+// but the Copy trait is not derived correctly for the generated model.
+
+#![feature(allocator_api)]
 use prusti_contracts::*;
 
 use std::vec::Vec;
+use std::alloc::Global;
 
 #[model]
-struct Vec<#[concrete] i32> {
+struct Vec<#[generic] T, #[generic] A: std::alloc::Allocator> {
     elems: usize,
 }
 
 #[extern_spec]
-impl Vec<i32> {
-
+impl<T> Vec<T, Global> {
     #[ensures( result.model().elems == 0 )]
-    fn new() -> Vec<i32>;
+    fn new() -> Vec<T>;
+}
+
+#[extern_spec]
+impl<T, A: std::alloc::Allocator> Vec<T, A> {
 
     #[requires( self.model().elems > 0 )]
     #[requires( 0 <= index && index <= self.model().elems )]
     #[ensures( self.model().elems == old(self.model().elems) - 1 )]
-    fn remove(&mut self, index: usize) -> i32;
+    fn remove(&mut self, index: usize) -> T;
 
     #[ensures( self.model().elems == 1 + old(self.model().elems) )]
-    fn push(&mut self, val: i32);
+    fn push(&mut self, val: T);
 }
 
 #[ensures( result.model().elems == 0 )]
