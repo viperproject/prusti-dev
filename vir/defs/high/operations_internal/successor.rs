@@ -8,6 +8,9 @@ impl Successor {
             Successor::GotoSwitch(targets) => {
                 targets.iter().map(|(_test, target)| target).collect()
             }
+            Successor::NonDetChoice(first, second) => {
+                vec![first, second]
+            }
         }
     }
 }

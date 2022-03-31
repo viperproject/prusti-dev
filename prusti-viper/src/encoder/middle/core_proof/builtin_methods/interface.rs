@@ -37,6 +37,7 @@ pub(in super::super) struct BuiltinMethodsState {
     encoded_memory_block_join_methods: FxHashSet<vir_mid::Type>,
     encoded_into_memory_block_methods: FxHashSet<vir_mid::Type>,
     encoded_assign_methods: FxHashSet<String>,
+    encoded_consume_operand_methods: FxHashSet<String>,
 }
 
 trait Private {
@@ -60,11 +61,20 @@ trait Private {
         ty: &vir_mid::Type,
         value: &vir_mid::Rvalue,
     ) -> SpannedEncodingResult<String>;
+    fn encode_consume_operand_method_name(
+        &self,
+        operand: &vir_mid::Operand,
+    ) -> SpannedEncodingResult<String>;
     fn encode_assign_method(
         &mut self,
         method_name: &str,
         ty: &vir_mid::Type,
         value: &vir_mid::Rvalue,
+    ) -> SpannedEncodingResult<()>;
+    fn encode_consume_operand_method(
+        &mut self,
+        method_name: &str,
+        operand: &vir_mid::Operand,
     ) -> SpannedEncodingResult<()>;
     #[allow(clippy::too_many_arguments)]
     fn encode_assign_method_rvalue(
@@ -73,7 +83,6 @@ trait Private {
         pres: &mut Vec<vir_low::Expression>,
         posts: &mut Vec<vir_low::Expression>,
         pre_write_statements: &mut Vec<vir_low::Statement>,
-        post_write_statements: &mut Vec<vir_low::Statement>,
         value: &vir_mid::Rvalue,
         result_type: &vir_mid::Type,
         result_value: &vir_low::VariableDecl,
@@ -86,10 +95,8 @@ trait Private {
         pres: &mut Vec<vir_low::Expression>,
         posts: &mut Vec<vir_low::Expression>,
         pre_write_statements: &mut Vec<vir_low::Statement>,
-        post_write_statements: &mut Vec<vir_low::Statement>,
         operand_counter: u32,
         operand: &vir_mid::Operand,
-        position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
     fn encode_assign_operand_place(
         &mut self,
@@ -170,6 +177,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             value.get_identifier()
         ))
     }
+    fn encode_consume_operand_method_name(
+        &self,
+        operand: &vir_mid::Operand,
+    ) -> SpannedEncodingResult<String> {
+        Ok(format!("consume${}", operand.get_identifier()))
+    }
     fn encode_assign_method(
         &mut self,
         method_name: &str,
@@ -204,7 +217,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 expr! { acc(OwnedNonAliased<ty>(target_place, target_address, result_value)) },
             ];
             let mut pre_write_statements = Vec::new();
-            let mut post_write_statements = vec![stmtp! {
+            let post_write_statements = vec![stmtp! {
                 position => call write_place<ty>(target_place, target_address, result_value)
             }];
             self.encode_assign_method_rvalue(
@@ -212,7 +225,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 &mut pres,
                 &mut posts,
                 &mut pre_write_statements,
-                &mut post_write_statements,
                 value,
                 ty,
                 &result_value,
@@ -235,13 +247,43 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+    fn encode_consume_operand_method(
+        &mut self,
+        method_name: &str,
+        operand: &vir_mid::Operand,
+    ) -> SpannedEncodingResult<()> {
+        if !self
+            .builtin_methods_state
+            .encoded_consume_operand_methods
+            .contains(method_name)
+        {
+            let mut parameters = Vec::new();
+            let mut pres = Vec::new();
+            let mut posts = Vec::new();
+            let mut _pre_write_statements = Vec::new();
+            self.encode_assign_operand(
+                &mut parameters,
+                &mut pres,
+                &mut posts,
+                &mut _pre_write_statements,
+                1,
+                operand,
+            )?;
+            let method =
+                vir_low::MethodDecl::new(method_name, parameters, Vec::new(), pres, posts, None);
+            self.declare_method(method)?;
+            self.builtin_methods_state
+                .encoded_assign_methods
+                .insert(method_name.to_string());
+        }
+        Ok(())
+    }
     fn encode_assign_method_rvalue(
         &mut self,
         parameters: &mut Vec<vir_low::VariableDecl>,
         pres: &mut Vec<vir_low::Expression>,
         posts: &mut Vec<vir_low::Expression>,
         pre_write_statements: &mut Vec<vir_low::Statement>,
-        post_write_statements: &mut Vec<vir_low::Statement>,
         value: &vir_mid::Rvalue,
         result_type: &vir_mid::Type,
         result_value: &vir_low::VariableDecl,
@@ -275,10 +317,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     pres,
                     posts,
                     pre_write_statements,
-                    post_write_statements,
                     1,
                     &value.argument,
-                    position,
                 )?;
                 self.construct_unary_op_snapshot(
                     value.kind,
@@ -293,20 +333,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     pres,
                     posts,
                     pre_write_statements,
-                    post_write_statements,
                     1,
                     &value.left,
-                    position,
                 )?;
                 let operand_right = self.encode_assign_operand(
                     parameters,
                     pres,
                     posts,
                     pre_write_statements,
-                    post_write_statements,
                     2,
                     &value.right,
-                    position,
                 )?;
                 self.construct_binary_op_snapshot(
                     value.kind,
@@ -347,10 +383,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         pres,
                         posts,
                         pre_write_statements,
-                        post_write_statements,
                         i.try_into().unwrap(),
                         operand,
-                        position,
                     )?;
                     arguments.push(operand_value.into());
                 }
@@ -385,10 +419,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         pres: &mut Vec<vir_low::Expression>,
         posts: &mut Vec<vir_low::Expression>,
         pre_write_statements: &mut Vec<vir_low::Statement>,
-        _post_write_statements: &mut Vec<vir_low::Statement>,
         operand_counter: u32,
         operand: &vir_mid::Operand,
-        _position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         use vir_low::macros::*;
         let value = self.encode_assign_operand_snapshot(operand_counter, operand)?;
@@ -462,6 +494,12 @@ pub(in super::super) trait BuiltinMethodsInterface {
         statements: &mut Vec<vir_low::Statement>,
         target: vir_mid::Expression,
         value: vir_mid::Rvalue,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()>;
+    fn encode_consume_method_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        operand: vir_mid::Operand,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
 }
@@ -1545,6 +1583,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             position,
         ));
         self.encode_snapshot_update(statements, &target, result_value.into(), position)?;
+        Ok(())
+    }
+    fn encode_consume_method_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        operand: vir_mid::Operand,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        let method_name = self.encode_consume_operand_method_name(&operand)?;
+        self.encode_consume_operand_method(&method_name, &operand)?;
+        let mut arguments = Vec::new();
+        self.encode_operand_arguments(&mut arguments, &operand)?;
+        statements.push(vir_low::Statement::method_call(
+            method_name,
+            arguments,
+            Vec::new(),
+            position,
+        ));
         Ok(())
     }
 }

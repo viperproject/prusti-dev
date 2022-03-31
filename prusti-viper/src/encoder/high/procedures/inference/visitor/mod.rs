@@ -110,6 +110,9 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 }
                 vir_mid::Successor::GotoSwitch(new_targets)
             }
+            vir_high::Successor::NonDetChoice(first, second) => {
+                vir_mid::Successor::NonDetChoice(self.lower_label(first), self.lower_label(second))
+            }
         };
         Ok(result)
     }
