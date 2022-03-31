@@ -89,7 +89,8 @@ impl SpecsWithConstraints<ProcedureSpecification> {
         match self.get_constraint(pre, env) {
             None => {
                 self.base_spec.pres.push(pre);
-                self.specs_with_constraints.values_mut().for_each(|s| s.pres.push(pre));
+                // Preconditions are explicitly not copied (as opposed to postconditions)
+                // This would always violate behavioral subtyping rules
             }
             Some(obligation) => {
                 self.get_partitioned_mut(obligation).pres.push(pre);
