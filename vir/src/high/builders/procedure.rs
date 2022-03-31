@@ -142,6 +142,7 @@ impl<'a> BasicBlockBuilder<'a> {
         self.statements.push(vir_high::Statement::comment(comment));
     }
     pub fn add_statement(&mut self, statement: vir_high::Statement) {
+        statement.check_no_default_position();
         self.statements.push(statement);
     }
     pub fn set_successor(&mut self, successor: SuccessorBuilder) {

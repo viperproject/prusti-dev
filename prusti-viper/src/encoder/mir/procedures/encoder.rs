@@ -1,5 +1,3 @@
-use std::collections::BTreeSet;
-
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
@@ -18,6 +16,7 @@ use rustc_data_structures::graph::WithStartNode;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
 use rustc_span::Span;
+use std::collections::BTreeSet;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
     high::{
@@ -107,22 +106,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let parameter = self.encode_local(mir_arg)?;
             let alloc_statement = vir_high::Statement::inhale_no_pos(
                 vir_high::Predicate::owned_non_aliased_no_pos(parameter.clone().into()),
-            )
-            .set_default_position(
-                self.encoder
-                    .change_error_context(parameter.position, ErrorCtxt::UnexpectedStorageLive),
             );
-            allocation.push(alloc_statement);
+            allocation.push(self.encoder.set_statement_error_ctxt_from_position(
+                alloc_statement,
+                parameter.position,
+                ErrorCtxt::UnexpectedStorageLive,
+            )?);
             let mir_type = self.encoder.get_local_type(self.mir, mir_arg)?;
             let size = self.encoder.encode_type_size_expression(mir_type)?;
             let dealloc_statement = vir_high::Statement::exhale_no_pos(
                 vir_high::Predicate::memory_block_stack_no_pos(parameter.clone().into(), size),
-            )
-            .set_default_position(
-                self.encoder
-                    .change_error_context(parameter.position, ErrorCtxt::UnexpectedStorageDead),
             );
-            deallocation.push(dealloc_statement);
+            deallocation.push(self.encoder.set_statement_error_ctxt_from_position(
+                dealloc_statement,
+                parameter.position,
+                ErrorCtxt::UnexpectedStorageDead,
+            )?);
         }
         Ok((allocation, deallocation))
     }
@@ -133,20 +132,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let return_local = self.encode_local(mir::RETURN_PLACE)?;
         let mir_type = self.encoder.get_local_type(self.mir, mir::RETURN_PLACE)?;
         let size = self.encoder.encode_type_size_expression(mir_type)?;
-        let alloc_statement = vir_high::Statement::inhale_no_pos(
-            vir_high::Predicate::memory_block_stack_no_pos(return_local.clone().into(), size),
-        )
-        .set_default_position(
-            self.encoder
-                .change_error_context(return_local.position, ErrorCtxt::UnexpectedStorageLive),
-        );
-        let dealloc_statement = vir_high::Statement::exhale_no_pos(
-            vir_high::Predicate::owned_non_aliased_no_pos(return_local.clone().into()),
-        )
-        .set_default_position(
-            self.encoder
-                .change_error_context(return_local.position, ErrorCtxt::UnexpectedStorageDead),
-        );
+        let alloc_statement = self.encoder.set_statement_error_ctxt_from_position(
+            vir_high::Statement::inhale_no_pos(vir_high::Predicate::memory_block_stack_no_pos(
+                return_local.clone().into(),
+                size,
+            )),
+            return_local.position,
+            ErrorCtxt::UnexpectedStorageLive,
+        )?;
+        let dealloc_statement = self.encoder.set_statement_error_ctxt_from_position(
+            vir_high::Statement::exhale_no_pos(vir_high::Predicate::owned_non_aliased_no_pos(
+                return_local.clone().into(),
+            )),
+            return_local.position,
+            ErrorCtxt::UnexpectedStorageDead,
+        )?;
         Ok((vec![alloc_statement], vec![dealloc_statement]))
     }
 
@@ -158,21 +158,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let local = self.encode_local(discriminant)?;
             let mir_type = self.encoder.get_local_type(self.mir, discriminant)?;
             let size = self.encoder.encode_type_size_expression(mir_type)?;
-            let position_alloc = self
-                .encoder
-                .change_error_context(local.position, ErrorCtxt::UnexpectedStorageLive);
-            let position_dealloc = self
-                .encoder
-                .change_error_context(local.position, ErrorCtxt::UnexpectedStorageDead);
             let predicate =
                 vir_high::Predicate::memory_block_stack_no_pos(local.clone().into(), size);
             procedure_builder.add_alloc_statement(
-                vir_high::Statement::inhale_no_pos(predicate.clone())
-                    .set_default_position(position_alloc),
+                self.encoder.set_statement_error_ctxt_from_position(
+                    vir_high::Statement::inhale_no_pos(predicate.clone()),
+                    local.position,
+                    ErrorCtxt::UnexpectedStorageLive,
+                )?,
             );
             procedure_builder.add_dealloc_statement(
-                vir_high::Statement::exhale_no_pos(predicate.clone())
-                    .set_default_position(position_dealloc),
+                self.encoder.set_statement_error_ctxt_from_position(
+                    vir_high::Statement::exhale_no_pos(predicate.clone()),
+                    local.position,
+                    ErrorCtxt::UnexpectedStorageLive,
+                )?,
             );
         }
         Ok(())
@@ -243,36 +243,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let memory_block = self
                     .encoder
                     .encode_memory_block_for_local(self.mir, *local)?;
-                block_builder.add_statement(vir_high::Statement::inhale(
-                    memory_block,
-                    self.register_error(location, ErrorCtxt::UnexpectedStorageLive),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::UnexpectedStorageLive,
+                    vir_high::Statement::inhale_no_pos(memory_block),
+                )?);
                 let memory_block_drop = self
                     .encoder
                     .encode_memory_block_drop_for_local(self.mir, *local)?;
-                block_builder.add_statement(vir_high::Statement::inhale(
-                    memory_block_drop,
-                    self.register_error(location, ErrorCtxt::UnexpectedStorageLive),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::UnexpectedStorageLive,
+                    vir_high::Statement::inhale_no_pos(memory_block_drop),
+                )?);
             }
             mir::StatementKind::StorageDead(local) => {
                 let memory_block = self
                     .encoder
                     .encode_memory_block_for_local(self.mir, *local)?;
-                block_builder.add_statement(vir_high::Statement::exhale(
-                    memory_block,
-                    self.register_error(location, ErrorCtxt::UnexpectedStorageDead),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::UnexpectedStorageDead,
+                    vir_high::Statement::exhale_no_pos(memory_block),
+                )?);
                 let memory_block_drop = self
                     .encoder
                     .encode_memory_block_drop_for_local(self.mir, *local)?;
-                block_builder.add_statement(vir_high::Statement::exhale(
-                    memory_block_drop,
-                    self.register_error(location, ErrorCtxt::UnexpectedStorageDead),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::UnexpectedStorageDead,
+                    vir_high::Statement::exhale_no_pos(memory_block_drop),
+                )?);
             }
             mir::StatementKind::Assign(box (target, source)) => {
-                let encoded_target = self.encoder.encode_place_high(self.mir, *target)?;
+                let position = self.register_error(location, ErrorCtxt::Unexpected);
+                let encoded_target = self
+                    .encoder
+                    .encode_place_high(self.mir, *target)?
+                    .set_default_position(position);
                 self.encode_statement_assign(block_builder, location, encoded_target, source)?;
                 if let mir::Rvalue::Discriminant(_) = source {
                     let local = target.as_local().expect("unimplemented");
@@ -307,11 +315,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::AddressOf(_, place) => {
                 let encoded_place = self.encoder.encode_place_high(self.mir, *place)?;
                 let encoded_rvalue = vir_high::Rvalue::address_of(encoded_place);
-                block_builder.add_statement(vir_high::Statement::assign(
-                    encoded_target,
-                    encoded_rvalue,
-                    self.register_error(location, ErrorCtxt::Assign),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::Assign,
+                    vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
+                )?);
             }
             // mir::Rvalue::Len(Place<'tcx>),
             // mir::Rvalue::Cast(CastKind, Operand<'tcx>, Ty<'tcx>),
@@ -339,11 +347,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     _ => unimplemented!("op kind: {:?}", op),
                 };
                 let encoded_rvalue = vir_high::Rvalue::binary_op(kind, encoded_left, encoded_right);
-                block_builder.add_statement(vir_high::Statement::assign(
-                    encoded_target,
-                    encoded_rvalue,
-                    self.register_error(location, ErrorCtxt::Assign),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::Assign,
+                    vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
+                )?);
             }
             // mir::Rvalue::CheckedBinaryOp(BinOp, Box<(Operand<'tcx>, Operand<'tcx>)>),
             // mir::Rvalue::NullaryOp(NullOp, Ty<'tcx>),
@@ -354,20 +362,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     mir::UnOp::Neg => vir_high::UnaryOpKind::Minus,
                 };
                 let encoded_rvalue = vir_high::Rvalue::unary_op(kind, encoded_operand);
-                block_builder.add_statement(vir_high::Statement::assign(
-                    encoded_target,
-                    encoded_rvalue,
-                    self.register_error(location, ErrorCtxt::Assign),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::Assign,
+                    vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
+                )?);
             }
             mir::Rvalue::Discriminant(place) => {
                 let encoded_place = self.encoder.encode_place_high(self.mir, *place)?;
                 let encoded_rvalue = vir_high::Rvalue::discriminant(encoded_place);
-                block_builder.add_statement(vir_high::Statement::assign(
-                    encoded_target,
-                    encoded_rvalue,
-                    self.register_error(location, ErrorCtxt::Assign),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::Assign,
+                    vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
+                )?);
             }
             mir::Rvalue::Aggregate(box aggregate_kind, operands) => {
                 self.encode_statement_assign_aggregate(
@@ -397,16 +405,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         match aggregate_kind {
             mir::AggregateKind::Adt(adt_did, variant_index, _substs, _, active_field_index) => {
-                assert!(
-                    active_field_index.is_none(),
-                    "field index should be set only for unions"
-                );
                 let mut ty = encoded_target.get_type().clone();
+                let tcx = self.encoder.env().tcx();
                 if ty.is_enum() {
-                    let adt_def = self.encoder.env().tcx().adt_def(*adt_did);
+                    let adt_def = tcx.adt_def(*adt_did);
                     let variant_def = &adt_def.variants()[*variant_index];
-                    let variant_name = variant_def.ident(self.encoder.env().tcx()).to_string();
+                    let variant_name = variant_def.ident(tcx).to_string();
                     ty = ty.variant(variant_name.into());
+                } else {
+                    assert_eq!(
+                        variant_index.index(),
+                        0,
+                        "Unexpected value of the variant index."
+                    );
+                }
+                if let Some(active_field_index) = active_field_index {
+                    assert!(ty.is_union());
+                    let adt_def = tcx.adt_def(*adt_did);
+                    let variant_def = adt_def.non_enum_variant();
+                    let field_name = variant_def.fields[*active_field_index]
+                        .ident(tcx)
+                        .to_string();
+                    ty = ty.variant(field_name.into());
                 }
                 let mut encoded_operands = Vec::new();
                 for operand in operands {
@@ -428,7 +448,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_assign_operand(
-        &self,
+        &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
         encoded_target: vir_crate::high::Expression,
@@ -438,30 +458,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         match operand {
             mir::Operand::Move(source) => {
                 let encoded_source = self.encoder.encode_place_high(self.mir, *source)?;
-                block_builder.add_statement(vir_high::Statement::move_place(
-                    encoded_target,
-                    encoded_source,
-                    self.register_error(location, ErrorCtxt::MovePlace),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::MovePlace,
+                    vir_high::Statement::move_place_no_pos(encoded_target, encoded_source),
+                )?);
             }
             mir::Operand::Copy(source) => {
                 let encoded_source = self.encoder.encode_place_high(self.mir, *source)?;
-                block_builder.add_statement(vir_high::Statement::copy_place(
-                    encoded_target,
-                    encoded_source,
-                    self.register_error(location, ErrorCtxt::CopyPlace),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::CopyPlace,
+                    vir_high::Statement::copy_place_no_pos(encoded_target, encoded_source),
+                )?);
             }
             mir::Operand::Constant(constant) => {
                 let encoded_constant = self
                     .encoder
                     .encode_constant_high(constant)
                     .with_span(span)?;
-                block_builder.add_statement(vir_high::Statement::write_place(
-                    encoded_target,
-                    encoded_constant,
-                    self.register_error(location, ErrorCtxt::WritePlace),
-                ));
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::WritePlace,
+                    vir_high::Statement::write_place_no_pos(encoded_target, encoded_constant),
+                )?);
             }
         }
         Ok(())
@@ -475,18 +495,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.encoder.get_span_of_location(self.mir, location);
         let encoded_operand = match operand {
             mir::Operand::Move(source) => {
-                let encoded_source = self.encoder.encode_place_high(self.mir, *source)?;
+                let position = self.register_error(location, ErrorCtxt::MovePlace);
+                let encoded_source = self
+                    .encoder
+                    .encode_place_high(self.mir, *source)?
+                    .set_default_position(position);
                 vir_high::Operand::new(vir_high::OperandKind::Move, encoded_source)
             }
             mir::Operand::Copy(source) => {
-                let encoded_source = self.encoder.encode_place_high(self.mir, *source)?;
+                let position = self.register_error(location, ErrorCtxt::CopyPlace);
+                let encoded_source = self
+                    .encoder
+                    .encode_place_high(self.mir, *source)?
+                    .set_default_position(position);
                 vir_high::Operand::new(vir_high::OperandKind::Copy, encoded_source)
             }
             mir::Operand::Constant(constant) => {
+                let position = self.register_error(location, ErrorCtxt::WritePlace);
                 let encoded_constant = self
                     .encoder
                     .encode_constant_high(constant)
-                    .with_span(span)?;
+                    .with_span(span)?
+                    .set_default_position(position);
                 vir_high::Operand::new(vir_high::OperandKind::Constant, encoded_constant)
             }
         };
@@ -517,14 +547,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // }
             TerminatorKind::Return => SuccessorBuilder::exit_return(),
             TerminatorKind::Unreachable => {
-                let position = self.encoder.register_error(
+                block_builder
+                    .add_comment("Target marked as unreachable by the compiler".to_string());
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    vir_high::Statement::assert_no_pos(false.into()),
                     span,
                     ErrorCtxt::UnreachableTerminator,
                     self.def_id,
-                );
-                block_builder
-                    .add_comment("Target marked as unreachable by the compiler".to_string());
-                block_builder.add_statement(vir_high::Statement::assert(false.into(), position));
+                )?);
                 SuccessorBuilder::exit_resume_panic()
             }
             // TerminatorKind::DropAndReplace { target, unwind, .. }
@@ -689,13 +719,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "core::panicking::panic" => {
                 let panic_message = format!("{:?}", args[0]);
                 let panic_cause = self.encoder.encode_panic_cause(span)?;
-                let position =
-                    self.encoder
-                        .register_error(span, ErrorCtxt::Panic(panic_cause), self.def_id);
                 if self.check_panics {
                     block_builder.add_comment(format!("Rust panic - {}", panic_message));
-                    block_builder
-                        .add_statement(vir_high::Statement::assert(false.into(), position));
+                    block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                        vir_high::Statement::assert_no_pos(false.into()),
+                        span,
+                        ErrorCtxt::Panic(panic_cause),
+                        self.def_id,
+                    )?);
                 } else {
                     debug!("Absence of panic will not be checked")
                 }
@@ -715,5 +746,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .error_manager()
             .register_error(span, error_ctxt, self.def_id)
             .into()
+    }
+
+    fn set_statement_error(
+        &mut self,
+        location: mir::Location,
+        error_ctxt: ErrorCtxt,
+        statement: vir_high::Statement,
+    ) -> SpannedEncodingResult<vir_high::Statement> {
+        let position = self.register_error(location, error_ctxt.clone());
+        self.encoder
+            .set_statement_error_ctxt_from_position(statement, position, error_ctxt)
     }
 }

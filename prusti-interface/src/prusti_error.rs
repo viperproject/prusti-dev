@@ -147,6 +147,10 @@ impl PrustiError {
         self
     }
 
+    pub fn add_note_mut<S: ToString>(&mut self, message: S, opt_span: Option<MultiSpan>) {
+        self.notes.push((message.to_string(), opt_span));
+    }
+
     /// Report the encoding error using the compiler's interface
     pub fn emit(self, env: &Environment) {
         assert!(!self.is_disabled);
