@@ -126,6 +126,7 @@ fn run_verification_base(group_name: &str, filter: &Option<String>) {
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
         TemporaryEnvVar::set("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true"),
         TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
+        TemporaryEnvVar::set("PRUSTI_ENABLE_GHOST_CONSTRAINTS", "true"),
     );
 
     run_prusti_tests(group_name, filter, Some("-A warnings"));

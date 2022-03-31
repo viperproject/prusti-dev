@@ -17,6 +17,7 @@
 | [`DUMP_PATH_CTXT_IN_DEBUG_INFO`](#dump_path_ctxt_in_debug_info) | `bool` | `false` |
 | [`DUMP_REBORROWING_DAG_IN_DEBUG_INFO`](#dump_reborrowing_dag_in_debug_info) | `bool` | `false` |
 | [`DUMP_VIPER_PROGRAM`](#dump_viper_program) | `bool` | `false` |
+| [`ENABLE_GHOST_CONSTRAINTS`](#enable_ghost_constraints) | `bool` | `false` |
 | [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) | `bool` | `false` |
 | [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](#encode_unsigned_num_constraint) | `bool` | `false` |
 | [`EXTRA_JVM_ARGS`](#extra_jvm_args) | `Vec<String>` | `vec![]` |
@@ -104,6 +105,10 @@ When enabled, reborrowing DAGs will be output in debug files.
 ## `DUMP_VIPER_PROGRAM`
 
 When enabled, the encoded Viper program will be output.
+
+## `ENABLE_GHOST_CONSTRAINTS`
+
+Enables ghost constraints in Prusti specifications.
 
 ## `ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`
 
