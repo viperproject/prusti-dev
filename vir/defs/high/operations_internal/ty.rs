@@ -18,8 +18,20 @@ impl Type {
                 arguments,
                 variant: Some(variant),
             }),
-            Type::Enum(Enum { .. }) => {
+            Type::Union(Union {
+                name,
+                arguments,
+                variant: None,
+            }) => Type::Union(Union {
+                name,
+                arguments,
+                variant: Some(variant),
+            }),
+            Type::Enum(_) => {
                 unreachable!("setting variant on enum type that already has variant set");
+            }
+            Type::Union(_) => {
+                unreachable!("setting variant on union type that already has variant set");
             }
             _ => {
                 unreachable!("setting variant on non-enum type");
@@ -39,6 +51,15 @@ impl Type {
                 arguments: arguments.clone(),
                 variant: None,
             })),
+            Type::Union(Union {
+                name,
+                arguments,
+                variant: Some(_),
+            }) => Some(Type::Union(Union {
+                name: name.clone(),
+                arguments: arguments.clone(),
+                variant: None,
+            })),
             _ => None,
         }
     }
@@ -46,10 +67,10 @@ impl Type {
         self.is_bool() || self.is_int() || self.is_float()
     }
     pub fn has_variants(&self) -> bool {
-        if let Type::Enum(enum_ty) = self {
-            enum_ty.variant.is_none()
-        } else {
-            false
+        match self {
+            Type::Enum(enum_ty) => enum_ty.variant.is_none(),
+            Type::Union(union_ty) => union_ty.variant.is_none(),
+            _ => false,
         }
     }
 }
@@ -78,6 +99,19 @@ impl super::super::ast::type_decl::Enum {
             })
         }
     }
+    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<&Expression> {
+        self.iter_discriminant_variants()
+            .find(|(_, variant)| variant_index.as_ref() == variant.name)
+            .map(|(discriminant, _)| discriminant)
+    }
+    pub fn iter_discriminant_variants(
+        &self,
+    ) -> impl Iterator<Item = (&Expression, &super::super::ast::type_decl::Struct)> {
+        self.discriminant_values.iter().zip(&self.variants)
+    }
+}
+
+impl super::super::ast::type_decl::Union {
     pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<&Expression> {
         self.iter_discriminant_variants()
             .find(|(_, variant)| variant_index.as_ref() == variant.name)
