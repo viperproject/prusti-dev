@@ -51,11 +51,20 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
             return Ok(&self.base_spec);
         }
 
-        if let SpecQueryCause::PureOrTrustedCheck = query.cause {
-            trace!(
+        match query.cause {
+            // For simple pure or trusted checks, we do not need to consider obligations
+            // since they can a pure/trusted flag can not change in a constrained spec
+            SpecQueryCause::PureOrTrustedCheck => {
+                trace!(
                 "No need to resolve obligations for checking whether function is pure or trusted"
             );
-            return Ok(&self.base_spec);
+                return Ok(&self.base_spec);
+            }
+            // Obligations are resolved for function definition encodings to account
+            // for ghost constraints on traits (behavioral subtyping rules will be checked
+            // against the resolved spec).
+            SpecQueryCause::FunctionDefEncoding => (),
+            _ => (),
         }
 
         let mut applicable_specs =
@@ -124,11 +133,15 @@ mod resolvers {
             let param_env_constraint =
                 perform_param_env_substitutions(env, query, param_env_constraint);
 
+            // There is no caller when encoding a function.
+            // We still resolve obligations to account for constrained specs on a trait
+            // for which we encode it's implementation. The corresponding encoding will
+            // contain a behavioral subtyping check which will be performed on the
+            // resolved spec.
             let param_env_lookup = if let Some(caller_def_id) = query.caller_def_id {
                 env.tcx().param_env(caller_def_id)
             } else {
-                // TODO hansenj: Is this correct?
-                env.tcx().param_env(query.called_def_id)
+                ty::ParamEnv::reveal_all()
             };
 
             let trait_predicates = extract_trait_predicates(param_env_constraint);
