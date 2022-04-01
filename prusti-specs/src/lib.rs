@@ -10,9 +10,11 @@
 mod common;
 mod parse_quote_spanned;
 mod span_overrider;
+mod extensions;
 mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
+mod predicate;
 mod spec_attribute_kind;
 mod type_model;
 mod user_provided_type_params;
@@ -29,6 +31,8 @@ use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
 use prusti_utils::force_matches;
 pub use extern_spec_rewriter::ExternSpecKind;
+use crate::extensions::{RewriteMethodReceiver, SelfRewriter};
+use crate::predicate::{is_predicate_macro, ParsedPredicate};
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
@@ -400,6 +404,33 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                 };
                 new_items.push(new_item);
             },
+            syn::ImplItem::Macro(makro) if is_predicate_macro(&makro) => {
+                let parsed_predicate = handle_result!(predicate::parse_predicate_in_impl(makro.mac.tokens.clone()));
+
+                let predicate = match parsed_predicate {
+                    ParsedPredicate::Impl(predicate) => predicate,
+                    _ => unreachable!(),
+                };
+
+                // Patch spec function:
+                // Rewrite self with _self: <SpecStruct>
+                let span = predicate.spec_function.span();
+                let mut spec_function = match predicate.spec_function {
+                    syn::Item::Fn(item_fn) => item_fn,
+                    _ => unreachable!(),
+                };
+
+                spec_function.rewrite_receiver(&*impl_block.self_ty);
+                let patched_function = spec_function.rewrite_self();
+
+                let as_impl_item: syn::ImplItem = parse_quote_spanned!(span=>
+                    #patched_function
+                );
+                generated_spec_items.push(as_impl_item);
+
+                // Add patched predicate function to new items
+                new_items.push(syn::ImplItem::Method(predicate.patched_function));
+            },
             _ => new_items.push(item),
         }
     }
@@ -437,73 +468,9 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     }
 }
 
-#[derive(Debug)]
-struct PredicateFn {
-    visibility: Option<syn::Visibility>,
-    fn_sig: syn::Signature,
-    body: TokenStream,
-}
-
-impl syn::parse::Parse for PredicateFn {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let visibility = input.parse().ok();
-        let fn_sig = input.parse()?;
-        let brace_content;
-        let _brace_token = syn::braced!(brace_content in input);
-        let body = brace_content.parse()?;
-
-        Ok(PredicateFn {
-            visibility,
-            fn_sig,
-            body,
-        })
-    }
-}
-
 pub fn predicate(tokens: TokenStream) -> TokenStream {
-    let tokens_span = tokens.span();
-    // emit a custom error to the user instead of a parse error
-    let pred_fn: PredicateFn = handle_result!(
-        syn::parse2(tokens)
-            .map_err(|e| syn::Error::new(
-                e.span(),
-                "`predicate!` can only be used on function definitions. it supports no attributes."
-            ))
-    );
-
-    let mut rewriter = rewriter::AstRewriter::new();
-    let spec_id = rewriter.generate_spec_id();
-
-    let vis = match pred_fn.visibility {
-        Some(vis) => vis.to_token_stream(),
-        None => TokenStream::new(),
-    };
-    let sig = pred_fn.fn_sig.to_token_stream();
-    let cleaned_fn: untyped::AnyFnItem = parse_quote_spanned! {tokens_span =>
-        #vis #sig {
-            unimplemented!("predicate")
-        }
-    };
-
-    let spec_fn = handle_result!(rewriter.process_assertion(
-        rewriter::SpecItemType::Predicate,
-        spec_id,
-        pred_fn.body,
-        &cleaned_fn,
-    ));
-
-    let spec_id_str = spec_id.to_string();
-    parse_quote_spanned! {cleaned_fn.span() =>
-        // this is to typecheck the assertion
-        #spec_fn
-
-        // this is the assertion's remaining, empty fn
-        #[allow(unused_must_use, unused_variables, dead_code)]
-        #[prusti::pure]
-        #[prusti::trusted]
-        #[prusti::pred_spec_id_ref = #spec_id_str]
-        #cleaned_fn
-    }
+    let parsed = handle_result!(predicate::parse_predicate(tokens));
+    parsed.into_token_stream()
 }
 
 pub fn type_model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {

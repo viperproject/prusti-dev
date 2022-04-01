@@ -1,5 +1,5 @@
 //! Encoding of external specs for traits
-use crate::{ExternSpecKind, parse_quote_spanned};
+use crate::{ExternSpecKind, parse_quote_spanned, RewriteMethodReceiver, SelfRewriter};
 use crate::specifications::common::generate_struct_name_for_trait;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
@@ -180,9 +180,9 @@ impl<'a> GeneratedStruct<'a> {
         let mut trait_method_attrs = trait_method.attrs.clone();
         trait_method_attrs
             .iter_mut()
-            .for_each(|attr| attr.tokens = rewrite_self(attr.tokens.clone()));
-        let trait_method_inputs =
-            rewrite_method_inputs(&self.self_type_ident, &mut trait_method_sig.inputs);
+            .for_each(|attr| attr.tokens = attr.tokens.clone().rewrite_self());
+        trait_method_sig.rewrite_receiver(&self.self_type_ident);
+        let trait_method_inputs = &trait_method_sig.inputs;
 
         // Create method
         let extern_spec_kind_string: String = ExternSpecKind::Trait.into();

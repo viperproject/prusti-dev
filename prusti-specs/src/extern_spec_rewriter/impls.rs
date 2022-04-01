@@ -1,8 +1,9 @@
-use crate::{ExternSpecKind, span_overrider::SpanOverrider, specifications::common::generate_struct_name};
+use crate::{ExternSpecKind, RewriteMethodReceiver, SelfRewriter, span_overrider::SpanOverrider, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
 use syn::parse_quote_spanned;
 use syn::spanned::Spanned;
+use crate::extensions::MethodParamsAsCallArguments;
 use super::common::*;
 
 pub fn rewrite_extern_spec(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
@@ -182,10 +183,11 @@ fn rewrite_method(
     let span = method.span();
 
     for attr in method.attrs.iter_mut() {
-        attr.tokens = rewrite_self(attr.tokens.clone());
+        attr.tokens = attr.tokens.clone().rewrite_self();
     }
 
-    let args = rewrite_method_inputs(original_ty, &mut method.sig.inputs);
+    method.rewrite_receiver(original_ty);
+    let args = method.params_as_call_args();
     let ident = &method.sig.ident;
 
     let extern_spec_kind_string: String = extern_spec_kind.into();
