@@ -1,10 +1,13 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{TokenStream};
 use quote::ToTokens;
+use syn::Signature;
+use crate::extensions::{HasSignature};
 
 pub use super::common::{SpecType, SpecificationId};
 pub use super::preparser::Arg;
 
 /// An abstraction over all kinds of function items.
+#[derive(Debug)]
 pub enum AnyFnItem {
     Fn(syn::ItemFn),
     TraitMethod(syn::TraitItemMethod),
@@ -40,19 +43,37 @@ impl AnyFnItem {
         }
     }
 
-    pub fn sig(&self) -> &syn::Signature {
-        match self {
-            AnyFnItem::Fn(item) => &item.sig,
-            AnyFnItem::TraitMethod(item) => &item.sig,
-            AnyFnItem::ImplMethod(item) => &item.sig,
-        }
-    }
-
     pub fn block(&self) -> Option<&syn::Block> {
         match self {
             AnyFnItem::Fn(item) => Some(&item.block),
             AnyFnItem::ImplMethod(item) => Some(&item.block),
             AnyFnItem::TraitMethod(item) => item.default.as_ref(),
+        }
+    }
+
+    pub fn vis(&self) -> Option<&syn::Visibility> {
+        match self {
+            AnyFnItem::Fn(item) => Some(&item.vis),
+            AnyFnItem::ImplMethod(item) => Some(&item.vis),
+            AnyFnItem::TraitMethod(_) => None,
+        }
+    }
+}
+
+impl HasSignature for AnyFnItem {
+    fn sig(&self) -> &Signature {
+        match self {
+            Self::Fn(item) => item.sig(),
+            Self::ImplMethod(item) => item.sig(),
+            Self::TraitMethod(item) => item.sig(),
+        }
+    }
+
+    fn sig_mut(&mut self) -> &mut Signature {
+        match self {
+            Self::Fn(item) => item.sig_mut(),
+            Self::ImplMethod(item) => item.sig_mut(),
+            Self::TraitMethod(item) => item.sig_mut(),
         }
     }
 }
