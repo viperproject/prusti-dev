@@ -486,7 +486,7 @@ impl ast::StmtFolder for VarPurifier {
                 ast::Type::BitVector(value) => format!("builtin$havoc_{}", value),
                 ast::Type::TypedRef(_) => "builtin$havoc_ref".to_string(),
                 ast::Type::TypeVar(_) => "builtin$havoc_ref".to_string(),
-                ast::Type::Domain(_) | ast::Type::Snapshot(_) | ast::Type::Seq(_) => unreachable!(),
+                ast::Type::Domain(_) | ast::Type::Snapshot(_) | ast::Type::Seq(_) | ast::Type::Map(..) => unreachable!(),
             };
             targets = vec![replacement];
         }

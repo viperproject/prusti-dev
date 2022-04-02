@@ -434,109 +434,122 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .map(|arg| self.encode_operand(arg, span))
                     .collect::<Result<_, _>>()
                     .with_span(span)?;
-                match full_func_proc_name {
-                    "prusti_contracts::old" => {
-                        let argument = encoded_args.pop().unwrap();
-                        let position = argument.position();
-                        let encoded_rhs = vir_high::Expression::labelled_old(
-                            PRECONDITION_LABEL.to_string(),
-                            argument,
-                            position,
-                        );
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, encoded_rhs);
-                        state
-                    }
-                    "prusti_contracts::before_expiry" => {
-                        // self.encode_call_before_expiry()?
-                        unimplemented!();
-                    }
-                    "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
-                        if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
-                    {
-                        assert_eq!(args.len(), 2);
-                        let encoded_rhs = vir_high::Expression::equals(
-                            encoded_args[0].clone(),
-                            encoded_args[1].clone(),
-                        );
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, encoded_rhs);
-                        state
-                    }
-                    "std::cmp::PartialEq::ne" | "core::cmp::PartialEq::ne"
-                        if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
-                    {
-                        assert_eq!(args.len(), 2);
-                        let encoded_rhs = vir_high::Expression::not_equals(
-                            encoded_args[0].clone(),
-                            encoded_args[1].clone(),
-                        );
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, encoded_rhs);
-                        state
-                    }
-                    "core::slice::<impl [T]>::len" => {
-                        assert_eq!(args.len(), 1);
-                        self.encode_call_len(
-                            *target_block,
-                            states,
-                            encoded_lhs,
-                            encoded_args.pop().unwrap(),
-                            span,
-                        )?
-                    }
-                    "std::ops::IndexMut::index_mut"
-                    | "core::ops::IndexMut::index_mut"
-                    | "std::ops::Index::index"
-                    | "core::ops::Index::index" => {
-                        assert_eq!(args.len(), 2);
-                        self.encode_call_index(
-                            *target_block,
-                            states,
-                            encoded_lhs,
-                            encoded_args[0].clone(),
-                            encoded_args[1].clone(),
-                            span,
-                        )?
-                    }
-
-                    // Prusti-specific syntax
-                    // TODO: check we are in a spec function
-                    "prusti_contracts::exists"
-                    | "prusti_contracts::forall"
-                    | "prusti_contracts::specification_entailment"
-                    | "prusti_contracts::call_description" => {
-                        let expr = self.encoder.encode_prusti_operation_high(
-                            full_func_proc_name,
-                            span,
-                            encoded_args,
-                            self.caller_def_id,
-                            substs,
-                        )?;
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, expr);
-                        state
-                    }
-
-                    _ => {
-                        if self.encoder.is_pure(def_id, Some(substs)) {
-                            self.encode_call_generic(
+                if let Some(state) = self.try_encode_builtin_funs(
+                    def_id,
+                    &full_func_proc_name,
+                    target_block,
+                    &states,
+                    &encoded_lhs,
+                    &encoded_args,
+                    span,
+                    substs,
+                )? {
+                    state
+                } else {
+                    match full_func_proc_name {
+                        "prusti_contracts::old" => {
+                            let argument = encoded_args.pop().unwrap();
+                            let position = argument.position();
+                            let encoded_rhs = vir_high::Expression::labelled_old(
+                                PRECONDITION_LABEL.to_string(),
+                                argument,
+                                position,
+                            );
+                            let mut state = states[target_block].clone();
+                            state.substitute_value(&encoded_lhs, encoded_rhs);
+                            state
+                        }
+                        "prusti_contracts::before_expiry" => {
+                            // self.encode_call_before_expiry()?
+                            unimplemented!();
+                        }
+                        "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
+                            if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
+                        {
+                            assert_eq!(args.len(), 2);
+                            let encoded_rhs = vir_high::Expression::equals(
+                                encoded_args[0].clone(),
+                                encoded_args[1].clone(),
+                            );
+                            let mut state = states[target_block].clone();
+                            state.substitute_value(&encoded_lhs, encoded_rhs);
+                            state
+                        }
+                        "std::cmp::PartialEq::ne" | "core::cmp::PartialEq::ne"
+                            if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
+                        {
+                            assert_eq!(args.len(), 2);
+                            let encoded_rhs = vir_high::Expression::not_equals(
+                                encoded_args[0].clone(),
+                                encoded_args[1].clone(),
+                            );
+                            let mut state = states[target_block].clone();
+                            state.substitute_value(&encoded_lhs, encoded_rhs);
+                            state
+                        }
+                        "core::slice::<impl [T]>::len" => {
+                            assert_eq!(args.len(), 1);
+                            self.encode_call_len(
                                 *target_block,
                                 states,
                                 encoded_lhs,
-                                def_id,
-                                encoded_args,
+                                encoded_args.pop().unwrap(),
                                 span,
-                                substs,
                             )?
-                        } else {
-                            return Err(SpannedEncodingError::incorrect(
-                                format!(
-                                    "use of impure function {:?} in pure code is not allowed",
-                                    func_proc_name
-                                ),
+                        }
+                        "std::ops::IndexMut::index_mut"
+                        | "core::ops::IndexMut::index_mut"
+                        | "std::ops::Index::index"
+                        | "core::ops::Index::index" => {
+                            assert_eq!(args.len(), 2);
+                            self.encode_call_index(
+                                *target_block,
+                                states,
+                                encoded_lhs,
+                                encoded_args[0].clone(),
+                                encoded_args[1].clone(),
                                 span,
-                            ));
+                            )?
+                        }
+
+                        // Prusti-specific syntax
+                        // TODO: check we are in a spec function
+                        "prusti_contracts::exists"
+                        | "prusti_contracts::forall"
+                        | "prusti_contracts::specification_entailment"
+                        | "prusti_contracts::call_description" => {
+                            let expr = self.encoder.encode_prusti_operation_high(
+                                full_func_proc_name,
+                                span,
+                                encoded_args,
+                                self.caller_def_id,
+                                substs,
+                            )?;
+                            let mut state = states[target_block].clone();
+                            state.substitute_value(&encoded_lhs, expr);
+                            state
+                        }
+
+                        _ => {
+                            if self.encoder.is_pure(def_id, Some(substs)) {
+                                self.encode_call_generic(
+                                    *target_block,
+                                    states,
+                                    encoded_lhs,
+                                    def_id,
+                                    encoded_args,
+                                    span,
+                                    substs,
+                                )?
+                            } else {
+                                return Err(SpannedEncodingError::incorrect(
+                                    format!(
+                                        "use of impure function {:?} in pure code is not allowed",
+                                        func_proc_name
+                                    ),
+                                    span,
+                                ));
+                            }
                         }
                     }
                 }
@@ -576,6 +589,60 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 format!("unsupported type of call: {:?}", ty.kind()),
                 span,
             ))
+        }
+    }
+
+    fn try_encode_builtin_funs(
+        &self,
+        def_id: DefId,
+        proc_name: &str,
+        target_block: &mir::BasicBlock,
+        states: &FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
+        lhs: &vir_high::Expression,
+        args: &[vir_high::Expression],
+        span: Span,
+        substs: SubstsRef<'tcx>,
+    ) -> SpannedEncodingResult<Option<ExprBackwardInterpreterState>> {
+        let type_arguments = self
+            .encoder
+            .encode_generic_arguments_high(def_id, substs)
+            .with_span(span)?;
+
+        use vir_high::expression::BuiltinFunc::*;
+        if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Map::<K, V>::") {
+            assert_eq!(type_arguments.len(), 2);
+            let func = match proc_name {
+                "empty" => {
+                    assert_eq!(args.len(), 0);
+                    EmptyMap
+                }
+                "insert" => {
+                    assert_eq!(args.len(), 2);
+                    UpdateMap
+                }
+                "delete" => unimplemented!(),
+                "get" => unimplemented!(),
+                _ => unreachable!("no further Map functions"),
+            };
+
+            let enc = vir_high::Expression::builtin_func_app_no_pos(
+                func,
+                type_arguments.clone(),
+                args.into(),
+                vir_high::ty::Type::Map(vir_high::ty::Map {
+                    key_type: box type_arguments[0].clone(),
+                    val_type: box type_arguments[1].clone(),
+                })
+            );
+
+            let mut state = states[target_block].clone();
+            state.substitute_value(lhs, enc);
+
+            Ok(Some(state))
+        } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {
+            unimplemented!();
+        } else {
+            Ok(None)
         }
     }
 
