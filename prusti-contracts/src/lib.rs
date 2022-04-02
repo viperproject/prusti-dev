@@ -47,6 +47,31 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_impl::predicate;
+
+
+    /// A sequence type
+    #[non_exhaustive]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Seq<T> {
+        _phantom: core::marker::PhantomData<T>,
+    }
+
+    impl<T> Seq<T> {
+        fn new() -> Self {
+            Self {
+                _phantom: core::marker::PhantomData,
+            }
+        }
+        pub fn empty() -> Self {
+            Self::new()
+        }
+        pub fn single(_: T) -> Self {
+            Self::new()
+        }
+        pub fn concat(_: Self, _: Self) -> Self {
+            Self::new()
+        }
+    }
 }
 
 #[cfg(feature = "prusti")]
@@ -84,6 +109,30 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_internal::predicate;
+
+    /// A sequence type
+    #[non_exhaustive]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Seq<T> {
+        _phantom: core::marker::PhantomData<T>,
+    }
+
+    impl<T> Seq<T> {
+        fn new() -> Self {
+            Self {
+                _phantom: core::marker::PhantomData,
+            }
+        }
+        pub fn empty() -> Self {
+            Self::new()
+        }
+        pub fn single(_: T) -> Self {
+            Self::new()
+        }
+        pub fn concat(_: Self, _: Self) -> Self {
+            Self::new()
+        }
+    }
 }
 
 
