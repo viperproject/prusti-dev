@@ -416,6 +416,19 @@ pub trait ExprFolder: Sized {
         })
     }
 
+    fn fold_map(&mut self, expr: Map) -> Expr {
+        let Map {
+            typ,
+            elements,
+            position,
+        } = expr;
+        Expr::Map(Map {
+            typ,
+            elements: elements.into_iter().map(|e| self.fold(e)).collect(),
+            position,
+        })
+    }
+
     fn fold_cast(&mut self, expr: Cast) -> Expr {
         Expr::Cast(Cast {
             kind: expr.kind,
@@ -455,6 +468,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::SnapApp(snap_app) => this.fold_snap_app(snap_app),
         Expr::ContainerOp(container_op) => this.fold_container_op(container_op),
         Expr::Seq(seq) => this.fold_seq(seq),
+        Expr::Map(map) => this.fold_map(map),
         Expr::Cast(cast) => this.fold_cast(cast),
     }
 }
@@ -668,6 +682,14 @@ pub trait ExprWalker: Sized {
         self.walk_type(typ);
     }
 
+    fn walk_map(&mut self, statement: &Map) {
+        let Map { typ, elements, .. } = statement;
+        for elem in elements {
+            self.walk(elem);
+        }
+        self.walk_type(typ);
+    }
+
     fn walk_cast(&mut self, statement: &Cast) {
         let Cast { base, .. } = statement;
         self.walk(base);
@@ -704,6 +726,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::SnapApp(snap_app) => this.walk_snap_app(snap_app),
         Expr::ContainerOp(container_op) => this.walk_container_op(container_op),
         Expr::Seq(seq) => this.walk_seq(seq),
+        Expr::Map(map) => this.walk_map(map),
         Expr::Cast(cast) => this.walk_cast(cast),
     }
 }
@@ -1084,6 +1107,22 @@ pub trait FallibleExprFolder: Sized {
         }))
     }
 
+    fn fallible_fold_map(&mut self, expr: Map) -> Result<Expr, Self::Error> {
+        let Map {
+            typ,
+            elements,
+            position,
+        } = expr;
+        Ok(Expr::Map(Map {
+            typ,
+            elements: elements
+                .into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<_, _>>()?,
+            position,
+        }))
+    }
+
     fn fallible_fold_cast(&mut self, expr: Cast) -> Result<Expr, Self::Error> {
         let Cast {
             kind,
@@ -1131,6 +1170,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::SnapApp(snap_app) => this.fallible_fold_snap_app(snap_app),
         Expr::ContainerOp(container_op) => this.fallible_fold_container_op(container_op),
         Expr::Seq(seq) => this.fallible_fold_seq(seq),
+        Expr::Map(map) => this.fallible_fold_map(map),
         Expr::Cast(cast) => this.fallible_fold_cast(cast),
     }
 }
@@ -1367,6 +1407,14 @@ pub trait FallibleExprWalker: Sized {
         self.fallible_walk_type(typ)
     }
 
+    fn fallible_walk_map(&mut self, statement: &Map) -> Result<(), Self::Error> {
+        let Map { typ, elements, .. } = statement;
+        for elem in elements {
+            self.fallible_walk(elem)?;
+        }
+        self.fallible_walk_type(typ)
+    }
+
     fn fallible_walk_cast(&mut self, statement: &Cast) -> Result<(), Self::Error> {
         let Cast { base, .. } = statement;
         self.fallible_walk(base)
@@ -1406,6 +1454,7 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::SnapApp(snap_app) => this.fallible_walk_snap_app(snap_app),
         Expr::ContainerOp(container_op) => this.fallible_walk_container_op(container_op),
         Expr::Seq(seq) => this.fallible_walk_seq(seq),
+        Expr::Map(map) => this.fallible_walk_map(map),
         Expr::Cast(cast) => this.fallible_walk_cast(cast),
     }
 }

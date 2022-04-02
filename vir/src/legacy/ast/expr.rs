@@ -37,6 +37,8 @@ pub enum Expr {
     ContainerOp(ContainerOpKind, Box<Expr>, Box<Expr>, Position),
     /// Viper Seq
     Seq(Type, Vec<Expr>, Position),
+    /// Viper Map
+    Map(Type, Vec<Expr>, Position),
     /// Unfolding: predicate name, predicate_args, in_expr, permission amount, enum variant
     Unfolding(
         String,
@@ -182,6 +184,9 @@ impl fmt::Display for Expr {
                     unreachable!()
                 };
                 write!(f, "Seq[{}]({})", elem_ty, elems_printed)
+            }
+            Expr::Map(..) => {
+                unimplemented!()
             }
             Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{}({})", op, expr),
             Expr::PredicateAccessPredicate(ref pred_name, ref arg, perm, ref _pos) => {
@@ -380,6 +385,7 @@ impl Expr {
             | Expr::InhaleExhale(_, _, p)
             | Expr::ContainerOp(_, _, _, p)
             | Expr::Seq(_, _, p)
+            | Expr::Map(_, _, p)
             | Expr::Cast(_, _, p)
             | Expr::SnapApp(_, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
@@ -417,6 +423,7 @@ impl Expr {
             Expr::SnapApp(e, _) => Expr::SnapApp(e, pos),
             Expr::ContainerOp(x, y, z, _) => Expr::ContainerOp(x, y, z, pos),
             Expr::Seq(x, y, _) => Expr::Seq(x, y, pos),
+            Expr::Map(x, y, _) => Expr::Map(x, y, pos),
             x => x,
         }
     }
@@ -1250,7 +1257,8 @@ impl Expr {
             Expr::ContainerOp(_op_kind, box ref _left, box ref _right, _) => {
                 return None;
             }
-            Expr::Seq(ref ty, ..) => ty,
+            Expr::Seq(ref ty, ..)
+            | Expr::Map(ref ty, ..) => ty,
             Expr::Cast(kind, _, _) => match kind {
                 CastKind::BVIntoInt(_) => &Type::Int,
                 CastKind::IntIntoBV(BitVector::Signed(BitVectorSize::BV8)) => {
@@ -1704,6 +1712,7 @@ impl Expr {
                     | Expr::Downcast(..)
                     | Expr::ContainerOp(..)
                     | Expr::Seq(..)
+                    | Expr::Map(..)
                     | Expr::SnapApp(..)
                     | Expr::Cast(..) => true.into(),
                 }

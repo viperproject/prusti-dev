@@ -163,6 +163,7 @@ pub enum Type {
     Float(Float),
     BitVector(BitVector),
     Seq(SeqType),
+    Map(MapType),
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(TypedRef),
     Domain(DomainType),
@@ -180,6 +181,7 @@ impl fmt::Display for Type {
             Type::Float(Float::F64) => write!(f, "F64"),
             Type::BitVector(value) => write!(f, "{}", value),
             Type::Seq(seq) => seq.fmt(f),
+            Type::Map(map) => map.fmt(f),
             Type::TypedRef(_) => write!(f, "Ref({})", self.encode_as_string()),
             Type::Domain(_) => write!(f, "Domain({})", self.encode_as_string()),
             Type::Snapshot(_) => write!(f, "Snapshot({})", self.encode_as_string()),
@@ -205,6 +207,14 @@ impl Type {
         matches!(self, &Type::Snapshot(_))
     }
 
+    pub fn is_seq(&self) -> bool {
+        matches!(self, &Type::Seq(_))
+    }
+
+    pub fn is_map(&self) -> bool {
+        matches!(self, &Type::Map(_))
+    }
+
     pub fn is_type_var(&self) -> bool {
         matches!(self, &Type::TypeVar(_))
     }
@@ -225,10 +235,9 @@ impl Type {
             Type::Float(Float::F32) => "f32".to_string(),
             Type::Float(Float::F64) => "f64".to_string(),
             Type::BitVector(value) => value.to_string(),
-            Type::Domain(_) | Type::Snapshot(_) | Type::TypedRef(_) | Type::TypeVar(_) => {
+            Type::Domain(_) | Type::Snapshot(_) | Type::TypedRef(_) | Type::TypeVar(_) | Type::Seq(_) | Type::Map(..) => {
                 self.encode_as_string()
             }
-            Type::Seq(SeqType { box ref typ }) => typ.name(),
         }
     }
 
@@ -334,6 +343,7 @@ impl Type {
             Type::Domain(_) => TypeId::Domain,
             Type::Snapshot(_) => TypeId::Snapshot,
             Type::Seq(_) => TypeId::Seq,
+            Type::Map(..) => TypeId::Map,
             Type::TypeVar(t) => unreachable!("{}", t),
         }
     }
@@ -399,6 +409,12 @@ impl Type {
                     }
                 }
             }
+            Type::Seq(SeqType { box typ }) => {
+                format!("Seq${}", Self::encode_arguments(&[typ.clone()]))
+            }
+            Type::Map(MapType { box key_type, box val_type }) => {
+                format!("Map${}${}", Self::encode_arguments(&[key_type.clone()]), Self::encode_arguments(&[val_type.clone()]))
+            }
             Type::TypeVar(TypeVar { label }) => format!("__TYPARAM__$_{}$__", label),
             x => unreachable!("{}", x),
         }
@@ -441,28 +457,28 @@ impl Type {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+use crate::common::display;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct SeqType {
     pub typ: Box<Type>,
-}
-
-impl PartialEq for SeqType {
-    fn eq(&self, other: &Self) -> bool {
-        *self.typ == *other.typ
-    }
-}
-
-impl Eq for SeqType {}
-
-impl Hash for SeqType {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        (*self.typ).hash(state);
-    }
 }
 
 impl fmt::Display for SeqType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Seq[{}]", &self.typ)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash)]
+pub struct MapType {
+    pub key_type: Box<Type>,
+    pub val_type: Box<Type>,
+}
+
+impl fmt::Display for MapType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Map[{}, {}]", &self.key_type, &self.val_type)
     }
 }
 
@@ -609,6 +625,7 @@ pub enum TypeId {
     BitVector,
     Ref,
     Seq,
+    Map,
     Domain,
     Snapshot,
 }

@@ -84,6 +84,7 @@ impl From<polymorphic::Type> for legacy::Type {
             polymorphic::Type::Float(float) => legacy::Type::Float(float.into()),
             polymorphic::Type::BitVector(vector) => legacy::Type::BitVector(vector.into()),
             polymorphic::Type::Seq(seq) => legacy::Type::Seq(Box::new((*seq.typ).into())),
+            polymorphic::Type::Map(map) => legacy::Type::Map(Box::new((*map.key_type).into()), Box::new((*map.val_type).into())),
             polymorphic::Type::TypedRef(_) | polymorphic::Type::TypeVar(_) => {
                 legacy::Type::TypedRef(typ.encode_as_string())
             }
@@ -102,6 +103,7 @@ impl From<polymorphic::TypeId> for legacy::TypeId {
             polymorphic::TypeId::Float => legacy::TypeId::Float,
             polymorphic::TypeId::Ref => legacy::TypeId::Ref,
             polymorphic::TypeId::Seq => legacy::TypeId::Seq,
+            polymorphic::TypeId::Map => legacy::TypeId::Map,
             polymorphic::TypeId::Domain => legacy::TypeId::Domain,
             polymorphic::TypeId::Snapshot => legacy::TypeId::Snapshot,
         }
@@ -251,6 +253,14 @@ impl From<polymorphic::Expr> for legacy::Expr {
                     .map(|element| element.into())
                     .collect(),
                 seq.position.into(),
+            ),
+            polymorphic::Expr::Map(map) => legacy::Expr::Map(
+                map.typ.into(),
+                map.elements
+                    .into_iter()
+                    .map(Into::into)
+                    .collect(),
+                map.position.into(),
             ),
             polymorphic::Expr::Unfolding(unfolding) => legacy::Expr::Unfolding(
                 unfolding.predicate.name(),

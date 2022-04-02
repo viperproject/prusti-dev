@@ -145,6 +145,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         );
 
         let function_name = self.encode_function_name();
+
+        // encode calls to Map::* functions here
+
         debug!("Encode pure function {}", function_name);
         let mut state = run_backward_interpretation(&mir, &interpreter)?
             .unwrap_or_else(|| panic!("Procedure {:?} contains a loop", self.proc_def_id));
@@ -156,6 +159,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let new_expr = self.fix_arguments(expr)?;
             let _ = std::mem::replace(curr_expr, new_expr);
         }
+        
+        //
 
         let mut body_expr = state.into_expr().unwrap();
         debug!(

@@ -265,6 +265,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Constant {
             Type::Float(_) => unimplemented!(),
             Type::BitVector(_) => unimplemented!(),
             Type::Seq(_) => unimplemented!(),
+            Type::Map(_) => unimplemented!(),
             Type::Ref => unimplemented!(),
             Type::Perm => match &self.value {
                 expression::ConstantValue::Bool(_) => {
@@ -490,6 +491,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::Perm => ast.perm_type(),
             Type::Domain(ty) => ast.domain_type(&ty.name, &[], &[]),
             Type::Seq(ty) => ast.seq_type(ty.element_type.to_viper(ast)),
+            Type::Map(ty) => ast.map_type(ty.key_type.to_viper(ast), ty.val_type.to_viper(ast)),
             Type::Float(Float::F32) => ast.backend_f32_type(),
             Type::Float(Float::F64) => ast.backend_f64_type(),
             Type::BitVector(bv_size) => match bv_size {

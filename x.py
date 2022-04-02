@@ -564,6 +564,13 @@ def fmt_check_all():
         for file in glob.glob(path, recursive=True):
             run_command(['rustfmt', '--check', file])
 
+def create_target_link(path, name):
+    """Creates the necessary symbolic link for local prusti installations to work"""
+    try:
+        run_command(['ln', '-s', f'../../{name}', f'{path}/{name}'])
+    except:
+        pass # link already exists
+
 def main(argv):
     global verbose
     for i, arg in enumerate(argv):
@@ -605,6 +612,9 @@ def main(argv):
             break
         else:
             cargo(argv[i:])
+            if arg == 'build':
+                create_target_link('target/debug', 'viper_tools')
+                create_target_link('target/debug', 'rust-toolchain')
             break
     if not argv:
         cargo(argv)
