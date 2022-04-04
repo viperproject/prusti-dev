@@ -14,6 +14,9 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
             vir_high::Type::MFloat64 => vir_poly::Type::Float(F64),
             vir_high::Type::Bool => vir_poly::Type::typed_ref("bool"),
             vir_high::Type::Int(int) => vir_poly::Type::typed_ref(int.to_string().to_lowercase()),
+            vir_high::Type::Sequence(ty) => vir_poly::Type::Seq(vir_poly::SeqType {
+                typ: box ty.element_type.lower(encoder),
+            }),
             vir_high::Type::Float(float) => {
                 vir_poly::Type::typed_ref(float.to_string().to_lowercase())
             }

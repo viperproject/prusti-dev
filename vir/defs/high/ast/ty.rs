@@ -15,6 +15,8 @@ pub enum Type {
     Bool,
     /// Rust's Int allocated on the Viper heap.
     Int(Int),
+    /// A mathematical sequence of values of the same type.
+    Sequence(Sequence),
     Float(Float),
     TypeVar(TypeVar),
     Tuple(Tuple),
@@ -51,6 +53,11 @@ pub enum Int {
     Char,
     /// Used for ghost and mathematical integers.
     Unbounded,
+}
+
+#[display(fmt = "Sequence({})", element_type)]
+pub struct Sequence {
+    pub element_type: Box<Type>,
 }
 
 pub enum Float {
