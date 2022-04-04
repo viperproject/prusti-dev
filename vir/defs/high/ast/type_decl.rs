@@ -12,6 +12,7 @@ pub enum TypeDecl {
     TypeVar(TypeVar),
     Tuple(Tuple),
     Struct(Struct),
+    Sequence(Sequence),
     Enum(Enum),
     Union(Union),
     Array(Array),
@@ -103,6 +104,11 @@ pub struct Union {
 #[display(fmt = "Array({}, {})", length, element_type)]
 pub struct Array {
     pub length: u64,
+    pub element_type: Type,
+}
+
+#[display(fmt = "Sequence({})", element_type)]
+pub struct Sequence {
     pub element_type: Type,
 }
 

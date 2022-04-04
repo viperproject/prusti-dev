@@ -737,6 +737,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 vir_mid::TypeDecl::Array(_) => {
                     unimplemented!()
                 }
+                vir_mid::TypeDecl::Sequence(_) => {
+                    unimplemented!()
+                }
                 vir_mid::TypeDecl::Reference(_) => {
                     unimplemented!()
                 }
@@ -1017,6 +1020,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     }
                 }
                 vir_mid::TypeDecl::Array(_) => {
+                    unimplemented!()
+                }
+                vir_mid::TypeDecl::Sequence(_) => {
                     unimplemented!()
                 }
                 vir_mid::TypeDecl::Reference(_) => {
@@ -1546,6 +1552,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                 }
                             }
                             vir_mid::TypeDecl::Array(_) => unimplemented!("ty: {}", ty),
+                            vir_mid::TypeDecl::Sequence(_) => unimplemented!("ty: {}", ty),
                             vir_mid::TypeDecl::Reference(_) => unimplemented!("ty: {}", ty),
                             vir_mid::TypeDecl::Never => unimplemented!("ty: {}", ty),
                             vir_mid::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
