@@ -61,11 +61,19 @@ struct CachedBody<'tcx> {
     borrowck_facts: Rc<BorrowckFacts>,
 }
 
+struct CachedExternalBody<'tcx> {
+    /// MIR body as known to the compiler.
+    base_body: Rc<mir::Body<'tcx>>,
+    /// Copies of the MIR body with the given substs applied.
+    monomorphised_bodies: HashMap<SubstsRef<'tcx>, Rc<mir::Body<'tcx>>>,
+}
+
 /// Facade to the Rust compiler.
 // #[derive(Copy, Clone)]
 pub struct Environment<'tcx> {
     /// Cached MIR bodies.
     bodies: RefCell<HashMap<LocalDefId, CachedBody<'tcx>>>,
+    external_bodies: RefCell<HashMap<DefId, CachedExternalBody<'tcx>>>,
     tcx: TyCtxt<'tcx>,
 }
 
@@ -75,6 +83,7 @@ impl<'tcx> Environment<'tcx> {
         Environment {
             tcx,
             bodies: RefCell::new(HashMap::new()),
+            external_bodies: RefCell::new(HashMap::new()),
         }
     }
 
@@ -300,8 +309,28 @@ impl<'tcx> Environment<'tcx> {
     }
 
     /// Get the MIR body of an external procedure.
-    pub fn external_mir<'a>(&self, def_id: DefId) -> &'a mir::Body<'tcx> {
-        self.tcx().optimized_mir(def_id)
+    pub fn external_mir<'a>(
+        &self,
+        def_id: DefId,
+        substs: SubstsRef<'tcx>,
+    ) -> Rc<mir::Body<'tcx>> {
+        let mut bodies = self.external_bodies.borrow_mut();
+        let body = bodies.entry(def_id)
+            .or_insert_with(|| {
+                let body = self.tcx.optimized_mir(def_id);
+                CachedExternalBody {
+                    base_body: Rc::new(body.clone()),
+                    monomorphised_bodies: HashMap::new(),
+                }
+            });
+        body
+            .monomorphised_bodies
+            .entry(substs)
+            .or_insert_with(|| {
+                use crate::rustc_middle::ty::subst::Subst;
+                body.base_body.clone().subst(self.tcx, substs)
+            })
+            .clone()
     }
 
     /// Get all relevant trait declarations for some type.
@@ -456,14 +485,11 @@ impl<'tcx> Environment<'tcx> {
         }
 
         let param_env = self.tcx.param_env(caller_def_id);
-        let instance = self.tcx
-            .resolve_instance(param_env.and((called_def_id, call_substs)))
-            .unwrap();
-        if let Some(instance) = instance {
-            (instance.def_id(), instance.substs)
-        } else {
-            (called_def_id, call_substs)
-        }
+        traits::resolve_instance(self.tcx, param_env.and((called_def_id, call_substs)))
+            .map(|opt_instance| opt_instance
+                .map(|instance| (instance.def_id(), instance.substs))
+                .unwrap_or((called_def_id, call_substs)))
+            .unwrap_or((called_def_id, call_substs))
     }
 
     pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
