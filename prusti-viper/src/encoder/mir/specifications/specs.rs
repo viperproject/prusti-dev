@@ -4,8 +4,7 @@ use prusti_interface::{
     specs::typed::{DefSpecificationMap, LoopSpecification, ProcedureSpecification, Refinable},
 };
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::{DefId, LocalDefId};
-use std::collections::HashMap;
+use rustc_hir::def_id::DefId;
 
 /// Provides access to specifications, handling refinement if needed
 pub(super) struct Specifications {
