@@ -231,7 +231,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.mir.return_ty(),
                 self.encoder.env().tcx().param_env(self.proc_def_id)
             ));
-            let return_bounds: Vec<_> = self
+            let mut return_bounds: Vec<_> = self
                 .encoder
                 .encode_type_bounds(
                     &vir::Expr::local(pure_fn_return_variable),
@@ -240,7 +240,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 .into_iter()
                 .map(|p| p.set_default_pos(res_value_range_pos))
                 .collect();
-            postcondition.extend(return_bounds);
+            return_bounds.extend(postcondition);
+            postcondition = return_bounds;
 
             for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
                 let typ = self.interpreter.mir_encoder().get_local_ty(local);
@@ -248,10 +249,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                     .encoder
                     .env()
                     .type_is_copy(typ, self.encoder.env().tcx().param_env(self.proc_def_id)));
-                let bounds = self
+                let mut bounds = self
                     .encoder
                     .encode_type_bounds(&vir::Expr::local(formal_arg.clone()), typ);
-                precondition.extend(bounds);
+                bounds.extend(precondition);
+                precondition = bounds;
             }
         } else if config::encode_unsigned_num_constraint() {
             if let ty::TyKind::Uint(_) = self.mir.return_ty().kind() {
