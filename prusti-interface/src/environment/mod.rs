@@ -180,7 +180,7 @@ impl<'tcx> Environment<'tcx> {
 
     /// Returns true if an error has been emitted
     pub fn has_errors(&self) -> bool {
-        self.tcx.sess.has_errors()
+        self.tcx.sess.has_errors().is_some()
     }
 
     /// Get ids of Rust procedures that are annotated with a Prusti specification
