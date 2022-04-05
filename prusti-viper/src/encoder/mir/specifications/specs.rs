@@ -21,17 +21,9 @@ impl Specifications {
         }
     }
 
-    pub(super) fn get_user_typed_specs(&self) -> &DefSpecificationMap {
-        &self.user_typed_specs
-    }
-
-    pub(super) fn get_extern_spec_map(&self) -> &HashMap<DefId, LocalDefId> {
-        &self.get_user_typed_specs().extern_specs
-    }
-
     pub(super) fn get_loop_spec(&self, def_id: DefId) -> Option<&LoopSpecification> {
         trace!("Get loop specs of {:?}", def_id);
-        let spec = self.get_user_typed_specs().get(&def_id)?;
+        let spec = self.user_typed_specs.get(&def_id)?;
         spec.as_loop()
     }
 

@@ -247,11 +247,10 @@ pub struct LoopSpecification {
     pub invariant: LocalDefId,
 }
 
-/// A map of specifications keyed by crate-local DefIds.
+/// A map of specifications keyed by local or external DefIds.
 #[derive(Default, Debug, Clone)]
 pub struct DefSpecificationMap {
-    pub specs: HashMap<LocalDefId, SpecificationSet>,
-    pub extern_specs: HashMap<DefId, LocalDefId>,
+    pub specs: HashMap<DefId, SpecificationSet>,
 }
 
 impl DefSpecificationMap {
@@ -259,12 +258,7 @@ impl DefSpecificationMap {
         Self::default()
     }
     pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet> {
-        let id = if let Some(spec_id) = self.extern_specs.get(def_id) {
-            *spec_id
-        } else {
-            def_id.as_local()?
-        };
-        self.specs.get(&id)
+        self.specs.get(&def_id)
     }
 }
 
