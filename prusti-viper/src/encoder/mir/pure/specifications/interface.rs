@@ -241,7 +241,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             parent_def_id,
             PureEncodingContext::Code,
             parent_def_id,
-            substs,
         );
         let invariant = run_backward_interpretation_point_to_point(
             mir,
