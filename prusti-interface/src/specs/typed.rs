@@ -174,13 +174,17 @@ impl SpecificationItem<ProcedureSpecificationKind> {
     /// Ensures that refined [ProcedureSpecificationKind]s are valid.
     /// See [ProcedureSpecificationKindError] for detailed error descriptions.
     pub fn validate(&self) -> Result<(), ProcedureSpecificationKindError> {
+        use ProcedureSpecificationKind::*;
         if let SpecificationItem::Refined(base, refined) = self {
             match (base, refined) {
-                (ProcedureSpecificationKind::Predicate(_), ProcedureSpecificationKind::Pure) |
-                (ProcedureSpecificationKind::Predicate(_), ProcedureSpecificationKind::Impure) |
-                (ProcedureSpecificationKind::Pure, ProcedureSpecificationKind::Impure) =>
-                    Err(ProcedureSpecificationKindError::InvalidSpecKindRefinement(*base, *refined)),
-                _ => Ok(())
+                // An impure method can be refined to anything
+                (Impure, _) |
+                // An pure method can be refined to pure method or a predicate
+                (Pure, Pure) |
+                (Pure, Predicate(_)) |
+                // A predicate can only be refined to a predicate
+                (Predicate(_), Predicate(_)) => Ok(()),
+                _ => Err(ProcedureSpecificationKindError::InvalidSpecKindRefinement(*base, *refined))
             }
         } else {
             Ok(())
