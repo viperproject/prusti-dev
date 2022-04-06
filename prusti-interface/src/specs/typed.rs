@@ -3,6 +3,8 @@ use log::trace;
 use prusti_specs::specifications::common;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::{collections::HashMap, fmt::Debug};
+use std::fmt::{Display, Formatter};
+
 
 #[derive(Debug, Clone)]
 pub enum SpecificationSet {
@@ -134,7 +136,69 @@ impl SpecificationItem<bool> {
     }
 }
 
+#[derive(Debug)]
+pub enum ProcedureSpecificationKindError {
+    /// Occurs whenever the relation between [ProcedureSpecificationKind]s is violated.
+    /// The relation is: predicates ⊂ pure functions ⊂ impure functions
+    /// However, we can not refine a non-predicate to a predicate, since predicates are not callable.
+    /// This validation is not automatically performed during refinement. It needs to be invoked
+    /// manually with [SpecificationItem<ProcedureSpecificationKind>::validate]
+    InvalidSpecKindRefinement(ProcedureSpecificationKind, ProcedureSpecificationKind)
+}
+
+impl SpecificationItem<ProcedureSpecificationKind> {
+    pub fn is_pure(&self) -> Result<bool, ProcedureSpecificationKindError> {
+        self.validate()?;
+
+        Ok(matches!(self.extract_with_selective_replacement(),
+                Some(ProcedureSpecificationKind::Pure) | Some(ProcedureSpecificationKind::Predicate(_))))
+    }
+
+    pub fn is_impure(&self) -> Result<bool, ProcedureSpecificationKindError> {
+        self.validate()?;
+
+        Ok(match self.extract_with_selective_replacement() {
+            Some(refined) => matches!(refined, ProcedureSpecificationKind::Impure),
+            _ => true,
+        })
+    }
+
+    pub fn get_predicate_body(&self) -> Result<Option<&LocalDefId>, ProcedureSpecificationKindError> {
+        self.validate()?;
+
+        Ok(match self.extract_with_selective_replacement() {
+            Some(ProcedureSpecificationKind::Predicate(pred_id)) => Some(pred_id),
+            _ => None
+        })
+    }
+
+    /// Ensures that refined [ProcedureSpecificationKind]s are valid.
+    /// See [ProcedureSpecificationKindError] for detailed error descriptions.
+    pub fn validate(&self) -> Result<(), ProcedureSpecificationKindError> {
+        use ProcedureSpecificationKind::*;
+        if let SpecificationItem::Refined(base, refined) = self {
+            match (base, refined) {
+                (Impure, Impure) |
+                (Impure, Pure) |
+                (Pure, Pure) |
+                (Predicate(_), Predicate(_)) => Ok(()),
+                _ => Err(ProcedureSpecificationKindError::InvalidSpecKindRefinement(*base, *refined))
+            }
+        } else {
+            Ok(())
+        }
+    }
+}
+
 impl<T> SpecificationItem<Vec<T>> {
+    pub fn new(vec: Vec<T>) -> Self {
+        if vec.is_empty() {
+            SpecificationItem::Empty
+        } else {
+            SpecificationItem::Inherent(vec)
+        }
+    }
+
     pub fn extract_with_selective_replacement_iter(&self) -> Box<dyn Iterator<Item = &T> + '_> {
         if let Some(items) = self.extract_with_selective_replacement() {
             return Box::new(items.iter());
@@ -144,12 +208,10 @@ impl<T> SpecificationItem<Vec<T>> {
 }
 
 pub trait Refinable {
-    fn refine(self, other: &Self) -> Self
-    where
-        Self: Sized;
+    fn refine(self, other: &Self) -> Self where Self: Sized;
 }
 
-impl<T: std::fmt::Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
+impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
     fn refine(self, other: &Self) -> Self
     where
         Self: Sized,
@@ -200,8 +262,7 @@ impl Refinable for ProcedureSpecification {
             pres: self.pres.refine(&other.pres),
             posts: self.posts.refine(&other.posts),
             pledges: self.pledges.refine(&other.pledges),
-            predicate_body: self.predicate_body.refine(&other.predicate_body),
-            pure: self.pure.refine(&other.pure),
+            kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
         }
     }
@@ -221,23 +282,39 @@ impl Refinable for SpecificationSet {
 
 #[derive(Debug, Clone)]
 pub struct ProcedureSpecification {
+    pub kind: SpecificationItem<ProcedureSpecificationKind>,
     pub pres: SpecificationItem<Vec<LocalDefId>>,
     pub posts: SpecificationItem<Vec<LocalDefId>>,
     pub pledges: SpecificationItem<Vec<Pledge>>,
-    pub predicate_body: SpecificationItem<LocalDefId>,
-    pub pure: SpecificationItem<bool>,
     pub trusted: SpecificationItem<bool>,
 }
 
 impl ProcedureSpecification {
     pub fn empty() -> Self {
         ProcedureSpecification {
+            kind: SpecificationItem::Empty,
             pres: SpecificationItem::Empty,
             posts: SpecificationItem::Empty,
             pledges: SpecificationItem::Empty,
-            predicate_body: SpecificationItem::Empty,
-            pure: SpecificationItem::Inherent(false),
             trusted: SpecificationItem::Inherent(false),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum ProcedureSpecificationKind {
+    Impure,
+    Pure,
+    /// The specification is a predicate with the enclosed body
+    Predicate(LocalDefId),
+}
+
+impl Display for ProcedureSpecificationKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ProcedureSpecificationKind::Impure => write!(f, "Impure"),
+            ProcedureSpecificationKind::Pure => write!(f, "Pure"),
+            ProcedureSpecificationKind::Predicate(_) => write!(f, "Predicate"),
         }
     }
 }
@@ -270,6 +347,8 @@ impl DefSpecificationMap {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     mod refinement {
         use crate::specs::typed::{Refinable, SpecificationItem};
         use SpecificationItem::{Empty, Inherent, Inherited, Refined};
@@ -342,5 +421,148 @@ mod tests {
             refine_from_refined_with_inherited_unrefinable: (Refined(1, 2), Inherited(3)),
             refine_from_refined_with_refined: (Refined(1, 2), Refined(3,4)),
         );
+    }
+
+    mod specification_item_kind {
+        use super::*;
+        use SpecificationItem::*;
+        use ProcedureSpecificationKind::*;
+
+        const FAKE_LOCAL_DEF_ID: LocalDefId = rustc_hir::def_id::CRATE_DEF_ID;
+
+        mod invalid_refinements {
+            use super::*;
+
+            #[test]
+            fn refine_impure_with_predicate() {
+                let item = Refined(Impure, Predicate(FAKE_LOCAL_DEF_ID));
+                let result = item.validate().expect_err("Expected error");
+                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+            }
+
+            #[test]
+            fn refine_pure_with_impure() {
+                let item = Refined(Pure, Impure);
+                let result = item.validate().expect_err("Expected error");
+                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+            }
+
+            #[test]
+            fn refine_pure_with_predicate() {
+                let item = Refined(Pure, Predicate(FAKE_LOCAL_DEF_ID));
+                let result = item.validate().expect_err("Expected error");
+                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+            }
+
+            #[test]
+            fn refine_predicate_with_pure() {
+                let item = Refined(Predicate(FAKE_LOCAL_DEF_ID), Pure);
+                let result = item.validate().expect_err("Expected error");
+                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+            }
+
+            #[test]
+            fn refine_predicate_with_impure() {
+                let item = Refined(Predicate(FAKE_LOCAL_DEF_ID), Impure);
+                let result = item.validate().expect_err("Expected error");
+                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+            }
+        }
+
+        mod is_impure {
+            use super::*;
+
+            macro_rules! impure_checks {
+                    ($($name:ident: $value:expr,)*) => {
+                        $(
+                            #[test]
+                            fn $name() {
+                                let (item, expected) = $value;
+                                let item: SpecificationItem<ProcedureSpecificationKind> = item;
+                                let result = item.is_impure().expect("Expected impure");
+                                assert_eq!(result, expected);
+                            }
+                        )*
+                    }
+                }
+
+            impure_checks!(
+                    empty: (Empty, true),
+                    inherent_impure: (Inherent(Impure), true),
+                    inherent_pure: (Inherent(Pure), false),
+                    inherent_predicate: (Inherent(Predicate(FAKE_LOCAL_DEF_ID)), false),
+                    inherited_impure: (Inherited(Impure), true),
+                    inherited_pure: (Inherited(Pure), false),
+                    inherited_predicate: (Inherited(Predicate(FAKE_LOCAL_DEF_ID)), false),
+                    refined_impure_parent_impure_child: (Refined(Impure, Impure), true),
+                    refined_impure_parent_pure_child: (Refined(Impure, Pure), false),
+                    refined_pure_parent_with_pure_child: (Refined(Pure, Pure), false),
+                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), false),
+            );
+        }
+
+        mod is_pure {
+            use super::*;
+
+            macro_rules! pure_checks {
+                    ($($name:ident: $value:expr,)*) => {
+                        $(
+                            #[test]
+                            fn $name() {
+                                let (item, expected) = $value;
+                                let item: SpecificationItem<ProcedureSpecificationKind> = item;
+                                let result = item.is_pure().expect("Expected pure");
+                                assert_eq!(result, expected);
+                            }
+                        )*
+                    }
+                }
+
+            pure_checks!(
+                    empty: (Empty, false),
+                    inherent_impure: (Inherent(Impure), false),
+                    inherent_pure: (Inherent(Pure), true),
+                    inherent_predicate: (Inherent(Predicate(FAKE_LOCAL_DEF_ID)), true),
+                    inherited_impure: (Inherited(Impure), false),
+                    inherited_pure: (Inherited(Pure), true),
+                    inherited_predicate: (Inherited(Predicate(FAKE_LOCAL_DEF_ID)), true),
+                    refined_impure_parent_impure_child: (Refined(Impure, Impure), false),
+                    refined_impure_parent_pure_child: (Refined(Impure, Pure), true),
+                    refined_pure_parent_with_pure: (Refined(Pure, Pure), true),
+                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), true),
+            );
+        }
+
+        mod is_predicate {
+            use super::*;
+
+            macro_rules! predicate_checks {
+                    ($($name:ident: $value:expr,)*) => {
+                        $(
+                            #[test]
+                            fn $name() {
+                                let (item, expected) = $value;
+                                let item: SpecificationItem<ProcedureSpecificationKind> = item;
+                                let result = item.get_predicate_body().expect("Expected predicate");
+                                assert_eq!(result.is_some(), expected);
+                            }
+                        )*
+                    }
+                }
+
+            predicate_checks!(
+                    empty: (Empty, false),
+                    inherent_impure: (Inherent(Impure), false),
+                    inherent_pure: (Inherent(Pure), false),
+                    inherent_predicate: (Inherent(Predicate(FAKE_LOCAL_DEF_ID)), true),
+                    inherited_impure: (Inherited(Impure), false),
+                    inherited_pure: (Inherited(Pure), false),
+                    inherited_predicate: (Inherited(Predicate(FAKE_LOCAL_DEF_ID)), true),
+                    refined_impure_parent_impure_child: (Refined(Impure, Impure), false),
+                    refined_impure_parent_pure_child: (Refined(Impure, Pure), false),
+                    refined_pure_parent_with_pure_child: (Refined(Pure, Pure), false),
+                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), true),
+            );
+        }
     }
 }
