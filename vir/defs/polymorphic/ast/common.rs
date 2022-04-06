@@ -399,6 +399,10 @@ impl Type {
                     }
                 }
             }
+            Type::Seq(SeqType { box typ }) => {
+                // TODO is it alright to use `seq` as encoded name here?
+                format!("seq${}", Self::encode_arguments(&vec![typ.clone()]))
+            }
             Type::TypeVar(TypeVar { label }) => format!("__TYPARAM__$_{}$__", label),
             x => unreachable!("{}", x),
         }
