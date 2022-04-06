@@ -11,11 +11,11 @@ use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::subst::SubstsRef;
 use std::{cell::RefCell, hash::Hash};
 
-pub(crate) struct SpecificationsState {
-    specs: RefCell<Specifications>,
+pub(crate) struct SpecificationsState<'tcx> {
+    specs: RefCell<Specifications<'tcx>>,
 }
 
-impl SpecificationsState {
+impl<'tcx> SpecificationsState<'tcx> {
     pub fn new(user_typed_specs: DefSpecificationMap) -> Self {
         Self {
             specs: RefCell::new(Specifications::new(user_typed_specs)),
@@ -23,7 +23,7 @@ impl SpecificationsState {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpecQuery<'tcx> {
     pub called_def_id: DefId,
     pub caller_def_id: Option<DefId>,
