@@ -205,6 +205,10 @@ impl Type {
         matches!(self, &Type::Snapshot(_))
     }
 
+    pub fn is_seq(&self) -> bool {
+        matches!(self, &Type::Seq(_))
+    }
+
     pub fn is_type_var(&self) -> bool {
         matches!(self, &Type::TypeVar(_))
     }
