@@ -20,7 +20,7 @@ use typed::SpecIdRef;
 
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
-use crate::specs::typed::SpecificationItem;
+use crate::specs::typed::{ProcedureSpecificationKind, SpecificationItem};
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -76,7 +76,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             let mut pres = vec![];
             let mut posts = vec![];
             let mut pledges = vec![];
-            let mut predicate_body = SpecificationItem::Empty;
+
+            let mut kind = if refs.pure {
+                ProcedureSpecificationKind::Pure
+            } else {
+                ProcedureSpecificationKind::Impure
+            };
+
             for spec_id_ref in &refs.spec_id_refs {
                 match spec_id_ref {
                     SpecIdRef::Precondition(spec_id) => {
@@ -93,31 +99,21 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                         });
                     }
                     SpecIdRef::Predicate(spec_id) => {
-                        predicate_body = SpecificationItem::Inherent(*self.spec_functions.get(spec_id).unwrap());
+                        kind = ProcedureSpecificationKind::Predicate(*self.spec_functions.get(spec_id).unwrap());
                     }
                 }
             }
 
-            let pres = if pres.is_empty() {
-                SpecificationItem::Empty
-            } else {
-                SpecificationItem::Inherent(pres)
-            };
-
-            let posts = if posts.is_empty() {
-                SpecificationItem::Empty
-            } else {
-                SpecificationItem::Inherent(posts)
-            };
-
-            let pledges = if pledges.is_empty() {
-                SpecificationItem::Empty
-            } else {
-                SpecificationItem::Inherent(pledges)
-            };
-
-            let pure = SpecificationItem::Inherent(refs.pure);
+            // Wrap everything into a specification item
+            let pres = SpecificationItem::new(pres);
+            let posts = SpecificationItem::new(posts);
+            let pledges = SpecificationItem::new(pledges);
             let trusted = SpecificationItem::Inherent(refs.trusted);
+
+            // We never create an empty kind. This would lead to refinement inheritance
+            // if there is a trait involved.
+            // Instead, we require the user to explicitly make annotations
+            let kind = SpecificationItem::Inherent(kind);
 
             def_spec.specs.insert(
                 *local_id,
@@ -125,8 +121,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     pres,
                     posts,
                     pledges,
-                    predicate_body,
-                    pure,
+                    kind,
                     trusted,
                 })
             );

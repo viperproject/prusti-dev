@@ -50,7 +50,8 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), def_id)
-            .and_then(|spec| spec.pure.extract_inherit())
+            // In case of error -> It is emitted in get_and_refine_proc_spec
+            .map(|spec| spec.kind.is_pure().unwrap_or(false))
             .unwrap_or(false);
         trace!("is_pure {:?} = {}", def_id, result);
         result
@@ -72,7 +73,9 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
         let mut specs = self.specifications_state.specs.borrow_mut();
         let result = specs
             .get_and_refine_proc_spec(self.env(), def_id)
-            .and_then(|spec| spec.predicate_body.extract_with_selective_replacement());
+            // In case of error -> It is emitted in get_and_refine_proc_spec
+            .map(|spec| spec.kind.get_predicate_body().unwrap_or(None))
+            .unwrap_or(None);
         trace!("get_predicate_body {:?} = {:?}", def_id, result);
         result.cloned()
     }
