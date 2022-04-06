@@ -124,11 +124,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         .version("1.0")
         .arg(Arg::with_name("skip-build-check")
             .long("skip-build-check")
-            .help("Do not check that the crates compile successfully without Prusti.")
+            .help("Do not check that the crates compile successfully without Prusti")
             .takes_value(false)
             .required(false))
+        .arg(Arg::with_name("CRATENAME")
+            .help("If specified, only test crates containing this string in their names")
+            .index(1))
         .get_matches();
     let skip_build_check = matches.is_present("skip-build-check");
+    let filter_crate_name = matches.value_of("CRATENAME").unwrap_or("");
 
     let workspace_path = Path::new("../workspaces/test-crates-builder");
     let host_prusti_home = if cfg!(debug_assertions) {
@@ -179,6 +183,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .deserialize()
             .collect::<Result<Vec<CrateRecord>, _>>()?
             .into_iter()
+            .filter(|record| record.name.contains(filter_crate_name))
             .map(|record| (Crate::crates_io(&record.name, &record.version), record.test_kind))
             .collect();
 
