@@ -2682,6 +2682,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    fn encode_seq_function_call(&mut self, name: &str) -> Option<SpannedEncodingResult<Vec<vir::Stmt>>> {
+        match name {
+            "prusti_contracts::Seq::<T>::empty"  => Some(todo!("corresponding sequence operation")),
+            "prusti_contracts::Seq::<T>::single" => Some(todo!("corresponding sequence operation")),
+            "prusti_contracts::Seq::<T>::concat" => Some(todo!("corresponding sequence operation")),
+            _ => None,
+        }
+    }
+
     #[allow(clippy::too_many_arguments)]
     fn encode_impure_function_call(
         &mut self,
@@ -2699,6 +2708,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .def_path_str(called_def_id);
             // .absolute_item_path_str(called_def_id);
         debug!("Encoding non-pure function call '{}' with args {:?} and substs {:?}", full_func_proc_name, mir_args, substs);
+
+        if let Some(result) = self.encode_seq_function_call(full_func_proc_name) {
+            return result;
+        }
 
         // First we construct the "operands" vector. This construction differs
         // for closure calls, where we need to unpack a tuple into the actual
