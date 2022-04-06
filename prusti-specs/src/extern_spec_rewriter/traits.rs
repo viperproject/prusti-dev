@@ -1,5 +1,5 @@
 //! Encoding of external specs for traits
-use crate::{ExternSpecKind, is_predicate_macro, parse_quote_spanned, RewriteMethodReceiver, SelfRewriter};
+use crate::{ExternSpecKind, is_predicate_macro, parse_quote_spanned, RewriteMethodReceiver, SelfRewriter, AssociatedTypeRewritable};
 use crate::specifications::common::generate_struct_name_for_trait;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
@@ -176,11 +176,7 @@ impl<'a> GeneratedStruct<'a> {
 
         // Rewrite occurrences of associated types in signature to defined generics
         let self_type_path = parse_quote_spanned! {self_type_ident.span()=> #self_type_ident };
-        AssociatedTypeRewriter::new(
-            &self_type_path,
-            &self.self_type_trait,
-        )
-            .rewrite_method_sig(&mut trait_method_sig);
+        trait_method_sig.rewrite_self_type_to_new_type(&self_type_path, &self.self_type_trait);
 
         // Rewrite "self" to "_self" in method attributes and method inputs
         let mut trait_method_attrs = trait_method.attrs.clone();

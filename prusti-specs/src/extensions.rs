@@ -1,7 +1,7 @@
 //! Various extensions to syn types and TokenStreams
 use proc_macro2::{TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{Expr, FnArg, ImplItemMacro, ImplItemMethod, ItemFn, Macro, Pat, PatType, Signature, Token, TraitItemMacro, TraitItemMethod};
+use syn::{Expr, FnArg, ImplItemMacro, ImplItemMethod, ItemFn, Macro, Pat, PatType, Signature, Token, TraitItemMacro, TraitItemMethod, TypePath};
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -32,6 +32,74 @@ impl<T: ToTokens+Parse> SelfRewriter for T {
         parse_quote_spanned!(tokens_span=>
             #rewritten
         )
+    }
+}
+
+/// Given a replacement for the `Self` type and the trait it should fulfill,
+/// this type rewrites `Self` and associated type paths.
+///
+/// # Example
+/// Given a `Self` replacement `T_Self` and a self trait constraint `Foo<X>`,
+/// visiting a function
+/// ```
+/// fn foo(arg1: Self, arg2: Self::Assoc1) -> Self::Assoc2 { }
+/// ```
+/// results in
+/// ```
+/// fn foo(arg1: T_Self, arg2: <T_Self as Foo<X>>::Assoc1) -> <T_Self as Foo<X>>::Assoc2 { }
+/// ```
+pub trait AssociatedTypeRewritable {
+    /// See documentation on [AssociatedTypeRewritable]
+    fn rewrite_self_type_to_new_type(&mut self, self_type: &TypePath, self_type_trait: &TypePath);
+}
+
+impl<T: HasSignature> AssociatedTypeRewritable for T {
+    fn rewrite_self_type_to_new_type(&mut self, self_type: &TypePath, self_type_trait: &TypePath) {
+        let mut rewriter = AssociatedTypeRewriter {
+            self_type,
+            self_type_trait,
+        };
+        rewriter.rewrite_method_sig(self.sig_mut());
+    }
+}
+
+/// See documentation on [AssociatedTypeRewritable]
+struct AssociatedTypeRewriter<'a> {
+    self_type: &'a TypePath,
+    self_type_trait: &'a TypePath,
+}
+
+impl<'a> AssociatedTypeRewriter<'a> {
+    pub fn rewrite_method_sig(&mut self, signature: &mut syn::Signature) {
+        syn::visit_mut::visit_signature_mut(self, signature);
+    }
+}
+
+impl<'a> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a> {
+    fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
+        if ty_path.qself.is_none()
+            && !ty_path.path.segments.is_empty()
+            && ty_path.path.segments[0].ident == "Self" {
+            if ty_path.path.segments.len() == 1 {
+                // replace `Self` type
+                *ty_path = self.self_type.clone();
+            } else if ty_path.path.segments.len() >= 2 {
+                // replace associated types
+                let mut path_rest = ty_path.path.segments.clone()
+                    .into_pairs()
+                    .skip(1)
+                    .collect::<syn::punctuated::Punctuated::<syn::PathSegment, _>>();
+                if ty_path.path.segments.trailing_punct() {
+                    path_rest.push_punct(<syn::Token![::]>::default());
+                }
+                let self_type = &self.self_type;
+                let self_type_trait = &self.self_type_trait;
+                *ty_path = parse_quote_spanned! {ty_path.span()=>
+                    < #self_type as #self_type_trait > :: #path_rest
+                };
+            }
+        }
+        syn::visit_mut::visit_type_path_mut(self, ty_path);
     }
 }
 

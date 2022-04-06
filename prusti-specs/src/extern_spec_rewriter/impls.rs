@@ -1,4 +1,4 @@
-use crate::{ExternSpecKind, is_predicate_macro, RewriteMethodReceiver, SelfRewriter, span_overrider::SpanOverrider, specifications::common::generate_struct_name};
+use crate::{ExternSpecKind, is_predicate_macro, RewriteMethodReceiver, SelfRewriter, AssociatedTypeRewritable, span_overrider::SpanOverrider, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
 use syn::parse_quote_spanned;
@@ -136,10 +136,6 @@ fn rewrite_trait_impl(
 
     let item_trait_path = impl_item.trait_.as_ref().unwrap().1.clone();
     let item_trait_typath = parse_quote_spanned! {item_trait_path.span()=> #item_trait_path };
-    let mut rewriter = AssociatedTypeRewriter::new(
-        &item_ty_path,
-        &item_trait_typath,
-    );
 
     // TODO: reduce duplication with rewrite_plain_impl
     for item in impl_item.items.iter() {
@@ -162,7 +158,7 @@ fn rewrite_trait_impl(
                 );
 
                 // Rewrite occurences of associated types in method signature
-                rewriter.rewrite_method_sig(&mut rewritten_method.sig);
+                rewritten_method.rewrite_self_type_to_new_type(&item_ty_path, &item_trait_typath);
 
                 new_impl.items.push(syn::ImplItem::Method(rewritten_method));
             }

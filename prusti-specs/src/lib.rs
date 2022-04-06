@@ -31,7 +31,7 @@ use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
 use prusti_utils::force_matches;
 pub use extern_spec_rewriter::ExternSpecKind;
-use crate::extensions::{RewriteMethodReceiver, SelfRewriter};
+use crate::extensions::{RewriteMethodReceiver, SelfRewriter, AssociatedTypeRewritable};
 use crate::predicate::{is_predicate_macro, ParsedPredicate};
 
 macro_rules! handle_result {
@@ -374,6 +374,17 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
 pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let mut impl_block: syn::ItemImpl = handle_result!(syn::parse2(tokens));
+
+    let trait_path: syn::TypePath = match &impl_block.trait_ {
+        Some((_, trait_path, _)) => parse_quote_spanned!(trait_path.span()=>#trait_path),
+        None => handle_result!(Err(syn::Error::new(impl_block.span(), "Can refine trait specifications only on trait implementation blocks"))),
+    };
+
+    let self_type_path: &syn::TypePath = match &*impl_block.self_ty {
+        syn::Type::Path(type_path) => type_path,
+        _ => unimplemented!("Currently not supported: {:?}", impl_block.self_ty),
+    };
+
     let mut new_items = Vec::new();
     let mut generated_spec_items = Vec::new();
     for item in impl_block.items {
@@ -384,20 +395,19 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                 let (spec_items, generated_attributes) = handle_result!(
                     generate_spec_and_assertions(prusti_attributes, &method_item)
                 );
-                generated_spec_items.extend(spec_items.into_iter().map(|spec_item| {
-                    match spec_item {
-                        syn::Item::Fn(spec_item_fn) => {
-                            syn::ImplItem::Method(syn::ImplItemMethod {
-                                attrs: spec_item_fn.attrs,
-                                vis: spec_item_fn.vis,
-                                defaultness: None,
-                                sig: spec_item_fn.sig,
-                                block: *spec_item_fn.block,
-                            })
-                        }
+
+                spec_items.into_iter()
+                    .map(|spec_item| match spec_item {
+                        syn::Item::Fn(spec_item_fn) => spec_item_fn,
                         x => unimplemented!("Unexpected variant: {:?}", x),
-                    }
-                }));
+                    })
+                    .map(|mut spec_item_fn| {
+                        spec_item_fn.rewrite_receiver(&self_type_path);
+                        spec_item_fn.rewrite_self_type_to_new_type(self_type_path, &trait_path);
+                        spec_item_fn.rewrite_self()
+                    })
+                    .for_each(|spec_item_fn| generated_spec_items.push(spec_item_fn));
+
                 let new_item = parse_quote_spanned! {method_item.span()=>
                     #(#generated_attributes)*
                     #method_item
@@ -412,9 +422,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                     _ => unreachable!(),
                 };
 
-                // Patch spec function:
-                // Rewrite self with _self: <SpecStruct>
-                let span = predicate.spec_function.span();
+                // Patch spec function: Rewrite self with _self: <SpecStruct>
                 let mut spec_function = match predicate.spec_function {
                     syn::Item::Fn(item_fn) => item_fn,
                     _ => unreachable!(),
@@ -422,11 +430,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 
                 spec_function.rewrite_receiver(&*impl_block.self_ty);
                 let patched_function = spec_function.rewrite_self();
-
-                let as_impl_item: syn::ImplItem = parse_quote_spanned!(span=>
-                    #patched_function
-                );
-                generated_spec_items.push(as_impl_item);
+                generated_spec_items.push(patched_function);
 
                 // Add patched predicate function to new items
                 new_items.push(syn::ImplItem::Method(predicate.patched_function));
@@ -435,19 +439,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
         }
     }
     impl_block.items = new_items;
-    let spec_impl_block = syn::ItemImpl {
-        attrs: Vec::new(),
-        defaultness: impl_block.defaultness,
-        unsafety: impl_block.unsafety,
-        impl_token: impl_block.impl_token,
-        generics: impl_block.generics.clone(),
-        trait_: None,
-        self_ty: impl_block.self_ty.clone(),
-        brace_token: impl_block.brace_token,
-        items: generated_spec_items,
-    };
     quote_spanned! {impl_block.span()=>
-        #spec_impl_block
+        #(#generated_spec_items)*
         #impl_block
     }
 }
