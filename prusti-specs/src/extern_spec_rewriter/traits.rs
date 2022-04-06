@@ -1,5 +1,5 @@
 //! Encoding of external specs for traits
-use crate::{ExternSpecKind, parse_quote_spanned, RewriteMethodReceiver, SelfRewriter};
+use crate::{ExternSpecKind, is_predicate_macro, parse_quote_spanned, RewriteMethodReceiver, SelfRewriter};
 use crate::specifications::common::generate_struct_name_for_trait;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
@@ -148,6 +148,12 @@ impl<'a> GeneratedStruct<'a> {
 
                     let method = self.generate_method_stub(trait_method);
                     struct_impl.items.push(syn::ImplItem::Method(method));
+                },
+                syn::TraitItem::Macro(makro) if is_predicate_macro(makro) => {
+                    return Err(syn::Error::new(
+                        makro.span(),
+                        "Can not declare abstract predicate in external spec"
+                    ));
                 }
                 _ => unimplemented!("Unimplemented trait item for extern spec"),
             };

@@ -1,4 +1,4 @@
-use crate::{ExternSpecKind, RewriteMethodReceiver, SelfRewriter, span_overrider::SpanOverrider, specifications::common::generate_struct_name};
+use crate::{ExternSpecKind, is_predicate_macro, RewriteMethodReceiver, SelfRewriter, span_overrider::SpanOverrider, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
 use syn::parse_quote_spanned;
@@ -96,6 +96,12 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
                 None,
                 ExternSpecKind::InherentImpl,
             ),
+            syn::ImplItem::Macro(makro) if is_predicate_macro(makro) => {
+                return Err(syn::Error::new(
+                    makro.span(),
+                    "Can not declare abstract predicate in external spec"
+                ));
+            }
             _ => {
                 // TODO: this case also covers methods with `pub` modifier
                 // show a more meaningful message if that is the case

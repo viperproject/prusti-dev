@@ -1,7 +1,7 @@
 //! Various extensions to syn types and TokenStreams
 use proc_macro2::{TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{Expr, FnArg, ImplItemMethod, ItemFn, Pat, PatType, Signature, Token, TraitItemMethod};
+use syn::{Expr, FnArg, ImplItemMacro, ImplItemMethod, ItemFn, Macro, Pat, PatType, Signature, Token, TraitItemMacro, TraitItemMethod};
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -140,5 +140,22 @@ impl HasSignature for TraitItemMethod {
 
     fn sig_mut(&mut self) -> &mut Signature {
         &mut self.sig
+    }
+}
+
+/// Abstraction over everything that has a [syn::Macro]
+pub trait HasMacro {
+    fn mac(&self) -> &Macro;
+}
+
+impl HasMacro for TraitItemMacro {
+    fn mac(&self) -> &Macro {
+        &self.mac
+    }
+}
+
+impl HasMacro for ImplItemMacro {
+    fn mac(&self) -> &Macro {
+        &self.mac
     }
 }
