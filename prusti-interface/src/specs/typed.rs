@@ -140,6 +140,7 @@ impl SpecificationItem<bool> {
 pub enum ProcedureSpecificationKindError {
     /// Occurs whenever the relation between [ProcedureSpecificationKind]s is violated.
     /// The relation is: predicates ⊂ pure functions ⊂ impure functions
+    /// However, we can not refine a non-predicate to a predicate, since predicates are not callable.
     /// This validation is not automatically performed during refinement. It needs to be invoked
     /// manually with [SpecificationItem<ProcedureSpecificationKind>::validate]
     InvalidSpecKindRefinement(ProcedureSpecificationKind, ProcedureSpecificationKind)
@@ -177,12 +178,9 @@ impl SpecificationItem<ProcedureSpecificationKind> {
         use ProcedureSpecificationKind::*;
         if let SpecificationItem::Refined(base, refined) = self {
             match (base, refined) {
-                // An impure method can be refined to anything
-                (Impure, _) |
-                // An pure method can be refined to pure method or a predicate
+                (Impure, Impure) |
+                (Impure, Pure) |
                 (Pure, Pure) |
-                (Pure, Predicate(_)) |
-                // A predicate can only be refined to a predicate
                 (Predicate(_), Predicate(_)) => Ok(()),
                 _ => Err(ProcedureSpecificationKindError::InvalidSpecKindRefinement(*base, *refined))
             }
@@ -436,22 +434,36 @@ mod tests {
             use super::*;
 
             #[test]
-            fn refine_impure_with_pure() {
+            fn refine_impure_with_predicate() {
+                let item = Refined(Impure, Predicate(FAKE_LOCAL_DEF_ID));
+                let result = item.validate().expect_err("Expected error");
+                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+            }
+
+            #[test]
+            fn refine_pure_with_impure() {
                 let item = Refined(Pure, Impure);
                 let result = item.validate().expect_err("Expected error");
                 assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
             }
 
             #[test]
-            fn refine_impure_with_predicate() {
-                let item = Refined(Predicate(FAKE_LOCAL_DEF_ID), Impure);
+            fn refine_pure_with_predicate() {
+                let item = Refined(Pure, Predicate(FAKE_LOCAL_DEF_ID));
                 let result = item.validate().expect_err("Expected error");
                 assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
             }
 
             #[test]
-            fn refine_pure_with_predicate() {
+            fn refine_predicate_with_pure() {
                 let item = Refined(Predicate(FAKE_LOCAL_DEF_ID), Pure);
+                let result = item.validate().expect_err("Expected error");
+                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+            }
+
+            #[test]
+            fn refine_predicate_with_impure() {
+                let item = Refined(Predicate(FAKE_LOCAL_DEF_ID), Impure);
                 let result = item.validate().expect_err("Expected error");
                 assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
             }
@@ -484,10 +496,8 @@ mod tests {
                     inherited_predicate: (Inherited(Predicate(FAKE_LOCAL_DEF_ID)), false),
                     refined_impure_parent_impure_child: (Refined(Impure, Impure), true),
                     refined_impure_parent_pure_child: (Refined(Impure, Pure), false),
-                    refined_impure_parent_predicate_child: (Refined(Impure, Predicate(FAKE_LOCAL_DEF_ID)), false),
-                    refined_pure_with_predicate: (Refined(Pure, Predicate(FAKE_LOCAL_DEF_ID)), false),
-                    refined_pure_with_pure: (Refined(Pure, Pure), false),
-                    refined_predicate_with_predicate: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), false),
+                    refined_pure_parent_with_pure_child: (Refined(Pure, Pure), false),
+                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), false),
             );
         }
 
@@ -518,10 +528,8 @@ mod tests {
                     inherited_predicate: (Inherited(Predicate(FAKE_LOCAL_DEF_ID)), true),
                     refined_impure_parent_impure_child: (Refined(Impure, Impure), false),
                     refined_impure_parent_pure_child: (Refined(Impure, Pure), true),
-                    refined_impure_parent_predicate_child: (Refined(Impure, Predicate(FAKE_LOCAL_DEF_ID)), true),
-                    refined_pure_with_predicate: (Refined(Pure, Predicate(FAKE_LOCAL_DEF_ID)), true),
-                    refined_pure_with_pure: (Refined(Pure, Pure), true),
-                    refined_predicate_with_predicate: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), true),
+                    refined_pure_parent_with_pure: (Refined(Pure, Pure), true),
+                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), true),
             );
         }
 
@@ -552,10 +560,8 @@ mod tests {
                     inherited_predicate: (Inherited(Predicate(FAKE_LOCAL_DEF_ID)), true),
                     refined_impure_parent_impure_child: (Refined(Impure, Impure), false),
                     refined_impure_parent_pure_child: (Refined(Impure, Pure), false),
-                    refined_impure_parent_predicate_child: (Refined(Impure, Predicate(FAKE_LOCAL_DEF_ID)), true),
-                    refined_pure_with_predicate: (Refined(Pure, Predicate(FAKE_LOCAL_DEF_ID)), true),
-                    refined_pure_with_pure: (Refined(Pure, Pure), false),
-                    refined_predicate_with_predicate: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), true),
+                    refined_pure_parent_with_pure_child: (Refined(Pure, Pure), false),
+                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), true),
             );
         }
     }
