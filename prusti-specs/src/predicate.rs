@@ -4,6 +4,7 @@ use crate::{extensions::HasSignature, rewriter, SpecificationId};
 use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use syn::{parse::Parse, spanned::Spanned};
+use crate::extensions::HasMacro;
 
 #[derive(Debug)]
 pub struct PredicateWithBody<T: ToTokens> {
@@ -55,9 +56,9 @@ impl ToTokens for ParsedPredicate {
     }
 }
 
-pub fn is_predicate_macro(makro: &syn::ImplItemMacro) -> bool {
+pub fn is_predicate_macro<T: HasMacro>(makro: &T) -> bool {
     makro
-        .mac
+        .mac()
         .path
         .segments
         .last()
