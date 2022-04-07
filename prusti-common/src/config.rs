@@ -536,4 +536,6 @@ pub fn intern_names() -> bool {
 }
 
 /// Enables ghost constraint parsing and resolving.
-pub fn enable_ghost_constraints() -> bool { read_setting("enable_ghost_constraints") }
+pub fn enable_ghost_constraints() -> bool {
+    read_setting("enable_ghost_constraints")
+}

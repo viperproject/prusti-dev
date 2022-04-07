@@ -541,7 +541,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<()> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
-            !self.is_trusted( def_id, None),
+            !self.is_trusted(def_id, None),
             "procedure is marked as trusted: {:?}",
             def_id
         );

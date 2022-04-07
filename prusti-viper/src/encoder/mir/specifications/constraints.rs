@@ -62,8 +62,8 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
             // since they can a pure/trusted flag can not change in a constrained spec
             SpecQueryCause::PureOrTrustedCheck => {
                 trace!(
-                "No need to resolve obligations for checking whether function is pure or trusted"
-            );
+                    "No need to resolve obligations for checking whether function is pure or trusted"
+                );
                 return Ok(&self.base_spec);
             }
             // Obligations are resolved for function definition encodings to account
@@ -141,7 +141,7 @@ mod resolvers {
 
             // There is no caller when encoding a function.
             // We still resolve obligations to account for constrained specs on a trait
-            // for which we encode it's implementation. The corresponding encoding will
+            // for which we encode its implementation. The corresponding encoding will
             // contain a behavioral subtyping check which will be performed on the
             // resolved spec.
             let param_env_lookup = if let Some(caller_def_id) = query.caller_def_id {
