@@ -114,7 +114,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         )?,
                     ))
                 }
-                vir_mid::TypeDecl::Enum(_) => {
+                vir_mid::TypeDecl::Union(_) | vir_mid::TypeDecl::Enum(_) => {
                     let place_variant = place.clone().unwrap_variant(); // FIXME: Implement a macro that takes a reference to avoid clonning.
                     Ok((
                         self.obtain_enum_variant_snapshot(

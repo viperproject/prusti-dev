@@ -4,9 +4,12 @@ use super::{
     state::PredicateState,
     FoldUnfoldState,
 };
-use crate::encoder::errors::SpannedEncodingResult;
+use crate::encoder::errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult};
 use log::debug;
-use vir_crate::high::{self as vir_high, operations::ty::Typed};
+use vir_crate::{
+    common::position::Positioned,
+    high::{self as vir_high, operations::ty::Typed},
+};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(in super::super) enum ExpandedPermissionKind {
@@ -24,6 +27,12 @@ pub(in super::super) trait Context {
         place: &vir_high::Expression,
         guiding_place: &vir_high::Expression,
     ) -> SpannedEncodingResult<Vec<(ExpandedPermissionKind, vir_high::Expression)>>;
+    fn get_span(&mut self, position: vir_high::Position) -> Option<rustc_span::MultiSpan>;
+    fn change_error_context(
+        &mut self,
+        position: vir_high::Position,
+        error_ctxt: ErrorCtxt,
+    ) -> vir_high::Position;
 }
 
 pub(in super::super) fn ensure_required_permissions(
@@ -53,7 +62,12 @@ fn ensure_required_permission(
     };
 
     let unconditional_predicate_state = state.get_unconditional_state()?;
-    if can_place_be_ensured_in(&place, permission_kind, unconditional_predicate_state)? {
+    if can_place_be_ensured_in(
+        context,
+        &place,
+        permission_kind,
+        unconditional_predicate_state,
+    )? {
         ensure_permission_in_state(
             context,
             unconditional_predicate_state,
@@ -63,7 +77,12 @@ fn ensure_required_permission(
         )?;
     } else {
         for (condition, conditional_predicate_state) in state.get_conditional_states()? {
-            if can_place_be_ensured_in(&place, permission_kind, conditional_predicate_state)? {
+            if can_place_be_ensured_in(
+                context,
+                &place,
+                permission_kind,
+                conditional_predicate_state,
+            )? {
                 let mut conditional_actions = Vec::new();
                 ensure_permission_in_state(
                     context,
@@ -89,6 +108,7 @@ fn ensure_required_permission(
 }
 
 fn can_place_be_ensured_in(
+    context: &mut impl Context,
     place: &vir_high::Expression,
     permission_kind: PermissionKind,
     predicate_state: &PredicateState,
@@ -103,8 +123,37 @@ fn can_place_be_ensured_in(
         .is_some();
     // The requirement can be satisfied by converting into Memory Block.
     let by_into_memory_block = permission_kind == PermissionKind::MemoryBlock
-        && can_place_be_ensured_in(place, PermissionKind::Owned, predicate_state)?;
+        && can_place_be_ensured_in(context, place, PermissionKind::Owned, predicate_state)?;
     let can = already_satisfied || by_unfolding || by_folding || by_into_memory_block;
+    if !can {
+        // Check whether required_permission conflicts with state (has a
+        // different variant) and report an error to the user suggesting that
+        // they should fold.
+        for prefix in place.iter_prefixes() {
+            if let vir_high::Expression::Variant(variant) = prefix {
+                for prefixed in predicate_state.get_all_with_prefix(permission_kind, &variant.base)
+                {
+                    if !prefixed.has_prefix(prefix) {
+                        let place_span = context.get_span(place.position()).unwrap();
+                        let prefixed_span = context.get_span(prefixed.position()).unwrap();
+                        let mut error = SpannedEncodingError::unsupported(
+                            "failed to obtain the required capability because a conflicting \
+                                    capability is present",
+                            place_span,
+                        );
+                        error.add_note(
+                            "this typically happens when trying to read from different union fields \
+                            because Prusti does not yet support reinterpreting memory",
+                            None,
+                        );
+                        error.add_note("the conflicting capability", Some(prefixed_span));
+                        error.set_help("try manually packaging the union capability");
+                        return Err(error);
+                    }
+                }
+            }
+        }
+    }
     Ok(can)
 }
 
@@ -127,9 +176,23 @@ fn ensure_permission_in_state(
         } else {
             None
         };
+        let position = {
+            let error_ctxt = if let vir_high::Type::Union(vir_high::ty::Union {
+                variant: Some(_),
+                ..
+            }) = prefix.get_type()
+            {
+                ErrorCtxt::UnfoldUnionVariant
+            } else {
+                ErrorCtxt::Unfold
+            };
+            context.change_error_context(place.position(), error_ctxt)
+        };
+        let prefix = prefix.replace_position(position);
         actions.push(Action::unfold(permission_kind, prefix, enum_variant));
         for (kind, new_place) in expanded_place {
             debug!("  kind={:?} new_place={}", kind, new_place);
+            new_place.check_no_default_position();
             assert_eq!(
                 kind,
                 ExpandedPermissionKind::Same,
@@ -161,7 +224,7 @@ fn ensure_permission_in_state(
         actions.push(Action::fold(permission_kind, place.clone(), enum_variant));
         predicate_state.insert(permission_kind, place)?;
     } else if permission_kind == PermissionKind::MemoryBlock
-        && can_place_be_ensured_in(&place, PermissionKind::Owned, predicate_state)?
+        && can_place_be_ensured_in(context, &place, PermissionKind::Owned, predicate_state)?
     {
         // We have Owned and we need MemoryBlock. Fully unfold.
         for place in predicate_state.collect_owned_with_prefix(&place)? {

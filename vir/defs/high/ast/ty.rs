@@ -112,6 +112,8 @@ pub struct Union {
     pub name: String,
     /// Type arguments.
     pub arguments: Vec<Type>,
+    /// A specific field of the union that this type represents.
+    pub variant: Option<VariantIndex>,
 }
 
 #[display(fmt = "Array({}, {})", length, element_type)]

@@ -36,6 +36,9 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::Exhale(statement) => {
                 statement.collect(consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::Consume(statement) => {
+                statement.collect(consumed_permissions, produced_permissions)
+            }
             vir_high::Statement::Assert(statement) => {
                 statement.collect(consumed_permissions, produced_permissions)
             }
@@ -109,6 +112,18 @@ impl CollectPermissionChanges for vir_high::Exhale {
         _produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
         consumed_permissions.extend(extract_managed_predicate_place(&self.predicate)?);
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::Consume {
+    fn collect(
+        &self,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        self.operand
+            .collect(consumed_permissions, produced_permissions)?;
         Ok(())
     }
 }

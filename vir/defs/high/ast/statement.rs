@@ -1,6 +1,12 @@
 pub(crate) use super::{
-    expression::Expression, position::Position, predicate::Predicate, rvalue::Rvalue,
+    expression::Expression,
+    position::Position,
+    predicate::Predicate,
+    rvalue::{Operand, Rvalue},
+    ty::Type,
+    variable::VariableDecl,
 };
+use crate::common::display;
 
 #[derive_helpers]
 #[derive_visitors]
@@ -10,6 +16,7 @@ pub enum Statement {
     Comment(Comment),
     Inhale(Inhale),
     Exhale(Exhale),
+    Consume(Consume),
     Assert(Assert),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
@@ -35,6 +42,13 @@ pub struct Inhale {
 /// Exhale the permission denoted by the place.
 pub struct Exhale {
     pub predicate: Predicate,
+    pub position: Position,
+}
+
+#[display(fmt = "consume {}", operand)]
+/// Consume the operand.
+pub struct Consume {
+    pub operand: Operand,
     pub position: Position,
 }
 
