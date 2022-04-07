@@ -90,12 +90,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                         spec.add_postcondition(*self.spec_functions.get(spec_id).unwrap(), self.env);
                     }
                     SpecIdRef::Pledge { lhs, rhs } => {
-                        let pledge = typed::Pledge {
+                        spec.add_pledge(typed::Pledge {
                             reference: None, // FIXME: Currently only `result` is supported.
                             lhs: lhs.as_ref().map(|spec_id| *self.spec_functions.get(spec_id).unwrap()),
                             rhs: *self.spec_functions.get(rhs).unwrap(),
-                        };
-                        spec.add_pledge(pledge);
+                        });
                     }
                     SpecIdRef::Predicate(spec_id) => {
                         kind = ProcedureSpecificationKind::Predicate(*self.spec_functions.get(spec_id).unwrap());

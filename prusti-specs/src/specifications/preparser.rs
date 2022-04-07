@@ -460,7 +460,6 @@ impl PrustiTokenStream {
         res
     }
 
-
     fn extract_triggers(&mut self) -> syn::Result<Vec<Vec<TokenStream>>> {
         let len = self.tokens.len();
         if len < 4 {

@@ -110,6 +110,11 @@ When enabled, the encoded Viper program will be output.
 
 Enables ghost constraints in Prusti specifications.
 
+Ghost constraints allow for specifications which are only active if a certain "constraint" (i.e. a trait bound
+on a generic type parameter) is satisfied.
+
+**This is an experimental feature**, because it is currently possible to introduce unsound verification behavior.
+
 ## `ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`
 
 When enabled, only the path given in [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_only_basic_block_path) will be verified.

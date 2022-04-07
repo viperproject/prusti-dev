@@ -152,7 +152,7 @@ impl<'a> AssociatedTypeRewriter<'a> {
     fn rewrite_tokens(&self, self_replacement_as_str: &str, tokens: TokenStream) -> TokenStream {
         let it = tokens.into_iter();
         it.map(|tt| {
-            match tt{
+            match tt {
                 TokenTree::Ident(ident) if ident == "Self" => {
                     TokenTree::Ident(Ident::new(self_replacement_as_str, ident.span()))
                 }
@@ -170,7 +170,7 @@ impl<'a> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a> {
         let self_replacement = self.self_type.to_token_stream().to_string();
 
         // Note: Attribute tokens are not visited by a syn visitor,
-        // so we use visit the attribute tokens "manually"
+        // so we visit the attribute tokens "manually"
         attr.tokens = self.rewrite_tokens(self_replacement.as_str(), attr.tokens.clone());
 
         syn::visit_mut::visit_attribute_mut(self, attr);

@@ -111,157 +111,153 @@ fn constraint_fulfilled<'spec, 'env: 'spec, 'tcx: 'env>(
 ) -> bool {
     match obligation {
         SpecConstraintKind::ResolveGenericParamTraitBounds => {
-            resolvers::trait_bounds::resolve(env, query, proc_spec)
+            trait_bounds::resolve(env, query, proc_spec)
         }
     }
 }
 
-mod resolvers {
+pub mod trait_bounds {
     use super::*;
+    use prusti_interface::{utils::has_trait_bounds_ghost_constraint, PrustiError};
+    use rustc_hash::FxHashMap;
 
-    pub mod trait_bounds {
-        use super::*;
-        use prusti_interface::{utils::has_trait_bounds_ghost_constraint, PrustiError};
-        use rustc_hash::FxHashMap;
+    pub fn resolve<'spec, 'env: 'spec, 'tcx: 'env>(
+        env: &'env Environment<'tcx>,
+        query: &SpecQuery<'tcx>,
+        proc_spec: &'spec ProcedureSpecification,
+    ) -> bool {
+        assert!(
+            matches!(query.cause, SpecQueryCause::FunctionCallEncoding)
+                || matches!(query.cause, SpecQueryCause::FunctionDefEncoding)
+        );
+        debug!("Trait bound constraint resolving for {:?}", query);
 
-        pub fn resolve<'spec, 'env: 'spec, 'tcx: 'env>(
-            env: &'env Environment<'tcx>,
-            query: &SpecQuery<'tcx>,
-            proc_spec: &'spec ProcedureSpecification,
-        ) -> bool {
-            assert!(
-                matches!(query.cause, SpecQueryCause::FunctionCallEncoding)
-                    || matches!(query.cause, SpecQueryCause::FunctionDefEncoding)
-            );
-            debug!("Trait bound constraint resolving for {:?}", query);
+        let param_env_constraint = extract_param_env(env, proc_spec);
+        let param_env_constraint =
+            perform_param_env_substitutions(env, query, param_env_constraint);
 
-            let param_env_constraint = extract_param_env(env, proc_spec);
-            let param_env_constraint =
-                perform_param_env_substitutions(env, query, param_env_constraint);
+        // There is no caller when encoding a function.
+        // We still resolve obligations to account for constrained specs on a trait
+        // for which we encode its implementation. The corresponding encoding will
+        // contain a behavioral subtyping check which will be performed on the
+        // resolved spec.
+        let param_env_lookup = if let Some(caller_def_id) = query.caller_def_id {
+            env.tcx().param_env(caller_def_id)
+        } else {
+            ty::ParamEnv::reveal_all()
+        };
 
-            // There is no caller when encoding a function.
-            // We still resolve obligations to account for constrained specs on a trait
-            // for which we encode its implementation. The corresponding encoding will
-            // contain a behavioral subtyping check which will be performed on the
-            // resolved spec.
-            let param_env_lookup = if let Some(caller_def_id) = query.caller_def_id {
-                env.tcx().param_env(caller_def_id)
-            } else {
-                ty::ParamEnv::reveal_all()
-            };
+        let trait_predicates = extract_trait_predicates(param_env_constraint);
+        let all_bounds_satisfied = trait_predicates.iter().all(|trait_pred| {
+            let substituted_ty = trait_pred.self_ty();
+            let trait_def_id = trait_pred.trait_ref.def_id;
+            env.type_implements_trait_with_trait_substs(
+                substituted_ty,
+                trait_def_id,
+                trait_pred.trait_ref.substs,
+                param_env_lookup,
+            )
+        });
 
-            let trait_predicates = extract_trait_predicates(param_env_constraint);
-            let all_bounds_satisfied = trait_predicates.iter().all(|trait_pred| {
-                let substituted_ty = trait_pred.self_ty();
-                let trait_def_id = trait_pred.trait_ref.def_id;
-                env.type_implements_trait_with_trait_substs(
-                    substituted_ty,
-                    trait_def_id,
-                    trait_pred.trait_ref.substs,
-                    param_env_lookup,
-                )
-            });
-
-            if all_bounds_satisfied {
-                trace!("Constraint fulfilled");
-                true
-            } else {
-                trace!("Constraint not fulfilled");
-                false
-            }
+        if all_bounds_satisfied {
+            trace!("Constraint fulfilled");
+            true
+        } else {
+            trace!("Constraint not fulfilled");
+            false
         }
+    }
 
-        /// Substitutes the param
-        fn perform_param_env_substitutions<'env, 'tcx: 'env>(
-            env: &'env Environment<'tcx>,
-            query: &SpecQuery<'tcx>,
-            param_env: ty::ParamEnv<'tcx>,
-        ) -> ty::ParamEnv<'tcx> {
-            trace!("Unsubstituted constraints: {:#?}", param_env);
+    /// Substitutes the param
+    fn perform_param_env_substitutions<'env, 'tcx: 'env>(
+        env: &'env Environment<'tcx>,
+        query: &SpecQuery<'tcx>,
+        param_env: ty::ParamEnv<'tcx>,
+    ) -> ty::ParamEnv<'tcx> {
+        trace!("Unsubstituted constraints: {:#?}", param_env);
 
-            let maybe_trait_method =
-                env.find_trait_method_substs(query.called_def_id, query.call_substs);
-            let param_env = if let Some((_, trait_substs)) = maybe_trait_method {
-                param_env.subst(env.tcx(), trait_substs)
-            } else {
-                param_env
-            };
-
-            trace!(
-                "Constraints after substituting trait substs: {:#?}",
-                param_env
-            );
-
-            let param_env = if query.call_substs.is_empty() {
-                param_env
-            } else {
-                param_env.subst(env.tcx(), query.call_substs)
-            };
-
-            trace!(
-                "Constraints after substituting call substs: {:#?}",
-                param_env
-            );
-
+        let maybe_trait_method =
+            env.find_trait_method_substs(query.called_def_id, query.call_substs);
+        let param_env = if let Some((_, trait_substs)) = maybe_trait_method {
+            param_env.subst(env.tcx(), trait_substs)
+        } else {
             param_env
+        };
+
+        trace!(
+            "Constraints after substituting trait substs: {:#?}",
+            param_env
+        );
+
+        let param_env = if query.call_substs.is_empty() {
+            param_env
+        } else {
+            param_env.subst(env.tcx(), query.call_substs)
+        };
+
+        trace!(
+            "Constraints after substituting call substs: {:#?}",
+            param_env
+        );
+
+        param_env
+    }
+
+    fn extract_trait_predicates(param_env: ty::ParamEnv) -> Vec<ty::TraitPredicate> {
+        let mut result = vec![];
+        let caller_bounds = param_env.caller_bounds();
+        for bound in caller_bounds {
+            let predicate_kind = bound.kind().skip_binder();
+            if let rustc_middle::ty::PredicateKind::Trait(trait_pred) = predicate_kind {
+                result.push(trait_pred);
+            }
+        }
+        result
+    }
+
+    fn extract_param_env<'a, 'tcx>(
+        env: &'a Environment<'tcx>,
+        spec: &ProcedureSpecification,
+    ) -> ty::ParamEnv<'tcx> {
+        let mut param_envs: FxHashMap<ty::ParamEnv<'tcx>, Vec<Span>> = FxHashMap::default();
+
+        let pres: Vec<LocalDefId> = spec
+            .pres
+            .expect_empty_or_inherent()
+            .cloned()
+            .unwrap_or_default();
+        let posts: Vec<LocalDefId> = spec
+            .posts
+            .expect_empty_or_inherent()
+            .cloned()
+            .unwrap_or_default();
+        for spec_id in pres.iter().chain(posts.iter()) {
+            let param_env = env.tcx().param_env(spec_id.to_def_id());
+            let spec_span = env.tcx().def_span(spec_id.to_def_id());
+            let attrs = env.tcx().get_attrs(spec_id.to_def_id());
+            if has_trait_bounds_ghost_constraint(attrs) {
+                param_envs
+                    .entry(param_env)
+                    .or_insert(vec![])
+                    .push(spec_span);
+            }
         }
 
-        fn extract_trait_predicates(param_env: ty::ParamEnv) -> Vec<ty::TraitPredicate> {
-            let mut result = vec![];
-            let caller_bounds = param_env.caller_bounds();
-            for bound in caller_bounds {
-                let predicate_kind = bound.kind().skip_binder();
-                if let rustc_middle::ty::PredicateKind::Trait(trait_pred) = predicate_kind {
-                    result.push(trait_pred);
-                }
-            }
-            result
+        assert_ne!(
+            param_envs.len(),
+            0,
+            "Could not extract trait bound obligations from contract"
+        );
+        if param_envs.len() > 1 {
+            let spans = param_envs.values().flatten().cloned().collect();
+            PrustiError::unsupported(
+                "Multiple ghost constraints with different bounds defined",
+                MultiSpan::from_spans(spans),
+            )
+            .add_note("This is currently not supported.", None)
+            .emit(env);
         }
 
-        fn extract_param_env<'a, 'tcx>(
-            env: &'a Environment<'tcx>,
-            spec: &ProcedureSpecification,
-        ) -> ty::ParamEnv<'tcx> {
-            let mut param_envs: FxHashMap<ty::ParamEnv<'tcx>, Vec<Span>> = FxHashMap::default();
-
-            let pres: Vec<LocalDefId> = spec
-                .pres
-                .expect_empty_or_inherent()
-                .cloned()
-                .unwrap_or_default();
-            let posts: Vec<LocalDefId> = spec
-                .posts
-                .expect_empty_or_inherent()
-                .cloned()
-                .unwrap_or_default();
-            for spec_id in pres.iter().chain(posts.iter()) {
-                let param_env = env.tcx().param_env(spec_id.to_def_id());
-                let spec_span = env.tcx().def_span(spec_id.to_def_id());
-                let attrs = env.tcx().get_attrs(spec_id.to_def_id());
-                if has_trait_bounds_ghost_constraint(attrs) {
-                    param_envs
-                        .entry(param_env)
-                        .or_insert(vec![])
-                        .push(spec_span);
-                }
-            }
-
-            assert_ne!(
-                param_envs.len(),
-                0,
-                "Could not extract trait bound obligations from contract"
-            );
-            if param_envs.len() > 1 {
-                let spans = param_envs.values().flatten().cloned().collect();
-                PrustiError::unsupported(
-                    "Multiple ghost constraints with different bounds defined",
-                    MultiSpan::from_spans(spans),
-                )
-                .add_note("This is currently not supported.", None)
-                .emit(env);
-            }
-
-            param_envs.into_iter().map(|(k, _)| k).next().unwrap()
-        }
+        param_envs.into_iter().map(|(k, _)| k).next().unwrap()
     }
 }
