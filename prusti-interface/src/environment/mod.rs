@@ -309,7 +309,7 @@ impl<'tcx> Environment<'tcx> {
     }
 
     /// Get the MIR body of an external procedure.
-    pub fn external_mir<'a>(
+    pub fn external_mir(
         &self,
         def_id: DefId,
         substs: SubstsRef<'tcx>,

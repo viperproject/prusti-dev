@@ -146,7 +146,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 ).emit(self.env);
             }
 
-            let spec = def_spec.specs.remove(&spec_id).unwrap();
+            let spec = def_spec.specs.remove(spec_id).unwrap();
             def_spec.specs.insert(target_def_id, spec);
         }
     }

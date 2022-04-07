@@ -129,9 +129,7 @@ pub(super) fn encode_quantifier<'tcx>(
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
     for (arg_idx, arg_ty) in args.into_iter().enumerate() {
-        let qvar_ty = encoder
-            .encode_snapshot_type(arg_ty)
-            .with_span(body_span)?;
+        let qvar_ty = encoder.encode_snapshot_type(arg_ty).with_span(body_span)?;
         let qvar_name = format!(
             "_{}_quant_{}",
             arg_idx,

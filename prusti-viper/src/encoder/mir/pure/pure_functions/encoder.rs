@@ -9,9 +9,7 @@ use crate::encoder::{
     borrows::ProcedureContract,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
-    mir::{
-        pure::{PureEncodingContext, SpecificationEncoderInterface},
-    },
+    mir::pure::{PureEncodingContext, SpecificationEncoderInterface},
     mir_encoder::PlaceEncoder,
     mir_interpreter::run_backward_interpretation,
     snapshot::interface::SnapshotEncoderInterface,
@@ -100,7 +98,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         // TODO: move this to a signatures module
         use crate::rustc_middle::ty::subst::Subst;
-        let sig = encoder.env().tcx()
+        let sig = encoder
+            .env()
+            .tcx()
             .fn_sig(proc_def_id)
             .subst(encoder.env().tcx(), substs)
             .skip_binder();
@@ -118,7 +118,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_function(&mut self) -> SpannedEncodingResult<vir::Function> {
-        let mir = self.encoder.env().local_mir(self.proc_def_id.expect_local(), self.substs);
+        let mir = self
+            .encoder
+            .env()
+            .local_mir(self.proc_def_id.expect_local(), self.substs);
         let interpreter = PureFunctionBackwardInterpreter::new(
             self.encoder,
             &mir,
@@ -127,11 +130,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             self.parent_def_id,
         );
 
-        self.local_spans = Some((0..=self.sig.inputs().len())
-            .map(|idx| interpreter
-                .mir_encoder()
-                .get_local_span(mir::Local::from_usize(idx)))
-            .collect());
+        self.local_spans = Some(
+            (0..=self.sig.inputs().len())
+                .map(|idx| {
+                    interpreter
+                        .mir_encoder()
+                        .get_local_span(mir::Local::from_usize(idx))
+                })
+                .collect(),
+        );
 
         let function_name = self.encode_function_name();
         debug!("Encode pure function {}", function_name);
@@ -328,19 +335,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         Ok(function)
     }
 
-    fn fix_arguments(
-        &self,
-        mut expr: vir::Expr,
-    ) -> SpannedEncodingResult<vir::Expr> {
+    fn fix_arguments(&self, mut expr: vir::Expr) -> SpannedEncodingResult<vir::Expr> {
         for arg in self.args_iter() {
             let arg_ty = self.get_local_ty(arg);
             let span = self.get_local_span(arg);
             let target_place = self
                 .encoder
-                .encode_value_expr(
-                    vir::Expr::local(self.encode_mir_local(arg)?),
-                    arg_ty,
-                )
+                .encode_value_expr(vir::Expr::local(self.encode_mir_local(arg)?), arg_ty)
                 .with_span(span)?;
             let mut new_place: vir::Expr = self.encode_local(arg)?.into();
             if let ty::TyKind::Ref(_, _, _) = arg_ty.kind() {
@@ -355,8 +356,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     fn args_iter(&self) -> impl Iterator<Item = mir::Local> {
-        (0..self.sig.inputs().len())
-            .map(|idx| mir::Local::from_usize(1 + idx))
+        (0..self.sig.inputs().len()).map(|idx| mir::Local::from_usize(1 + idx))
     }
 
     /// Encode the precondition with two expressions:
@@ -374,10 +374,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             } else {
                 vir::PermAmount::Write
             };
-            let opt_pred_perm = vir::Expr::pred_permission(
-                self.encode_local(local.into())?.into(),
-                fraction,
-            );
+            let opt_pred_perm =
+                vir::Expr::pred_permission(self.encode_local(local.into())?.into(), fraction);
             if let Some(spec) = opt_pred_perm {
                 type_spec.push(spec)
             }
@@ -552,7 +550,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 ));
             }
 
-            let var_type = self.encoder
+            let var_type = self
+                .encoder
                 .encode_snapshot_type(*local_ty)
                 .with_span(var_span)?;
             formal_args.push(vir::LocalVar::new(var_name, var_type))
