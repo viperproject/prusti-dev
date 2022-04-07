@@ -25,7 +25,6 @@ struct MyStruct {
 
 #[refine_trait_spec]
 impl MyTrait for MyStruct {
-    // Invalid strengthening
     #[ensures(self.x >= 15)]
     fn foo(&mut self) {
         self.x += 10;
