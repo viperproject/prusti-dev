@@ -258,7 +258,7 @@ impl DefSpecificationMap {
         Self::default()
     }
     pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet> {
-        self.specs.get(&def_id)
+        self.specs.get(def_id)
     }
 }
 
