@@ -47,4 +47,11 @@ impl<'v, 'tcx> ToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_mid::Statement> {
         unreachable!("leak-all statement cannot be lowered")
     }
+
+    fn to_middle_statement_operand(
+        &self,
+        operand: vir_high::Operand,
+    ) -> Result<vir_mid::Operand, Self::Error> {
+        operand.to_middle_rvalue(self)
+    }
 }

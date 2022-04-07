@@ -111,7 +111,8 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), query)
-            .and_then(|spec| spec.pure.extract_inherit())
+            // In case of error -> It is emitted in get_and_refine_proc_spec
+            .map(|spec| spec.kind.is_pure().unwrap_or(false))
             .unwrap_or(false);
         trace!("is_pure {:?} = {}", query, result);
         result
@@ -136,7 +137,9 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         let mut specs = self.specifications_state.specs.borrow_mut();
         let result = specs
             .get_and_refine_proc_spec(self.env(), query)
-            .and_then(|spec| spec.predicate_body.extract_with_selective_replacement());
+            // In case of error -> It is emitted in get_and_refine_proc_spec
+            .map(|spec| spec.kind.get_predicate_body().unwrap_or(None))
+            .unwrap_or(None);
         trace!("get_predicate_body {:?} = {:?}", query, result);
         result.cloned()
     }

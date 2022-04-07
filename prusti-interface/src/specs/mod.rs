@@ -21,7 +21,7 @@ use typed::SpecIdRef;
 
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
-use crate::specs::typed::{ProcedureSpecification, SpecGraph};
+use crate::specs::typed::{ProcedureSpecification, SpecGraph, ProcedureSpecificationKind};
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -75,7 +75,12 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         for (local_id, refs) in self.procedure_specs.iter() {
             let mut spec = SpecGraph::new(ProcedureSpecification::empty());
 
-            // Process specs for function `local_id`
+            let mut kind = if refs.pure {
+                ProcedureSpecificationKind::Pure
+            } else {
+                ProcedureSpecificationKind::Impure
+            };
+
             for spec_id_ref in &refs.spec_id_refs {
                 match spec_id_ref {
                     SpecIdRef::Precondition(spec_id) => {
@@ -93,13 +98,17 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                         spec.add_pledge(pledge);
                     }
                     SpecIdRef::Predicate(spec_id) => {
-                        spec.set_predicate(*self.spec_functions.get(spec_id).unwrap());
+                        kind = ProcedureSpecificationKind::Predicate(*self.spec_functions.get(spec_id).unwrap());
                     }
                 }
             }
 
-            spec.set_pure(refs.pure);
             spec.set_trusted(refs.trusted);
+
+            // We do not want to create an empty kind.
+            // This would lead to refinement inheritance if there is a trait involved.
+            // Instead, we require the user to explicitly make annotations.
+            spec.set_kind(kind);
 
             if !spec.specs_with_constraints.is_empty() && !prusti_common::config::enable_ghost_constraints() {
                 let span = self.env.tcx().def_span(*local_id);

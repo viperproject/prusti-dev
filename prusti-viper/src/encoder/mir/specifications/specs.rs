@@ -1,8 +1,15 @@
-use crate::encoder::mir::specifications::{constraints::ConstraintResolver, interface::SpecQuery};
+use crate::encoder::{
+    errors::MultiSpan,
+    mir::specifications::{constraints::ConstraintResolver, interface::SpecQuery},
+};
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
-    specs::typed::{DefSpecificationMap, LoopSpecification, ProcedureSpecification, Refinable},
+    specs::typed::{
+        DefSpecificationMap, LoopSpecification, ProcedureSpecification, ProcedureSpecificationKind,
+        ProcedureSpecificationKindError, Refinable, SpecificationItem,
+    },
+    PrustiError,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::{DefId, LocalDefId};
@@ -96,6 +103,14 @@ impl<'tcx> Specifications<'tcx> {
             impl_spec
         };
 
+        self.validate_refined_kind(
+            env,
+            impl_query.called_def_id,
+            trait_query.called_def_id,
+            &refined.kind,
+        );
+
+        debug!("Refined: {:?}", refined);
         self.refined_specs.insert(impl_query, refined);
         self.get_proc_spec(env, impl_query)
     }
@@ -114,5 +129,67 @@ impl<'tcx> Specifications<'tcx> {
 
     fn is_refined(&self, query: SpecQuery) -> bool {
         self.refined_specs.contains_key(&query)
+    }
+
+    /// Validates refinement and reports proper errors
+    fn validate_refined_kind(
+        &self,
+        env: &Environment<'tcx>,
+        impl_proc_def_id: DefId,
+        trait_proc_def_id: DefId,
+        kind: &SpecificationItem<ProcedureSpecificationKind>,
+    ) {
+        match kind.validate() {
+            Ok(()) => (),
+            Err(ProcedureSpecificationKindError::InvalidSpecKindRefinement(
+                base_kind,
+                refined_kind,
+            )) => {
+                let impl_method_span = env.tcx().def_span(impl_proc_def_id);
+
+                let trait_def_id = env.tcx().trait_of_item(trait_proc_def_id).unwrap();
+                let trait_span = env.tcx().def_span(trait_def_id);
+                let trait_name = env.tcx().def_path_str(trait_def_id);
+                let trait_method_name = env.tcx().def_path_str(trait_proc_def_id);
+                let impl_method_name = env.tcx().def_path_str(impl_proc_def_id);
+
+                PrustiError::incorrect(
+                    format!(
+                        "Invalid specification kind for procedure '{}'",
+                        impl_method_name
+                    ),
+                    MultiSpan::from_span(impl_method_span),
+                )
+                .add_note("Procedures can be predicates, pure or impure", None)
+                .add_note(
+                    format!("This procedure is of kind '{}'", refined_kind).as_str(),
+                    None,
+                )
+                .add_note(
+                    format!(
+                        "This procedure refines a function declared on '{}'",
+                        trait_name
+                    )
+                    .as_str(),
+                    Some(trait_span),
+                )
+                .add_note(
+                    format!(
+                        "However, '{}' is of kind '{}'",
+                        trait_method_name, base_kind
+                    )
+                    .as_str(),
+                    None,
+                )
+                .add_note(
+                    format!(
+                        "Try to convert '{}' into a procedure of kind '{}'",
+                        impl_method_name, base_kind
+                    ),
+                    Some(impl_method_span),
+                )
+                .emit(env);
+            }
+        }
     }
 }
