@@ -338,7 +338,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let target_place = self
                 .encoder
                 .encode_value_expr(
-                    vir::Expr::local(self.encode_local(arg)?),
+                    vir::Expr::local(self.encode_mir_local(arg)?),
                     arg_ty,
                 )
                 .with_span(span)?;
@@ -469,12 +469,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         Ok(post)
     }
 
+    /// Encodes a VIR local with a snapshot type.
     fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
         let var_name = format!("{:?}", local);
         let var_span = self.get_local_span(local);
         let var_type = self
             .encoder
             .encode_snapshot_type(self.get_local_ty(local))
+            .with_span(var_span)?;
+        Ok(vir::LocalVar::new(var_name, var_type))
+    }
+
+    /// Encodes a VIR local with the original MIR type.
+    fn encode_mir_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
+        let var_name = format!("{:?}", local);
+        let var_span = self.get_local_span(local);
+        let var_type = self
+            .encoder
+            .encode_type(self.get_local_ty(local))
             .with_span(var_span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
     }
