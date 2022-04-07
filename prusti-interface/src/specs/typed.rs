@@ -89,6 +89,10 @@ pub struct LoopSpecification {
     pub invariant: LocalDefId,
 }
 
+/// The base container to store a contract of a procedure.
+/// A contract can be divided into multiple specifications:
+/// - **Base spec**: A spec without constraints.
+/// - **Constrained specs**: Multiple specs which have [SpecConstraintKind] constraints.
 #[derive(Default, Debug, Clone)]
 pub struct SpecGraph<T> {
     /// The base specification which has no constraints
@@ -107,7 +111,84 @@ impl<T> SpecGraph<T> {
     }
 }
 
+/// Provides various methods to construct a [SpecGraph] for a [ProcedureSpecification].
+/// In particular, these methods ensure that the resulting [SpecGraph]'s specs are *consistent*,
+/// which means:
+/// - The postconditions of any constrained spec always contain the postconditions of the base spec
+/// - The [ProcedureSpecificationKind] for the base spec and constrained specs is always the same
+/// - The `trusted` flag for the base spec and constrained specs is always the same
+/// - The [Pledge]s for the base spec and constrained specs are always the same
+///
+/// Note: Unlike postconditions, the preconditions are not copied amongst the base spec
+/// and constrained specs.
+///
+/// # A note about behavior subtyping
+/// For a [SpecGraph] to be sound, we require that the constrained specs are valid to the base spec
+/// w.r.t. behavioral subtyping rules.
+/// We at least require that for some base spec B and any constrained spec C:
+/// - (a) The postconditions of C are at least as strong as the postconditions of B
+/// - (b) The preconditions of C are at least as weak as the preconditions of B
+/// - *...more..*
+///
+/// The consistency guarantees mentioned above satisfy (a) by construction but do not guarantee (b).
+///
+/// **Important**: There is no automatic check that guarantees the validity of a [SpecGraph].
+///
+/// # Example: Pre- and postconditions
+/// ```ignore
+/// trait MarkerTrait {}
+///
+/// trait SomeTrait {
+///     #[requires(x > 0)]
+///     #[ensures(x > 0)]
+///     #[ghost_constraint(T: MarkerTrait, [
+///         requires(x > 10),
+///         ensures(x > 10),
+///     ])]
+///     fn foo<T>(&self, x: i32) -> i32;
+/// }
+///
+/// struct SomeStruct;
+/// #[refine_trait_spec]
+/// impl SomeTrait for SomeStruct {
+///     #[requires(x >= 0)]
+///     #[ensures(x > 10)]
+///     #[ghost_constraint(T: MarkerTrait, [
+///         requires(x >= -5),
+///         ensures(x > 20),
+///     ])]
+///     fn foo<T>(&self, x: i32) -> i32 {
+///         42
+///     }
+/// }
+/// ```
+/// Let `B_T` be the base spec of `SomeTrait`, `B_S` be the base spec of `SomeStruct`,
+/// `C_T` be the constrained spec of `SomeTrait` and `C_S` be the constrained spec of `SomeStruct`.
+/// - The computed [SpecGraph] of `SomeTrait` will be:
+///     - `pres(B_T) ≡ x > 0`
+///     - `posts(B_T) ≡ x > 0`
+///     - `pres(C_T) ≡ x > 10`
+///     - `posts(C_T) ≡ posts(B_T) && x > 10 ≡ x > 0 && x > 10`
+/// - The computed [SpecGraph] of `SomeStruct` will be:
+///     - `pres(B_S) ≡ x >= 0`
+///     - `posts(B_S) ≡ x > 10`
+///     - `pres(C_S) ≡ x >= -5`
+///     - `posts(C_S) ≡ posts(B_S) && x > 20 ≡ x > 10 && x > 20`
+///
+/// When using `SomeStruct::foo`, we resolve to either `B_S` or `C_S`.
+/// ```ignore
+/// impl MarkerTrait for i32 {}
+/// fn main() {
+///     let s = SomeStruct;
+///     let r = s.foo::<i32>(100); // i32 implements MarkerTrait -> C_S is active
+///     let r = s.foo::<u32>(100); // i32 does not implement MarkerTrait -> B_S is active
+/// }
+/// ```
 impl SpecGraph<ProcedureSpecification> {
+    /// Attaches the precondition `pre` to this [SpecGraph].
+    ///
+    /// If this precondition has a constraint it will be attached to the corresponding
+    /// constrained spec, otherwise just to the base spec.
     pub fn add_precondition<'tcx>(&mut self, pre: LocalDefId, env: &Environment<'tcx>) {
         match self.get_constraint(pre, env) {
             None => {
@@ -115,12 +196,16 @@ impl SpecGraph<ProcedureSpecification> {
                 // Preconditions are explicitly not copied (as opposed to postconditions)
                 // This would always violate behavioral subtyping rules
             }
-            Some(obligation) => {
-                self.get_partitioned_mut(obligation).pres.push(pre);
+            Some(constraint) => {
+                self.get_constrained_spec_mut(constraint).pres.push(pre);
             }
         }
     }
 
+    /// Attaches the postcondition `post` to this [SpecGraph].
+    ///
+    /// If this postcondition has a constraint it will be attached to the corresponding
+    /// constrained spec **and** the base spec, otherwise just to the base spec.
     pub fn add_postcondition<'tcx>(&mut self, post: LocalDefId, env: &Environment<'tcx>) {
         match self.get_constraint(post, env) {
             None => {
@@ -128,11 +213,12 @@ impl SpecGraph<ProcedureSpecification> {
                 self.specs_with_constraints.values_mut().for_each(|s| s.posts.push(post));
             }
             Some(obligation) => {
-                self.get_partitioned_mut(obligation).posts.push(post);
+                self.get_constrained_spec_mut(obligation).posts.push(post);
             }
         }
     }
 
+    /// Attaches the `pledge` to the base spec and all constrained specs.
     pub fn add_pledge(&mut self, pledge: Pledge) {
         self.base_spec.pledges.push(pledge.clone());
         self.specs_with_constraints
@@ -140,26 +226,33 @@ impl SpecGraph<ProcedureSpecification> {
             .for_each(|s| s.pledges.push(pledge.clone()));
     }
 
+    /// Sets the trusted flag for the base spec and all constrained specs.
     pub fn set_trusted(&mut self, trusted: bool) {
         self.base_spec.trusted.set(trusted);
         self.specs_with_constraints.values_mut().for_each(|s| s.trusted.set(trusted));
     }
 
+    /// Sets the [ProcedureSpecificationKind] for the base spec and all constrained specs.
     pub fn set_kind(&mut self, kind: ProcedureSpecificationKind) {
         self.base_spec.kind.set(kind);
         self.specs_with_constraints.values_mut().for_each(|s| s.kind.set(kind));
     }
 
-    fn get_partitioned_mut(
+    /// Lazily gets/creates a constrained spec.
+    /// If the constrained spec does not yet exist, the base spec serves as a template for
+    /// the newly created constrained spec.
+    fn get_constrained_spec_mut(
         &mut self,
-        obligation: SpecConstraintKind,
+        constraint: SpecConstraintKind,
     ) -> &mut ProcedureSpecification {
         self.specs_with_constraints
-            .entry(obligation)
+            .entry(constraint)
             .or_insert_with(|| self.base_spec.clone())
     }
 
-    /// Note: First wins, we currently do not support multiple constraints
+    /// Gets the constraint of a spec function `spec`.
+    ///
+    /// Multiple constraints are currently not supported.
     fn get_constraint<'tcx>(
         &self,
         spec: LocalDefId,
