@@ -1,14 +1,16 @@
 use prusti_contracts::*;
 
-trait A { }
-trait B { }
-
-#[ghost_constraint(T: Fn(A) -> B, [ //~ ERROR: unexpected Prusti syntax
-    ensures(result > 0)
-])]
-fn foo<T>(_x: T) -> i32 {
-    42
+struct MyStruct<T> {
+    x: T,
 }
 
+impl<T> MyStruct<T> {
+    #[ghost_constraint(Self: MyStruct<i32>, [ //~ ERROR: expected trait, found struct `MyStruct`
+        requires(x > 0)
+    ])]
+    fn set_x(&mut self, x: T) {
+        self.x = x;
+    }
+}
 fn main() {
 }
