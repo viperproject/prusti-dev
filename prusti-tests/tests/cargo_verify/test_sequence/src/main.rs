@@ -8,5 +8,5 @@ fn main() {
     let s1: Seq<u32> = Seq::single(one);
     let s2: Seq<u32> = Seq::single(2);
     let s3: Seq<u32> = Seq::concat(Seq::empty(), Seq::empty());
-    //let s4: Seq<u32> = Seq::concat(s0, s1);
+    let s4: Seq<u32> = Seq::concat(s0, s1);
 }
