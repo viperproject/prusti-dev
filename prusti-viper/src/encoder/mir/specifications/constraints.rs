@@ -12,7 +12,7 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_middle::ty;
 use rustc_span::{MultiSpan, Span};
 
-pub(crate) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
+pub(super) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
     fn resolve(
         &'spec self,
         env: &'env Environment<'tcx>,
@@ -121,7 +121,7 @@ pub mod trait_bounds {
     use prusti_interface::{utils::has_trait_bounds_ghost_constraint, PrustiError};
     use rustc_hash::FxHashMap;
 
-    pub fn resolve<'spec, 'env: 'spec, 'tcx: 'env>(
+    pub(super) fn resolve<'spec, 'env: 'spec, 'tcx: 'env>(
         env: &'env Environment<'tcx>,
         query: &SpecQuery<'tcx>,
         proc_spec: &'spec ProcedureSpecification,
