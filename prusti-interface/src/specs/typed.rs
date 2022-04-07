@@ -159,7 +159,7 @@ impl SpecGraph<ProcedureSpecification> {
             .or_insert_with(|| self.base_spec.clone())
     }
 
-    /// Note: First wins, we do currently support not multiple constraints
+    /// Note: First wins, we currently do not support multiple constraints
     fn get_constraint<'tcx>(
         &self,
         spec: LocalDefId,
@@ -232,6 +232,7 @@ impl<T> SpecificationItem<T> {
         self.extract_with_strategy(|(_, refined)| refined)
     }
 
+    #[track_caller]
     pub fn expect_empty_or_inherent(&self) -> Option<&T> {
         match self {
             SpecificationItem::Empty => None,
@@ -240,6 +241,7 @@ impl<T> SpecificationItem<T> {
         }
     }
 
+    #[track_caller]
     pub fn expect_inherent(&self) -> &T {
         match self {
             SpecificationItem::Inherent(item) => item,
@@ -247,6 +249,7 @@ impl<T> SpecificationItem<T> {
         }
     }
 
+    #[track_caller]
     pub fn expect_inherited(&self) -> &T {
         match self {
             SpecificationItem::Inherited(item) => item,
@@ -254,6 +257,7 @@ impl<T> SpecificationItem<T> {
         }
     }
 
+    #[track_caller]
     pub fn expect_refined(&self) -> (&T, &T) {
         match self {
             SpecificationItem::Refined(a, b) => (a, b),
