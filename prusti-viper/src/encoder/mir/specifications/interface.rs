@@ -24,7 +24,7 @@ impl<'tcx> SpecificationsState<'tcx> {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct SpecQuery<'tcx> {
+pub(super) struct SpecQuery<'tcx> {
     pub called_def_id: DefId,
     pub caller_def_id: Option<DefId>,
     pub call_substs: SubstsRef<'tcx>,
