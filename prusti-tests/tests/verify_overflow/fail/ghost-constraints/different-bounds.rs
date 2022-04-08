@@ -1,3 +1,5 @@
+// compile-flags: -Penable_ghost_constraints=true
+
 // Note: For now, it is completely fine to _declare_ two ghost constraints with different bounds
 // since resolving happens for specific callsites. That is, without the call in main, this
 // file verifies.

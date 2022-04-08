@@ -1,6 +1,5 @@
-/*
-    This test demonstrates that ghost constraints inherit the specs from the function.
- */
+// compile-flags: -Penable_ghost_constraints=true
+// This test demonstrates that ghost constraints inherit the specs from the function.
 
 use prusti_contracts::*;
 
@@ -35,23 +34,6 @@ fn verify_constrained_contract_inherits_posts() {
 
     let res = constrained_contract_inherits_posts(32 as i32);
     assert!(res == 42);
-}
-
-#[trusted]
-#[ensures(result == 42)]
-#[ghost_constraint(T: A, [
-    ensures(result == 24)
-])]
-// Refinement is currently not checked, so we can introduce unsound stuff
-fn constrained_contract_inherits_posts_unsound<T>(_x: T) -> i32 {
-    42
-}
-
-fn verify_constrained_contract_inherits_posts_unsound() {
-    let res = constrained_contract_inherits_posts_unsound(32 as i32);
-    assert!(res == 42);
-    assert!(res == 24);
-    assert!(false);
 }
 
 fn main() {
