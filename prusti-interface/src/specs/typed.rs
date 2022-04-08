@@ -167,7 +167,7 @@ impl SpecificationItem<ProcedureSpecificationKind> {
         self.validate()?;
 
         Ok(match self.extract_with_selective_replacement() {
-            Some(ProcedureSpecificationKind::Predicate(pred_id)) => Some(pred_id),
+            Some(ProcedureSpecificationKind::Predicate(pred_id)) => pred_id.as_ref(),
             _ => None
         })
     }
@@ -295,7 +295,9 @@ impl ProcedureSpecification {
     pub fn empty() -> Self {
         ProcedureSpecification {
             span: None,
-            kind: SpecificationItem::Empty,
+            // We never create an empty "kind". Having no concrete user-annotation
+            // defaults to an impure function
+            kind: SpecificationItem::Inherent(ProcedureSpecificationKind::Impure),
             pres: SpecificationItem::Empty,
             posts: SpecificationItem::Empty,
             pledges: SpecificationItem::Empty,
@@ -308,8 +310,9 @@ impl ProcedureSpecification {
 pub enum ProcedureSpecificationKind {
     Impure,
     Pure,
-    /// The specification is a predicate with the enclosed body
-    Predicate(LocalDefId),
+    /// The specification is a predicate with the enclosed body.
+    /// The body can be None to account for abstract predicates.
+    Predicate(Option<LocalDefId>),
 }
 
 impl Display for ProcedureSpecificationKind {
@@ -425,14 +428,12 @@ mod tests {
         use SpecificationItem::*;
         use ProcedureSpecificationKind::*;
 
-        const FAKE_LOCAL_DEF_ID: LocalDefId = rustc_hir::def_id::CRATE_DEF_ID;
-
         mod invalid_refinements {
             use super::*;
 
             #[test]
             fn refine_impure_with_predicate() {
-                let item = Refined(Impure, Predicate(FAKE_LOCAL_DEF_ID));
+                let item = Refined(Impure, Predicate(None));
                 let result = item.validate().expect_err("Expected error");
                 assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
             }
@@ -446,21 +447,21 @@ mod tests {
 
             #[test]
             fn refine_pure_with_predicate() {
-                let item = Refined(Pure, Predicate(FAKE_LOCAL_DEF_ID));
+                let item = Refined(Pure, Predicate(None));
                 let result = item.validate().expect_err("Expected error");
                 assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
             }
 
             #[test]
             fn refine_predicate_with_pure() {
-                let item = Refined(Predicate(FAKE_LOCAL_DEF_ID), Pure);
+                let item = Refined(Predicate(None), Pure);
                 let result = item.validate().expect_err("Expected error");
                 assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
             }
 
             #[test]
             fn refine_predicate_with_impure() {
-                let item = Refined(Predicate(FAKE_LOCAL_DEF_ID), Impure);
+                let item = Refined(Predicate(None), Impure);
                 let result = item.validate().expect_err("Expected error");
                 assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
             }
@@ -487,14 +488,14 @@ mod tests {
                     empty: (Empty, true),
                     inherent_impure: (Inherent(Impure), true),
                     inherent_pure: (Inherent(Pure), false),
-                    inherent_predicate: (Inherent(Predicate(FAKE_LOCAL_DEF_ID)), false),
+                    inherent_predicate: (Inherent(Predicate(None)), false),
                     inherited_impure: (Inherited(Impure), true),
                     inherited_pure: (Inherited(Pure), false),
-                    inherited_predicate: (Inherited(Predicate(FAKE_LOCAL_DEF_ID)), false),
+                    inherited_predicate: (Inherited(Predicate(None)), false),
                     refined_impure_parent_impure_child: (Refined(Impure, Impure), true),
                     refined_impure_parent_pure_child: (Refined(Impure, Pure), false),
                     refined_pure_parent_with_pure_child: (Refined(Pure, Pure), false),
-                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), false),
+                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(None), Predicate(None)), false),
             );
         }
 
@@ -519,46 +520,14 @@ mod tests {
                     empty: (Empty, false),
                     inherent_impure: (Inherent(Impure), false),
                     inherent_pure: (Inherent(Pure), true),
-                    inherent_predicate: (Inherent(Predicate(FAKE_LOCAL_DEF_ID)), true),
+                    inherent_predicate: (Inherent(Predicate(None)), true),
                     inherited_impure: (Inherited(Impure), false),
                     inherited_pure: (Inherited(Pure), true),
-                    inherited_predicate: (Inherited(Predicate(FAKE_LOCAL_DEF_ID)), true),
+                    inherited_predicate: (Inherited(Predicate(None)), true),
                     refined_impure_parent_impure_child: (Refined(Impure, Impure), false),
                     refined_impure_parent_pure_child: (Refined(Impure, Pure), true),
                     refined_pure_parent_with_pure: (Refined(Pure, Pure), true),
-                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), true),
-            );
-        }
-
-        mod is_predicate {
-            use super::*;
-
-            macro_rules! predicate_checks {
-                    ($($name:ident: $value:expr,)*) => {
-                        $(
-                            #[test]
-                            fn $name() {
-                                let (item, expected) = $value;
-                                let item: SpecificationItem<ProcedureSpecificationKind> = item;
-                                let result = item.get_predicate_body().expect("Expected predicate");
-                                assert_eq!(result.is_some(), expected);
-                            }
-                        )*
-                    }
-                }
-
-            predicate_checks!(
-                    empty: (Empty, false),
-                    inherent_impure: (Inherent(Impure), false),
-                    inherent_pure: (Inherent(Pure), false),
-                    inherent_predicate: (Inherent(Predicate(FAKE_LOCAL_DEF_ID)), true),
-                    inherited_impure: (Inherited(Impure), false),
-                    inherited_pure: (Inherited(Pure), false),
-                    inherited_predicate: (Inherited(Predicate(FAKE_LOCAL_DEF_ID)), true),
-                    refined_impure_parent_impure_child: (Refined(Impure, Impure), false),
-                    refined_impure_parent_pure_child: (Refined(Impure, Pure), false),
-                    refined_pure_parent_with_pure_child: (Refined(Pure, Pure), false),
-                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(FAKE_LOCAL_DEF_ID), Predicate(FAKE_LOCAL_DEF_ID)), true),
+                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(None), Predicate(None)), true),
             );
         }
     }
