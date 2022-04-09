@@ -131,3 +131,29 @@ impl<T> Seq<T> {
         Self::new()
     }
 }
+
+/// A map type
+#[non_exhaustive]
+#[derive(PartialEq, Eq, Copy, Clone)]
+pub struct Map<K, V> {
+    _key_phantom: core::marker::PhantomData<K>,
+    _val_phantom: core::marker::PhantomData<V>,
+}
+
+impl<K, V> Map<K, V> {
+    fn new() -> Self {
+        Self {
+            _key_phantom: core::marker::PhantomData,
+            _val_phantom: core::marker::PhantomData,
+        }
+    }
+    pub fn empty() -> Self {
+        Self::new()
+    }
+    pub fn insert(self, _key: K, _val: V) -> Self {
+        self
+    }
+    pub fn delete(self, _key: K) -> Self {
+        self
+    }
+}
