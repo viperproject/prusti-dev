@@ -11,6 +11,7 @@ impl WithIdentifier for ty::Type {
             ty::Type::Bool => "Bool".to_string(),
             ty::Type::Int(ty) => ty.get_identifier(),
             ty::Type::Sequence(ty) => ty.get_identifier(),
+            ty::Type::Map(ty) => ty.get_identifier(),
             ty::Type::Float(ty) => ty.get_identifier(),
             ty::Type::TypeVar(ty) => ty.get_identifier(),
             ty::Type::Tuple(ty) => ty.get_identifier(),
@@ -41,6 +42,16 @@ impl WithIdentifier for ty::Int {
 impl WithIdentifier for ty::Sequence {
     fn get_identifier(&self) -> String {
         format!("seq${}", self.element_type.get_identifier())
+    }
+}
+
+impl WithIdentifier for ty::Map {
+    fn get_identifier(&self) -> String {
+        format!(
+            "map${}${}",
+            self.key_type.get_identifier(),
+            self.val_type.get_identifier()
+        )
     }
 }
 

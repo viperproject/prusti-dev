@@ -171,6 +171,12 @@ pub enum Type {
     TypeVar(TypeVar),
 }
 
+impl Type {
+    pub fn map(_key_type: Type, _val_type: Type) -> Type {
+        todo!("construct domain type representing a map")
+    }
+}
+
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {

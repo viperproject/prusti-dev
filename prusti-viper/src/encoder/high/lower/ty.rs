@@ -17,6 +17,10 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
             vir_high::Type::Sequence(ty) => vir_poly::Type::Seq(vir_poly::SeqType {
                 typ: box ty.element_type.lower(encoder),
             }),
+            vir_high::Type::Map(ty) => vir_poly::Type::map(
+                ty.key_type.lower(encoder),
+                ty.val_type.lower(encoder),
+            ),
             vir_high::Type::Float(float) => {
                 vir_poly::Type::typed_ref(float.to_string().to_lowercase())
             }

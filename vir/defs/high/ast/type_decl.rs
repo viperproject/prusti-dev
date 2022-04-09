@@ -13,6 +13,7 @@ pub enum TypeDecl {
     Tuple(Tuple),
     Struct(Struct),
     Sequence(Sequence),
+    Map(Map),
     Enum(Enum),
     Union(Union),
     Array(Array),
@@ -110,6 +111,12 @@ pub struct Array {
 #[display(fmt = "Sequence({})", element_type)]
 pub struct Sequence {
     pub element_type: Type,
+}
+
+#[display(fmt = "Map({} -> {})", key_type, val_type)]
+pub struct Map {
+    pub key_type: Type,
+    pub val_type: Type,
 }
 
 #[display(fmt = "&{}", target_type)]
