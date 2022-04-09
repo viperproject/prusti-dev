@@ -172,8 +172,12 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn map(_key_type: Type, _val_type: Type) -> Type {
-        todo!("construct domain type representing a map")
+    pub fn map(key_type: Type, val_type: Type) -> Type {
+        Type::Domain(DomainType {
+            label: "map".into(),
+            arguments: vec![key_type, val_type],
+            variant: "".into(),
+        })
     }
 }
 
