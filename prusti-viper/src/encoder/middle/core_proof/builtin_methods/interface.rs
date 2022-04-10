@@ -1442,7 +1442,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             vir_mid::TypeDecl::Bool
                             | vir_mid::TypeDecl::Int(_)
                             | vir_mid::TypeDecl::Float(_)
-                            | vir_mid::TypeDecl::Pointer(_) => {
+                            | vir_mid::TypeDecl::Pointer(_)
+                            | vir_mid::TypeDecl::Sequence(_)  => {
                                 // Primitive type. Nothing to do.
                             }
                             vir_mid::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", ty),
@@ -1558,7 +1559,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                 }
                             }
                             vir_mid::TypeDecl::Array(_) => unimplemented!("ty: {}", ty),
-                            vir_mid::TypeDecl::Sequence(_) => unimplemented!("ty: {}", ty),
                             vir_mid::TypeDecl::Map(_) => unimplemented!("ty: {}", ty),
                             vir_mid::TypeDecl::Reference(_) => unimplemented!("ty: {}", ty),
                             vir_mid::TypeDecl::Never => unimplemented!("ty: {}", ty),

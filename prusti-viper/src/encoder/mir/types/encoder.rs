@@ -64,6 +64,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         format!("fndef${}", self.encoder.encode_item_name(did))
     }
 
+    fn is_mathematical_type(&self, did: DefId) -> bool {
+        let type_name: &str = &self.encoder.env().tcx().def_path_str(did);
+        matches!(type_name, "prusti_contracts::Seq" | "prusti_contracts::Map")
+    }
+
     fn compute_array_len(&self, size: ty::Const<'tcx>) -> u64 {
         self.encoder
             .const_eval_intlike(size.val())
@@ -341,6 +346,22 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     .filter_map(|ty| self.encoder.encode_type_high(ty).ok())
                     .collect(),
             ),
+            ty::TyKind::Adt(adt_def, substs) if self.is_mathematical_type(adt_def.did()) => {
+                let type_name: &str = &self.encoder.env().tcx().def_path_str(adt_def.did());
+                let enc_substs = self.encode_substs(substs).into_iter().collect::<Vec<_>>();
+                match type_name {
+                    "prusti_contracts::Seq" => vir::TypeDecl::Sequence(vir::type_decl::Sequence {
+                        element_type: enc_substs[0].clone(),
+                    }),
+                    "prusti_contracts::Map" => vir::TypeDecl::Map(vir::type_decl::Map {
+                        key_type: enc_substs[0].clone(),
+                        val_type: enc_substs[1].clone(),
+                    }),
+                    _ => {
+                        unreachable!();
+                    }
+                }
+            }
             ty::TyKind::Adt(adt_def, substs) => {
                 encode_adt_def(self.encoder, *adt_def, substs, None)?
             }

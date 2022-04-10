@@ -19,7 +19,8 @@ pub(in super::super) trait TypeDeclWalker {
             vir_mid::Type::Bool
             | vir_mid::Type::Int(_)
             | vir_mid::Type::Float(_)
-            | vir_mid::Type::Pointer(_) => self.before_primitive(ty, parameters, lowerer),
+            | vir_mid::Type::Pointer(_)
+            | vir_mid::Type::Sequence(_) => self.before_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
             vir_mid::Type::Tuple(_)
             | vir_mid::Type::Struct(_)
@@ -168,7 +169,8 @@ pub(in super::super) trait TypeDeclWalker {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
-            | vir_mid::TypeDecl::Pointer(_) => {
+            | vir_mid::TypeDecl::Pointer(_)
+            | vir_mid::TypeDecl::Sequence(_) => {
                 self.walk_primitive(ty, &parameters, lowerer)?;
             }
             // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
@@ -213,7 +215,8 @@ pub(in super::super) trait TypeDeclWalker {
             vir_mid::Type::Bool
             | vir_mid::Type::Int(_)
             | vir_mid::Type::Float(_)
-            | vir_mid::Type::Pointer(_) => self.after_primitive(ty, parameters, lowerer),
+            | vir_mid::Type::Pointer(_)
+            | vir_mid::Type::Sequence(_) => self.after_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
             vir_mid::Type::Tuple(_)
             | vir_mid::Type::Struct(_)
