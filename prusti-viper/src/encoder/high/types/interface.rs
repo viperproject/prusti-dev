@@ -328,7 +328,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             | vir_mid::TypeDecl::Float(_)
             | vir_mid::TypeDecl::TypeVar(_)
             | vir_mid::TypeDecl::Reference(_)
-            | vir_mid::TypeDecl::Pointer(_) 
+            | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
             | vir_mid::TypeDecl::Map(_) => false,
             vir_mid::TypeDecl::Tuple(decl) => decl.arguments.is_empty(),
