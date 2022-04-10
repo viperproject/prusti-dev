@@ -46,7 +46,9 @@ pub(super) fn inline_spec_item_high<'tcx>(
     let mir = encoder.env().local_mir(def_id.expect_local(), substs);
     assert_eq!(
         mir.arg_count,
-        target_args.len() + if target_return.is_some() { 1 } else { 0 }
+        target_args.len() + if target_return.is_some() { 1 } else { 0 },
+        "def_id: {:?}",
+        def_id
     );
     let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
     let mut body_replacements = vec![];

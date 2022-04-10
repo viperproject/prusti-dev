@@ -1,4 +1,4 @@
-use super::encoder::FunctionCallInfoHigh;
+use super::{encoder::FunctionCallInfoHigh, PureEncodingContext};
 use crate::encoder::{
     borrows::ProcedureContractMirDef,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
@@ -31,7 +31,13 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::FunctionDecl> {
-    let pure_encoder = PureEncoder::new(encoder, proc_def_id, parent_def_id, substs);
+    let pure_encoder = PureEncoder::new(
+        encoder,
+        proc_def_id,
+        PureEncodingContext::Code,
+        parent_def_id,
+        substs,
+    );
     let function_decl = pure_encoder.encode_function_decl()?;
     if function_decl.body.is_some() {
         // Check that function does not call itself in its contract.
@@ -74,6 +80,7 @@ pub(super) fn encode_function_decl<'p, 'v: 'p, 'tcx: 'v>(
 pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: DefId,
+    pure_encoding_context: PureEncodingContext,
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
@@ -82,7 +89,7 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
         encoder,
         &mir,
         proc_def_id,
-        false,
+        pure_encoding_context,
         parent_def_id,
         substs,
     );
@@ -113,7 +120,13 @@ pub(super) fn encode_function_call_info<'p, 'v: 'p, 'tcx: 'v>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<FunctionCallInfoHigh> {
-    let encoder = PureEncoder::new(encoder, proc_def_id, parent_def_id, substs);
+    let encoder = PureEncoder::new(
+        encoder,
+        proc_def_id,
+        PureEncodingContext::Code,
+        parent_def_id,
+        substs,
+    );
     Ok(FunctionCallInfoHigh {
         name: encoder.encode_function_name(),
         _parameters: encoder.encode_parameters()?,
@@ -127,8 +140,7 @@ pub(super) struct PureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// The function to be encoded.
     proc_def_id: DefId,
     /// Where is this being encoded?
-    // TODO: should pure encoding context also exist here?
-    // pure_encoding_context: PureEncodingContext,
+    pure_encoding_context: PureEncodingContext,
     parent_def_id: DefId,
     /// Type substitutions applied to the MIR (if any) and the signature.
     substs: SubstsRef<'tcx>,
@@ -144,7 +156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
-        // pure_encoding_context: PureEncodingContext,
+        pure_encoding_context: PureEncodingContext,
         parent_def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> Self {
@@ -171,7 +183,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         Self {
             encoder,
             proc_def_id,
-            // pure_encoding_context,
+            pure_encoding_context,
             parent_def_id,
             substs,
             span,
@@ -190,7 +202,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
             self.encoder,
             &mir,
             self.proc_def_id,
-            false,
+            self.pure_encoding_context,
             self.parent_def_id,
             self.substs,
         );
