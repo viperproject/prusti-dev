@@ -17,8 +17,8 @@ pub use self::{
         },
         rvalue::{Operand, OperandKind, Rvalue},
         statement::{
-            Assert, Assign, Comment, CopyPlace, Exhale, Inhale, LeakAll, MovePlace, Statement,
-            WriteAddress, WritePlace,
+            Assert, Assign, Comment, Consume, CopyPlace, Exhale, Inhale, LeakAll, MovePlace,
+            Statement, WriteAddress, WritePlace,
         },
         ty::{self, Type},
         type_decl::{self, TypeDecl},
