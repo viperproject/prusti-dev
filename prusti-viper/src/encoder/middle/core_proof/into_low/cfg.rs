@@ -10,10 +10,7 @@ use crate::encoder::{
         places::PlacesInterface,
         predicates_memory_block::PredicatesMemoryBlockInterface,
         predicates_owned::PredicatesOwnedInterface,
-        snapshots::{
-            IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
-            SnapshotVariablesInterface,
-        },
+        snapshots::{SnapshotValidityInterface, SnapshotVariablesInterface},
     },
 };
 use vir_crate::{
@@ -130,8 +127,12 @@ impl IntoLow for vir_mid::Statement {
                 )?;
                 Ok(statements)
             }
+            Self::Assume(statement) => Ok(vec![Statement::assume(
+                lowerer.lower_expression_into_snapshot_constant_value(&statement.expression)?,
+                statement.position,
+            )]),
             Self::Assert(statement) => Ok(vec![Statement::assert(
-                statement.expression.into_low(lowerer)?,
+                lowerer.lower_expression_into_snapshot_constant_value(&statement.expression)?,
                 statement.position,
             )]),
             Self::FoldOwned(statement) => {
@@ -465,12 +466,7 @@ impl IntoLow for vir_mid::Successor {
             vir_mid::Successor::GotoSwitch(targets) => {
                 let mut new_targets = Vec::new();
                 for (test, target) in targets {
-                    let test_snapshot = test.create_snapshot(lowerer)?;
-                    let test_low = lowerer.obtain_constant_value(
-                        test.get_type(),
-                        test_snapshot,
-                        Default::default(),
-                    )?;
+                    let test_low = lowerer.lower_expression_into_snapshot_constant_value(&test)?;
                     new_targets.push((test_low, target.into_low(lowerer)?))
                 }
                 Ok(vir_low::Successor::GotoSwitch(new_targets))

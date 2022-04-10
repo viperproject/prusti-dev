@@ -7,6 +7,7 @@ impl Positioned for Statement {
             Self::Comment(statement) => statement.position(),
             Self::Inhale(statement) => statement.position(),
             Self::Exhale(statement) => statement.position(),
+            Self::Assume(statement) => statement.position(),
             Self::Assert(statement) => statement.position(),
             Self::FoldOwned(statement) => statement.position(),
             Self::UnfoldOwned(statement) => statement.position(),
@@ -36,6 +37,12 @@ impl Positioned for Inhale {
 }
 
 impl Positioned for Exhale {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for Assume {
     fn position(&self) -> Position {
         self.position
     }
