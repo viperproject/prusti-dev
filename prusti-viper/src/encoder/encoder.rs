@@ -718,8 +718,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::ReEarlyBound(_) => {
                 unimplemented!("ReEarlyBound: {}", format!("{}", region));
             },
-            ty::ReLateBound(_, _) => {
-                unimplemented!("ReLateBound: {}", format!("{}", region));
+            ty::ReLateBound(debruijn, bound_reg) => {
+                format!("lft_late_{}_{}", debruijn.index(), bound_reg.var.index())
             },
             ty::ReFree(_) => {
                 unimplemented!("ReFree: {}", format!("{}", region));
