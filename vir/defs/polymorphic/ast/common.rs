@@ -239,10 +239,11 @@ impl Type {
             Type::Float(Float::F32) => "f32".to_string(),
             Type::Float(Float::F64) => "f64".to_string(),
             Type::BitVector(value) => value.to_string(),
-            Type::Domain(_) | Type::Snapshot(_) | Type::TypedRef(_) | Type::TypeVar(_) => {
-                self.encode_as_string()
-            }
-            Type::Seq(SeqType { box ref typ }) => typ.name(),
+            Type::Seq(_)
+            | Type::Domain(_)
+            | Type::Snapshot(_)
+            | Type::TypedRef(_)
+            | Type::TypeVar(_) => self.encode_as_string(),
         }
     }
 
