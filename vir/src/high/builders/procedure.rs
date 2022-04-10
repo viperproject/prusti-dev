@@ -142,6 +142,7 @@ impl<'a> BasicBlockBuilder<'a> {
         self.statements.push(vir_high::Statement::comment(comment));
     }
     pub fn add_statement(&mut self, statement: vir_high::Statement) {
+        statement.check_no_default_position();
         self.statements.push(statement);
     }
     pub fn set_successor(&mut self, successor: SuccessorBuilder) {
@@ -153,6 +154,14 @@ impl<'a> BasicBlockBuilder<'a> {
     }
     pub fn set_successor_exit(&mut self, successor: SuccessorExitKind) {
         self.set_successor(SuccessorBuilder::Exit(successor));
+    }
+    pub fn create_basic_block_builder(&mut self, id: vir_high::BasicBlockId) -> BasicBlockBuilder {
+        BasicBlockBuilder {
+            procedure_builder: self.procedure_builder,
+            id,
+            statements: Vec::new(),
+            successor: SuccessorBuilder::Undefined,
+        }
     }
 }
 
