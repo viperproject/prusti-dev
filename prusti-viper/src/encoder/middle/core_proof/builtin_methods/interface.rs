@@ -273,7 +273,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 vir_low::MethodDecl::new(method_name, parameters, Vec::new(), pres, posts, None);
             self.declare_method(method)?;
             self.builtin_methods_state
-                .encoded_assign_methods
+                .encoded_consume_operand_methods
                 .insert(method_name.to_string());
         }
         Ok(())
@@ -881,7 +881,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 vir_mid::TypeDecl::Bool
                 | vir_mid::TypeDecl::Int(_)
                 | vir_mid::TypeDecl::Float(_)
-                | vir_mid::TypeDecl::Pointer(_) => {
+                | vir_mid::TypeDecl::Pointer(_)
+                | vir_mid::TypeDecl::Sequence(_) => {
                     self.encode_write_address_method(ty)?;
                     statements.push(stmtp! { position =>
                         call write_address<ty>([address.clone()], value)
@@ -1023,9 +1024,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     }
                 }
                 vir_mid::TypeDecl::Array(_) => {
-                    unimplemented!()
-                }
-                vir_mid::TypeDecl::Sequence(_) => {
                     unimplemented!()
                 }
                 vir_mid::TypeDecl::Map(_) => {
