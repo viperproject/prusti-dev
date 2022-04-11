@@ -43,7 +43,7 @@ pub struct SpecCollector<'a, 'tcx: 'a> {
 
     /// Map from functions/loops and their specifications.
     procedure_specs: HashMap<LocalDefId, ProcedureSpecRefs>,
-    loop_specs: Vec<LocalDefId>, // HashMap<LocalDefId, Vec<SpecificationId>>,
+    loop_specs: Vec<LocalDefId>,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -116,8 +116,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             let kind = SpecificationItem::Inherent(kind);
 
             def_spec.specs.insert(
-                *local_id,
+                local_id.to_def_id(),
                 typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
+                    span: Some(self.env.get_def_span(local_id.to_def_id())),
                     pres,
                     posts,
                     pledges,
@@ -133,25 +134,22 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         for (extern_spec_decl, spec_id) in self.extern_resolver.extern_fn_map.iter() {
             let target_def_id = extern_spec_decl.get_target_def_id();
 
-            if let Some(local_id) = target_def_id.as_local() {
-                if def_spec.specs.contains_key(&local_id) {
-                    PrustiError::incorrect(
-                        format!("external specification provided for {}, which already has a specification",
-                                self.env.get_item_name(target_def_id)),
-                        MultiSpan::from_span(self.env.get_def_span(*spec_id)),
-                    ).emit(self.env);
-                }
+            if def_spec.specs.contains_key(&target_def_id) {
+                PrustiError::incorrect(
+                    format!("external specification provided for {}, which already has a specification",
+                            self.env.get_item_name(target_def_id)),
+                    MultiSpan::from_span(self.env.get_def_span(*spec_id)),
+                ).emit(self.env);
             }
 
-            if def_spec.specs.get(&spec_id.expect_local()).is_some() {
-                def_spec.extern_specs.insert(target_def_id, spec_id.expect_local());
-            }
+            let spec = def_spec.specs.remove(spec_id).unwrap();
+            def_spec.specs.insert(target_def_id, spec);
         }
     }
 
     fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for local_id in self.loop_specs.iter() {
-            def_spec.specs.insert(*local_id, typed::SpecificationSet::Loop(typed::LoopSpecification {
+            def_spec.specs.insert(local_id.to_def_id(), typed::SpecificationSet::Loop(typed::LoopSpecification {
                 invariant: *local_id,
             }));
         }

@@ -21,7 +21,7 @@ pub(super) fn extract_closure_from_ty<'tcx>(
     match ty.kind() {
         ty::TyKind::Closure(def_id, substs) => {
             let cl_substs = substs.as_closure();
-            let sig = cl_substs.sig().no_bound_vars().unwrap();
+            let sig = cl_substs.sig().skip_binder();
             (
                 *def_id,
                 substs,
