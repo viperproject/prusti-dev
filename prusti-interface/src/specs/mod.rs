@@ -118,6 +118,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             def_spec.specs.insert(
                 local_id.to_def_id(),
                 typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
+                    span: Some(self.env.get_def_span(local_id.to_def_id())),
                     pres,
                     posts,
                     pledges,

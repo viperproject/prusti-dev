@@ -5,6 +5,7 @@ use prusti_interface::{
     utils::has_spec_only_attr,
 };
 use rustc_hir::def_id::{DefId, LocalDefId};
+use rustc_span::Span;
 use std::cell::RefCell;
 
 pub(crate) struct SpecificationsState {
@@ -33,8 +34,12 @@ pub(crate) trait SpecificationsInterface {
     /// Get the specifications attached to the `def_id` function.
     fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::ProcedureSpecification>;
 
-    /// Is the closure specified with the `def_id` is spec only?
+    /// Is the closure specified with the `def_id` spec only?
     fn is_spec_closure(&self, def_id: DefId) -> bool;
+
+    /// Get the span of the declared specification, if any, or else the span of
+    /// the method declaration.
+    fn get_spec_span(&self, def_id: DefId) -> Span;
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 'tcx> {
@@ -88,8 +93,16 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
         Some(spec.clone())
     }
 
-    /// Is the closure specified with the `def_id` is spec only?
     fn is_spec_closure(&self, def_id: DefId) -> bool {
         has_spec_only_attr(self.env().tcx().get_attrs(def_id))
+    }
+
+    fn get_spec_span(&self, def_id: DefId) -> Span {
+        self.specifications_state
+            .specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(self.env(), def_id)
+            .and_then(|spec| spec.span)
+            .unwrap_or_else(|| self.env().get_def_span(def_id))
     }
 }

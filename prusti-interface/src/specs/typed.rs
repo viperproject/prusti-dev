@@ -4,7 +4,7 @@ use prusti_specs::specifications::common;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::{collections::HashMap, fmt::Debug};
 use std::fmt::{Display, Formatter};
-
+use rustc_span::Span;
 
 #[derive(Debug, Clone)]
 pub enum SpecificationSet {
@@ -259,6 +259,7 @@ impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
 impl Refinable for ProcedureSpecification {
     fn refine(self, other: &Self) -> Self {
         ProcedureSpecification {
+            span: self.span.or(other.span),
             pres: self.pres.refine(&other.pres),
             posts: self.posts.refine(&other.posts),
             pledges: self.pledges.refine(&other.pledges),
@@ -282,6 +283,7 @@ impl Refinable for SpecificationSet {
 
 #[derive(Debug, Clone)]
 pub struct ProcedureSpecification {
+    pub span: Option<Span>,
     pub kind: SpecificationItem<ProcedureSpecificationKind>,
     pub pres: SpecificationItem<Vec<LocalDefId>>,
     pub posts: SpecificationItem<Vec<LocalDefId>>,
@@ -292,6 +294,7 @@ pub struct ProcedureSpecification {
 impl ProcedureSpecification {
     pub fn empty() -> Self {
         ProcedureSpecification {
+            span: None,
             kind: SpecificationItem::Empty,
             pres: SpecificationItem::Empty,
             posts: SpecificationItem::Empty,
