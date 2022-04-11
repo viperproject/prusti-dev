@@ -54,6 +54,7 @@ impl<'tcx> SpecQuery<'tcx> {
         }
     }
 
+    /// Makes a copy of the [SpecQuery] with a call def id and new call substs.
     pub(crate) fn adapt_to_call(&self, called_def_id: DefId, call_substs: SubstsRef<'tcx>) -> Self {
         let mut copy = *self;
         copy.called_def_id = called_def_id;

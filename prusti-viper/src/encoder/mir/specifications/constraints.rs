@@ -1,7 +1,4 @@
-use crate::{
-    encoder::mir::specifications::{interface::SpecQueryCause, SpecQuery},
-    rustc_middle::ty::subst::Subst,
-};
+use crate::encoder::mir::specifications::{interface::SpecQueryCause, SpecQuery};
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
@@ -9,7 +6,10 @@ use prusti_interface::{
     PrustiError,
 };
 use rustc_hir::def_id::LocalDefId;
-use rustc_middle::ty;
+use rustc_middle::{
+    ty,
+    ty::{subst::Subst, TypeFoldable},
+};
 use rustc_span::{MultiSpan, Span};
 
 pub(super) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
@@ -147,17 +147,24 @@ pub mod trait_bounds {
             ty::ParamEnv::reveal_all()
         };
 
-        let trait_predicates = extract_trait_predicates(param_env_constraint);
-        let all_bounds_satisfied = trait_predicates.iter().all(|trait_pred| {
-            let substituted_ty = trait_pred.self_ty();
-            let trait_def_id = trait_pred.trait_ref.def_id;
-            env.type_implements_trait_with_trait_substs(
-                substituted_ty,
-                trait_def_id,
-                trait_pred.trait_ref.substs,
-                param_env_lookup,
-            )
-        });
+        let all_bounds_satisfied = param_env_constraint
+            .caller_bounds()
+            .iter()
+            .all(|predicate| {
+                // Normalize any associated type projections.
+                // This needs to be done because ghost constraints might contain "deeply nested"
+                // associated types, e.g. `T: A<SomeAssocType = <Self as B>::OtherAssocType`
+                // where `<Self as B>::OtherAssocType` can be normalized to some concrete type.
+                let normalized_predicate = env.normalize_to(predicate);
+
+                if normalized_predicate.needs_subst() || normalized_predicate.needs_infer() {
+                    debug!("Predicate needs further substitutions to be resolved");
+                    false
+                } else {
+                    // Resolve the predicate by making a query to the compiler
+                    env.evaluate_predicate(normalized_predicate, param_env_lookup)
+                }
+            });
 
         if all_bounds_satisfied {
             trace!("Constraint fulfilled");
@@ -168,7 +175,7 @@ pub mod trait_bounds {
         }
     }
 
-    /// Substitutes the param
+    /// Substitutes the param environment
     fn perform_param_env_substitutions<'env, 'tcx: 'env>(
         env: &'env Environment<'tcx>,
         query: &SpecQuery<'tcx>,
@@ -179,6 +186,7 @@ pub mod trait_bounds {
         let maybe_trait_method =
             env.find_trait_method_substs(query.called_def_id, query.call_substs);
         let param_env = if let Some((_, trait_substs)) = maybe_trait_method {
+            trace!("Applying trait substs {:?}", trait_substs);
             param_env.subst(env.tcx(), trait_substs)
         } else {
             param_env
@@ -192,6 +200,7 @@ pub mod trait_bounds {
         let param_env = if query.call_substs.is_empty() {
             param_env
         } else {
+            trace!("Applying call substs {:?}", query.call_substs);
             param_env.subst(env.tcx(), query.call_substs)
         };
 
@@ -201,18 +210,6 @@ pub mod trait_bounds {
         );
 
         param_env
-    }
-
-    fn extract_trait_predicates(param_env: ty::ParamEnv) -> Vec<ty::TraitPredicate> {
-        let mut result = vec![];
-        let caller_bounds = param_env.caller_bounds();
-        for bound in caller_bounds {
-            let predicate_kind = bound.kind().skip_binder();
-            if let rustc_middle::ty::PredicateKind::Trait(trait_pred) = predicate_kind {
-                result.push(trait_pred);
-            }
-        }
-        result
     }
 
     fn extract_param_env<'a, 'tcx>(

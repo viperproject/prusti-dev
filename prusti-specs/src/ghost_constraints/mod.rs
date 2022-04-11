@@ -94,26 +94,6 @@ fn verify_provided_trait_bound(trait_bound: &syn::TraitBound) -> syn::Result<()>
         ));
     }
 
-    for path_segment in &trait_bound.path.segments {
-        match &path_segment.arguments {
-            syn::PathArguments::None => (),
-            syn::PathArguments::AngleBracketed(angle_bracketed_args) => {
-                for generic_arg in &angle_bracketed_args.args {
-                    match generic_arg {
-                        syn::GenericArgument::Type(_) => (),
-                        _ => {
-                            return Err(syn::Error::new(
-                                generic_arg.span(),
-                                "Trait bounds can only have type bindings",
-                            ))
-                        }
-                    }
-                }
-            }
-            _ => unreachable!(), // This should already cause problems in `PrustiTokenStream`
-        }
-    }
-
     Ok(())
 }
 
