@@ -139,12 +139,9 @@ impl PrustiTokenStream {
                     // to avoid later mis-identifying its suffix
                     tokens.push_back(PrustiToken::Token(token.clone()));
                     while let Some(token @ TokenTree::Punct(p)) = source.get(pos) {
-                        if p.as_char() == ',' { // Treat comma as a delimiter for macros
-                            break;
-                        }
                         pos += 1;
                         tokens.push_back(PrustiToken::Token(token.clone()));
-                        if p.spacing() != Alone {
+                        if p.spacing() != Joint {
                             break;
                         }
                     }
@@ -230,6 +227,7 @@ impl PrustiTokenStream {
         let mut arguments = self.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
 
         if arguments.len() != 2 {
+            dbg!(arguments);
             return error(span, "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)");
         }
 
