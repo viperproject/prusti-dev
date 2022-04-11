@@ -3,10 +3,13 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
-        into_low::IntoLowInterface, lowerer::Lowerer, snapshots::SnapshotValuesInterface,
+        into_low::IntoLowInterface,
+        lowerer::{FunctionsLowererInterface, Lowerer},
+        snapshots::SnapshotValuesInterface,
     },
 };
 use vir_crate::{
+    common::identifier::WithIdentifier,
     low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
 };
@@ -30,10 +33,10 @@ impl IntoSnapshot for vir_mid::Expression {
             Self::BinaryOp(expression) => expression.create_snapshot(lowerer),
             // Self::ContainerOp(expression) => expression.create_snapshot(lowerer),
             // Self::Seq(expression) => expression.create_snapshot(lowerer),
-            // Self::Conditional(expression) => expression.create_snapshot(lowerer),
+            Self::Conditional(expression) => expression.create_snapshot(lowerer),
             // Self::Quantifier(expression) => expression.create_snapshot(lowerer),
             // Self::LetExpr(expression) => expression.create_snapshot(lowerer),
-            // Self::FuncApp(expression) => expression.create_snapshot(lowerer),
+            Self::FuncApp(expression) => expression.create_snapshot(lowerer),
             // Self::Downcast(expression) => expression.create_snapshot(lowerer),
             x => unimplemented!("{:?}", x),
         }
@@ -156,5 +159,43 @@ impl IntoSnapshot for vir_mid::BinaryOp {
             right_snapshot,
             self.position,
         )
+    }
+}
+
+impl IntoSnapshot for vir_mid::Conditional {
+    type Target = vir_low::Expression;
+    fn create_snapshot<'p, 'v: 'p, 'tcx: 'v>(
+        &self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    ) -> SpannedEncodingResult<Self::Target> {
+        let guard_snapshot = lowerer.lower_expression_into_snapshot_constant_value(&self.guard)?;
+        let then_expr_snapshot = self.then_expr.create_snapshot(lowerer)?;
+        let else_expr_snapshot = self.else_expr.create_snapshot(lowerer)?;
+        let arg_type = self.then_expr.get_type();
+        assert_eq!(arg_type, self.else_expr.get_type());
+        Ok(vir_low::Expression::conditional(
+            guard_snapshot,
+            then_expr_snapshot,
+            else_expr_snapshot,
+            self.position,
+        ))
+    }
+}
+
+impl IntoSnapshot for vir_mid::FuncApp {
+    type Target = vir_low::Expression;
+    fn create_snapshot<'p, 'v: 'p, 'tcx: 'v>(
+        &self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    ) -> SpannedEncodingResult<Self::Target> {
+        let arguments = self.arguments.create_snapshot(lowerer)?;
+        let return_type = self.return_type.create_snapshot(lowerer)?;
+        let func_app = lowerer.create_func_app(
+            self.get_identifier(),
+            arguments,
+            return_type,
+            self.position,
+        )?;
+        Ok(vir_low::Expression::FuncApp(func_app))
     }
 }

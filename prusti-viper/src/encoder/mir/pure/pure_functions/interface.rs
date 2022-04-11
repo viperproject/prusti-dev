@@ -170,6 +170,12 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             let body = super::new_encoder::encode_pure_expression(
                 self,
                 proc_def_id,
+                if self.is_encoding_trigger.get() {
+                    // quantifier triggers might not evaluate to boolean
+                    PureEncodingContext::Trigger
+                } else {
+                    PureEncodingContext::Assertion
+                },
                 parent_def_id,
                 substs,
             )?;

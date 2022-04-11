@@ -273,7 +273,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 vir_low::MethodDecl::new(method_name, parameters, Vec::new(), pres, posts, None);
             self.declare_method(method)?;
             self.builtin_methods_state
-                .encoded_assign_methods
+                .encoded_consume_operand_methods
                 .insert(method_name.to_string());
         }
         Ok(())
