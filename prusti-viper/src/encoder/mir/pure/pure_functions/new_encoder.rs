@@ -8,11 +8,13 @@ use crate::encoder::{
             interpreter::ExpressionBackwardInterpreter,
             specifications::SpecificationEncoderInterface,
         },
+        specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
     mir_interpreter::run_backward_interpretation,
     Encoder,
 };
+
 use log::{debug, trace};
 use prusti_common::vir_high_local;
 use rustc_hir::def_id::DefId;
@@ -155,7 +157,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
             encoder.env().identity_substs(proc_def_id).len()
         );
 
-        let span = encoder.env().tcx().def_span(proc_def_id);
+        let span = encoder.get_spec_span(proc_def_id);
 
         // TODO: move this to a signatures module
         use crate::rustc_middle::ty::subst::Subst;

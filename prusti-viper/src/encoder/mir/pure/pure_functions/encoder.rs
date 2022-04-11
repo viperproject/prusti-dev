@@ -9,7 +9,10 @@ use crate::encoder::{
     borrows::ProcedureContract,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
-    mir::pure::{PureEncodingContext, SpecificationEncoderInterface},
+    mir::{
+        pure::{PureEncodingContext, SpecificationEncoderInterface},
+        specifications::SpecificationsInterface,
+    },
     mir_encoder::PlaceEncoder,
     mir_interpreter::run_backward_interpretation,
     snapshot::interface::SnapshotEncoderInterface,
@@ -94,7 +97,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             encoder.env().identity_substs(proc_def_id).len()
         );
 
-        let span = encoder.env().tcx().def_span(proc_def_id);
+        let span = encoder.get_spec_span(proc_def_id);
 
         // TODO: move this to a signatures module
         use crate::rustc_middle::ty::subst::Subst;
