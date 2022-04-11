@@ -75,10 +75,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         }
     }
 
-    pub(super) fn mir_encoder(&self) -> &MirEncoder<'p, 'v, 'tcx> {
-        &self.mir_encoder
-    }
-
     fn encode_place(&self, place: mir::Place<'tcx>) -> SpannedEncodingResult<vir_high::Expression> {
         self.encoder.encode_place_high(self.mir, place)
     }

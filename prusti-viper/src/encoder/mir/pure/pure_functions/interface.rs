@@ -167,11 +167,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             .borrow()
             .contains_key(&key)
         {
-            let procedure = self.env().get_procedure(proc_def_id);
             let body = super::new_encoder::encode_pure_expression(
                 self,
                 proc_def_id,
-                procedure.get_mir(),
                 parent_def_id,
                 substs,
             )?;
@@ -281,11 +279,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                     } else {
                         let function = pure_function_encoder.encode_function()?;
                         // Test the new encoding.
-                        let mir = self.env().local_mir(proc_def_id.expect_local(), substs);
                         let _ = super::new_encoder::encode_function_decl(
                             self,
                             proc_def_id,
-                            &mir,
                             proc_def_id,
                             substs,
                         )?;
@@ -445,12 +441,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         if !call_infos.contains_key(&key) {
             // Compute information necessary to encode the function call and
             // memoize it.
-            // TODO: fix for non-local
-            let mir = self.env().local_mir(proc_def_id.expect_local(), substs);
             let function_call_info = super::new_encoder::encode_function_call_info(
                 self,
                 proc_def_id,
-                &mir,
                 parent_def_id,
                 substs,
             )?;
