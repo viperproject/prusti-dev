@@ -514,6 +514,32 @@
 <span id="509">509</span>
 <span id="510">510</span>
 <span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -577,55 +603,64 @@
     <span class="ident">borrowck_facts</span>: <span class="ident">Rc</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#36-43">BorrowckFacts</a><span class="op">&gt;</span>,
 }
 
+<span class="kw">struct</span> <span class="ident">CachedExternalBody</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// MIR body as known to the compiler.</span>
+    <span class="ident">base_body</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Copies of the MIR body with the given substs applied.</span>
+    <span class="ident">monomorphised_bodies</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+}
+
 <span class="doccomment">/// Facade to the Rust compiler.</span>
 <span class="comment">// #[derive(Copy, Clone)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Cached MIR bodies.</span>
     <span class="ident">bodies</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>, <span class="ident">CachedBody</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">external_bodies</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <span class="ident">CachedExternalBody</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Builds an environment given a compiler state.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#66-70">Environment</a> {
-            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#74">tcx</a>,
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#73-78">Environment</a> {
+            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#82">tcx</a>,
             <span class="ident">bodies</span>: <span class="ident">RefCell::new</span>(<span class="ident">HashMap::new</span>()),
+            <span class="ident">external_bodies</span>: <span class="ident">RefCell::new</span>(<span class="ident">HashMap::new</span>()),
         }
     }
 
     <span class="doccomment">/// Returns the path of the source that is being compiled</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">source_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#82">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">local_crate_source_file</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">unwrap</span>()
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#91">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">local_crate_source_file</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">unwrap</span>()
     }
 
     <span class="doccomment">/// Returns the file name of the source that is being compiled</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">source_file_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let</span> <span class="ident">source_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#87">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#82">source_path</a>();
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#88">source_path</a>.<span class="ident">file_name</span>().<span class="ident">unwrap</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+        <span class="kw">let</span> <span class="ident">source_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#96">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#91">source_path</a>();
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#97">source_path</a>.<span class="ident">file_name</span>().<span class="ident">unwrap</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
     }
 
     <span class="doccomment">/// Returns the name of the crate that is being compiled</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crate_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#93">self</a>.<span class="ident">tcx</span>
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#102">self</a>.<span class="ident">tcx</span>
             .<span class="ident">crate_name</span>(<span class="ident">rustc_span::def_id::LOCAL_CRATE</span>)
             .<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
     }
 
     <span class="doccomment">/// Returns the typing context</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tcx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#100">self</a>.<span class="ident">tcx</span>
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#109">self</a>.<span class="ident">tcx</span>
     }
 
     <span class="doccomment">/// Returns the type of a `HirId`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hir_id_to_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hir_id</span>: <span class="ident">HirId</span>) -&gt; <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">def_id</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#105">self</a>.<span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">local_def_id</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#105">hir_id</a>);
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#105">self</a>.<span class="ident">tcx</span>.<span class="ident">type_of</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#106">def_id</a>)
+        <span class="kw">let</span> <span class="ident">def_id</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#114">self</a>.<span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">local_def_id</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#114">hir_id</a>);
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#114">self</a>.<span class="ident">tcx</span>.<span class="ident">type_of</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#115">def_id</a>)
     }
 
     <span class="doccomment">/// Returns the `CodeMap`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codemap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">SourceMap</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#111">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>()
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#120">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>()
     }
 
     <span class="comment">// /// Emits a warning message</span>
@@ -656,19 +691,19 @@
         <span class="ident">help</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
         <span class="ident">notes</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>)],
     ) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">diagnostic</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#137">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">struct_err</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#139">msg</a>);
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#143">diagnostic</a>.<span class="ident">set_span</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#138">sp</a>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">help_msg</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#140">help</a> {
-            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#143">diagnostic</a>.<span class="ident">help</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#145">help_msg</a>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">diagnostic</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#146">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">struct_err</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#148">msg</a>);
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#152">diagnostic</a>.<span class="ident">set_span</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#147">sp</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">help_msg</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#149">help</a> {
+            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#152">diagnostic</a>.<span class="ident">help</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#154">help_msg</a>);
         }
-        <span class="kw">for</span> (<span class="ident">note_msg</span>, <span class="ident">opt_note_sp</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#141">notes</a> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">note_sp</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#148">opt_note_sp</a> {
-                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#143">diagnostic</a>.<span class="ident">span_note</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#149">note_sp</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#148">note_msg</a>);
+        <span class="kw">for</span> (<span class="ident">note_msg</span>, <span class="ident">opt_note_sp</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#150">notes</a> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">note_sp</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#157">opt_note_sp</a> {
+                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#152">diagnostic</a>.<span class="ident">span_note</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#158">note_sp</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#157">note_msg</a>);
             } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#143">diagnostic</a>.<span class="ident">note</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#148">note_msg</a>);
+                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#152">diagnostic</a>.<span class="ident">note</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#157">note_msg</a>);
             }
         }
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#143">diagnostic</a>.<span class="ident">emit</span>();
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#152">diagnostic</a>.<span class="ident">emit</span>();
     }
 
     <span class="doccomment">/// Emits an error message.</span>
@@ -679,44 +714,44 @@
         <span class="ident">help</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
         <span class="ident">notes</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>)],
     ) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">diagnostic</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#160">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">struct_warn</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#162">msg</a>);
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#166">diagnostic</a>.<span class="ident">set_span</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#161">sp</a>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">help_msg</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#163">help</a> {
-            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#166">diagnostic</a>.<span class="ident">help</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#168">help_msg</a>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">diagnostic</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#169">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">struct_warn</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#171">msg</a>);
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#175">diagnostic</a>.<span class="ident">set_span</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#170">sp</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">help_msg</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#172">help</a> {
+            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#175">diagnostic</a>.<span class="ident">help</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#177">help_msg</a>);
         }
-        <span class="kw">for</span> (<span class="ident">note_msg</span>, <span class="ident">opt_note_sp</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#164">notes</a> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">note_sp</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#171">opt_note_sp</a> {
-                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#166">diagnostic</a>.<span class="ident">span_note</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#172">note_sp</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#171">note_msg</a>);
+        <span class="kw">for</span> (<span class="ident">note_msg</span>, <span class="ident">opt_note_sp</span>) <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#173">notes</a> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">note_sp</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#180">opt_note_sp</a> {
+                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#175">diagnostic</a>.<span class="ident">span_note</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#181">note_sp</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#180">note_msg</a>);
             } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#166">diagnostic</a>.<span class="ident">note</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#171">note_msg</a>);
+                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#175">diagnostic</a>.<span class="ident">note</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#180">note_msg</a>);
             }
         }
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#166">diagnostic</a>.<span class="ident">emit</span>();
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#175">diagnostic</a>.<span class="ident">emit</span>();
     }
 
     <span class="doccomment">/// Returns true if an error has been emitted</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_errors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#182">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">has_errors</span>()
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#191">self</a>.<span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">has_errors</span>()
     }
 
     <span class="doccomment">/// Get ids of Rust procedures that are annotated with a Prusti specification</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_annotated_procedures</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#187">self</a>.<span class="ident">tcx</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">CollectPrustiSpecVisitor::new</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#187">self</a>);
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#188">tcx</a>.<span class="ident">hir</span>().<span class="ident">visit_all_item_likes</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#189">visitor</a>);
+        <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#196">self</a>.<span class="ident">tcx</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">CollectPrustiSpecVisitor::new</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#196">self</a>);
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#197">tcx</a>.<span class="ident">hir</span>().<span class="ident">visit_all_item_likes</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#198">visitor</a>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cl_visitor</span> <span class="op">=</span> <span class="ident">CollectClosureDefsVisitor::new</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#187">self</a>);
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#188">tcx</a>.<span class="ident">hir</span>().<span class="ident">visit_all_item_likes</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#192">cl_visitor</a>.<span class="ident">as_deep_visitor</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cl_visitor</span> <span class="op">=</span> <span class="ident">CollectClosureDefsVisitor::new</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#196">self</a>);
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#197">tcx</a>.<span class="ident">hir</span>().<span class="ident">visit_all_item_likes</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#201">cl_visitor</a>.<span class="ident">as_deep_visitor</span>());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#189">visitor</a>.<a class="ident" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#33">get_annotated_procedures</a>();
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#195">result</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#192">cl_visitor</a>.<a class="ident" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#25">get_closure_defs</a>());
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#195">result</a>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#198">visitor</a>.<a class="ident" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#33">get_annotated_procedures</a>();
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#204">result</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#201">cl_visitor</a>.<a class="ident" href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#25">get_closure_defs</a>());
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#204">result</a>
     }
 
     <span class="doccomment">/// Find whether the procedure has a particular `prusti::&lt;name&gt;` attribute.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_prusti_attribute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#201">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>();
-        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#276"><span class="kw">crate</span>::utils::has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#202">tcx</a>.<span class="ident">get_attrs</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#201">def_id</a>), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#201">name</a>)
+        <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#210">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#109">tcx</a>();
+        <a class="ident" href="../../../src/prusti_interface/utils.rs.html#276"><span class="kw">crate</span>::utils::has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#211">tcx</a>.<span class="ident">get_attrs</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#210">def_id</a>), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#210">name</a>)
     }
 
     <span class="doccomment">/// Dump various information from the borrow checker.</span>
@@ -724,45 +759,45 @@
     <span class="doccomment">/// Mostly used for experiments and debugging.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dump_borrowck_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">procedures</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>]) {
         <span class="kw">if</span> <span class="ident">prusti_common::config::dump_borrowck_info</span>() {
-            <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#30">dump_borrowck_info::dump_borrowck_info</a>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#209">self</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#209">procedures</a>)
+            <a class="ident" href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#30">dump_borrowck_info::dump_borrowck_info</a>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#218">self</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#218">procedures</a>)
         }
     }
 
     <span class="doccomment">/// Get an absolute `def_path`. Note: not preserved across compilations!</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_item_def_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let</span> <span class="ident">def_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#216">self</a>.<span class="ident">tcx</span>.<span class="ident">def_path</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#216">def_id</a>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">crate_name</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#216">self</a>.<span class="ident">tcx</span>.<span class="ident">crate_name</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#217">def_path</a>.<span class="ident">krate</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#218">crate_name</a>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#217">def_path</a>.<span class="ident">to_string_no_crate_verbose</span>());
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#218">crate_name</a>
+        <span class="kw">let</span> <span class="ident">def_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#225">self</a>.<span class="ident">tcx</span>.<span class="ident">def_path</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#225">def_id</a>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">crate_name</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#225">self</a>.<span class="ident">tcx</span>.<span class="ident">crate_name</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#226">def_path</a>.<span class="ident">krate</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#227">crate_name</a>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#226">def_path</a>.<span class="ident">to_string_no_crate_verbose</span>());
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#227">crate_name</a>
     }
 
     <span class="doccomment">/// Get descriptive name prepended with crate name to make it unique.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_unique_item_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let</span> <span class="ident">def_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#224">self</a>.<span class="ident">tcx</span>.<span class="ident">def_path</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#224">def_id</a>);
+        <span class="kw">let</span> <span class="ident">def_path</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#233">self</a>.<span class="ident">tcx</span>.<span class="ident">def_path</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#233">def_id</a>);
         <span class="macro">format!</span>(
             <span class="string">&quot;{}::{}&quot;</span>,
-            <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#224">self</a>.<span class="ident">tcx</span>.<span class="ident">crate_name</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#225">def_path</a>.<span class="ident">krate</span>),
-            <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#224">self</a>.<span class="ident">tcx</span>.<span class="ident">def_path_str</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#224">def_id</a>)
+            <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#233">self</a>.<span class="ident">tcx</span>.<span class="ident">crate_name</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#234">def_path</a>.<span class="ident">krate</span>),
+            <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#233">self</a>.<span class="ident">tcx</span>.<span class="ident">def_path_str</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#233">def_id</a>)
         )
     }
 
     <span class="doccomment">/// Get the span of the given definition.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_def_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#234">self</a>.<span class="ident">tcx</span>.<span class="ident">def_span</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#234">def_id</a>)
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#243">self</a>.<span class="ident">tcx</span>.<span class="ident">def_span</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#243">def_id</a>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_absolute_item_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#238">self</a>.<span class="ident">tcx</span>.<span class="ident">def_path_str</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#238">def_id</a>)
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#247">self</a>.<span class="ident">tcx</span>.<span class="ident">def_path_str</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#247">def_id</a>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_item_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#242">self</a>.<span class="ident">tcx</span>.<span class="ident">def_path_str</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#242">def_id</a>)
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#251">self</a>.<span class="ident">tcx</span>.<span class="ident">def_path_str</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#251">def_id</a>)
         <span class="comment">// self.tcx().item_path_str(def_id)</span>
     }
 
     <span class="doccomment">/// Get a Procedure.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_procedure</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">proc_def_id</span>: <a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>) -&gt; <span class="ident">Procedure</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <span class="ident">Procedure::new</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#248">self</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#248">proc_def_id</a>)
+        <span class="ident">Procedure::new</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#257">self</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#257">proc_def_id</a>)
     }
 
     <span class="doccomment">/// Get the MIR body of a local procedure, monomorphised with the given</span>
@@ -772,84 +807,104 @@
         <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>,
         <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bodies</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#255">self</a>.<span class="ident">bodies</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#259">bodies</a>.<span class="ident">entry</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#256">def_id</a>)
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bodies</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#264">self</a>.<span class="ident">bodies</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#268">bodies</a>.<span class="ident">entry</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#265">def_id</a>)
             .<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="comment">// SAFETY: This is safe because we are feeding in the same `tcx`</span>
                 <span class="comment">// that was used to store the data.</span>
                 <span class="kw">let</span> <span class="ident">body_with_facts</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                    <a class="ident" href="../../../src/prusti_interface/environment/mir_storage.rs.html#41-44"><span class="self">self</span>::mir_storage::retrieve_mir_body</a>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#255">self</a>.<span class="ident">tcx</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#256">def_id</a>)
+                    <a class="ident" href="../../../src/prusti_interface/environment/mir_storage.rs.html#41-44"><span class="self">self</span>::mir_storage::retrieve_mir_body</a>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#264">self</a>.<span class="ident">tcx</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#265">def_id</a>)
                 };
-                <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#264">body_with_facts</a>.<span class="ident">body</span>;
+                <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#273">body_with_facts</a>.<span class="ident">body</span>;
                 <span class="kw">let</span> <span class="ident">facts</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#36-43">BorrowckFacts</a> {
-                    <span class="ident">input_facts</span>: <span class="ident">RefCell::new</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#264">body_with_facts</a>.<span class="ident">input_facts</span>)),
-                    <span class="ident">output_facts</span>: <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#264">body_with_facts</a>.<span class="ident">output_facts</span>,
-                    <span class="ident">location_table</span>: <span class="ident">RefCell::new</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#264">body_with_facts</a>.<span class="ident">location_table</span>)),
+                    <span class="ident">input_facts</span>: <span class="ident">RefCell::new</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#273">body_with_facts</a>.<span class="ident">input_facts</span>)),
+                    <span class="ident">output_facts</span>: <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#273">body_with_facts</a>.<span class="ident">output_facts</span>,
+                    <span class="ident">location_table</span>: <span class="ident">RefCell::new</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#273">body_with_facts</a>.<span class="ident">location_table</span>)),
                 };
 
                 <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#55-62">CachedBody</a> {
-                    <span class="ident">base_body</span>: <span class="ident">Rc::new</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#267">body</a>),
+                    <span class="ident">base_body</span>: <span class="ident">Rc::new</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#276">body</a>),
                     <span class="ident">monomorphised_bodies</span>: <span class="ident">HashMap::new</span>(),
-                    <span class="ident">borrowck_facts</span>: <span class="ident">Rc::new</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#268">facts</a>),
+                    <span class="ident">borrowck_facts</span>: <span class="ident">Rc::new</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#277">facts</a>),
                 }
             });
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#260">body</a>
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#269">body</a>
             .<span class="ident">monomorphised_bodies</span>
-            .<span class="ident">entry</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#257">substs</a>)
+            .<span class="ident">entry</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#266">substs</a>)
             .<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html"><span class="kw">crate</span>::rustc_middle::ty::subst::Subst</a>;
-                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#260">body</a>.<span class="ident">base_body</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html">subst</a>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#255">self</a>.<span class="ident">tcx</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#257">substs</a>)
+                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#269">body</a>.<span class="ident">base_body</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html">subst</a>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#264">self</a>.<span class="ident">tcx</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#266">substs</a>)
             })
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
     <span class="doccomment">/// Get Polonius facts of a local procedure.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_mir_borrowck_facts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>) -&gt; <span class="ident">Rc</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#36-43">BorrowckFacts</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#291">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#295">try_get_local_mir_borrowck_facts</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#291">def_id</a>).<span class="ident">unwrap</span>()
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#300">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#304">try_get_local_mir_borrowck_facts</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#300">def_id</a>).<span class="ident">unwrap</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_get_local_mir_borrowck_facts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/environment/borrowck/facts.rs.html#36-43">BorrowckFacts</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;try_get_local_mir_borrowck_facts: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#295">def_id</a>);
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#295">self</a>.<span class="ident">bodies</span>.<span class="ident">borrow</span>()
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#295">def_id</a>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">body</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#299">body</a>.<span class="ident">borrowck_facts</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="macro">trace!</span>(<span class="string">&quot;try_get_local_mir_borrowck_facts: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#304">def_id</a>);
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#304">self</a>.<span class="ident">bodies</span>.<span class="ident">borrow</span>()
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#304">def_id</a>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">body</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#308">body</a>.<span class="ident">borrowck_facts</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="doccomment">/// Get the MIR body of an external procedure.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">external_mir</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#303">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>().<span class="ident">optimized_mir</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#303">def_id</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">external_mir</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+        <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bodies</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#313">self</a>.<span class="ident">external_bodies</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#317">bodies</a>.<span class="ident">entry</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#314">def_id</a>)
+            .<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#313">self</a>.<span class="ident">tcx</span>.<span class="ident">optimized_mir</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#314">def_id</a>);
+                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#64-69">CachedExternalBody</a> {
+                    <span class="ident">base_body</span>: <span class="ident">Rc::new</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#320">body</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                    <span class="ident">monomorphised_bodies</span>: <span class="ident">HashMap::new</span>(),
+                }
+            });
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#318">body</a>
+            .<span class="ident">monomorphised_bodies</span>
+            .<span class="ident">entry</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">substs</a>)
+            .<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html"><span class="kw">crate</span>::rustc_middle::ty::subst::Subst</a>;
+                <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#318">body</a>.<span class="ident">base_body</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/trait.Subst.html">subst</a>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#313">self</a>.<span class="ident">tcx</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">substs</a>)
+            })
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
     <span class="doccomment">/// Get all relevant trait declarations for some type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_traits_decls_for_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
-        <span class="kw">let</span> <span class="ident">traits</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#308">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>().<span class="ident">all_traits</span>();
-        <span class="kw">for</span> <span class="ident">trait_id</span> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#310">traits</a> {
-            <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#308">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>().<span class="ident">for_each_relevant_impl</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#311">trait_id</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#308">ty</a>, <span class="op">|</span><span class="ident">impl_id</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">relevant_trait_id</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#308">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>().<span class="ident">trait_id_of_impl</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#312">impl_id</a>) {
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#309">res</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#313">relevant_trait_id</a>);
+        <span class="kw">let</span> <span class="ident">traits</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#337">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#109">tcx</a>().<span class="ident">all_traits</span>();
+        <span class="kw">for</span> <span class="ident">trait_id</span> <span class="kw">in</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#339">traits</a> {
+            <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#337">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#109">tcx</a>().<span class="ident">for_each_relevant_impl</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#340">trait_id</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#337">ty</a>, <span class="op">|</span><span class="ident">impl_id</span><span class="op">|</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">relevant_trait_id</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#337">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#109">tcx</a>().<span class="ident">trait_id_of_impl</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#341">impl_id</a>) {
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#338">res</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#342">relevant_trait_id</a>);
                 }
             });
         }
-        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#309">res</a>
+        <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#338">res</a>
     }
 
     <span class="doccomment">/// Get an associated item by name.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_assoc_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/symbol/struct.Symbol.html">Symbol</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/assoc/struct.AssocItem.html">ty::AssocItem</a><span class="op">&gt;</span> {
         <span class="comment">// FIXME: Probably we should use https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.AssociatedItems.html#method.find_by_name_and_namespace</span>
         <span class="comment">// instead.</span>
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#322">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>().<span class="ident">associated_items</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#322">id</a>).<span class="ident">filter_by_name_unhygienic</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#322">name</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">cloned</span>()
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#351">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#109">tcx</a>().<span class="ident">associated_items</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#351">id</a>).<span class="ident">filter_by_name_unhygienic</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#351">name</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">cloned</span>()
     }
 
     <span class="doccomment">/// Returns true iff `def_id` is a trait method</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_trait_method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#329">self</a>.<span class="ident">tcx</span>.<span class="ident">trait_of_item</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#329">def_id</a>).<span class="ident">is_some</span>()
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#358">self</a>.<span class="ident">tcx</span>.<span class="ident">trait_of_item</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#358">def_id</a>).<span class="ident">is_some</span>()
     }
 
     <span class="doccomment">/// Returns true iff `def_id` is an implementation of a trait method</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_trait_method_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#334">self</a>.<span class="ident">tcx</span>.<span class="ident">impl_of_method</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#334">def_id</a>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">impl_id</span><span class="op">|</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#334">self</a>.<span class="ident">tcx</span>.<span class="ident">trait_id_of_impl</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#336">impl_id</a>))
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#363">self</a>.<span class="ident">tcx</span>.<span class="ident">impl_of_method</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#363">def_id</a>)
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">impl_id</span><span class="op">|</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#363">self</a>.<span class="ident">tcx</span>.<span class="ident">trait_id_of_impl</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#365">impl_id</a>))
             .<span class="ident">is_some</span>()
     }
 
@@ -860,11 +915,11 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">impl_def_id</span>: <a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>, <span class="comment">// what are we calling?</span>
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#344">self</a>.<span class="ident">tcx</span>
-            .<span class="ident">impl_of_method</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#345">impl_def_id</a>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">impl_id</span><span class="op">|</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#344">self</a>.<span class="ident">tcx</span>.<span class="ident">trait_id_of_impl</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#349">impl_id</a>))
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">trait_id</span><span class="op">|</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#344">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#322">get_assoc_item</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#350">trait_id</a>, <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#344">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>().<span class="ident">item_name</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#345">impl_def_id</a>)))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">assoc_item</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#351">assoc_item</a>.<span class="ident">def_id</span>)
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#373">self</a>.<span class="ident">tcx</span>
+            .<span class="ident">impl_of_method</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#374">impl_def_id</a>)
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">impl_id</span><span class="op">|</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#373">self</a>.<span class="ident">tcx</span>.<span class="ident">trait_id_of_impl</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#378">impl_id</a>))
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">trait_id</span><span class="op">|</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#373">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#351">get_assoc_item</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#379">trait_id</a>, <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#373">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#109">tcx</a>().<span class="ident">item_name</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#374">impl_def_id</a>)))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">assoc_item</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#380">assoc_item</a>.<span class="ident">def_id</span>)
     }
 
     <span class="doccomment">/// If the given `impl_method_def_id` is an implementation of a trait</span>
@@ -875,23 +930,23 @@
         <span class="ident">impl_method_def_id</span>: <a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>, <span class="comment">// what are we calling?</span>
         <span class="ident">impl_method_substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="comment">// what are the substs on the call?</span>
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>, <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">impl_def_id</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#358">self</a>.<span class="ident">tcx</span>.<span class="ident">impl_of_method</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#359">impl_method_def_id</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">trait_ref</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#358">self</a>.<span class="ident">tcx</span>.<span class="ident">impl_trait_ref</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#362">impl_def_id</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">impl_def_id</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#387">self</a>.<span class="ident">tcx</span>.<span class="ident">impl_of_method</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#388">impl_method_def_id</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">trait_ref</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#387">self</a>.<span class="ident">tcx</span>.<span class="ident">impl_trait_ref</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#391">impl_def_id</a>)<span class="question-mark">?</span>;
 
         <span class="comment">// At this point, we know that the given method:</span>
         <span class="comment">// - belongs to an impl block and</span>
         <span class="comment">// - the impl block implements a trait.</span>
         <span class="comment">// For the `get_assoc_item` call, we therefore `unwrap`, as not finding</span>
         <span class="comment">// the associated item would be a (compiler) internal error.</span>
-        <span class="kw">let</span> <span class="ident">trait_def_id</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#363">trait_ref</a>.<span class="ident">def_id</span>;
-        <span class="kw">let</span> <span class="ident">trait_method_def_id</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#358">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#322">get_assoc_item</a>(
-            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#370">trait_def_id</a>,
-            <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#358">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>().<span class="ident">item_name</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#359">impl_method_def_id</a>),
+        <span class="kw">let</span> <span class="ident">trait_def_id</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#392">trait_ref</a>.<span class="ident">def_id</span>;
+        <span class="kw">let</span> <span class="ident">trait_method_def_id</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#387">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#351">get_assoc_item</a>(
+            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#399">trait_def_id</a>,
+            <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#387">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#109">tcx</a>().<span class="ident">item_name</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#388">impl_method_def_id</a>),
         ).<span class="ident">unwrap</span>().<span class="ident">def_id</span>;
 
         <span class="comment">// sanity check: have we been given the correct number of substs?</span>
-        <span class="kw">let</span> <span class="ident">identity_impl_method</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#358">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#508">identity_substs</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#359">impl_method_def_id</a>);
-        <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#377">identity_impl_method</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#360">impl_method_substs</a>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="ident">identity_impl_method</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#387">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#534">identity_substs</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#388">impl_method_def_id</a>);
+        <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#406">identity_impl_method</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#389">impl_method_substs</a>.<span class="ident">len</span>());
 
         <span class="comment">// Given:</span>
         <span class="comment">// ```</span>
@@ -915,36 +970,36 @@
         <span class="comment">// this case `[Struct&lt;B, C&gt;, A, X, Y, Z]`. More generally, it is the</span>
         <span class="comment">// concatenation of the trait ref substs with the identity of the impl</span>
         <span class="comment">// method after skipping the identity of the impl.</span>
-        <span class="kw">let</span> <span class="ident">impl_substs</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#358">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#508">identity_substs</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#362">impl_def_id</a>);
-        <span class="kw">let</span> <span class="ident">trait_method_substs</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#358">self</a>.<span class="ident">tcx</span>.<span class="ident">mk_substs</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#363">trait_ref</a>.<span class="ident">substs</span>.<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#360">impl_method_substs</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#402">impl_substs</a>.<span class="ident">len</span>())));
+        <span class="kw">let</span> <span class="ident">impl_substs</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#387">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#534">identity_substs</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#391">impl_def_id</a>);
+        <span class="kw">let</span> <span class="ident">trait_method_substs</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#387">self</a>.<span class="ident">tcx</span>.<span class="ident">mk_substs</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#392">trait_ref</a>.<span class="ident">substs</span>.<span class="ident">iter</span>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#389">impl_method_substs</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#431">impl_substs</a>.<span class="ident">len</span>())));
 
         <span class="comment">// sanity check: do we now have the correct number of substs?</span>
-        <span class="kw">let</span> <span class="ident">identity_trait_method</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#358">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#508">identity_substs</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#371">trait_method_def_id</a>);
-        <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#403">trait_method_substs</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#407">identity_trait_method</a>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="ident">identity_trait_method</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#387">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#534">identity_substs</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#400">trait_method_def_id</a>);
+        <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#432">trait_method_substs</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#436">identity_trait_method</a>.<span class="ident">len</span>());
 
-        <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#371">trait_method_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#403">trait_method_substs</a>))
+        <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#400">trait_method_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#432">trait_method_substs</a>))
     }
 
     <span class="doccomment">/// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.</span>
     <span class="doccomment">/// Returns `None` if this method can not be found or the provided `proc_def_id` is no trait item.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_impl_of_trait_method_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">proc_def_id</span>: <a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>, <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a><span class="op">&gt;</span> {
         <span class="comment">// TODO(tymap): remove this method?</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">trait_id</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#415">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>().<span class="ident">trait_of_item</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#415">proc_def_id</a>) {
-            <span class="macro">debug!</span>(<span class="string">&quot;Fetching implementations of method &#39;{:?}&#39; defined in trait &#39;{}&#39; with substs &#39;{:?}&#39;&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#415">proc_def_id</a>, <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#415">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>().<span class="ident">def_path_str</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#417">trait_id</a>), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#415">substs</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">trait_id</span>) <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#444">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#109">tcx</a>().<span class="ident">trait_of_item</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#444">proc_def_id</a>) {
+            <span class="macro">debug!</span>(<span class="string">&quot;Fetching implementations of method &#39;{:?}&#39; defined in trait &#39;{}&#39; with substs &#39;{:?}&#39;&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#444">proc_def_id</a>, <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#444">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#109">tcx</a>().<span class="ident">def_path_str</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#446">trait_id</a>), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#444">substs</a>);
 
             <span class="comment">// TODO(tymap): don&#39;t use reveal_all</span>
             <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <span class="ident">ty::ParamEnv::reveal_all</span>();
-            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.ParamEnvAnd.html">ty::ParamEnvAnd</a> { <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#421">param_env</a>, <span class="ident">value</span>: (<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#415">proc_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#415">substs</a>) };
-            <span class="kw">let</span> <span class="ident">resolved_instance</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#125-128">traits::resolve_instance</a>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#415">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#100">tcx</a>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#422">key</a>);
-            <span class="kw">return</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#423">resolved_instance</a> {
+            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.ParamEnvAnd.html">ty::ParamEnvAnd</a> { <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#450">param_env</a>, <span class="ident">value</span>: (<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#444">proc_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#444">substs</a>) };
+            <span class="kw">let</span> <span class="ident">resolved_instance</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#125-128">traits::resolve_instance</a>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#444">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#109">tcx</a>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#451">key</a>);
+            <span class="kw">return</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#452">resolved_instance</a> {
                 <span class="prelude-val">Ok</span>(<span class="ident">method_impl_instance</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">impl_method_def_id</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#425">method_impl_instance</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">instance</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#426">instance</a>.<span class="ident">def_id</span>());
-                    <span class="macro">debug!</span>(<span class="string">&quot;Resolved to-be called method: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#426">impl_method_def_id</a>);
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#426">impl_method_def_id</a>
+                    <span class="kw">let</span> <span class="ident">impl_method_def_id</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#454">method_impl_instance</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">instance</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#455">instance</a>.<span class="ident">def_id</span>());
+                    <span class="macro">debug!</span>(<span class="string">&quot;Resolved to-be called method: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#455">impl_method_def_id</a>);
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#455">impl_method_def_id</a>
                 },
                 <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-                    <span class="macro">debug!</span>(<span class="string">&quot;Error while resolving the to-be called method: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#430">err</a>);
+                    <span class="macro">debug!</span>(<span class="string">&quot;Error while resolving the to-be called method: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#459">err</a>);
                     <span class="prelude-val">None</span>
                 }
             };
@@ -967,42 +1022,39 @@
         <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeFoldable.html"><span class="kw">crate</span>::rustc_middle::ty::TypeFoldable</a>;
 
         <span class="comment">// avoids a compiler-internal panic</span>
-        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#449">call_substs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeFoldable.html">needs_infer</a>() {
-            <span class="kw">return</span> (<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#448">called_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#449">call_substs</a>);
+        <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#478">call_substs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeFoldable.html">needs_infer</a>() {
+            <span class="kw">return</span> (<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#477">called_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#478">call_substs</a>);
         }
 
-        <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#446">self</a>.<span class="ident">tcx</span>.<span class="ident">param_env</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#447">caller_def_id</a>);
-        <span class="kw">let</span> <span class="ident">instance</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#446">self</a>.<span class="ident">tcx</span>
-            .<span class="ident">resolve_instance</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#458">param_env</a>.<span class="ident">and</span>((<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#448">called_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#449">call_substs</a>)))
-            .<span class="ident">unwrap</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">instance</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#459">instance</a> {
-            (<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#462">instance</a>.<span class="ident">def_id</span>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#462">instance</a>.<span class="ident">substs</span>)
-        } <span class="kw">else</span> {
-            (<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#448">called_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#449">call_substs</a>)
-        }
+        <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#475">self</a>.<span class="ident">tcx</span>.<span class="ident">param_env</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#476">caller_def_id</a>);
+        <a class="ident" href="../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#125-128">traits::resolve_instance</a>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#475">self</a>.<span class="ident">tcx</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#487">param_env</a>.<span class="ident">and</span>((<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#477">called_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#478">call_substs</a>)))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">opt_instance</span><span class="op">|</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#489">opt_instance</a>
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">instance</span><span class="op">|</span> (<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#490">instance</a>.<span class="ident">def_id</span>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#490">instance</a>.<span class="ident">substs</span>))
+                .<span class="ident">unwrap_or</span>((<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#477">called_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#478">call_substs</a>)))
+            .<span class="ident">unwrap_or</span>((<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#477">called_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#478">call_substs</a>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_is_allowed_in_pure_functions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">param_env</span>: <span class="ident">ty::ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#469">ty</a>.<span class="ident">kind</span>() {
+        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#495">ty</a>.<span class="ident">kind</span>() {
             <span class="ident">ty::TyKind::Never</span> =&gt; {
                 <span class="bool-val">true</span>
             }
             <span class="kw">_</span> =&gt; {
-                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#469">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#480">type_is_copy</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#469">ty</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#469">param_env</a>)
+                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#495">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#506">type_is_copy</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#495">ty</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#495">param_env</a>)
             }
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_is_copy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">param_env</span>: <span class="ident">ty::ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="ident">copy_trait</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#480">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>().<span class="ident">copy_trait</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">copy_trait_def_id</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#481">copy_trait</a> {
+        <span class="kw">let</span> <span class="ident">copy_trait</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#506">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>().<span class="ident">copy_trait</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">copy_trait_def_id</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#507">copy_trait</a> {
             <span class="comment">// We need this check because `type_implements_trait`</span>
             <span class="comment">// panics when called on reference types.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Ref</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">mutability</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#480">ty</a>.<span class="ident">kind</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Ref</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">mutability</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#506">ty</a>.<span class="ident">kind</span>() {
                 <span class="comment">// Shared references are copy, mutable references are not.</span>
-                <span class="macro">matches!</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#485">mutability</a>, <span class="ident">mir::Mutability::Not</span>)
+                <span class="macro">matches!</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#511">mutability</a>, <span class="ident">mir::Mutability::Not</span>)
             } <span class="kw">else</span> {
-                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#480">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#497">type_implements_trait</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#480">ty</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#482">copy_trait_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#480">param_env</a>)
+                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#506">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#523">type_implements_trait</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#506">ty</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#508">copy_trait_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#506">param_env</a>)
             }
         } <span class="kw">else</span> {
             <span class="bool-val">false</span>
@@ -1011,10 +1063,10 @@
 
     <span class="doccomment">/// Checks whether the given type implements the trait with the given DefId.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_implements_trait</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">trait_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <span class="ident">param_env</span>: <span class="ident">ty::ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">assert!</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#497">self</a>.<span class="ident">tcx</span>.<span class="ident">is_trait</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#497">trait_def_id</a>));
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#497">self</a>.<span class="ident">tcx</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">infer_ctxt</a>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span>
-            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#499">infcx</a>
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/infer/trait.InferCtxtExt.html">type_implements_trait</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#497">trait_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#497">ty</a>, <span class="ident">ty::List::empty</span>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#497">param_env</a>)
+        <span class="macro">assert!</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#523">self</a>.<span class="ident">tcx</span>.<span class="ident">is_trait</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#523">trait_def_id</a>));
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#523">self</a>.<span class="ident">tcx</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">infer_ctxt</a>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span>
+            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#525">infcx</a>
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/infer/trait.InferCtxtExt.html">type_implements_trait</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#523">trait_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#523">ty</a>, <span class="ident">ty::List::empty</span>(), <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#523">param_env</a>)
                 .<span class="ident">must_apply_considering_regions</span>()
         )
     }
@@ -1022,7 +1074,7 @@
     <span class="doccomment">/// Return the default substitutions for a particular item, i.e. where each</span>
     <span class="doccomment">/// generic maps to itself.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">identity_substs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>) -&gt; <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <span class="ident">ty::List::identity_for_item</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#508">self</a>.<span class="ident">tcx</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#508">def_id</a>)
+        <span class="ident">ty::List::identity_for_item</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#534">self</a>.<span class="ident">tcx</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#534">def_id</a>)
     }
 }
 </code></pre></div>
