@@ -3,6 +3,7 @@
 mod expression;
 mod ty;
 mod variable;
+mod vec;
 
 use super::super::lowerer::Lowerer;
 use crate::encoder::errors::SpannedEncodingResult;
