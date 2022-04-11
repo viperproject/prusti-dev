@@ -29,7 +29,7 @@ type FunctionConstructor<'v, 'tcx> = Box<
 
 /// Depending on the context of the pure encoding,
 /// panics will be encoded slightly differently.
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub(crate) enum PureEncodingContext {
     /// Panics will be encoded as calls to unreachable functions
     /// (which have a `requires false` pre-condition).
@@ -167,11 +167,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             .borrow()
             .contains_key(&key)
         {
-            let procedure = self.env().get_procedure(proc_def_id);
             let body = super::new_encoder::encode_pure_expression(
                 self,
                 proc_def_id,
-                procedure.get_mir(),
                 parent_def_id,
                 substs,
             )?;
@@ -205,11 +203,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             .borrow()
             .contains_key(&key)
         {
-            let mir = self.env().local_mir(proc_def_id.expect_local(), substs);
-            let pure_function_encoder = PureFunctionEncoder::new(
+            let body = super::encoder::encode_body(
                 self,
                 proc_def_id,
-                &mir,
                 if self.is_encoding_trigger.get() {
                     // quantifier triggers might not evaluate to boolean
                     PureEncodingContext::Trigger
@@ -218,8 +214,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 },
                 parent_def_id,
                 substs,
-            );
-            let body = pure_function_encoder.encode_body()?;
+            )?;
             self.pure_function_encoder_state
                 .bodies_poly
                 .borrow_mut()
@@ -264,14 +259,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 .borrow_mut()
                 .insert(key.clone());
 
-            let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
-
-            let mir = self.env().local_mir(wrapper_def_id.expect_local(), substs);
-            let mir_span = mir.span;
-            let pure_function_encoder = PureFunctionEncoder::new(
+            let mut pure_function_encoder = PureFunctionEncoder::new(
                 self,
                 proc_def_id,
-                &mir,
                 PureEncodingContext::Code,
                 proc_def_id,
                 substs,
@@ -292,7 +282,6 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                         let _ = super::new_encoder::encode_function_decl(
                             self,
                             proc_def_id,
-                            &mir,
                             proc_def_id,
                             substs,
                         )?;
@@ -322,12 +311,10 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 }
                 Err(error) => {
                     self.register_encoding_error(error);
-                    debug!(
-                        "Error encoding pure function: {:?} wrapper_def_id={:?}",
-                        proc_def_id, wrapper_def_id
-                    );
-                    let body = self.env().external_mir(wrapper_def_id);
-                    let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, body, substs);
+                    debug!("Error encoding pure function: {:?}", proc_def_id);
+                    let body = self.env().external_mir(proc_def_id, substs);
+                    // TODO(tymap): does stub encoder need substs?
+                    let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body, substs);
                     let function = stub_encoder.encode_function()?;
                     self.log_vir_program_before_viper(function.to_string());
                     let identifier = self.insert_function(function);
@@ -391,13 +378,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         if !call_infos.contains_key(&key) {
             // Compute information necessary to encode the function call and
             // memoize it.
-            let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
-
-            let mir = self.env().local_mir(wrapper_def_id.expect_local(), substs);
             let pure_function_encoder = PureFunctionEncoder::new(
                 self,
                 proc_def_id,
-                &mir,
                 PureEncodingContext::Code,
                 parent_def_id,
                 substs,
@@ -458,13 +441,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         if !call_infos.contains_key(&key) {
             // Compute information necessary to encode the function call and
             // memoize it.
-            let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
-
-            let mir = self.env().local_mir(wrapper_def_id.expect_local(), substs);
             let function_call_info = super::new_encoder::encode_function_call_info(
                 self,
                 proc_def_id,
-                &mir,
                 parent_def_id,
                 substs,
             )?;

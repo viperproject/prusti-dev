@@ -25,10 +25,7 @@ use prusti_common::vir_local;
 use rustc_hash::FxHashMap;
 
 use rustc_hir::def_id::DefId;
-use rustc_middle::{
-    mir, span_bug, ty,
-    ty::subst::{Subst, SubstsRef},
-};
+use rustc_middle::{mir, span_bug, ty};
 
 use std::{convert::TryInto, mem};
 use vir_crate::polymorphic::{self as vir};
@@ -43,7 +40,6 @@ pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     pure_encoding_context: PureEncodingContext,
     /// DefId of the caller. Used for error reporting.
     caller_def_id: DefId,
-    substs: SubstsRef<'tcx>,
     def_id: DefId, // TODO(tymap): is this actually caller_def_id?
 }
 
@@ -57,7 +53,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         def_id: DefId,
         pure_encoding_context: PureEncodingContext,
         caller_def_id: DefId,
-        substs: SubstsRef<'tcx>,
     ) -> Self {
         PureFunctionBackwardInterpreter {
             encoder,
@@ -65,7 +60,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
             pure_encoding_context,
             caller_def_id,
-            substs,
             def_id,
         }
     }
@@ -413,9 +407,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     let full_func_proc_name: &str = &tcx.def_path_str(def_id);
                     let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
-                    // compose substitutions
-                    let composed_substs = call_substs.subst(self.encoder.env().tcx(), self.substs);
-
                     let state = if destination.is_some() {
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                         let (encoded_lhs, ty, _) = self.encode_place(lhs_place).with_span(span)?;
@@ -585,7 +576,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     span,
                                     encoded_args,
                                     self.caller_def_id,
-                                    composed_substs,
+                                    call_substs,
                                 )?;
                                 let mut state = states[target_block].clone();
                                 state.substitute_value(&encoded_lhs, expr);
@@ -594,10 +585,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                             // simple function call
                             _ => {
-                                let (called_def_id, composed_substs) = self
+                                let (called_def_id, call_substs) = self
                                     .encoder
                                     .env()
-                                    .resolve_method_call(self.def_id, def_id, composed_substs);
+                                    .resolve_method_call(self.def_id, def_id, call_substs);
                                 trace!("Resolved function call: {:?}", called_def_id);
 
                                 let is_pure_function = self.encoder.is_pure(called_def_id);
@@ -606,7 +597,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         .encode_pure_function_use(
                                             called_def_id,
                                             self.caller_def_id,
-                                            composed_substs,
+                                            call_substs,
                                         )
                                         .with_span(term.source_info.span)?
                                 } else {
@@ -638,7 +629,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 );
                                 let type_arguments = self
                                     .encoder
-                                    .encode_generic_arguments(called_def_id, composed_substs)
+                                    .encode_generic_arguments(called_def_id, call_substs)
                                     .with_span(term.source_info.span)?;
                                 let encoded_rhs = vir::Expr::func_app(
                                     function_name,

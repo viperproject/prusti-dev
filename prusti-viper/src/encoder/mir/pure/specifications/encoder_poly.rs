@@ -12,6 +12,7 @@ use crate::encoder::{
         types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PlaceEncoder},
+    snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
 use prusti_common::config;
@@ -123,12 +124,12 @@ pub(super) fn encode_quantifier<'tcx>(
     //   )
 
     let cl_type_body = substs.type_at(1);
-    let (body_def_id, body_substs, _, args, _) = extract_closure_from_ty(tcx, cl_type_body);
+    let (body_def_id, body_substs, body_span, args, _) = extract_closure_from_ty(tcx, cl_type_body);
 
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
     for (arg_idx, arg_ty) in args.into_iter().enumerate() {
-        let qvar_ty = encoder.encode_type(arg_ty).unwrap();
+        let qvar_ty = encoder.encode_snapshot_type(arg_ty).with_span(body_span)?;
         let qvar_name = format!(
             "_{}_quant_{}",
             arg_idx,

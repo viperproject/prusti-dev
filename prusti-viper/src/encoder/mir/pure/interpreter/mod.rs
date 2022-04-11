@@ -30,7 +30,7 @@ use rustc_span::Span;
 
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
-    high::{self as vir_high},
+    high::{self as vir_high, operations::ty::Typed},
 };
 
 // FIXME: Make this explicitly accessible only to spec_encoder and pure
@@ -73,10 +73,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             caller_def_id,
             substs,
         }
-    }
-
-    pub(super) fn mir_encoder(&self) -> &MirEncoder<'p, 'v, 'tcx> {
-        &self.mir_encoder
     }
 
     fn encode_place(&self, place: mir::Place<'tcx>) -> SpannedEncodingResult<vir_high::Expression> {
@@ -228,7 +224,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Discriminant(src) => {
                 let arg = self.encoder.encode_place_high(self.mir, *src)?;
-                let expr = self.encoder.encode_discriminant_call(arg).with_span(span)?;
+                let expr = self
+                    .encoder
+                    .encode_discriminant_call(arg, encoded_lhs.get_type().clone())
+                    .with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
             mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
