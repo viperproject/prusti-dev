@@ -1,13 +1,16 @@
 use prusti_contracts::*;
 
-trait A<X> { }
-
-#[ghost_constraint(T: for<'a> A<&'a i32> , [ //~ ERROR: Lifetimes in ghost constraints not allowed
-    ensures(result > 0)
-])]
-fn foo<T>(_x: T) -> i32 {
-    42
+struct MyStruct<T> {
+    x: T,
 }
 
+impl<T> MyStruct<T> {
+    #[ghost_constraint(Self: MyStruct<i32> , [ //~ ERROR: expected trait, found struct `MyStruct`
+        requires(x > 0)
+    ])]
+    fn set_x(&mut self, x: T) {
+        self.x = x;
+    }
+}
 fn main() {
 }

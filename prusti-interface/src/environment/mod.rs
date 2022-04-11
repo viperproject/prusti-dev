@@ -514,4 +514,45 @@ impl<'tcx> Environment<'tcx> {
     pub fn identity_substs(&self, def_id: ProcedureDefId) -> SubstsRef<'tcx> {
         ty::List::identity_for_item(self.tcx, def_id)
     }
+
+    /// Evaluates the provided [ty::Predicate].
+    /// Returns true if the predicate is fulfilled.
+    /// Returns false if the predicate is not fulfilled or it could not be evaluated.
+    pub fn evaluate_predicate(&self, predicate: ty::Predicate<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool{
+        debug!("Evaluating predicate {:?}", predicate);
+        use rustc_trait_selection::traits;
+        use crate::rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
+
+        let obligation = traits::Obligation {
+            cause: traits::ObligationCause::dummy(),
+            param_env,
+            recursion_depth: 0, // Arbitrarily chosen magic number
+            predicate,
+        };
+
+        self.tcx.infer_ctxt().enter(|infcx| {
+            infcx.predicate_must_hold_considering_regions(&obligation)
+        })
+    }
+
+    /// A facade for [rustc_trait_selection::traits::normalize_to]
+    /// Normalizes associated types in foldable types,
+    /// i.e. this resolves projection types ([ty::TyKind::Projection]s)
+    pub fn normalize_to<T: ty::TypeFoldable<'tcx>>(&self, normalizable: T) -> T {
+        use rustc_trait_selection::traits;
+        self.tcx.infer_ctxt().enter(|infcx| {
+            let mut selcx = traits::SelectionContext::new(&infcx);
+            // We do not really care about obligations that are constructed
+            // in the normalization process
+            let mut obligations = vec![];
+
+            traits::normalize_to(
+                &mut selcx,
+                ty::ParamEnv::reveal_all(),
+                traits::ObligationCause::dummy(),
+                normalizable,
+                &mut obligations,
+            )
+        })
+    }
 }

@@ -46,6 +46,12 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
         #[allow(non_camel_case_types)] struct #struct_ident {}
     };
 
+    // Add a new type parameter to struct which represents an implementation of the trait
+    let self_type_ident = syn::Ident::new("Prusti_T_Self", item_trait.span());
+    new_struct.generics.params.push(syn::GenericParam::Type(
+        parse_quote!(#self_type_ident),
+    ));
+
     let parsed_generics = parse_trait_type_params(item_trait)?;
     // Generic type parameters are added as generics to the struct
     for parsed_generic in parsed_generics.iter() {
@@ -53,12 +59,6 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
             new_struct.generics.params.push(syn::GenericParam::Type(type_param.clone()));
         }
     }
-
-    // Add a new type parameter to struct which represents an implementation of the trait
-    let self_type_ident = syn::Ident::new("Prusti_T_Self", item_trait.span());
-    new_struct.generics.params.push(syn::GenericParam::Type(
-        parse_quote!(#self_type_ident),
-    ));
 
     let self_type_trait: syn::TypePath = parse_quote_spanned! {item_trait.span()=>
         #trait_ident :: <#(#parsed_generics),*>
