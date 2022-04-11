@@ -592,6 +592,10 @@
 <span id="587">587</span>
 <span id="588">588</span>
 <span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -642,6 +646,10 @@
     <span class="ident">Panic</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#20-33">PanicCause</a>),
     <span class="doccomment">/// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`</span>
     <span class="ident">ExhaleMethodPrecondition</span>,
+    <span class="doccomment">/// An error when assuming method&#39;s functional specification.</span>
+    <span class="ident">UnexpectedAssumeMethodPrecondition</span>,
+    <span class="doccomment">/// An error when assuming method&#39;s functional specification.</span>
+    <span class="ident">UnexpectedAssumeMethodPostcondition</span>,
     <span class="doccomment">/// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`</span>
     <span class="ident">AssertMethodPostcondition</span>,
     <span class="doccomment">/// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`</span>
@@ -720,87 +728,87 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ErrorManager</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="ident">position_manager</span>: <span class="ident">PositionManager</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">error_contexts</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-123">ErrorCtxt</a><span class="op">&gt;</span>,
+    <span class="ident">error_contexts</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-127">ErrorCtxt</a><span class="op">&gt;</span>,
     <span class="ident">inner_positions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">ErrorManager</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">codemap</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">SourceMap</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#127-131">ErrorManager</a> {
-            <span class="ident">position_manager</span>: <span class="ident">PositionManager::new</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#134">codemap</a>),
+        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#131-135">ErrorManager</a> {
+            <span class="ident">position_manager</span>: <span class="ident">PositionManager::new</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#138">codemap</a>),
             <span class="ident">error_contexts</span>: <span class="ident">FxHashMap::default</span>(),
             <span class="ident">inner_positions</span>: <span class="ident">FxHashMap::default</span>(),
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">position_manager</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#18-25">PositionManager</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#142">self</a>.<span class="ident">position_manager</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#146">self</a>.<span class="ident">position_manager</span>
     }
 
     <span class="doccomment">/// Register a new VIR position.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_span</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>, <span class="ident">span</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
-        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#147">self</a>.<span class="ident">position_manager</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#38">register_span</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#147">def_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#147">span</a>)
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#151">self</a>.<span class="ident">position_manager</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#38">register_span</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#151">def_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#151">span</a>)
     }
 
     <span class="doccomment">/// Duplicate an existing VIR position.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">duplicate_position</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
-        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#152">self</a>.<span class="ident">position_manager</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#74">duplicate</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#152">pos</a>)
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#156">self</a>.<span class="ident">position_manager</span>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#74">duplicate</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#156">pos</a>)
     }
 
     <span class="doccomment">/// Register the ErrorCtxt on an existing VIR position.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-123">ErrorCtxt</a>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;Register error {:?} at position id {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">error_ctxt</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">pos</a>.<span class="ident">id</span>());
-        <span class="macro">assert_ne!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">pos</a>, <span class="ident">Position::default</span>(), <span class="string">&quot;Trying to register an error on a default position&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">existing_error_ctxt</span>) <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">self</a>.<span class="ident">error_contexts</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">pos</a>.<span class="ident">id</span>()) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-127">ErrorCtxt</a>) {
+        <span class="macro">trace!</span>(<span class="string">&quot;Register error {:?} at position id {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">error_ctxt</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">pos</a>.<span class="ident">id</span>());
+        <span class="macro">assert_ne!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">pos</a>, <span class="ident">Position::default</span>(), <span class="string">&quot;Trying to register an error on a default position&quot;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">existing_error_ctxt</span>) <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">self</a>.<span class="ident">error_contexts</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">pos</a>.<span class="ident">id</span>()) {
             <span class="macro">debug_assert_eq!</span>(
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#160">existing_error_ctxt</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">error_ctxt</a>,
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#164">existing_error_ctxt</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">error_ctxt</a>,
                 <span class="string">&quot;An existing error context would be overwritten.\n\
                 Position id: {}\n\
                 Existing error context: {:?}\n\
                 New error context: {:?}&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">pos</a>.<span class="ident">id</span>(),
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#160">existing_error_ctxt</a>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">error_ctxt</a>
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">pos</a>.<span class="ident">id</span>(),
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#164">existing_error_ctxt</a>,
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">error_ctxt</a>
             );
         }
-        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">self</a>.<span class="ident">error_contexts</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">pos</a>.<span class="ident">id</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">error_ctxt</a>);
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">self</a>.<span class="ident">error_contexts</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">pos</a>.<span class="ident">id</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">error_ctxt</a>);
     }
 
     <span class="doccomment">/// Creates a new position with `error_ctxt` that is linked to `pos`. This</span>
     <span class="doccomment">/// method is used for setting the surrounding context position of an</span>
     <span class="doccomment">/// expression&#39;s position.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_surrounding_error_context</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-123">ErrorCtxt</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
-        <span class="kw">let</span> <span class="ident">surrounding_position</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#178">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#152">duplicate_position</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#178">pos</a>);
-        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#178">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">set_error</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#179">surrounding_position</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#178">error_ctxt</a>);
-        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#178">self</a>.<span class="ident">inner_positions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#179">surrounding_position</a>.<span class="ident">id</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#178">pos</a>);
-        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#179">surrounding_position</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_surrounding_error_context</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-127">ErrorCtxt</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
+        <span class="kw">let</span> <span class="ident">surrounding_position</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#182">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#156">duplicate_position</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#182">pos</a>);
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#182">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">set_error</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#183">surrounding_position</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#182">error_ctxt</a>);
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#182">self</a>.<span class="ident">inner_positions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#183">surrounding_position</a>.<span class="ident">id</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#182">pos</a>);
+        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#183">surrounding_position</a>
     }
 
     <span class="doccomment">/// Register a new VIR position with the given ErrorCtxt.</span>
     <span class="doccomment">/// Equivalent to calling `set_error` on the output of `register_span`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">span</span>: <span class="ident">T</span>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-123">ErrorCtxt</a>, <span class="ident">def_id</span>: <a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
-        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#187">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#147">register_span</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#187">def_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#187">span</a>);
-        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#187">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#157">set_error</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#188">pos</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#187">error_ctxt</a>);
-        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#188">pos</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">span</span>: <span class="ident">T</span>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-127">ErrorCtxt</a>, <span class="ident">def_id</span>: <a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#191">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#151">register_span</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#191">def_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#191">span</a>);
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#191">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#161">set_error</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#192">pos</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#191">error_ctxt</a>);
+        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#192">pos</a>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_def_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ver_error</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../viper/verification_result/struct.VerificationError.html">VerificationError</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#193">ver_error</a>.<span class="ident">pos_id</span>.<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#195">id</a>.<span class="ident">parse</span>().<span class="ident">ok</span>())
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#193">self</a>.<span class="ident">position_manager</span>.<span class="ident">def_id</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#196">id</a>).<span class="ident">copied</span>())
+        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#197">ver_error</a>.<span class="ident">pos_id</span>.<span class="ident">as_ref</span>()
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">id</a>.<span class="ident">parse</span>().<span class="ident">ok</span>())
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#197">self</a>.<span class="ident">position_manager</span>.<span class="ident">def_id</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#200">id</a>).<span class="ident">copied</span>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate_verification_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ver_error</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../viper/verification_result/struct.VerificationError.html">VerificationError</a>) -&gt; <a class="ident" href="../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a> {
-        <span class="macro">debug!</span>(<span class="string">&quot;Verification error: {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">ver_error</a>);
-        <span class="kw">let</span> <span class="ident">opt_pos_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">ver_error</a>.<span class="ident">pos_id</span> {
+        <span class="macro">debug!</span>(<span class="string">&quot;Verification error: {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">ver_error</a>);
+        <span class="kw">let</span> <span class="ident">opt_pos_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">ver_error</a>.<span class="ident">pos_id</span> {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">viper_pos_id</span>) =&gt; {
-                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#202">viper_pos_id</a>.<span class="ident">parse</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">pos_id</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#204">pos_id</a>),
+                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#206">viper_pos_id</a>.<span class="ident">parse</span>() {
+                    <span class="prelude-val">Ok</span>(<span class="ident">pos_id</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#208">pos_id</a>),
                     <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                         <span class="kw">return</span> <span class="ident">PrustiError::internal</span>(
                             <span class="macro">format!</span>(
                                 <span class="string">&quot;unexpected Viper position &#39;{}&#39;: {}&quot;</span>,
-                                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#202">viper_pos_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#205">err</a>
+                                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#206">viper_pos_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#209">err</a>
                             ),
                             <span class="ident">MultiSpan::new</span>()
                         );
@@ -809,15 +817,15 @@
             }
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>
         };
-        <span class="kw">let</span> <span class="ident">opt_reason_pos_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">ver_error</a>.<span class="ident">reason_pos_id</span> {
+        <span class="kw">let</span> <span class="ident">opt_reason_pos_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">ver_error</a>.<span class="ident">reason_pos_id</span> {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">viper_reason_pos_id</span>) =&gt; {
-                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#219">viper_reason_pos_id</a>.<span class="ident">parse</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">reason_pos_id</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#221">reason_pos_id</a>),
+                <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#223">viper_reason_pos_id</a>.<span class="ident">parse</span>() {
+                    <span class="prelude-val">Ok</span>(<span class="ident">reason_pos_id</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#225">reason_pos_id</a>),
                     <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                         <span class="kw">return</span> <span class="ident">PrustiError::internal</span>(
                             <span class="macro">format!</span>(
                                 <span class="string">&quot;unexpected Viper reason position &#39;{}&#39;: {}&quot;</span>,
-                                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#219">viper_reason_pos_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#222">err</a>
+                                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#223">viper_reason_pos_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#226">err</a>
                             ),
                             <span class="ident">MultiSpan::new</span>()
                         );
@@ -827,42 +835,42 @@
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>
         };
 
-        <span class="kw">let</span> <span class="ident">opt_error_ctxts</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#201">opt_pos_id</a>
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">pos_id</span><span class="op">|</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">self</a>.<span class="ident">error_contexts</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#237">pos_id</a>));
-        <span class="kw">let</span> <span class="ident">opt_error_span</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#201">opt_pos_id</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">pos_id</span><span class="op">|</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">self</a>.<span class="ident">position_manager</span>.<span class="ident">source_span</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#238">pos_id</a>));
-        <span class="kw">let</span> <span class="ident">opt_cause_span</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#218">opt_reason_pos_id</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">reason_pos_id</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">self</a>.<span class="ident">position_manager</span>.<span class="ident">source_span</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#239">reason_pos_id</a>);
-            <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#240">res</a>.<span class="ident">is_none</span>() {
-                <span class="macro">debug!</span>(<span class="string">&quot;Unregistered reason position: {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#239">reason_pos_id</a>);
+        <span class="kw">let</span> <span class="ident">opt_error_ctxts</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#205">opt_pos_id</a>
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">pos_id</span><span class="op">|</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">self</a>.<span class="ident">error_contexts</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#241">pos_id</a>));
+        <span class="kw">let</span> <span class="ident">opt_error_span</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#205">opt_pos_id</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">pos_id</span><span class="op">|</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">self</a>.<span class="ident">position_manager</span>.<span class="ident">source_span</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#242">pos_id</a>));
+        <span class="kw">let</span> <span class="ident">opt_cause_span</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#222">opt_reason_pos_id</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">reason_pos_id</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">self</a>.<span class="ident">position_manager</span>.<span class="ident">source_span</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#243">reason_pos_id</a>);
+            <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#244">res</a>.<span class="ident">is_none</span>() {
+                <span class="macro">debug!</span>(<span class="string">&quot;Unregistered reason position: {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#243">reason_pos_id</a>);
             }
-            <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#240">res</a>
+            <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#244">res</a>
         });
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">error_ctxt</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#236">opt_error_ctxts</a> {
-            <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#238">opt_error_span</a>.<span class="ident">is_some</span>());
-            <span class="kw">let</span> <span class="ident">error_span</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#238">opt_error_span</a>.<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">MultiSpan::new</span>);
-            <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#295-301">translate_verification_error_with_context</a>(
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">ver_error</a>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#249">error_span</a>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#239">opt_cause_span</a>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#247">error_ctxt</a>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">error_ctxt</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#240">opt_error_ctxts</a> {
+            <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#242">opt_error_span</a>.<span class="ident">is_some</span>());
+            <span class="kw">let</span> <span class="ident">error_span</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#242">opt_error_span</a>.<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">MultiSpan::new</span>);
+            <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299-305">translate_verification_error_with_context</a>(
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">ver_error</a>,
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#253">error_span</a>,
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#243">opt_cause_span</a>,
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#251">error_ctxt</a>
             )
         } <span class="kw">else</span> {
-            <span class="macro">debug!</span>(<span class="string">&quot;Unregistered verification error: {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">ver_error</a>);
-            <span class="kw">let</span> <span class="ident">error_span</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">error_span</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#238">opt_error_span</a> {
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#258">error_span</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            <span class="macro">debug!</span>(<span class="string">&quot;Unregistered verification error: {:?}&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">ver_error</a>);
+            <span class="kw">let</span> <span class="ident">error_span</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">error_span</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#242">opt_error_span</a> {
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#262">error_span</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             } <span class="kw">else</span> {
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#239">opt_cause_span</a>.<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">MultiSpan::new</span>)
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#243">opt_cause_span</a>.<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">MultiSpan::new</span>)
             };
 
-            <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#201">opt_pos_id</a> {
+            <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#205">opt_pos_id</a> {
                 <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">pos_id</span>) =&gt; {
                     <span class="ident">PrustiError::internal</span>(
                         <span class="macro">format!</span>(
                             <span class="string">&quot;unregistered verification error: [{}; {}] {}&quot;</span>,
-                            <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">ver_error</a>.<span class="ident">full_id</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#265">pos_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">ver_error</a>.<span class="ident">message</span>
+                            <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">ver_error</a>.<span class="ident">full_id</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#269">pos_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">ver_error</a>.<span class="ident">message</span>
                         ),
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#258">error_span</a>
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#262">error_span</a>
                     ).<span class="ident">set_help</span>(
                         <span class="string">&quot;This could be caused by too small assertion timeout. \
                         Try increasing it by setting the configuration parameter \
@@ -873,9 +881,9 @@
                     <span class="ident">PrustiError::internal</span>(
                         <span class="macro">format!</span>(
                             <span class="string">&quot;unregistered verification error: [{}] {}&quot;</span>,
-                            <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">ver_error</a>.<span class="ident">full_id</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#199">ver_error</a>.<span class="ident">message</span>
+                            <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">ver_error</a>.<span class="ident">full_id</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#203">ver_error</a>.<span class="ident">message</span>
                         ),
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#258">error_span</a>
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#262">error_span</a>
                     ).<span class="ident">set_help</span>(
                         <span class="string">&quot;This could be caused by too small assertion timeout. \
                         Try increasing it by setting the configuration parameter \
@@ -891,267 +899,267 @@
         <span class="ident">ver_error</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../viper/verification_result/struct.VerificationError.html">VerificationError</a>,
         <span class="ident">error_span</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/struct.MultiSpan.html">MultiSpan</a>,
         <span class="ident">opt_cause_span</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/struct.MultiSpan.html">MultiSpan</a><span class="op">&gt;</span>,
-        <span class="ident">error_ctxt</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-123">ErrorCtxt</a>,
+        <span class="ident">error_ctxt</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-127">ErrorCtxt</a>,
     ) -&gt; <a class="ident" href="../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a> {
-        <span class="kw">match</span> (<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#297">ver_error</a>.<span class="ident">full_id</span>.<span class="ident">as_str</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#300">error_ctxt</a>) {
+        <span class="kw">match</span> (<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#301">ver_error</a>.<span class="ident">full_id</span>.<span class="ident">as_str</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#304">error_ctxt</a>) {
             (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#48">ErrorCtxt::Panic</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#22">PanicCause::Generic</a>)) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;statement might panic&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;statement might panic&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#48">ErrorCtxt::Panic</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#24">PanicCause::Panic</a>)) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;panic!(..) statement might be reachable&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;panic!(..) statement might be reachable&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#48">ErrorCtxt::Panic</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#26">PanicCause::Assert</a>)) <span class="op">|</span>
             (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#48">ErrorCtxt::Panic</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#28">PanicCause::DebugAssert</a>)) =&gt; {
-                    <span class="ident">PrustiError::verification</span>(<span class="string">&quot;the asserted expression might not hold&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <span class="ident">PrustiError::verification</span>(<span class="string">&quot;the asserted expression might not hold&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#48">ErrorCtxt::Panic</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#30">PanicCause::Unreachable</a>)) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;unreachable!(..) statement might be reachable&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;unreachable!(..) statement might be reachable&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#48">ErrorCtxt::Panic</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#32">PanicCause::Unimplemented</a>)) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;unimplemented!(..) statement might be reachable&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;unimplemented!(..) statement might be reachable&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#65">ErrorCtxt::AssertTerminator</a>(<span class="kw-2">ref</span> <span class="ident">message</span>)) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="macro">format!</span>(<span class="string">&quot;assertion might fail with \&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#329">message</a>), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#69">ErrorCtxt::AssertTerminator</a>(<span class="kw-2">ref</span> <span class="ident">message</span>)) =&gt; {
+                <span class="ident">PrustiError::verification</span>(<span class="macro">format!</span>(<span class="string">&quot;assertion might fail with \&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#333">message</a>), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#69">ErrorCtxt::AbortTerminator</a>) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;statement might abort&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#73">ErrorCtxt::AbortTerminator</a>) =&gt; {
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;statement might abort&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#71">ErrorCtxt::UnreachableTerminator</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#75">ErrorCtxt::UnreachableTerminator</a>) =&gt; {
                 <span class="ident">PrustiError::internal</span>(
                     <span class="string">&quot;unreachable code might be reachable&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
                     .<span class="ident">set_help</span>(<span class="string">&quot;This might be a bug in the Rust compiler.&quot;</span>)
             }
 
             (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#50">ErrorCtxt::ExhaleMethodPrecondition</a>) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;precondition might not hold.&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;precondition might not hold.&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#50">ErrorCtxt::ExhaleMethodPrecondition</a>) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;implicit type invariant expected by the function call might not hold.&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#56">ErrorCtxt::ExhaleMethodPostcondition</a>) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;postcondition might not hold.&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#60">ErrorCtxt::ExhaleMethodPostcondition</a>) =&gt; {
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;postcondition might not hold.&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#58">ErrorCtxt::ExhaleLoopInvariantOnEntry</a>) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;loop invariant might not hold in the first loop iteration.&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#62">ErrorCtxt::ExhaleLoopInvariantOnEntry</a>) =&gt; {
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;loop invariant might not hold in the first loop iteration.&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#58">ErrorCtxt::ExhaleLoopInvariantOnEntry</a>) =&gt; {
+            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#62">ErrorCtxt::ExhaleLoopInvariantOnEntry</a>) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;implicit type invariant of a variable might not hold on loop entry.&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#61">ErrorCtxt::AssertLoopInvariantOnEntry</a>) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;loop invariant might not hold in the first loop iteration.&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#65">ErrorCtxt::AssertLoopInvariantOnEntry</a>) =&gt; {
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;loop invariant might not hold in the first loop iteration.&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#59">ErrorCtxt::ExhaleLoopInvariantAfterIteration</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#63">ErrorCtxt::ExhaleLoopInvariantAfterIteration</a>) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;loop invariant might not hold after a loop iteration that preserves the loop condition.&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#62">ErrorCtxt::AssertLoopInvariantAfterIteration</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#66">ErrorCtxt::AssertLoopInvariantAfterIteration</a>) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;loop invariant might not hold after a loop iteration that preserves the loop condition.&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#92">ErrorCtxt::PureFunctionCall</a>) =&gt; {
+            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#96">ErrorCtxt::PureFunctionCall</a>) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;precondition of pure function call might not hold.&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;package.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#100">ErrorCtxt::PackageMagicWandForPostcondition</a>) =&gt; {
+            (<span class="string">&quot;package.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#104">ErrorCtxt::PackageMagicWandForPostcondition</a>) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;pledge in the postcondition might not hold.&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#104">ErrorCtxt::DivergingCallInPureFunction</a>,
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#108">ErrorCtxt::DivergingCallInPureFunction</a>,
             ) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;diverging function call in pure function might be reachable.&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#106">ErrorCtxt::PanicInPureFunction</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#22">PanicCause::Generic</a>),
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#110">ErrorCtxt::PanicInPureFunction</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#22">PanicCause::Generic</a>),
             ) =&gt; {
-                <span class="ident">PrustiError::disabled_verification</span>(<span class="string">&quot;statement in pure function might panic&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                <span class="ident">PrustiError::disabled_verification</span>(<span class="string">&quot;statement in pure function might panic&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#106">ErrorCtxt::PanicInPureFunction</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#24">PanicCause::Panic</a>),
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#110">ErrorCtxt::PanicInPureFunction</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#24">PanicCause::Panic</a>),
             ) =&gt; {
                 <span class="ident">PrustiError::disabled_verification</span>(
                     <span class="string">&quot;panic!(..) statement in pure function might panic&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#106">ErrorCtxt::PanicInPureFunction</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#26">PanicCause::Assert</a>),
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#110">ErrorCtxt::PanicInPureFunction</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#26">PanicCause::Assert</a>),
             ) =&gt; {
-                <span class="ident">PrustiError::disabled_verification</span>(<span class="string">&quot;asserted expression might not hold&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                <span class="ident">PrustiError::disabled_verification</span>(<span class="string">&quot;asserted expression might not hold&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#106">ErrorCtxt::PanicInPureFunction</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#30">PanicCause::Unreachable</a>),
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#110">ErrorCtxt::PanicInPureFunction</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#30">PanicCause::Unreachable</a>),
             ) =&gt; {
                 <span class="ident">PrustiError::disabled_verification</span>(
                     <span class="string">&quot;unreachable!(..) statement in pure function might be reachable&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#106">ErrorCtxt::PanicInPureFunction</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#32">PanicCause::Unimplemented</a>),
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#110">ErrorCtxt::PanicInPureFunction</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#32">PanicCause::Unimplemented</a>),
             ) =&gt; {
                 <span class="ident">PrustiError::disabled_verification</span>(
                     <span class="string">&quot;unimplemented!(..) statement in pure function might be reachable&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;postcondition.violated:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#90">ErrorCtxt::PureFunctionDefinition</a>) <span class="op">|</span>
-            (<span class="string">&quot;postcondition.violated:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#92">ErrorCtxt::PureFunctionCall</a>) =&gt; {
+            (<span class="string">&quot;postcondition.violated:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#94">ErrorCtxt::PureFunctionDefinition</a>) <span class="op">|</span>
+            (<span class="string">&quot;postcondition.violated:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#96">ErrorCtxt::PureFunctionCall</a>) =&gt; {
                 <span class="ident">PrustiError::disabled_verification</span>(
                     <span class="string">&quot;postcondition of pure function definition might not hold&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (
                 <span class="string">&quot;application.precondition:assertion.false&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#98">ErrorCtxt::PureFunctionAssertTerminator</a>(<span class="kw-2">ref</span> <span class="ident">message</span>),
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#102">ErrorCtxt::PureFunctionAssertTerminator</a>(<span class="kw-2">ref</span> <span class="ident">message</span>),
             ) =&gt; {
                 <span class="ident">PrustiError::disabled_verification</span>(
-                    <span class="macro">format!</span>(<span class="string">&quot;assertion might fail with \&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#475">message</a>),
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <span class="macro">format!</span>(<span class="string">&quot;assertion might fail with \&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#479">message</a>),
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             },
 
-            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#114">ErrorCtxt::TypeCast</a>) =&gt; {
+            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#118">ErrorCtxt::TypeCast</a>) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;value might not fit into the target type.&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;apply.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#102">ErrorCtxt::ApplyMagicWandOnExpiry</a>) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;obligation might not hold on borrow expiry&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+            (<span class="string">&quot;apply.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#106">ErrorCtxt::ApplyMagicWandOnExpiry</a>) =&gt; {
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;obligation might not hold on borrow expiry&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#52">ErrorCtxt::AssertMethodPostcondition</a>) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;postcondition might not hold.&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
-                    .<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#56">ErrorCtxt::AssertMethodPostcondition</a>) =&gt; {
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;postcondition might not hold.&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
+                    .<span class="ident">push_primary_span</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
             (
                 <span class="string">&quot;assert.failed:assertion.false&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#54">ErrorCtxt::AssertMethodPostconditionTypeInvariants</a>,
+                <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#58">ErrorCtxt::AssertMethodPostconditionTypeInvariants</a>,
             ) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;type invariants might not hold at the end of the method.&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             },
 
-            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#100">ErrorCtxt::PackageMagicWandForPostcondition</a>) <span class="op">|</span>
-            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#54">ErrorCtxt::AssertMethodPostconditionTypeInvariants</a>) =&gt; {
+            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#104">ErrorCtxt::PackageMagicWandForPostcondition</a>) <span class="op">|</span>
+            (<span class="string">&quot;fold.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#58">ErrorCtxt::AssertMethodPostconditionTypeInvariants</a>) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;implicit type invariants might not hold at the end of the method.&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;unfold.failed:insufficient.permission&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#120">ErrorCtxt::UnfoldUnionVariant</a>) =&gt; {
+            (<span class="string">&quot;unfold.failed:insufficient.permission&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#124">ErrorCtxt::UnfoldUnionVariant</a>) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;failed to unpack the capability of union&#39;s field.&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
                 .<span class="ident">set_help</span>(<span class="string">&quot;check that the field was initialized.&quot;</span>)
                 .<span class="ident">add_note</span>(<span class="string">&quot;Prusti does not support yet reinterpreting memory of Rust unions&#39; fields and allow reading only the field that was previously initialized.&quot;</span>, <span class="prelude-val">None</span>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#109">ErrorCtxt::AssertMethodPreconditionWeakening</a>) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;the method&#39;s precondition may not be a valid weakening of the trait&#39;s precondition.&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#113">ErrorCtxt::AssertMethodPreconditionWeakening</a>) =&gt; {
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;the method&#39;s precondition may not be a valid weakening of the trait&#39;s precondition.&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
                     .<span class="ident">set_help</span>(<span class="string">&quot;The trait&#39;s precondition should imply the implemented method&#39;s precondition.&quot;</span>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#112">ErrorCtxt::AssertMethodPostconditionStrengthening</a>) =&gt; {
-                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;the method&#39;s postcondition may not be a valid strengthening of the trait&#39;s postcondition.&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>)
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#116">ErrorCtxt::AssertMethodPostconditionStrengthening</a>) =&gt; {
+                <span class="ident">PrustiError::verification</span>(<span class="string">&quot;the method&#39;s postcondition may not be a valid strengthening of the trait&#39;s postcondition.&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>)
                     .<span class="ident">set_help</span>(<span class="string">&quot;The implemented method&#39;s postcondition should imply the trait&#39;s postcondition.&quot;</span>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#67">ErrorCtxt::BoundsCheckAssert</a>) <span class="op">|</span>
-            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#67">ErrorCtxt::BoundsCheckAssert</a>) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#71">ErrorCtxt::BoundsCheckAssert</a>) <span class="op">|</span>
+            (<span class="string">&quot;application.precondition:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#71">ErrorCtxt::BoundsCheckAssert</a>) =&gt; {
                 <span class="ident">PrustiError::verification</span>(
                     <span class="string">&quot;the array or slice index may be out of bounds&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>,
-                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>,
+                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#116">ErrorCtxt::Unsupported</a>(<span class="kw-2">ref</span> <span class="ident">reason</span>)) =&gt; {
+            (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#120">ErrorCtxt::Unsupported</a>(<span class="kw-2">ref</span> <span class="ident">reason</span>)) =&gt; {
                 <span class="ident">PrustiError::unsupported</span>(
-                    <span class="macro">format!</span>(<span class="string">&quot;an unsupported Rust feature might be reachable: {}.&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#545">reason</a>),
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>
-                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>)
+                    <span class="macro">format!</span>(<span class="string">&quot;an unsupported Rust feature might be reachable: {}.&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#549">reason</a>),
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>
+                ).<span class="ident">set_failing_assertion</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>)
             }
 
-            (<span class="ident">full_err_id</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#73">ErrorCtxt::Unexpected</a>) =&gt; {
+            (<span class="ident">full_err_id</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#77">ErrorCtxt::Unexpected</a>) =&gt; {
                 <span class="ident">PrustiError::internal</span>(
                     <span class="macro">format!</span>(
                         <span class="string">&quot;unexpected verification error: [{}] {}&quot;</span>,
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#552">full_err_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#297">ver_error</a>.<span class="ident">message</span>
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#556">full_err_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#301">ver_error</a>.<span class="ident">message</span>
                     ),
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>,
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>,
                 ).<span class="ident">set_failing_assertion</span>(
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>
                 ).<span class="ident">set_help</span>(
                     <span class="string">&quot;This could be caused by too small assertion timeout. \
                     Try increasing it by setting the configuration parameter \
@@ -1162,16 +1170,16 @@
             <span class="kw">_</span> =&gt; {
                 <span class="macro">debug!</span>(
                     <span class="string">&quot;Unhandled verification error: {:?}, context: {:?}&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#297">ver_error</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#300">error_ctxt</a>
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#301">ver_error</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#304">error_ctxt</a>
                 );
                 <span class="ident">PrustiError::internal</span>(
                     <span class="macro">format!</span>(
                         <span class="string">&quot;unhandled verification error: {} [{}] {:?}&quot;</span>,
-                        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#297">ver_error</a>.<span class="ident">message</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#297">ver_error</a>.<span class="ident">full_id</span>.<span class="ident">as_str</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#300">error_ctxt</a>
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#301">ver_error</a>.<span class="ident">message</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#301">ver_error</a>.<span class="ident">full_id</span>.<span class="ident">as_str</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#304">error_ctxt</a>
                     ),
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#298">error_span</a>,
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#302">error_span</a>,
                 ).<span class="ident">set_failing_assertion</span>(
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#299">opt_cause_span</a>
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#303">opt_cause_span</a>
                 ).<span class="ident">set_help</span>(
                     <span class="string">&quot;This could be caused by too small assertion timeout. \
                     Try increasing it by setting the configuration parameter \

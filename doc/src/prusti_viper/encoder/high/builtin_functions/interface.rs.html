@@ -230,10 +230,26 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#14-16"><span class="kw">super</span>::lower::IntoPolymorphic</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/encoder.rs.html#116-118">encoder::encode_builtin_function_name_with_type_args</a>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <span class="ident">builtin_encoder</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#59-61">BuiltinEncoder</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#26-49">BuiltinFunctionKind</a>},
+    <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/encoder.rs.html#7">high::builtin_functions::encoder::encode_builtin_function_def</a>,
+    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/interface.rs.html#82-148">mir::pure::PureFunctionEncoderInterface</a>,
 };
 <span class="kw">use</span> <span class="ident">log::trace</span>;
 
@@ -241,6 +257,7 @@
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
 <span class="kw">use</span> <span class="ident">vir_crate</span>::{
+    <a class="ident" href="../../../../../vir/common/identifier/trait.WithIdentifier.html">common::identifier::WithIdentifier</a>,
     <span class="ident">high</span>::{<a class="self" href="../../../../../vir/high/index.html">self</a> <span class="kw">as</span> <span class="ident">vir_high</span>},
     <a class="ident" href="../../../../../vir/polymorphic/index.html">polymorphic</a> <span class="kw">as</span> <span class="ident">vir_poly</span>,
 };
@@ -248,7 +265,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">HighBuiltinFunctionEncoderState</span> {
     <span class="comment">// FIXME: This should be a FxHashMap into FunctionIdentifier.</span>
-    <span class="ident">builtin_functions_high</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#25-50">BuiltinFunctionHighKind</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">builtin_functions_high</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#28-53">BuiltinFunctionHighKind</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="comment">// FIXME: This should be removed once BuiltinEncoder is fully migrated to high.</span>
     <span class="ident">builtin_functions</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#26-49">BuiltinFunctionKind</a>, <a class="ident" href="../../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir_poly::FunctionIdentifier</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
@@ -281,54 +298,57 @@
     },
 }
 
-<span class="kw">impl</span> <span class="ident">IntoPolymorphic</span><span class="op">&lt;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#26-49">BuiltinFunctionKind</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#25-50">BuiltinFunctionHighKind</a> {
+<span class="kw">impl</span> <span class="ident">IntoPolymorphic</span><span class="op">&lt;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#26-49">BuiltinFunctionKind</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#28-53">BuiltinFunctionHighKind</a> {
     <span class="kw">fn</span> <span class="ident">lower</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#43-52"><span class="kw">crate</span>::encoder::high::types::interface::HighTypeEncoderInterfacePrivate</a>,
     ) -&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#26-49">BuiltinFunctionKind</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#54">self</a> {
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#27">BuiltinFunctionHighKind::Unreachable</a>(<span class="ident">ty</span>) =&gt; {
-                <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#28">BuiltinFunctionKind::Unreachable</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">ty</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#55">encoder</a>))
+        <span class="kw">match</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#57">self</a> {
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#30">BuiltinFunctionHighKind::Unreachable</a>(<span class="ident">ty</span>) =&gt; {
+                <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#28">BuiltinFunctionKind::Unreachable</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#61">ty</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">encoder</a>))
             }
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#29">BuiltinFunctionHighKind::Undefined</a>(<span class="ident">ty</span>) =&gt; {
-                <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#30">BuiltinFunctionKind::Undefined</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#61">ty</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#55">encoder</a>))
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#32">BuiltinFunctionHighKind::Undefined</a>(<span class="ident">ty</span>) =&gt; {
+                <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#30">BuiltinFunctionKind::Undefined</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#64">ty</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">encoder</a>))
             }
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#32-37">BuiltinFunctionHighKind::ArrayLookupPure</a> {
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#35-40">BuiltinFunctionHighKind::ArrayLookupPure</a> {
                 <span class="ident">array_pred_type</span>,
                 <span class="ident">elem_pred_type</span>,
                 <span class="ident">array_len</span>,
                 <span class="ident">return_ty</span>,
             } =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#32-37">BuiltinFunctionKind::ArrayLookupPure</a> {
-                <span class="ident">array_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#65">array_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#55">encoder</a>),
-                <span class="ident">elem_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#66">elem_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#55">encoder</a>),
-                <span class="ident">array_len</span>: <span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#67">array_len</a>,
-                <span class="ident">return_ty</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#68">return_ty</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#55">encoder</a>),
+                <span class="ident">array_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#68">array_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">encoder</a>),
+                <span class="ident">elem_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#69">elem_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">encoder</a>),
+                <span class="ident">array_len</span>: <span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#70">array_len</a>,
+                <span class="ident">return_ty</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#71">return_ty</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">encoder</a>),
             },
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#40-44">BuiltinFunctionHighKind::SliceLookupPure</a> {
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#43-47">BuiltinFunctionHighKind::SliceLookupPure</a> {
                 <span class="ident">slice_pred_type</span>,
                 <span class="ident">elem_pred_type</span>,
                 <span class="ident">return_ty</span>,
             } =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#39-43">BuiltinFunctionKind::SliceLookupPure</a> {
-                <span class="ident">slice_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#76">slice_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#55">encoder</a>),
-                <span class="ident">elem_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#77">elem_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#55">encoder</a>),
-                <span class="ident">return_ty</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#78">return_ty</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#55">encoder</a>),
+                <span class="ident">slice_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#79">slice_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">encoder</a>),
+                <span class="ident">elem_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#80">elem_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">encoder</a>),
+                <span class="ident">return_ty</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#81">return_ty</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">encoder</a>),
             },
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#46-49">BuiltinFunctionHighKind::SliceLen</a> {
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#49-52">BuiltinFunctionHighKind::SliceLen</a> {
                 <span class="ident">slice_pred_type</span>,
                 <span class="ident">elem_pred_type</span>,
             } =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#45-48">BuiltinFunctionKind::SliceLen</a> {
-                <span class="ident">slice_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#85">slice_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#55">encoder</a>),
-                <span class="ident">elem_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#86">elem_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#55">encoder</a>),
+                <span class="ident">slice_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#88">slice_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">encoder</a>),
+                <span class="ident">elem_pred_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#89">elem_pred_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#58">encoder</a>),
             },
         }
     }
 }
 
 <span class="kw">trait</span> <span class="ident">HighBuiltinFunctionEncoderInterfacePrivate</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">encode_builtin_function_def_high</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#25-50">BuiltinFunctionHighKind</a>);
+    <span class="kw">fn</span> <span class="ident">encode_builtin_function_def_high</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#28-53">BuiltinFunctionHighKind</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">encode_builtin_function_name_with_type_args_high</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">function</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#25-50">BuiltinFunctionHighKind</a>,
+        <span class="ident">function</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#28-53">BuiltinFunctionHighKind</a>,
     ) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a><span class="op">&gt;</span>);
     <span class="kw">fn</span> <span class="ident">encode_builtin_function_def</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#26-49">BuiltinFunctionKind</a>);
 }
@@ -336,41 +356,49 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">HighBuiltinFunctionEncoderInterfacePrivate</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
     <span class="kw">for</span> <span class="ident"><span class="kw">crate</span>::encoder::encoder::Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
 {
-    <span class="kw">fn</span> <span class="ident">encode_builtin_function_def_high</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#25-50">BuiltinFunctionHighKind</a>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_function_def_high({:?})&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#107">function_kind</a>);
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#107">self</a>
+    <span class="kw">fn</span> <span class="ident">encode_builtin_function_def_high</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#28-53">BuiltinFunctionHighKind</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_function_def_high({:?})&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#115">function_kind</a>);
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#114">self</a>
             .<span class="ident">high_builtin_function_encoder_state</span>
             .<span class="ident">builtin_functions_high</span>
             .<span class="ident">borrow</span>()
-            .<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#107">function_kind</a>)
+            .<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#115">function_kind</a>)
         {
-            <span class="kw">let</span> <span class="ident">_function</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/encoder.rs.html#7">encode_builtin_function_def</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#107">function_kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()); <span class="comment">// TODO</span>
-            <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#107">self</a>.<span class="ident">high_builtin_function_encoder_state</span>
+            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/encoder.rs.html#7">encode_builtin_function_def</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#115">function_kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#114">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/interface.rs.html#143-147">register_function_constructor_mir</a>(
+                <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#124">function</a>.<a class="ident" href="../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>(),
+                <span class="ident">Box::new</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#124">function</a>)),
+            )<span class="question-mark">?</span>;
+            <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#114">self</a>.<span class="ident">high_builtin_function_encoder_state</span>
                 .<span class="ident">builtin_functions_high</span>
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#107">function_kind</a>);
+                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#115">function_kind</a>);
         }
+        <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn</span> <span class="ident">encode_builtin_function_name_with_type_args_high</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">function</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#25-50">BuiltinFunctionHighKind</a>,
+        <span class="ident">function</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#28-53">BuiltinFunctionHighKind</a>,
     ) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a><span class="op">&gt;</span>) {
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/encoder.rs.html#116-118">encode_builtin_function_name_with_type_args</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#124">function</a>)
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/encoder.rs.html#116-118">encode_builtin_function_name_with_type_args</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#138">function</a>)
     }
     <span class="kw">fn</span> <span class="ident">encode_builtin_function_def</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#26-49">BuiltinFunctionKind</a>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_function_def({:?})&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#128">function_kind</a>);
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#128">self</a>
+        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_function_def({:?})&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#142">function_kind</a>);
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#142">self</a>
             .<span class="ident">high_builtin_function_encoder_state</span>
             .<span class="ident">builtin_functions</span>
             .<span class="ident">borrow</span>()
-            .<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#128">function_kind</a>)
+            .<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#142">function_kind</a>)
         {
-            <span class="kw">let</span> <span class="ident">builtin_encoder</span> <span class="op">=</span> <span class="ident">BuiltinEncoder::new</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#128">self</a>);
-            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#136">builtin_encoder</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#97">encode_builtin_function_def</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#128">function_kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#128">self</a>.<span class="ident">high_builtin_function_encoder_state</span>
+            <span class="kw">let</span> <span class="ident">builtin_encoder</span> <span class="op">=</span> <span class="ident">BuiltinEncoder::new</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#142">self</a>);
+            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#150">builtin_encoder</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#97">encode_builtin_function_def</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#142">function_kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#142">self</a>.<span class="ident">high_builtin_function_encoder_state</span>
                 .<span class="ident">builtin_functions</span>
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#128">function_kind</a>, <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#128">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/encoder.rs.html#243">insert_function</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#137">function</a>));
+                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#142">function_kind</a>, <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#142">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/encoder.rs.html#243">insert_function</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#151">function</a>));
         }
     }
 }
@@ -378,8 +406,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">HighBuiltinFunctionEncoderInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">encode_builtin_function_use_high</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#25-50">BuiltinFunctionHighKind</a>,
-    ) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a><span class="op">&gt;</span>);
+        <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#28-53">BuiltinFunctionHighKind</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a><span class="op">&gt;</span>)<span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">encode_builtin_function_use</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#26-49">BuiltinFunctionKind</a>,
@@ -396,35 +424,35 @@
 {
     <span class="kw">fn</span> <span class="ident">encode_builtin_function_use_high</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#25-50">BuiltinFunctionHighKind</a>,
-    ) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a><span class="op">&gt;</span>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_function_use_high({:?})&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#167">function_kind</a>);
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#166">self</a>
+        <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#28-53">BuiltinFunctionHighKind</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_function_use_high({:?})&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#181">function_kind</a>);
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#180">self</a>
             .<span class="ident">high_builtin_function_encoder_state</span>
             .<span class="ident">builtin_functions_high</span>
             .<span class="ident">borrow</span>()
-            .<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#167">function_kind</a>)
+            .<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#181">function_kind</a>)
         {
             <span class="comment">// Trigger encoding of definition</span>
-            <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#166">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#96">encode_builtin_function_def_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#167">function_kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#180">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#99-102">encode_builtin_function_def_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#181">function_kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())<span class="question-mark">?</span>;
         }
-        <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#166">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#97-100">encode_builtin_function_name_with_type_args_high</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#167">function_kind</a>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#180">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#103-106">encode_builtin_function_name_with_type_args_high</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#181">function_kind</a>))
     }
     <span class="kw">fn</span> <span class="ident">encode_builtin_function_use</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">function_kind</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#26-49">BuiltinFunctionKind</a>,
     ) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir_poly::Type</a><span class="op">&gt;</span>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_function_use({:?})&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#183">function_kind</a>);
+        <span class="macro">trace!</span>(<span class="string">&quot;encode_builtin_function_use({:?})&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#197">function_kind</a>);
         <span class="comment">// FIXME: We should use encode_builtin_function_use_high with lowering instead..</span>
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#182">self</a>
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#196">self</a>
             .<span class="ident">high_builtin_function_encoder_state</span>
             .<span class="ident">builtin_functions</span>
             .<span class="ident">borrow</span>()
-            .<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#183">function_kind</a>)
+            .<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#197">function_kind</a>)
         {
-            <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#182">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#101">encode_builtin_function_def</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#183">function_kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#196">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#107">encode_builtin_function_def</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#197">function_kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         }
-        <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#182">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#156-159">encode_builtin_function_name_with_type_args</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#183">function_kind</a>)
+        <a class="self" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#196">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#170-173">encode_builtin_function_name_with_type_args</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#197">function_kind</a>)
     }
     <span class="kw">fn</span> <span class="ident">encode_builtin_function_name_with_type_args</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -433,11 +461,11 @@
         <span class="comment">// FIXME: This should use</span>
         <span class="comment">// super::encoder::encode_builtin_function_name_with_type_args and do</span>
         <span class="comment">// lowering once we get rid of the old BuiltinEncoder.</span>
-        <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#199">kind</a> {
+        <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#213">kind</a> {
             <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#28">BuiltinFunctionKind::Unreachable</a>(<span class="ident">typ</span>) =&gt; {
-                (<span class="string">&quot;builtin$unreach&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#205">typ</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()])
+                (<span class="string">&quot;builtin$unreach&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#219">typ</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()])
             }
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#30">BuiltinFunctionKind::Undefined</a>(<span class="ident">typ</span>) =&gt; (<span class="string">&quot;builtin$undef&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#208">typ</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()]),
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#30">BuiltinFunctionKind::Undefined</a>(<span class="ident">typ</span>) =&gt; (<span class="string">&quot;builtin$undef&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#222">typ</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()]),
             <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#32-37">BuiltinFunctionKind::ArrayLookupPure</a> {
                 <span class="ident">array_pred_type</span>: <span class="ident">container_type</span>,
                 <span class="ident">elem_pred_type</span>,
@@ -449,10 +477,10 @@
                 ..
             } =&gt; (
                 <span class="string">&quot;lookup_pure&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#210">container_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#211">elem_pred_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()],
+                <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#224">container_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#225">elem_pred_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()],
             ),
             <a class="ident" href="../../../../../src/prusti_viper/encoder/builtin_encoder.rs.html#45-48">BuiltinFunctionKind::SliceLen</a> { <span class="ident">elem_pred_type</span>, .. } =&gt; {
-                (<span class="string">&quot;Slice$len&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#222">elem_pred_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()])
+                (<span class="string">&quot;Slice$len&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/builtin_functions/interface.rs.html#236">elem_pred_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()])
             }
         }
     }
