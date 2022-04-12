@@ -17,7 +17,7 @@ use crate::encoder::{
         specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
-    mir_encoder::MirEncoder,
+    mir_encoder::{MirEncoder, PRECONDITION_LABEL},
     mir_interpreter::BackwardMirInterpreter,
     Encoder,
 };
@@ -27,9 +27,11 @@ use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty, ty::subst::SubstsRef};
 use rustc_span::Span;
-
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
+    common::{
+        expression::{BinaryOperationHelpers, UnaryOperationHelpers},
+        position::Positioned,
+    },
     high::{self as vir_high, operations::ty::Typed},
 };
 
@@ -434,8 +436,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .with_span(span)?;
                 match full_func_proc_name {
                     "prusti_contracts::old" => {
-                        unimplemented!();
-                        // self.encode_call_old()?
+                        let argument = encoded_args.pop().unwrap();
+                        let position = argument.position();
+                        let encoded_rhs = vir_high::Expression::labelled_old(
+                            PRECONDITION_LABEL.to_string(),
+                            argument,
+                            position,
+                        );
+                        let mut state = states[target_block].clone();
+                        state.substitute_value(&encoded_lhs, encoded_rhs);
+                        state
                     }
                     "prusti_contracts::before_expiry" => {
                         // self.encode_call_before_expiry()?
