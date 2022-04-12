@@ -13,6 +13,7 @@ use crate::common::display;
 #[allow(clippy::large_enum_variant)]
 pub enum Statement {
     Comment(Comment),
+    OldLabel(OldLabel),
     Inhale(Inhale),
     Exhale(Exhale),
     Consume(Consume),
@@ -36,6 +37,13 @@ pub enum Statement {
 #[display(fmt = "// {}", comment)]
 pub struct Comment {
     pub comment: String,
+}
+
+// A label to which it is possible to refer with `LabelledOld` expressions.
+#[display(fmt = "old-label {}", name)]
+pub struct OldLabel {
+    pub name: String,
+    pub position: Position,
 }
 
 /// Inhale the permission denoted by the place.

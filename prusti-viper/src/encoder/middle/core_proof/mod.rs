@@ -5,6 +5,7 @@ mod builtin_methods;
 mod compute_address;
 mod errors;
 mod fold_unfold;
+mod function_gas;
 mod interface;
 mod into_low;
 mod lowerer;
