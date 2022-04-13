@@ -1,5 +1,6 @@
 use proc_macro2::{Group, Ident, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
+use syn::parse_quote_spanned;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 

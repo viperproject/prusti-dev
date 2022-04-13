@@ -226,8 +226,13 @@ fn ensure_permission_in_state(
     } else if permission_kind == PermissionKind::MemoryBlock
         && can_place_be_ensured_in(context, &place, PermissionKind::Owned, predicate_state)?
     {
-        // We have Owned and we need MemoryBlock. Fully unfold.
-        for place in predicate_state.collect_owned_with_prefix(&place)? {
+        let places = predicate_state.collect_owned_with_prefix(&place)?;
+        if places.is_empty() {
+            // We have Owned and we need MemoryBlock. Fully unfold.
+            // PROBLEM: we don't have a place here for a deref and it will recursively call itself without doing anything
+            unimplemented!("Deref not yet supported");
+        }
+        for place in places {
             predicate_state.remove(PermissionKind::Owned, &place)?;
             predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
             actions.push(Action::owned_into_memory_block(place));

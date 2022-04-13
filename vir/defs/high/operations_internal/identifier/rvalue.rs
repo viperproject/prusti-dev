@@ -9,7 +9,14 @@ impl WithIdentifier for Rvalue {
             Self::UnaryOp(value) => value.get_identifier(),
             Self::Aggregate(value) => value.get_identifier(),
             Self::Discriminant(value) => value.get_identifier(),
+            Self::Ref(value) => value.get_identifier(),
         }
+    }
+}
+
+impl WithIdentifier for Ref {
+    fn get_identifier(&self) -> String {
+        format!("ref_${}", self.place.get_type().get_identifier())
     }
 }
 

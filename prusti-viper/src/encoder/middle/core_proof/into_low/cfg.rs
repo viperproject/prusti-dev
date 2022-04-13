@@ -99,6 +99,44 @@ impl IntoLow for vir_mid::Statement {
     ) -> SpannedEncodingResult<Self::Target> {
         use vir_low::{macros::*, Statement};
         match self {
+            Self::NewLft(statement) => {
+                let targets = vec![vir_low::Expression::local_no_pos(
+                    statement.target.into_low(lowerer)?,
+                )];
+                Ok(vec![Statement::method_call(
+                    String::from("newlft"),
+                    vec![],
+                    targets,
+                    statement.position,
+                )])
+            }
+            Self::EndLft(statement) => {
+                let arguments = vec![vir_low::Expression::local_no_pos(
+                    statement.lifetime.into_low(lowerer)?,
+                )];
+                Ok(vec![Statement::method_call(
+                    String::from("endlft"),
+                    arguments,
+                    vec![],
+                    statement.position,
+                )])
+            }
+            Self::GhostAssignment(statement) => {
+                let lifetime_type = vir_low::ty::Type::Domain(vir_low::ty::Domain {
+                    name: String::from("Lifetime"),
+                });
+                Ok(vec![match statement.value.len() {
+                    1 => Statement::assign(
+                        statement.target.into_low(lowerer)?,
+                        vir_low::Expression::local_no_pos(vir_low::VariableDecl {
+                            name: statement.value.get(0).unwrap().to_string(),
+                            ty: lifetime_type,
+                        }),
+                        statement.position,
+                    ),
+                    _ => unimplemented!(),
+                }])
+            }
             Self::Comment(statement) => Ok(vec![Statement::comment(statement.comment)]),
             Self::Inhale(statement) => {
                 if let vir_mid::Predicate::OwnedNonAliased(owned) = &statement.predicate {

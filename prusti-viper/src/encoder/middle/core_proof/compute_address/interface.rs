@@ -204,7 +204,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                     }
                 }
                 // vir_mid::TypeDecl::Array(Array) => {},
-                // vir_mid::TypeDecl::Reference(Reference) => {},
+                vir_mid::TypeDecl::Reference(_reference) => {
+                    // Do nothing
+                }
                 // vir_mid::TypeDecl::Never => {},
                 // vir_mid::TypeDecl::Closure(Closure) => {},
                 // vir_mid::TypeDecl::Unsupported(Unsupported) => {},
