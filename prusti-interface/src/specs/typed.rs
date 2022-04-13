@@ -21,16 +21,17 @@ impl DefSpecificationMap {
     }
 
     pub fn get_loop_spec(&self, def_id: &DefId) -> Option<&SpecGraph<LoopSpecification>> {
-        self.loop_specs.get(&def_id)
+        self.loop_specs.get(def_id)
     }
 
     pub fn get_proc_spec(&self, def_id: &DefId) -> Option<&SpecGraph<ProcedureSpecification>> {
-        self.proc_specs.get(&def_id)
+        self.proc_specs.get(def_id)
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct ProcedureSpecification {
+    pub span: Option<Span>,
     pub kind: SpecificationItem<ProcedureSpecificationKind>,
     pub pres: SpecificationItem<Vec<LocalDefId>>,
     pub posts: SpecificationItem<Vec<LocalDefId>>,
@@ -41,6 +42,7 @@ pub struct ProcedureSpecification {
 impl ProcedureSpecification {
     pub fn empty() -> Self {
         ProcedureSpecification {
+            span: None,
             kind: SpecificationItem::Empty,
             pres: SpecificationItem::Empty,
             posts: SpecificationItem::Empty,
@@ -225,6 +227,12 @@ impl SpecGraph<ProcedureSpecification> {
     pub fn set_kind(&mut self, kind: ProcedureSpecificationKind) {
         self.base_spec.kind.set(kind);
         self.specs_with_constraints.values_mut().for_each(|s| s.kind.set(kind));
+    }
+
+    /// Sets the span for the base spec and all constrained specs.
+    pub fn set_span(&mut self, span: Span) {
+        self.base_spec.span = Some(span);
+        self.specs_with_constraints.values_mut().for_each(|s| s.span = Some(span));
     }
 
     /// Lazily gets/creates a constrained spec.
