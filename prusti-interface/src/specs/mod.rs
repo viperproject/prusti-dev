@@ -74,6 +74,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (local_id, refs) in self.procedure_specs.iter() {
             let mut spec = SpecGraph::new(ProcedureSpecification::empty());
+            spec.set_span(self.env.get_def_span(local_id.to_def_id()));
 
             let mut kind = if refs.pure {
                 ProcedureSpecificationKind::Pure
@@ -122,8 +123,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     MultiSpan::from(span),
                 ).emit(self.env);
             } else {
-                local_id.to_def_id(),
-                def_spec.proc_specs.insert(*local_id, spec);
+                def_spec.proc_specs.insert(local_id.to_def_id(), spec);
             }
         }
     }
@@ -133,7 +133,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         for (extern_spec_decl, spec_id) in self.extern_resolver.extern_fn_map.iter() {
             let target_def_id = extern_spec_decl.get_target_def_id();
 
-            if def_spec.specs.contains_key(&target_def_id) {
+            if def_spec.proc_specs.contains_key(&target_def_id) {
                 PrustiError::incorrect(
                     format!("external specification provided for {}, which already has a specification",
                             self.env.get_item_name(target_def_id)),
@@ -141,14 +141,14 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 ).emit(self.env);
             }
 
-            let spec = def_spec.specs.remove(spec_id).unwrap();
-            def_spec.specs.insert(target_def_id, spec);
+            let spec = def_spec.proc_specs.remove(spec_id).unwrap();
+            def_spec.proc_specs.insert(target_def_id, spec);
         }
     }
 
     fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for local_id in self.loop_specs.iter() {
-            def_spec.specs.insert(local_id.to_def_id(), SpecGraph::new(typed::LoopSpecification {
+            def_spec.loop_specs.insert(local_id.to_def_id(), SpecGraph::new(typed::LoopSpecification {
                 invariant: *local_id,
             }));
         }

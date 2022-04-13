@@ -8,9 +8,8 @@ use prusti_interface::{
     utils::has_spec_only_attr,
 };
 use rustc_hir::def_id::{DefId, LocalDefId};
+use rustc_middle::ty::{subst::SubstsRef, List};
 use rustc_span::Span;
-use std::cell::RefCell;
-use rustc_middle::ty::subst::SubstsRef;
 use std::{cell::RefCell, hash::Hash};
 
 pub(crate) struct SpecificationsState<'tcx> {
@@ -39,6 +38,7 @@ pub enum SpecQueryCause {
     FunctionDefEncoding,
     FunctionCallEncoding,
     PureOrTrustedCheck,
+    FetchSpan,
 }
 
 impl<'tcx> SpecQuery<'tcx> {
@@ -191,10 +191,16 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn get_spec_span(&self, def_id: DefId) -> Span {
+        let query = SpecQuery::new(
+            def_id,
+            None,
+            List::empty(), // Substs are not really relevant when we just want the span
+            SpecQueryCause::FetchSpan,
+        );
         self.specifications_state
             .specs
             .borrow_mut()
-            .get_and_refine_proc_spec(self.env(), def_id)
+            .get_and_refine_proc_spec(self.env(), query)
             .and_then(|spec| spec.span)
             .unwrap_or_else(|| self.env().get_def_span(def_id))
     }

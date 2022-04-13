@@ -60,17 +60,18 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
         match query.cause {
             // For simple pure or trusted checks, we do not need to consider obligations
             // since they can a pure/trusted flag can not change in a constrained spec
-            SpecQueryCause::PureOrTrustedCheck => {
-                trace!(
-                    "No need to resolve obligations for checking whether function is pure or trusted"
-                );
+            SpecQueryCause::PureOrTrustedCheck |
+            // Dito for fetching the span
+            SpecQueryCause::FetchSpan  => {
+                trace!("No need to resolve obligations for cause {:?}", query.cause);
                 return Ok(&self.base_spec);
-            }
+            },
+            SpecQueryCause::FunctionCallEncoding => (),
             // Obligations are resolved for function definition encodings to account
             // for ghost constraints on traits (behavioral subtyping rules will be checked
             // against the resolved spec).
             SpecQueryCause::FunctionDefEncoding => (),
-            _ => (),
+            SpecQueryCause::Unknown => (),
         }
 
         let mut applicable_specs =

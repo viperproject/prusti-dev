@@ -326,12 +326,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
         let (called_def_id, call_substs) = self.env()
             .resolve_method_call(caller_def_id, called_def_id, call_substs);
-        let spec = self.get_procedure_specs(called_def_id)
+        let spec = self.get_procedure_specs(called_def_id, call_substs)
             .unwrap_or_else(typed::ProcedureSpecification::empty);
         let contract = compute_procedure_contract(
             called_def_id,
             self.env(),
-            typed::SpecificationSet::Procedure(spec),
+            spec,
             call_substs,
         )?;
         Ok(contract)

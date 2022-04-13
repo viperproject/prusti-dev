@@ -590,7 +590,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 trace!("Resolved function call: {:?}", called_def_id);
 
                                 let is_pure_function =
-                                    self.encoder.is_pure(called_def_id, Some(composed_substs));
+                                    self.encoder.is_pure(called_def_id, Some(call_substs));
                                 let (function_name, return_type) = if is_pure_function {
                                     self.encoder
                                         .encode_pure_function_use(
