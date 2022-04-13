@@ -1,6 +1,9 @@
-use crate::encoder::{
-    errors::MultiSpan,
-    mir::specifications::{constraints::ConstraintResolver, interface::SpecQuery},
+use crate::{
+    encoder::{
+        errors::MultiSpan,
+        mir::specifications::{constraints::ConstraintResolver, interface::SpecQuery},
+    },
+    rustc_middle::ty::{subst::Subst, TypeFoldable},
 };
 use log::{debug, trace};
 use prusti_interface::{
@@ -56,6 +59,13 @@ impl<'tcx> Specifications<'tcx> {
             if let Some((trait_def_id, trait_substs)) =
                 env.find_trait_method_substs(query.called_def_id, query.call_substs)
             {
+                // We need to subst the trait substs because they might be generic
+                // (with substitutions in the call substs)
+                let trait_substs = if trait_substs.needs_subst() {
+                    trait_substs.subst(env.tcx(), query.call_substs)
+                } else {
+                    trait_substs
+                };
                 let trait_query = query.adapt_to_call(trait_def_id, trait_substs);
                 let refined = self.perform_proc_spec_refinement(env, query, trait_query);
                 assert!(
