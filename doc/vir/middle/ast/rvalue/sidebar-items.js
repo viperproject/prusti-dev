@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["OperandKind",""],["Rvalue",""]],"mod":[["visitors",""]],"struct":[["AddressOf",""],["Aggregate",""],["BinaryOp",""],["Discriminant",""],["Operand",""],["UnaryOp",""]]});
+initSidebarItems({"enum":[["OperandKind",""],["Rvalue",""]],"mod":[["visitors",""]],"struct":[["AddressOf",""],["Aggregate",""],["BinaryOp",""],["Discriminant",""],["Operand",""],["Ref",""],["UnaryOp",""]]});

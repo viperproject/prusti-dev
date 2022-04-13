@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["lifetimes",""]]});
+initSidebarItems({"mod":[["graphviz",""],["lifetimes",""]]});
