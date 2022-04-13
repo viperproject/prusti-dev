@@ -47,6 +47,9 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_impl::predicate;
+
+    /// Macro for creating type models.
+    pub use prusti_contracts_impl::model;
 }
 
 #[cfg(feature = "prusti")]
@@ -84,8 +87,10 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_internal::predicate;
-}
 
+    /// Macro for creating type models.
+    pub use prusti_contracts_internal::model;
+}
 
 /// This function is used to evaluate an expression in the context just
 /// before the borrows expires.
