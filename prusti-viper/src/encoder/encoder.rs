@@ -318,6 +318,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .clone()
     }
 
+    pub fn get_mir_procedure_contract_for_call(
+        &self,
+        caller_def_id: ProcedureDefId,
+        called_def_id: ProcedureDefId,
+        call_substs: SubstsRef<'tcx>,
+    ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
+        let (called_def_id, call_substs) = self.env()
+            .resolve_method_call(caller_def_id, called_def_id, call_substs);
+        let spec = self.get_procedure_specs(called_def_id)
+            .unwrap_or_else(typed::ProcedureSpecification::empty);
+        let contract = compute_procedure_contract(
+            called_def_id,
+            self.env(),
+            typed::SpecificationSet::Procedure(spec),
+            call_substs,
+        )?;
+        Ok(contract)
+    }
+
     pub fn get_procedure_contract_for_def(
         &self,
         proc_def_id: ProcedureDefId,
@@ -716,8 +735,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::ReEarlyBound(_) => {
                 unimplemented!("ReEarlyBound: {}", format!("{}", region));
             },
-            ty::ReLateBound(_, _) => {
-                unimplemented!("ReLateBound: {}", format!("{}", region));
+            ty::ReLateBound(debruijn, bound_reg) => {
+                format!("lft_late_{}_{}", debruijn.index(), bound_reg.var.index())
             },
             ty::ReFree(_) => {
                 unimplemented!("ReFree: {}", format!("{}", region));

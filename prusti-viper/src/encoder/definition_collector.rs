@@ -237,30 +237,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                         && !predicate_name.starts_with("Slice$")
                         && !predicate_name.starts_with("Array$")
                     {
-                        // The type is never unfolded, so the snapshot should be
-                        // abstract. An exception is the discriminant function
-                        // because it can be called on a folded type.
+                        // The type is never unfolded, so the snapshot could be
+                        // abstract (not always, see #738). An exception is the discriminant
+                        // function because it can be called on a folded type.
                         // Another exception is when a snap domain function depends
                         // on an axiom, then we should also retain the axiom.
                         let mut used_snap_domain_function_prefixes = vec![];
+                        let mut used_snap_domain_constructor = false;
                         domain.functions.retain(|function| {
                             let function_name = function.get_identifier();
                             let prefix = function_name.split("__").next().map(String::from);
+                            let is_constructor = function_name.starts_with("cons");
                             if self
                                 .used_snap_domain_functions
                                 .contains(&function_name.into())
                             {
                                 used_snap_domain_function_prefixes.extend(prefix);
+                                used_snap_domain_constructor |= is_constructor;
                                 true
                             } else {
                                 false
                             }
                         });
                         domain.axioms.retain(|axiom| {
-                            axiom.name.ends_with("$valid")
-                                && used_snap_domain_function_prefixes
-                                    .iter()
-                                    .any(|prefix| axiom.name.starts_with(prefix))
+                            let used = used_snap_domain_function_prefixes
+                                .iter()
+                                .any(|prefix| axiom.name.starts_with(prefix));
+                            let retain_type_invariant = axiom.name.ends_with("$valid") && used;
+                            let retain_injectivity = used_snap_domain_constructor
+                                && axiom.name.ends_with("$injectivity");
+                            let retain_field_axiom = used_snap_domain_constructor && used;
+
+                            retain_type_invariant || retain_injectivity || retain_field_axiom
                         });
                     }
                 }

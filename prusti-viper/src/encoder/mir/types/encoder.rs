@@ -255,6 +255,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 Some(bounds)
             }
             ty::TyKind::Char => Some((0.into(), std::char::MAX.into())),
+            ty::TyKind::Ref(_, ty, _) => Self::new(self.encoder, *ty).get_integer_bounds(),
             _ => None,
         }
     }

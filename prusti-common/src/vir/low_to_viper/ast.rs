@@ -187,7 +187,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
             Expression::BinaryOp(expression) => expression.to_viper(ast),
             // Expression::ContainerOp(expression) => expression.to_viper(ast),
             // Expression::Seq(expression) => expression.to_viper(ast),
-            // Expression::Conditional(expression) => expression.to_viper(ast),
+            Expression::Conditional(expression) => expression.to_viper(ast),
             Expression::Quantifier(expression) => expression.to_viper(ast),
             // Expression::LetExpr(expression) => expression.to_viper(ast),
             Expression::FuncApp(expression) => expression.to_viper(ast),
@@ -356,6 +356,17 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::BinaryOp {
                 self.position.to_viper(ast),
             ),
         }
+    }
+}
+
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Conditional {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        ast.cond_exp_with_pos(
+            self.guard.to_viper(ast),
+            self.then_expr.to_viper(ast),
+            self.else_expr.to_viper(ast),
+            self.position.to_viper(ast),
+        )
     }
 }
 

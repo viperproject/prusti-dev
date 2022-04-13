@@ -12,6 +12,7 @@ pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
     fn encode_discriminant_call(
         &self,
         adt: vir_high::Expression,
+        return_type: vir_high::Type,
     ) -> EncodingResult<vir_high::Expression>;
     fn encode_index_call(
         &self,
@@ -54,9 +55,9 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
     fn encode_discriminant_call(
         &self,
         adt: vir_high::Expression,
+        return_type: vir_high::Type,
     ) -> EncodingResult<vir_high::Expression> {
         let name = "discriminant";
-        let return_type = vir_high::Type::Int(vir_high::ty::Int::Isize);
         Ok(vir_high::Expression::function_call(
             name,
             vec![], // FIXME: This is most likely wrong.

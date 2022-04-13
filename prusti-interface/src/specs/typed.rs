@@ -6,14 +6,13 @@ use rustc_hash::FxHashMap;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::{collections::HashMap, fmt::Debug};
 use std::fmt::{Display, Formatter};
-
+use rustc_span::Span;
 
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
 pub struct DefSpecificationMap {
-    pub proc_specs: HashMap<LocalDefId, SpecGraph<ProcedureSpecification>>,
-    pub loop_specs: HashMap<LocalDefId, SpecGraph<LoopSpecification>>,
-    pub extern_specs: HashMap<DefId, LocalDefId>,
+    pub proc_specs: HashMap<DefId, SpecGraph<ProcedureSpecification>>,
+    pub loop_specs: HashMap<DefId, SpecGraph<LoopSpecification>>,
 }
 
 impl DefSpecificationMap {
@@ -22,21 +21,11 @@ impl DefSpecificationMap {
     }
 
     pub fn get_loop_spec(&self, def_id: &DefId) -> Option<&SpecGraph<LoopSpecification>> {
-        let id = self.map_to_spec(def_id)?;
-        self.loop_specs.get(&id)
+        self.loop_specs.get(&def_id)
     }
 
     pub fn get_proc_spec(&self, def_id: &DefId) -> Option<&SpecGraph<ProcedureSpecification>> {
-        let id = self.map_to_spec(def_id)?;
-        self.proc_specs.get(&id)
-    }
-
-    fn map_to_spec(&self, def_id: &DefId) -> Option<LocalDefId> {
-        if let Some(spec_id) = self.extern_specs.get(def_id) {
-            Some(*spec_id)
-        } else {
-            def_id.as_local()
-        }
+        self.proc_specs.get(&def_id)
     }
 }
 
@@ -516,6 +505,7 @@ impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
 impl Refinable for ProcedureSpecification {
     fn refine(self, other: &Self) -> Self {
         ProcedureSpecification {
+            span: self.span.or(other.span),
             pres: self.pres.refine(&other.pres),
             posts: self.posts.refine(&other.posts),
             pledges: self.pledges.refine(&other.pledges),
