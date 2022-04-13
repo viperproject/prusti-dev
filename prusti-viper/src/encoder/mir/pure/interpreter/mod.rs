@@ -237,7 +237,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .encoder
                     .encode_type_of_place_high(self.mir, *place)
                     .with_span(span)?;
-                let pure_lifetime = vir_high::ty::Lifetime {
+                let pure_lifetime = vir_high::ty::LifetimeConst {
                     name: String::from("pure_erased"),
                 };
                 let encoded_ref = vir_high::Expression::addr_of_no_pos(

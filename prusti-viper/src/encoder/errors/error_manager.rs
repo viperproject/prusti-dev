@@ -124,6 +124,8 @@ pub enum ErrorCtxt {
     UnfoldUnionVariant,
     /// Failed to call a procedure.
     ProcedureCall,
+    /// Failed to encode lifetimes
+    LifetimeEncoding
 }
 
 /// The error manager

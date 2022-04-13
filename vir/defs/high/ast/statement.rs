@@ -7,6 +7,7 @@ pub(crate) use super::{
     variable::VariableDecl,
 };
 use crate::common::display;
+use std::collections::BTreeSet;
 
 #[derive_helpers]
 #[derive_visitors]
@@ -25,6 +26,9 @@ pub enum Statement {
     WriteAddress(WriteAddress),
     Assign(Assign),
     LeakAll(LeakAll),
+    NewLft(NewLft),
+    EndLft(EndLft),
+    GhostAssignment(GhostAssignment),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -157,3 +161,22 @@ pub struct Assign {
 /// Tells fold-unfold to leak all predicates. This marks the end of the
 /// unwinding path.
 pub struct LeakAll {}
+
+#[display(fmt = "{} = newlft()", target)]
+pub struct NewLft {
+    pub target: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "endlft({})", lifetime)]
+pub struct EndLft {
+    pub lifetime: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "ghost-assign {} := {:?}", target, value)]
+pub struct GhostAssignment {
+    pub target: VariableDecl,
+    pub value: Vec<String>,
+    pub position: Position,
+}
