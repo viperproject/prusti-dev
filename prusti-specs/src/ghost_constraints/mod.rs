@@ -4,7 +4,7 @@ use crate::{
 };
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{parse::ParseStream, spanned::Spanned};
+use syn::{parse::ParseStream, parse_quote_spanned, spanned::Spanned};
 
 pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let tokens_span = attr.span();

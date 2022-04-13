@@ -75,6 +75,5 @@ pub fn ghost_constraint(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         attr.into(),
         tokens.into(),
     )
-        .into()
+    .into()
 }
-
