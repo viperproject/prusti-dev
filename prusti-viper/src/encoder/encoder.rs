@@ -732,29 +732,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.intern_viper_identifier(full_name, short_name)
     }
 
-    pub fn encode_lifetime_name(&self, region: &ty::Region) -> String {
-        match region.kind() {
-            ty::ReEarlyBound(_) => {
-                unimplemented!("ReEarlyBound: {}", format!("{}", region));
-            },
-            ty::ReLateBound(debruijn, bound_reg) => {
-                format!("lft_late_{}_{}", debruijn.index(), bound_reg.var.index())
-            },
-            ty::ReFree(_) => {
-                unimplemented!("ReFree: {}", format!("{}", region));
-            },
-            ty::ReStatic=> String::from("lft_static"),
-            ty::ReVar(region_vid) => format!("lft_{}", region_vid.index()),
-            ty::RePlaceholder(_) => {
-                unimplemented!("RePlaceholder: {}", format!("{}", region));
-            },
-            ty::ReEmpty(_) => {
-                unimplemented!("ReEmpty: {}", format!("{}", region));
-            },
-            ty::ReErased => String::from("lft_erased"),
-        }
-    }
-
     pub fn encode_invariant_func_app(
         &self,
         ty: ty::Ty<'tcx>,

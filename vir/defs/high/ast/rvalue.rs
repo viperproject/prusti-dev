@@ -12,7 +12,7 @@ use crate::common::display;
 pub enum Rvalue {
     // Use(Use),
     // Repeat(Repeat),
-    // Ref(Ref),
+    Ref(Ref),
     // ThreadLocalRef(ThreadLocalRef),
     AddressOf(AddressOf),
     // Len(Len),
@@ -24,6 +24,15 @@ pub enum Rvalue {
     Discriminant(Discriminant),
     Aggregate(Aggregate),
     // ShallowInitBox(ShallowInitBox),
+}
+
+#[display(fmt = "ref {}", place)]
+pub struct Ref {
+    pub place: Expression,
+    pub lifetime_name: String,
+    pub is_mut: bool,
+    pub rd_perm: u32,
+    pub target: Expression,
 }
 
 #[display(fmt = "&raw({})", place)]

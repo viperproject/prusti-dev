@@ -27,6 +27,7 @@ impl WithIdentifier for ty::Type {
             ty::Type::FunctionDef(ty) => ty.get_identifier(),
             ty::Type::Projection(ty) => ty.get_identifier(),
             ty::Type::Unsupported(ty) => ty.get_identifier(),
+            ty::Type::Lifetime => "Lifetime".to_string(),
         }
     }
 }
@@ -46,13 +47,13 @@ impl WithIdentifier for ty::Float {
 impl WithIdentifier for ty::TypeVar {
     fn get_identifier(&self) -> String {
         match self {
-            ty::TypeVar::Lifetime(type_var) => type_var.get_identifier(),
+            ty::TypeVar::LifetimeConst(type_var) => type_var.get_identifier(),
             ty::TypeVar::GenericType(type_var) => type_var.get_identifier(),
         }
     }
 }
 
-impl WithIdentifier for ty::Lifetime {
+impl WithIdentifier for ty::LifetimeConst {
     fn get_identifier(&self) -> String {
         self.name.clone()
     }
