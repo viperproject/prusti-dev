@@ -47,7 +47,7 @@ pub struct Float {
 }
 
 #[display(fmt = "{}", name)]
-pub struct Lifetime {
+pub struct LifetimeConst {
     pub name: String,
 }
 
@@ -59,7 +59,7 @@ pub struct GenericType {
 #[derive_helpers]
 #[derive(derive_more::Unwrap)]
 pub enum TypeVar {
-    Lifetime(Lifetime),
+    Lifetime(LifetimeConst),
     GenericType(GenericType),
 }
 
@@ -109,7 +109,7 @@ pub struct Array {
 #[display(fmt = "&{}", target_type)]
 pub struct Reference {
     pub target_type: Type,
-    pub lifetime: Lifetime,
+    pub lifetime: LifetimeConst,
 }
 
 #[display(fmt = "*{}", target_type)]

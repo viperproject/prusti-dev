@@ -16,6 +16,7 @@ use crate::encoder::{
 use log::debug;
 use prusti_common::config;
 
+use prusti_interface::environment::mir_dump::graphviz::ToText;
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty;
 use rustc_span::MultiSpan;
@@ -64,10 +65,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         format!("fndef${}", self.encoder.encode_item_name(did))
     }
 
-    fn encode_lifetime_name(&self, region: &ty::Region) -> String {
-        self.encoder.encode_lifetime_name(region)
-    }
-
     fn compute_array_len(&self, size: ty::Const<'tcx>) -> u64 {
         self.encoder
             .const_eval_intlike(size.val())
@@ -106,8 +103,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Ref(region, ty, _) => {
-                let lft_name = self.encode_lifetime_name(region);
-                let lifetime = vir::ty::Lifetime { name: lft_name };
+                let lft_name = region.to_text();
+                let lifetime = vir::ty::LifetimeConst { name: lft_name };
                 vir::Type::reference(self.encoder.encode_type_high(*ty)?, lifetime)
             }
 
@@ -310,8 +307,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
             ty::TyKind::Ref(region, ty, _) => {
                 let target_type = self.encoder.encode_type_high(*ty)?;
-                let lft_name = self.encode_lifetime_name(region);
-                let lifetime = vir_crate::high::type_decl::Lifetime { name: lft_name };
+                let lft_name = region.to_text();
+                let lifetime = vir_crate::high::type_decl::LifetimeConst { name: lft_name };
                 vir::TypeDecl::reference(target_type, lifetime)
             }
             ty::TyKind::Tuple(elems) => vir::TypeDecl::tuple(

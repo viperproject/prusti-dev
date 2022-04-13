@@ -152,6 +152,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 self.register_constant_constructor(&domain_name, address_type.clone())?;
                 self.encode_validity_axioms_primitive(&domain_name, address_type, true.into())?;
             }
+            vir_mid::TypeDecl::Reference(reference) => {
+                self.ensure_type_definition(&reference.target_type)?;
+                let address_type = self.address_type()?;
+                self.register_constant_constructor(&domain_name, address_type.clone())?;
+                self.encode_validity_axioms_primitive(&domain_name, address_type, true.into())?;
+            }
             _ => unimplemented!("type: {:?}", type_decl),
         };
         Ok(())
