@@ -4,7 +4,7 @@ use crate::specifications::common::{
 };
 use crate::specifications::untyped;
 use proc_macro2::{TokenStream, Span};
-use syn::{Type, punctuated::Punctuated, Pat, Token};
+use syn::{Type, punctuated::Punctuated, Pat, Token, parse_quote_spanned};
 use syn::spanned::Spanned;
 use quote::{quote_spanned, format_ident};
 use crate::specifications::preparser::{

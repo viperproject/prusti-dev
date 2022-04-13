@@ -63,6 +63,15 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::LeakAll(statement) => {
                 statement.collect(consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::NewLft(statement) => {
+                statement.collect(consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::EndLft(statement) => {
+                statement.collect(consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::GhostAssignment(statement) => {
+                statement.collect(consumed_permissions, produced_permissions)
+            }
         }
     }
 }
@@ -221,6 +230,7 @@ impl CollectPermissionChanges for vir_high::Rvalue {
         produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
         match self {
+            Self::Ref(rvalue) => rvalue.collect(consumed_permissions, produced_permissions),
             Self::AddressOf(rvalue) => rvalue.collect(consumed_permissions, produced_permissions),
             Self::UnaryOp(rvalue) => rvalue.collect(consumed_permissions, produced_permissions),
             Self::BinaryOp(rvalue) => rvalue.collect(consumed_permissions, produced_permissions),
@@ -229,6 +239,18 @@ impl CollectPermissionChanges for vir_high::Rvalue {
             }
             Self::Aggregate(rvalue) => rvalue.collect(consumed_permissions, produced_permissions),
         }
+    }
+}
+
+impl CollectPermissionChanges for vir_high::ast::rvalue::Ref {
+    fn collect(
+        &self,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
     }
 }
 
@@ -334,6 +356,36 @@ impl CollectPermissionChanges for vir_high::ast::rvalue::Operand {
 }
 
 impl CollectPermissionChanges for vir_high::LeakAll {
+    fn collect(
+        &self,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::NewLft {
+    fn collect(
+        &self,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::EndLft {
+    fn collect(
+        &self,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::GhostAssignment {
     fn collect(
         &self,
         _consumed_permissions: &mut Vec<Permission>,

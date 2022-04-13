@@ -75,7 +75,7 @@ impl Type {
     }
     pub fn erase_lifetime(&mut self) {
         if let Type::Reference(reference) = self {
-            reference.lifetime = Lifetime {
+            reference.lifetime_const = LifetimeConst {
                 name: String::from("pure_erased"),
             };
         }

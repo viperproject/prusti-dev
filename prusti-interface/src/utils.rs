@@ -306,6 +306,18 @@ pub fn has_extern_spec_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "extern_spec")
 }
 
+pub fn read_extern_spec_attr(attrs: &[ast::Attribute]) -> Option<String> {
+    read_prusti_attr("extern_spec", attrs)
+}
+
+pub fn has_to_model_fn_attr(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "type_models_to_model_fn")
+}
+
+pub fn has_to_model_impl_attr(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "type_models_to_model_impl")
+}
+
 pub fn has_trait_bounds_ghost_constraint(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "ghost_constraint_trait_bounds_in_where_clause")
 }
@@ -335,9 +347,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             {
                 continue;
             }
-            use rustc_ast::{
-                token::{Lit, Token, TokenKind},
-            };
+            use rustc_ast::token::{Lit, Token, TokenKind};
             fn extract_string(token: &Token) -> String {
                 force_matches!(&token.kind, TokenKind::Literal(Lit { symbol, .. }) => {
                         symbol.as_str().replace("\\\"", "\"")
