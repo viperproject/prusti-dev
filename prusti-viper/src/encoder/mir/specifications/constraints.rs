@@ -1,14 +1,17 @@
-use crate::encoder::mir::specifications::{interface::SpecQueryCause, SpecQuery};
+use crate::encoder::mir::specifications::{interface::FunctionCallEncodingQuery, SpecQuery};
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
     specs::typed::{ProcedureSpecification, SpecConstraintKind, SpecGraph},
     PrustiError,
 };
-use rustc_hir::def_id::LocalDefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{
     ty,
-    ty::{subst::Subst, TypeFoldable},
+    ty::{
+        subst::{Subst, SubstsRef},
+        TypeFoldable,
+    },
 };
 use rustc_span::{MultiSpan, Span};
 
@@ -57,36 +60,43 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
             return Ok(&self.base_spec);
         }
 
-        match query.cause {
-            // For simple pure or trusted checks, we do not need to consider obligations
-            // since they can a pure/trusted flag can not change in a constrained spec
-            SpecQueryCause::PureOrTrustedCheck |
-            // Dito for fetching the span
-            SpecQueryCause::FetchSpan  => {
-                trace!("No need to resolve obligations for cause {:?}", query.cause);
+        let context = match query {
+            SpecQuery::PureOrTrustedCheck(_, _) | SpecQuery::FetchSpan(_) => {
+                trace!("No need to resolve obligations for cause {:?}", query);
                 return Ok(&self.base_spec);
+            }
+            SpecQuery::FunctionCallEncoding(FunctionCallEncodingQuery {
+                called_def_id,
+                caller_def_id,
+                call_substs,
+            }) => ConstraintSolvingContext {
+                proc_def_id: *called_def_id,
+                caller_proc_def_id: Some(*caller_def_id),
+                substs: call_substs,
             },
-            SpecQueryCause::FunctionCallEncoding => (),
             // Obligations are resolved for function definition encodings to account
             // for ghost constraints on traits (behavioral subtyping rules will be checked
             // against the resolved spec).
-            SpecQueryCause::FunctionDefEncoding => (),
-            SpecQueryCause::Unknown => (),
-        }
+            SpecQuery::FunctionDefEncoding(proc_def_id, substs) => ConstraintSolvingContext {
+                proc_def_id: *proc_def_id,
+                substs,
+                caller_proc_def_id: None,
+            },
+        };
 
         let mut applicable_specs =
             self.specs_with_constraints
                 .iter()
                 .filter(|(constraint_kind, spec)| {
-                    constraint_fulfilled(env, query, constraint_kind, spec)
+                    constraint_fulfilled(env, &context, constraint_kind, spec)
                 });
 
         if let Some((constraint_kind, spec_with_constraints)) = applicable_specs.next() {
             if applicable_specs.next().is_some() {
-                let span = env.tcx().def_span(query.called_def_id);
+                let span = env.tcx().def_span(context.proc_def_id);
                 return Err(PrustiError::unsupported("Multiple different applicable specification obligations found, which is currently not supported in Prusti", MultiSpan::from_span(span)).add_note(
                     "This error is triggered because of a call to this function",
-                    query.caller_def_id.map(|caller| env.tcx().def_span(caller)),
+                    context.caller_proc_def_id.map(|caller| env.tcx().def_span(caller)),
                 ));
             }
 
@@ -104,15 +114,22 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
     }
 }
 
+#[derive(Debug)]
+struct ConstraintSolvingContext<'tcx> {
+    proc_def_id: DefId,
+    substs: SubstsRef<'tcx>,
+    caller_proc_def_id: Option<DefId>,
+}
+
 fn constraint_fulfilled<'spec, 'env: 'spec, 'tcx: 'env>(
     env: &'env Environment<'tcx>,
-    query: &SpecQuery<'tcx>,
+    context: &ConstraintSolvingContext<'tcx>,
     obligation: &SpecConstraintKind,
     proc_spec: &'spec ProcedureSpecification,
 ) -> bool {
     match obligation {
         SpecConstraintKind::ResolveGenericParamTraitBounds => {
-            trait_bounds::resolve(env, query, proc_spec)
+            trait_bounds::resolve(env, context, proc_spec)
         }
     }
 }
@@ -124,25 +141,21 @@ pub mod trait_bounds {
 
     pub(super) fn resolve<'spec, 'env: 'spec, 'tcx: 'env>(
         env: &'env Environment<'tcx>,
-        query: &SpecQuery<'tcx>,
+        context: &ConstraintSolvingContext<'tcx>,
         proc_spec: &'spec ProcedureSpecification,
     ) -> bool {
-        assert!(
-            matches!(query.cause, SpecQueryCause::FunctionCallEncoding)
-                || matches!(query.cause, SpecQueryCause::FunctionDefEncoding)
-        );
-        debug!("Trait bound constraint resolving for {:?}", query);
+        debug!("Trait bound constraint resolving for {:?}", context);
 
         let param_env_constraint = extract_param_env(env, proc_spec);
         let param_env_constraint =
-            perform_param_env_substitutions(env, query, param_env_constraint);
+            perform_param_env_substitutions(env, context, param_env_constraint);
 
         // There is no caller when encoding a function.
         // We still resolve obligations to account for constrained specs on a trait
         // for which we encode its implementation. The corresponding encoding will
         // contain a behavioral subtyping check which will be performed on the
         // resolved spec.
-        let param_env_lookup = if let Some(caller_def_id) = query.caller_def_id {
+        let param_env_lookup = if let Some(caller_def_id) = context.caller_proc_def_id {
             env.tcx().param_env(caller_def_id)
         } else {
             ty::ParamEnv::reveal_all()
@@ -179,13 +192,12 @@ pub mod trait_bounds {
     /// Substitutes the param environment
     fn perform_param_env_substitutions<'env, 'tcx: 'env>(
         env: &'env Environment<'tcx>,
-        query: &SpecQuery<'tcx>,
+        context: &ConstraintSolvingContext<'tcx>,
         param_env: ty::ParamEnv<'tcx>,
     ) -> ty::ParamEnv<'tcx> {
         trace!("Unsubstituted constraints: {:#?}", param_env);
 
-        let maybe_trait_method =
-            env.find_trait_method_substs(query.called_def_id, query.call_substs);
+        let maybe_trait_method = env.find_trait_method_substs(context.proc_def_id, context.substs);
         let param_env = if let Some((_, trait_substs)) = maybe_trait_method {
             trace!("Applying trait substs {:?}", trait_substs);
             param_env.subst(env.tcx(), trait_substs)
@@ -198,11 +210,11 @@ pub mod trait_bounds {
             param_env
         );
 
-        let param_env = if query.call_substs.is_empty() {
+        let param_env = if context.substs.is_empty() {
             param_env
         } else {
-            trace!("Applying call substs {:?}", query.call_substs);
-            param_env.subst(env.tcx(), query.call_substs)
+            trace!("Applying call substs {:?}", context.substs);
+            param_env.subst(env.tcx(), context.substs)
         };
 
         trace!(
