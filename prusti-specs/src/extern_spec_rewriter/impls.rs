@@ -1,6 +1,7 @@
 use crate::{ExternSpecKind, span_overrider::SpanOverrider, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
+use syn::parse_quote_spanned;
 use syn::spanned::Spanned;
 use super::common::*;
 
@@ -60,7 +61,7 @@ fn generate_new_struct(item_impl: &syn::ItemImpl) -> syn::Result<syn::ItemStruct
     let struct_ident = syn::Ident::new(&struct_name, item_impl.span());
 
     let mut new_struct: syn::ItemStruct = parse_quote_spanned! {item_impl.span()=>
-        #[allow(non_camel_case_types)] struct #struct_ident {}
+        #[allow(non_camel_case_types)] struct #struct_ident;
     };
     new_struct.generics = item_impl.generics.clone();
 
@@ -233,6 +234,7 @@ mod tests {
     use quote::ToTokens;
     use syn::parse_quote;
 
+    #[allow(dead_code)]
     fn assert_eq_tokenizable<T: ToTokens, U: ToTokens>(actual: T, expected: U) {
         assert_eq!(
             actual.into_token_stream().to_string(),

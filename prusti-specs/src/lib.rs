@@ -7,12 +7,15 @@
 #![allow(clippy::iter_with_drain)]
 
 #[macro_use]
+mod common;
 mod parse_quote_spanned;
 mod span_overrider;
 mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
 mod spec_attribute_kind;
+mod type_model;
+mod user_provided_type_params;
 pub mod specifications;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
@@ -500,5 +503,18 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
         #[prusti::trusted]
         #[prusti::pred_spec_id_ref = #spec_id_str]
         #cleaned_fn
+    }
+}
+
+pub fn type_model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let item: syn::Item = handle_result!(syn::parse2(tokens));
+
+    match item {
+        syn::Item::Struct(item_struct) => {
+            handle_result!(type_model::rewrite(item_struct))
+        }
+        _ => {
+            unimplemented!("Only structs can be attributed with 'model'")
+        }
     }
 }

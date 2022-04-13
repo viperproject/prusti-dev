@@ -1,5 +1,6 @@
 use proc_macro2::{TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
+use syn::parse_quote_spanned;
 use syn::spanned::Spanned;
 
 /// Rewrites every occurence of "self" to "_self" in a token stream
