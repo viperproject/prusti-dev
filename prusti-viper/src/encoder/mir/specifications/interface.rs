@@ -8,7 +8,7 @@ use prusti_interface::{
     utils::has_spec_only_attr,
 };
 use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::ty::{subst::SubstsRef, List};
+use rustc_middle::ty::subst::SubstsRef;
 use rustc_span::Span;
 use std::{cell::RefCell, hash::Hash};
 
@@ -25,43 +25,47 @@ impl<'tcx> SpecificationsState<'tcx> {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub(super) struct SpecQuery<'tcx> {
+pub(super) struct FunctionCallEncodingQuery<'tcx> {
     pub called_def_id: DefId,
-    pub caller_def_id: Option<DefId>,
+    pub caller_def_id: DefId,
     pub call_substs: SubstsRef<'tcx>,
-    pub cause: SpecQueryCause,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub enum SpecQueryCause {
-    Unknown,
-    FunctionDefEncoding,
-    FunctionCallEncoding,
-    PureOrTrustedCheck,
-    FetchSpan,
+pub(super) enum SpecQuery<'tcx> {
+    FunctionDefEncoding(DefId, SubstsRef<'tcx>),
+    FunctionCallEncoding(FunctionCallEncodingQuery<'tcx>),
+    PureOrTrustedCheck(DefId, SubstsRef<'tcx>),
+    FetchSpan(DefId),
 }
 
 impl<'tcx> SpecQuery<'tcx> {
-    pub(crate) fn new(
-        called_def_id: DefId,
-        caller_def_id: Option<DefId>,
-        call_substs: SubstsRef<'tcx>,
-        reason: SpecQueryCause,
-    ) -> Self {
-        Self {
-            called_def_id,
-            caller_def_id,
-            call_substs,
-            cause: reason,
+    pub fn referred_def_id(&self) -> DefId {
+        match self {
+            SpecQuery::FunctionDefEncoding(def_id, _)
+            | SpecQuery::FunctionCallEncoding(FunctionCallEncodingQuery {
+                called_def_id: def_id,
+                ..
+            })
+            | SpecQuery::PureOrTrustedCheck(def_id, _)
+            | SpecQuery::FetchSpan(def_id) => *def_id,
         }
     }
 
-    /// Makes a copy of the [SpecQuery] with a call def id and new call substs.
-    pub(crate) fn adapt_to_call(&self, called_def_id: DefId, call_substs: SubstsRef<'tcx>) -> Self {
-        let mut copy = *self;
-        copy.called_def_id = called_def_id;
-        copy.call_substs = call_substs;
-        copy
+    pub fn adapt_to(&self, new_def_id: DefId, new_substs: SubstsRef<'tcx>) -> Self {
+        use SpecQuery::*;
+        match self {
+            FunctionDefEncoding(_, _) => FunctionDefEncoding(new_def_id, new_substs),
+            FunctionCallEncoding(FunctionCallEncodingQuery { caller_def_id, .. }) => {
+                FunctionCallEncoding(FunctionCallEncodingQuery {
+                    called_def_id: new_def_id,
+                    caller_def_id: *caller_def_id,
+                    call_substs: new_substs,
+                })
+            }
+            PureOrTrustedCheck(_, _) => PureOrTrustedCheck(new_def_id, new_substs),
+            FetchSpan(_) => FetchSpan(new_def_id),
+        }
     }
 }
 
@@ -106,7 +110,7 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
-        let query = SpecQuery::new(def_id, None, substs, SpecQueryCause::PureOrTrustedCheck);
+        let query = SpecQuery::PureOrTrustedCheck(def_id, substs);
         let result = self
             .specifications_state
             .specs
@@ -121,7 +125,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
-        let query = SpecQuery::new(def_id, None, substs, SpecQueryCause::PureOrTrustedCheck);
+        let query = SpecQuery::PureOrTrustedCheck(def_id, substs);
         let result = self
             .specifications_state
             .specs
@@ -134,7 +138,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<LocalDefId> {
-        let query = SpecQuery::new(def_id, None, substs, SpecQueryCause::FunctionDefEncoding);
+        let query = SpecQuery::FunctionDefEncoding(def_id, substs);
         let mut specs = self.specifications_state.specs.borrow_mut();
         let result = specs
             .get_and_refine_proc_spec(self.env(), query)
@@ -148,13 +152,12 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     fn get_loop_specs(
         &self,
         def_id: DefId,
-        substs: SubstsRef<'tcx>,
+        _substs: SubstsRef<'tcx>,
     ) -> Option<typed::LoopSpecification> {
-        let query = SpecQuery::new(def_id, None, substs, SpecQueryCause::Unknown);
         self.specifications_state
             .specs
             .borrow()
-            .get_loop_spec(self.env(), query)
+            .get_loop_spec(self.env(), &def_id)
             .cloned()
     }
 
@@ -163,7 +166,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> Option<typed::ProcedureSpecification> {
-        let query = SpecQuery::new(def_id, None, substs, SpecQueryCause::FunctionDefEncoding);
+        let query = SpecQuery::FunctionDefEncoding(def_id, substs);
         let mut specs = self.specifications_state.specs.borrow_mut();
         let spec = specs.get_and_refine_proc_spec(self.env(), query)?;
         Some(spec.clone())
@@ -175,12 +178,11 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         caller_def_id: DefId,
         call_substs: SubstsRef<'tcx>,
     ) -> Option<ProcedureSpecification> {
-        let query = SpecQuery::new(
+        let query = SpecQuery::FunctionCallEncoding(FunctionCallEncodingQuery {
             called_def_id,
-            Some(caller_def_id),
+            caller_def_id,
             call_substs,
-            SpecQueryCause::FunctionCallEncoding,
-        );
+        });
         let mut specs = self.specifications_state.specs.borrow_mut();
         let spec = specs.get_and_refine_proc_spec(self.env(), query)?;
         Some(spec.clone())
@@ -191,12 +193,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn get_spec_span(&self, def_id: DefId) -> Span {
-        let query = SpecQuery::new(
-            def_id,
-            None,
-            List::empty(), // Substs are not really relevant when we just want the span
-            SpecQueryCause::FetchSpan,
-        );
+        let query = SpecQuery::FetchSpan(def_id);
         self.specifications_state
             .specs
             .borrow_mut()
