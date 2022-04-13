@@ -1,6 +1,6 @@
 use rustc_hash::FxHashMap;
 
-use jni::{objects::JObject, JNIEnv};
+use jni::{objects::{JObject, JValue}, JNIEnv};
 use jni_utils::JniUtils;
 use viper_sys::wrappers::{scala, viper::silicon};
 
@@ -222,7 +222,8 @@ fn unwrap_model_entry<'a>(
         }
         "viper.silicon.reporting.LitPermEntry" => {
             let lit_perm_wrapper = silicon::reporting::LitPermEntry::with(env);
-            let value = jni.unwrap_result(lit_perm_wrapper.call_value(entry));
+            let jvalue = jni.unwrap_result(lit_perm_wrapper.call_value(entry));
+            let value = jni.unwrap_result(JValue::from(jvalue).d());
             Some(ModelEntry::LitPerm(value))
         }
         "viper.silicon.reporting.RefEntry" => {
