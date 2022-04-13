@@ -72,6 +72,13 @@ impl<'a> AstFactory<'a> {
         Type::new(obj)
     }
 
+    pub fn map_type(&self, key_type: Type, val_type: Type) -> Type<'a> {
+        let obj = self
+            .jni
+            .unwrap_result(ast::MapType::with(self.env).new(key_type.to_jobject(), val_type.to_jobject()));
+        Type::new(obj)
+    }
+
     pub fn backend_f32_type(&self) -> Type<'a> {
         let rm = ast::utility::RoundingMode::with(self.env)
             .call_RNE()

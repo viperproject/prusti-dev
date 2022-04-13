@@ -9,7 +9,7 @@ pub enum Type {
     Float(Float),
     BitVector(BitVector),
     Seq(Seq),
-    Map(MapType),
+    Map(Map),
     Ref,
     Domain(Domain),
 }
@@ -40,7 +40,8 @@ pub struct Domain {
     pub name: String,
 }
 
-pub struct MapType {
+#[display(fmt = "Map({} -> {})", key_type, val_type)]
+pub struct Map {
     pub key_type: Box<Type>,
-    pub val_type: Box<Type,
+    pub val_type: Box<Type>,
 }

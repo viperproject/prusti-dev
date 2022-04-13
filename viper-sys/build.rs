@@ -625,6 +625,9 @@ fn main() {
             java_class!("viper.silver.ast.SeqUpdate", vec![
                 constructor!(),
             ]),
+            java_class!("viper.silver.ast.MapType", vec![
+                constructor!(),
+            ]),
             java_class!("viper.silver.ast.EmptyMap", vec![
                 constructor!(),
             ]),
