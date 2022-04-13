@@ -1,11 +1,12 @@
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
+    borrows::ProcedureContractMirDef,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         casts::CastsEncoderInterface, constants::ConstantsEncoderInterface, errors::ErrorInterface,
         panics::MirPanicsEncoderInterface, places::PlacesEncoderInterface,
-        predicates::MirPredicateEncoderInterface, spans::SpanInterface,
-        type_layouts::MirTypeLayoutsEncoderInterface,
+        predicates::MirPredicateEncoderInterface, pure::SpecificationEncoderInterface,
+        spans::SpanInterface, type_layouts::MirTypeLayoutsEncoderInterface,
     },
     Encoder,
 };
@@ -73,12 +74,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let name = self.encoder.encode_item_name(self.def_id);
         let (allocate_parameters, deallocate_parameters) = self.encode_parameters()?;
         let (allocate_returns, deallocate_returns) = self.encode_returns()?;
+        let (assume_preconditions, assert_postconditions) =
+            self.encode_functional_specifications()?;
         let mut procedure_builder = ProcedureBuilder::new(
             name,
             allocate_parameters,
             allocate_returns,
+            assume_preconditions,
             deallocate_parameters,
             deallocate_returns,
+            assert_postconditions,
         );
         self.encode_body(&mut procedure_builder)?;
         self.encode_discriminants(&mut procedure_builder)?;
@@ -102,8 +107,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_parameters(
         &mut self,
     ) -> SpannedEncodingResult<(Vec<vir_high::Statement>, Vec<vir_high::Statement>)> {
-        let mut allocation = Vec::new();
-        let mut deallocation = Vec::new();
+        let mut allocation = vec![vir_high::Statement::comment(
+            "Allocate the parameters.".to_string(),
+        )];
+        let mut deallocation = vec![vir_high::Statement::comment(
+            "Deallocate the parameters.".to_string(),
+        )];
         for mir_arg in self.mir.args_iter() {
             let parameter = self.encode_local(mir_arg)?;
             let alloc_statement = vir_high::Statement::inhale_no_pos(
@@ -149,7 +158,109 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             return_local.position,
             ErrorCtxt::UnexpectedStorageDead,
         )?;
-        Ok((vec![alloc_statement], vec![dealloc_statement]))
+        Ok((
+            vec![
+                vir_high::Statement::comment("Allocate the return place.".to_string()),
+                alloc_statement,
+            ],
+            vec![
+                vir_high::Statement::comment("Deallocate the return place.".to_string()),
+                dealloc_statement,
+            ],
+        ))
+    }
+
+    fn encode_precondition_expressions(
+        &mut self,
+        procedure_contract: &ProcedureContractMirDef<'tcx>,
+        call_substs: SubstsRef<'tcx>,
+        arguments: &[vir_high::Expression],
+    ) -> SpannedEncodingResult<Vec<vir_high::Expression>> {
+        let mut preconditions = Vec::new();
+        for (assertion, assertion_substs) in
+            procedure_contract.functional_precondition(self.encoder.env(), call_substs)
+        {
+            let expression = self.encoder.encode_assertion_high(
+                &assertion,
+                None,
+                arguments,
+                None,
+                self.def_id,
+                assertion_substs,
+            )?;
+            preconditions.push(expression);
+        }
+        Ok(preconditions)
+    }
+
+    fn encode_postcondition_expressions(
+        &mut self,
+        procedure_contract: &ProcedureContractMirDef<'tcx>,
+        call_substs: SubstsRef<'tcx>,
+        arguments: &[vir_high::Expression],
+        result: &vir_high::Expression,
+    ) -> SpannedEncodingResult<Vec<vir_high::Expression>> {
+        let mut postconditions = Vec::new();
+        for (assertion, assertion_substs) in
+            procedure_contract.functional_postcondition(self.encoder.env(), call_substs)
+        {
+            let expression = self.encoder.encode_assertion_high(
+                &assertion,
+                None,
+                arguments,
+                Some(result),
+                self.def_id,
+                assertion_substs,
+            )?;
+            postconditions.push(expression);
+        }
+        Ok(postconditions)
+    }
+
+    fn encode_functional_specifications(
+        &mut self,
+    ) -> SpannedEncodingResult<(Vec<vir_high::Statement>, Vec<vir_high::Statement>)> {
+        let mir_span = self.mir.span;
+        let substs = self.encoder.env().identity_substs(self.def_id);
+        // Retrieve the contract
+        let procedure_contract = self
+            .encoder
+            .get_mir_procedure_contract_for_def(self.def_id, substs)
+            .with_span(mir_span)?;
+        let mut preconditions = vec![vir_high::Statement::comment(
+            "Assume functional preconditions.".to_string(),
+        )];
+        let mut arguments: Vec<vir_high::Expression> = Vec::new();
+        for local in self.mir.args_iter() {
+            arguments.push(self.encode_local(local)?.into());
+        }
+        for expression in
+            self.encode_precondition_expressions(&procedure_contract, substs, &arguments)?
+        {
+            let assume_statement = self.encoder.set_statement_error_ctxt(
+                vir_high::Statement::assume_no_pos(expression),
+                mir_span,
+                ErrorCtxt::UnexpectedAssumeMethodPrecondition,
+                self.def_id,
+            )?;
+            preconditions.push(assume_statement);
+        }
+        let mut postconditions = vec![vir_high::Statement::comment(
+            "Assert functional postconditions.".to_string(),
+        )];
+        let result: vir_high::Expression = self.encode_local(mir::RETURN_PLACE)?.into();
+        for expression in
+            self.encode_postcondition_expressions(&procedure_contract, substs, &arguments, &result)?
+        {
+            let assert_statement = self.encoder.set_statement_error_ctxt(
+                vir_high::Statement::assert_no_pos(expression),
+                mir_span,
+                ErrorCtxt::AssertMethodPostcondition,
+                self.def_id,
+            )?;
+            postconditions.push(assert_statement);
+        }
+        Ok((preconditions, postconditions))
     }
 
     fn encode_discriminants(
@@ -774,14 +885,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // The called method might be a trait method.
         // We try to resolve it to the concrete implementation
         // and type substitutions.
-        let (called_def_id, _call_substs) =
+        let (called_def_id, call_substs) =
             self.encoder
                 .env()
                 .resolve_method_call(self.def_id, called_def_id, call_substs);
 
-        // TODO: Assert the precondition.
-
+        let mut arguments = Vec::new();
         for arg in args {
+            arguments.push(
+                self.encoder
+                    .encode_operand_high(self.mir, arg)
+                    .with_span(span)?,
+            );
             let encoded_arg = self.encode_statement_operand(location, arg)?;
             let statement = vir_high::Statement::consume_no_pos(encoded_arg);
             block_builder.add_statement(self.encoder.set_statement_error_ctxt(
@@ -792,6 +907,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?);
         }
 
+        let procedure_contract = self
+            .encoder
+            .get_mir_procedure_contract_for_call(self.def_id, called_def_id, call_substs)
+            .with_span(span)?;
+
+        for expression in
+            self.encode_precondition_expressions(&procedure_contract, call_substs, &arguments)?
+        {
+            let assert_statement = self.encoder.set_statement_error_ctxt(
+                vir_high::Statement::assert_no_pos(expression),
+                span,
+                ErrorCtxt::ExhaleMethodPrecondition,
+                self.def_id,
+            )?;
+            block_builder.add_statement(assert_statement);
+        }
+
         if self.encoder.env().tcx().is_closure(called_def_id) {
             // Closure calls are wrapped around std::ops::Fn::call(), which receives
             // two arguments: The closure instance, and the tupled-up arguments
@@ -800,12 +932,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         if let Some((target_place, target_block)) = destination {
+            let position = self.register_error(location, ErrorCtxt::ProcedureCall);
+            let encoded_target_place = self
+                .encoder
+                .encode_place_high(self.mir, *target_place)?
+                .set_default_position(position);
+            let postcondition_expressions = self.encode_postcondition_expressions(
+                &procedure_contract,
+                call_substs,
+                &arguments,
+                &encoded_target_place,
+            )?;
             if let Some(target_place_local) = target_place.as_local() {
-                let position = self.register_error(location, ErrorCtxt::ProcedureCall);
-                let encoded_target_place = self
-                    .encoder
-                    .encode_place_high(self.mir, *target_place)?
-                    .set_default_position(position);
                 let size = self.encoder.encode_type_size_expression(
                     self.encoder.get_local_type(self.mir, target_place_local)?,
                 )?;
@@ -834,6 +972,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ErrorCtxt::ProcedureCall,
                     self.def_id,
                 )?);
+                for expression in postcondition_expressions {
+                    let assume_statement = self.encoder.set_statement_error_ctxt(
+                        vir_high::Statement::assume_no_pos(expression),
+                        span,
+                        ErrorCtxt::UnexpectedAssumeMethodPostcondition,
+                        self.def_id,
+                    )?;
+                    post_call_block_builder.add_statement(assume_statement);
+                }
                 post_call_block_builder.build();
 
                 if let Some(cleanup_block) = cleanup {
@@ -863,8 +1010,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 unimplemented!();
             }
         } else if let Some(_cleanup_block) = cleanup {
+            // TODO: add panic postconditions.
             unimplemented!();
         } else {
+            // TODO: Can we always soundly assume false here?
             unimplemented!();
         }
 

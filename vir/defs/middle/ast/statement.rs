@@ -16,6 +16,7 @@ pub enum Statement {
     Inhale(Inhale),
     Exhale(Exhale),
     Consume(Consume),
+    Assume(Assume),
     Assert(Assert),
     FoldOwned(FoldOwned),
     UnfoldOwned(UnfoldOwned),
@@ -52,6 +53,13 @@ pub struct Exhale {
 /// Consume the operand.
 pub struct Consume {
     pub operand: Operand,
+    pub position: Position,
+}
+
+#[display(fmt = "assume {}", expression)]
+/// Assume the boolean expression.
+pub struct Assume {
+    pub expression: Expression,
     pub position: Position,
 }
 

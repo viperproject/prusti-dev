@@ -39,6 +39,9 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::Consume(statement) => {
                 statement.collect(consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::Assume(statement) => {
+                statement.collect(consumed_permissions, produced_permissions)
+            }
             vir_high::Statement::Assert(statement) => {
                 statement.collect(consumed_permissions, produced_permissions)
             }
@@ -124,6 +127,16 @@ impl CollectPermissionChanges for vir_high::Consume {
     ) -> SpannedEncodingResult<()> {
         self.operand
             .collect(consumed_permissions, produced_permissions)?;
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::Assume {
+    fn collect(
+        &self,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
         Ok(())
     }
 }

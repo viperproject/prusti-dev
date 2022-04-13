@@ -12,8 +12,7 @@ use prusti_interface::{
     PrustiError,
 };
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::{DefId, LocalDefId};
-use std::collections::HashMap;
+use rustc_hir::def_id::DefId;
 
 /// Provides access to specifications, handling refinement if needed
 pub(super) struct Specifications<'tcx> {
@@ -32,14 +31,6 @@ impl<'tcx> Specifications<'tcx> {
             user_typed_specs,
             refined_specs: FxHashMap::default(),
         }
-    }
-
-    pub(super) fn get_user_typed_specs(&self) -> &DefSpecificationMap {
-        &self.user_typed_specs
-    }
-
-    pub(super) fn get_extern_spec_map(&self) -> &HashMap<DefId, LocalDefId> {
-        &self.get_user_typed_specs().extern_specs
     }
 
     pub(super) fn get_loop_spec<'a, 'env: 'a>(
