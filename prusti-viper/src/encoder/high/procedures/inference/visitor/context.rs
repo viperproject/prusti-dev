@@ -68,7 +68,11 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
                 ]
             }
             vir_high::TypeDecl::Array(_) => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Reference(_) => unimplemented!("ty: {}", ty),
+            vir_high::TypeDecl::Reference(_) => {
+                // TODO: implement context visitor for Reference
+                // required e.g. for returning a reference?
+                unimplemented!("ty: {}", ty)
+            }
             vir_high::TypeDecl::Never => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),

@@ -28,6 +28,9 @@ pub enum Statement {
     WritePlace(WritePlace),
     WriteAddress(WriteAddress),
     Assign(Assign),
+    NewLft(NewLft),
+    EndLft(EndLft),
+    GhostAssignment(GhostAssignment),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -171,5 +174,25 @@ pub struct WriteAddress {
 pub struct Assign {
     pub target: Expression,
     pub value: Rvalue,
+    pub position: Position,
+}
+
+#[display(fmt = "{} = newlft()", target)]
+pub struct NewLft {
+    pub target: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "endlft({})", lifetime)]
+pub struct EndLft {
+    pub lifetime: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "ghost-assign {} := {:?}", target, value)]
+pub struct GhostAssignment {
+    pub target: VariableDecl,
+    // TODO: why can't I use a BTreeSet here?
+    pub value: Vec<String>,
     pub position: Position,
 }

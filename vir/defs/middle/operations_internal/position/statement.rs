@@ -20,6 +20,9 @@ impl Positioned for Statement {
             Self::WriteAddress(statement) => statement.position(),
             Self::Assign(statement) => statement.position(),
             Self::Consume(statement) => statement.position(),
+            Self::NewLft(statement) => statement.position(),
+            Self::EndLft(statement) => statement.position(),
+            Self::GhostAssignment(statement) => statement.position(),
         }
     }
 }
@@ -115,6 +118,24 @@ impl Positioned for Assign {
 }
 
 impl Positioned for Consume {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for NewLft {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for EndLft {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for GhostAssignment {
     fn position(&self) -> Position {
         self.position
     }

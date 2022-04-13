@@ -52,7 +52,11 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
             )));
         }
 
-        vir::Type::MBool | vir::Type::MInt | vir::Type::MFloat32 | vir::Type::MFloat64 => {
+        vir::Type::MBool
+        | vir::Type::MInt
+        | vir::Type::MFloat32
+        | vir::Type::MFloat64
+        | vir::Type::Lifetime => {
             unreachable!()
         }
     };
