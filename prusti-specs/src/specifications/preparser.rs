@@ -938,7 +938,7 @@ mod tests {
             assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), err_invalid_arguments);
             assert_error!(parse_ghost_constraint(quote!{ }), err_invalid_arguments);
             assert_error!(parse_ghost_constraint(quote!{T: A }), err_invalid_arguments);
-            assert_error!(parse_ghost_constraint(quote!{T: A, [requires(false)], "nope" }), err_invalid_arguments);
+            assert_error!(parse_ghost_constraint(quote!{T: A, [requires(false)], "nope" }), "expected nested specification in brackets");
             assert_error!(parse_ghost_constraint(quote!{[requires(false)], T: A }), "expected nested specification in brackets");
             assert_error!(parse_ghost_constraint(quote!{T: A,  }), "expected nested specification in brackets");
             assert_error!(parse_ghost_constraint(quote!{T: A, {} }), "expected nested specification in brackets");
