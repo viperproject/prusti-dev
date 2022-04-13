@@ -171,6 +171,16 @@ pub enum Type {
     TypeVar(TypeVar),
 }
 
+impl Type {
+    pub fn map(key_type: Type, val_type: Type) -> Type {
+        Type::Domain(DomainType {
+            label: "Map".into(),
+            arguments: vec![key_type, val_type],
+            variant: "".into(),
+        })
+    }
+}
+
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -203,6 +213,10 @@ impl Type {
 
     pub fn is_snapshot(&self) -> bool {
         matches!(self, &Type::Snapshot(_))
+    }
+
+    pub fn is_seq(&self) -> bool {
+        matches!(self, &Type::Seq(_))
     }
 
     pub fn is_type_var(&self) -> bool {
@@ -398,6 +412,9 @@ impl Type {
                         }
                     }
                 }
+            }
+            Type::Seq(SeqType { box typ }) => {
+                format!("Seq${}", Self::encode_arguments(&[typ.clone()]))
             }
             Type::TypeVar(TypeVar { label }) => format!("__TYPARAM__$_{}$__", label),
             x => unreachable!("{}", x),

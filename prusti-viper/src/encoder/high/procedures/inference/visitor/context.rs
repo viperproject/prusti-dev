@@ -68,6 +68,8 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
                 ]
             }
             vir_high::TypeDecl::Array(_) => unimplemented!("ty: {}", ty),
+            vir_high::TypeDecl::Sequence(_) => unimplemented!("ty: {}", ty),
+            vir_high::TypeDecl::Map(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Reference(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Never => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),

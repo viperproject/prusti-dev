@@ -2712,6 +2712,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .map(|arg| self.mir_encoder.encode_operand_place(arg))
             .collect::<Result<Vec<Option<vir::Expr>>, _>>()
             .with_span(call_site_span)?;
+
         if self.encoder.env().tcx().is_closure(called_def_id) {
             // Closure calls are wrapped around std::ops::Fn::call(), which receives
             // two arguments: The closure instance, and the tupled-up arguments
@@ -2842,6 +2843,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     }
                 }
             }
+        }
+
+        // checks if the function calls are operations on Sequences, and replaces these calls by Viper container Operations
+        if let Some(suffix) = full_func_proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {
+            let (place, _) = destination.unwrap(); // return types of these sequence functions are not `never`.
+            let (encoded_target, mut stmts, typ, _) = self.encode_place(&place, ArrayAccessKind::Shared, location)?;
+            let position = self.register_error(call_site_span, ErrorCtxt::Unexpected);
+            let typ =  self.encoder.encode_type(typ).unwrap();
+
+            let encoded_args = arguments
+                .into_iter()
+                .map(|arg| vir::Expr::local(self.encode_prusti_local(arg)))
+                .collect::<Vec<_>>();
+
+            let rhs = match suffix {
+                "empty" | "single" => vir::Expr::Seq(vir::Seq {
+                    typ,
+                    elements: encoded_args,
+                    position,
+                }),
+                "concat" => vir::Expr::ContainerOp(vir::ContainerOp {
+                    op_kind: vir::ContainerOpKind::SeqConcat,
+                    left: Box::new(encoded_args[0].clone()),
+                    right: Box::new(encoded_args[1].clone()),
+                    position,
+                }),
+                _ => unreachable!("no further sequence functions."),
+            };
+
+            let ass = vir::Stmt::Assign(vir::Assign {
+                target: encoded_target,
+                source: rhs,
+                kind: vir::AssignKind::Copy,
+            });
+
+            stmts.push(ass);
+
+            return Ok(stmts);
         }
 
         let (target_local, encoded_target) = {

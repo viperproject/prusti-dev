@@ -1,4 +1,7 @@
 #![no_std]
+#![feature(register_tool)]
+#![register_tool(prusti)]
+#![feature(decl_macro)]
 
 #[cfg(not(feature = "prusti"))]
 mod private {
@@ -47,6 +50,17 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_impl::predicate;
+
+
+    /// A sequence type
+    #[non_exhaustive]
+    pub struct Seq<T: Copy> {
+        _phantom: core::marker::PhantomData<T>,
+    }
+
+    /// A macro for defining ghost blocks which will be left in for verification 
+    /// but omitted during compilation.
+    pub use prusti_contracts_impl::ghost;
 }
 
 #[cfg(feature = "prusti")]
@@ -84,8 +98,57 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_internal::predicate;
-}
 
+    /// A sequence type
+    #[non_exhaustive]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Seq<T: Copy> {
+        _phantom: core::marker::PhantomData<T>,
+    }
+
+    impl<T: Copy> Seq<T> {
+        #[pure]
+        pub fn empty() -> Self {
+            panic!()
+        }
+        #[pure]
+        pub fn single(_: T) -> Self {
+            panic!()
+        }
+        #[pure]
+        pub fn concat(_: Self, _: Self) -> Self {
+            panic!()
+        }
+        #[pure]
+        pub fn lookup(self, _index: usize) -> T {
+            panic!()
+        }
+    }
+
+    /// A map type
+    #[non_exhaustive]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Map<K, V> {
+        _key_phantom: core::marker::PhantomData<K>,
+        _val_phantom: core::marker::PhantomData<V>,
+    }
+
+    impl<K, V> Map<K, V> {
+        pub fn empty() -> Self {
+            panic!()
+        }
+        pub fn insert(self, _key: K, _val: V) -> Self {
+            panic!()
+        }
+        pub fn delete(self, _key: K) -> Self {
+            panic!()
+        }
+    }
+
+    /// A macro for defining ghost blocks which will be left in for verification 
+    /// but omitted during compilation.
+    pub use prusti_contracts_internal::ghost;
+}
 
 /// This function is used to evaluate an expression in the context just
 /// before the borrows expires.

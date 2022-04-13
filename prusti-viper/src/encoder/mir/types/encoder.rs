@@ -109,10 +109,32 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Type::reference(self.encoder.encode_type_high(*ty)?, fake_lft)
             }
 
-            ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() => vir::Type::struct_(
-                encode_struct_name(self.encoder, adt_def.did()),
-                self.encode_substs(substs),
-            ),
+            ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() => {
+                let type_name: &str = &self.encoder.env().tcx().def_path_str(adt_def.did());
+
+                let enc_substs = self
+                    .encode_substs(substs)
+                    .into_iter()
+                    .map(Box::new)
+                    .collect::<Vec<_>>();
+
+                // TODO: more stable reference to the Sequence type
+                if type_name == "prusti_contracts::Seq" {
+                    vir::Type::Sequence(vir::ty::Sequence {
+                        element_type: enc_substs[0].clone(),
+                    })
+                } else if type_name == "prusti_contracts::Map" {
+                    vir::Type::Map(vir::ty::Map {
+                        key_type: enc_substs[0].clone(),
+                        val_type: enc_substs[1].clone(),
+                    })
+                } else {
+                    vir::Type::struct_(
+                        encode_struct_name(self.encoder, adt_def.did()),
+                        self.encode_substs(substs),
+                    )
+                }
+            }
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_enum() => {
                 if adt_def.variants().len() == 1 {
