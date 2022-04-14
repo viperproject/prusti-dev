@@ -333,6 +333,7 @@ impl IntoLow for vir_mid::Statement {
                 let targets = vec![vir_low::Expression::local_no_pos(
                     statement.target.to_procedure_snapshot(lowerer)?,
                 )];
+                lowerer.encode_newlft_method()?;
                 Ok(vec![Statement::method_call(
                     String::from("newlft"),
                     vec![],
@@ -344,6 +345,7 @@ impl IntoLow for vir_mid::Statement {
                 let arguments = vec![vir_low::Expression::local_no_pos(
                     statement.lifetime.to_procedure_snapshot(lowerer)?,
                 )];
+                lowerer.encode_endlft_method()?;
                 Ok(vec![Statement::method_call(
                     String::from("endlft"),
                     arguments,
@@ -352,20 +354,12 @@ impl IntoLow for vir_mid::Statement {
                 )])
             }
             Self::GhostAssignment(statement) => {
-                let lifetime_type = vir_low::ty::Type::Domain(vir_low::ty::Domain {
-                    name: String::from("Lifetime"),
-                });
-                Ok(vec![match statement.value.len() {
-                    1 => Statement::assign(
-                        statement.target.to_procedure_snapshot(lowerer)?,
-                        vir_low::Expression::local_no_pos(vir_low::VariableDecl {
-                            name: statement.value.get(0).unwrap().to_string(),
-                            ty: lifetime_type,
-                        }),
-                        statement.position,
-                    ),
-                    _ => unimplemented!(),
-                }])
+                let statements = vec![Statement::assign(
+                    statement.target.to_procedure_snapshot(lowerer)?,
+                    statement.value.to_procedure_snapshot(lowerer)?,
+                    statement.position,
+                )];
+                Ok(statements)
             }
         }
     }

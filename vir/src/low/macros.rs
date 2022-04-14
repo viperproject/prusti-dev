@@ -3,6 +3,7 @@ pub macro ty {
     (Bool) => {$crate::low::ast::ty::Type::Bool},
     (Place) => {$crate::low::ast::ty::Type::domain("Place".to_string())},
     (Address) => {$crate::low::ast::ty::Type::domain("Address".to_string())},
+    (Lifetime) => {$crate::low::ast::ty::Type::domain("Lifetime".to_string())},
     (Bytes) => {$crate::low::ast::ty::Type::domain("Bytes".to_string())},
     ({$ty:expr}) => { $ty },
 }

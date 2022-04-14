@@ -363,7 +363,8 @@ impl Typed for BinaryOp {
             | BinaryOpKind::Sub
             | BinaryOpKind::Mul
             | BinaryOpKind::Div
-            | BinaryOpKind::Mod => {
+            | BinaryOpKind::Mod
+            | BinaryOpKind::LifetimeIntersection => {
                 let ty1 = self.left.get_type();
                 let ty2 = self.right.get_type();
                 assert_eq!(ty1, ty2, "expr: {:?}", self);

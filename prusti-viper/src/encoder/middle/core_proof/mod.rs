@@ -8,6 +8,7 @@ mod fold_unfold;
 mod function_gas;
 mod interface;
 mod into_low;
+mod lifetimes;
 mod lowerer;
 mod places;
 mod predicates_memory_block;

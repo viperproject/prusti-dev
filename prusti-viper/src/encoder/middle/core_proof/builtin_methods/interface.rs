@@ -40,6 +40,8 @@ pub(in super::super) struct BuiltinMethodsState {
     encoded_into_memory_block_methods: FxHashSet<vir_mid::Type>,
     encoded_assign_methods: FxHashSet<String>,
     encoded_consume_operand_methods: FxHashSet<String>,
+    encoded_newlft_method: bool,
+    encoded_endlft_method: bool,
 }
 
 trait Private {
@@ -651,6 +653,8 @@ pub(in super::super) trait BuiltinMethodsInterface {
         operand: vir_mid::Operand,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
+    fn encode_newlft_method(&mut self) -> SpannedEncodingResult<()>;
+    fn encode_endlft_method(&mut self) -> SpannedEncodingResult<()>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
@@ -1782,6 +1786,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             Vec::new(),
             position,
         ));
+        Ok(())
+    }
+    fn encode_newlft_method(&mut self) -> SpannedEncodingResult<()> {
+        if !self.builtin_methods_state.encoded_newlft_method {
+            self.builtin_methods_state.encoded_newlft_method = true;
+            use vir_low::macros::*;
+            var_decls!(bw: Lifetime);
+            let method =
+                vir_low::MethodDecl::new("newlft", Vec::new(), vec![bw], Vec::new(), vec![], None);
+            self.declare_method(method)?;
+        }
+        Ok(())
+    }
+    fn encode_endlft_method(&mut self) -> SpannedEncodingResult<()> {
+        if !self.builtin_methods_state.encoded_endlft_method {
+            self.builtin_methods_state.encoded_endlft_method = true;
+            use vir_low::macros::*;
+            var_decls!(bw: Lifetime);
+            let method =
+                vir_low::MethodDecl::new("endlft", vec![bw], Vec::new(), Vec::new(), vec![], None);
+            self.declare_method(method)?;
+        }
         Ok(())
     }
 }

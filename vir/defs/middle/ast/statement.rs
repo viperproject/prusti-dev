@@ -197,10 +197,9 @@ pub struct EndLft {
     pub position: Position,
 }
 
-#[display(fmt = "ghost-assign {} := {:?}", target, value)]
+#[display(fmt = "ghost-assign {} := {}", target, value)]
 pub struct GhostAssignment {
     pub target: VariableDecl,
-    // TODO: why can't I use a BTreeSet here?
-    pub value: Vec<String>,
+    pub value: Expression,
     pub position: Position,
 }
