@@ -12,7 +12,7 @@ use rustc_middle::mir;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt};
-use rustc_middle::ty::subst::SubstsRef;
+use rustc_middle::ty::subst::{Subst, SubstsRef};
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
 
@@ -289,10 +289,7 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| {
-                use crate::rustc_middle::ty::subst::Subst;
-                body.base_body.clone().subst(self.tcx, substs)
-            })
+            .or_insert_with(|| body.base_body.clone().subst(self.tcx, substs))
             .clone()
     }
 
@@ -326,10 +323,7 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| {
-                use crate::rustc_middle::ty::subst::Subst;
-                body.base_body.clone().subst(self.tcx, substs)
-            })
+            .or_insert_with(|| body.base_body.clone().subst(self.tcx, substs))
             .clone()
     }
 
@@ -424,12 +418,18 @@ impl<'tcx> Environment<'tcx> {
         // - identity for the impl:        `[A, B, C]`
         // - identity for Struct::f:       `[A, B, C, X, Y, Z]`
         //
-        // What we need is a substs suitable for a call to Trait::f, whic is in
+        // What we need is a substs suitable for a call to Trait::f, which is in
         // this case `[Struct<B, C>, A, X, Y, Z]`. More generally, it is the
         // concatenation of the trait ref substs with the identity of the impl
         // method after skipping the identity of the impl.
+        //
+        // We also need to subst the prefix (`[Struct<B, C>, A]` in the example
+        // above) with call substs, so that we get the trait's type parameters
+        // more precisely. We can do this directly with `impl_method_substs`
+        // because they contain the substs for the `impl` block as a prefix.
+        let call_trait_substs = trait_ref.substs.subst(self.tcx, impl_method_substs);
         let impl_substs = self.identity_substs(impl_def_id);
-        let trait_method_substs = self.tcx.mk_substs(trait_ref.substs.iter()
+        let trait_method_substs = self.tcx.mk_substs(call_trait_substs.iter()
             .chain(impl_method_substs.iter().skip(impl_substs.len())));
 
         // sanity check: do we now have the correct number of substs?

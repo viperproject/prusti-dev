@@ -16,7 +16,6 @@ use prusti_interface::{
 };
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
-use rustc_middle::ty::{subst::Subst, TypeFoldable};
 
 /// Defines the context for which we perform refinement.
 /// It can be thought of as the variants of [SpecQuery] for which we can perform refinement.
@@ -39,17 +38,7 @@ impl<'qry, 'tcx> RefinementContext<'qry, 'tcx> {
             | SpecQuery::FunctionDefEncoding(def_id, substs)
             | SpecQuery::PureOrTrustedCheck(def_id, substs) => {
                 let (trait_def_id, trait_substs) = env.find_trait_method_substs(*def_id, substs)?;
-
-                // We need to subst the trait substs because they might be generic
-                // (with substitutions in the call substs)
-                let trait_substs = if trait_substs.needs_subst() {
-                    trait_substs.subst(env.tcx(), substs)
-                } else {
-                    trait_substs
-                };
-
                 let trait_query = query.adapt_to(trait_def_id, trait_substs);
-
                 Some(RefinementContext {
                     impl_query: query,
                     trait_query,
