@@ -25,26 +25,70 @@
 <span id="20">20</span>
 <span id="21">21</span>
 <span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::ast</span>::{
-    <span class="ident">expression</span>::{<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#53127-53154">Expression</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#53157-53160">Local</a>},
-    <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#57432-57435">field::FieldDecl</a>,
-    <span class="ident">ty</span>::{<a class="self" href="../../../../src/vir/up/gen/vir_gen.rs.html#59526-60066">self</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#59539-59547">Type</a>},
-    <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#60071-60074">variable::VariableDecl</a>,
+    <span class="ident">expression</span>::{<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#54142-54169">Expression</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#54172-54175">Local</a>},
+    <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#58447-58450">field::FieldDecl</a>,
+    <span class="ident">ty</span>::{<a class="self" href="../../../../src/vir/up/gen/vir_gen.rs.html#60541-61081">self</a>, <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#60554-60562">Type</a>},
+    <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#61086-61089">variable::VariableDecl</a>,
 };
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common::expression</span>::{<a class="ident" href="../../../../src/vir/common/expression.rs.html#18-38">BinaryOperationHelpers</a>, <a class="ident" href="../../../../src/vir/common/expression.rs.html#129-137">ExpressionIterator</a>};
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#53127-53154">Expression</a> {
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DiscriminantValue</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>;
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#54142-54169">Expression</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_discriminant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#53131">Expression::Local</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#53157-53160">Local</a> { <span class="ident">variable</span>, .. }) <span class="op">=</span> <a class="self" href="../../../../src/vir/low/operations/special_variables.rs.html#9">self</a> {
-            <a class="ident" href="../../../../src/vir/low/operations/special_variables.rs.html#10">variable</a>.<span class="ident">name</span> <span class="op">==</span> <span class="string">&quot;discriminant$&quot;</span>
+        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#54146">Expression::Local</a>(<a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#54172-54175">Local</a> { <span class="ident">variable</span>, .. }) <span class="op">=</span> <a class="self" href="../../../../src/vir/low/operations/special_variables.rs.html#12">self</a> {
+            <a class="ident" href="../../../../src/vir/low/operations/special_variables.rs.html#13">variable</a>.<span class="ident">name</span> <span class="op">==</span> <span class="string">&quot;discriminant$&quot;</span>
         } <span class="kw">else</span> {
             <span class="bool-val">false</span>
         }
     }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_discriminant_bounds</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">bounds</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="../../../../src/vir/low/operations/special_variables.rs.html#9">DiscriminantValue</a>, <a class="ident" href="../../../../src/vir/low/operations/special_variables.rs.html#9">DiscriminantValue</a>)],
+    ) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../../src/vir/low/operations/special_variables.rs.html#22">bounds</a>
+            .<span class="ident">iter</span>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">from</span>, <span class="ident">to</span>)<span class="op">|</span> {
+                <span class="kw">if</span> <a class="ident" href="../../../../src/vir/low/operations/special_variables.rs.html#26">from</a> <span class="op">==</span> <a class="ident" href="../../../../src/vir/low/operations/special_variables.rs.html#26">to</a> {
+                    <span class="ident"><span class="self">Self</span>::equals</span>(<a class="self" href="../../../../src/vir/low/operations/special_variables.rs.html#21">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../src/vir/low/operations/special_variables.rs.html#26">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                } <span class="kw">else</span> {
+                    <span class="ident"><span class="self">Self</span>::and</span>(
+                        <span class="ident"><span class="self">Self</span>::less_equals</span>(<a class="ident" href="../../../../src/vir/low/operations/special_variables.rs.html#26">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="self" href="../../../../src/vir/low/operations/special_variables.rs.html#21">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                        <span class="ident"><span class="self">Self</span>::less_equals</span>(<a class="self" href="../../../../src/vir/low/operations/special_variables.rs.html#21">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../src/vir/low/operations/special_variables.rs.html#26">to</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                    )
+                }
+            })
+            .<a class="ident" href="../../../../src/vir/common/expression.rs.html#136">disjoin</a>()
+    }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#57432-57435">FieldDecl</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/up/gen/vir_gen.rs.html#58447-58450">FieldDecl</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_discriminant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/vir/low/operations/special_variables.rs.html#19">self</a>.<span class="ident">name</span> <span class="op">==</span> <span class="string">&quot;discriminant&quot;</span>
+        <a class="self" href="../../../../src/vir/low/operations/special_variables.rs.html#41">self</a>.<span class="ident">name</span> <span class="op">==</span> <span class="string">&quot;discriminant&quot;</span>
     }
 }
 </code></pre></div>

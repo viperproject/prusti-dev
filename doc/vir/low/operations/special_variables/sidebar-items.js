@@ -1,1 +1,1 @@
-initSidebarItems({});
+initSidebarItems({"type":[["DiscriminantValue",""]]});
