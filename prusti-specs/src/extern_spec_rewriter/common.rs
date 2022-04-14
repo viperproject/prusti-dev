@@ -1,6 +1,4 @@
 use quote::{quote, ToTokens};
-use syn::parse_quote_spanned;
-use syn::spanned::Spanned;
 
 /// Add `PhantomData` markers for each type parameter to silence errors
 /// about unused type parameters.
