@@ -519,7 +519,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     }
 
                     _ => {
-                        if self.encoder.is_pure(def_id) {
+                        if self.encoder.is_pure(def_id, Some(substs)) {
                             self.encode_call_generic(
                                 *target_block,
                                 states,

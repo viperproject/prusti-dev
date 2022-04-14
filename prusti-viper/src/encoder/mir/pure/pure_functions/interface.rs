@@ -237,7 +237,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     ) -> SpannedEncodingResult<()> {
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
-            self.is_pure(proc_def_id),
+            self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -276,12 +276,12 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
 
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
                 let (mut function, needs_patching) =
-                    if let Some(predicate_body) = self.get_predicate_body(proc_def_id) {
+                    if let Some(predicate_body) = self.get_predicate_body(proc_def_id, substs) {
                         (
                             pure_function_encoder.encode_predicate_function(&predicate_body)?,
                             false,
                         )
-                    } else if self.is_trusted(proc_def_id) {
+                    } else if self.is_trusted(proc_def_id, Some(substs)) {
                         (pure_function_encoder.encode_bodyless_function()?, false)
                     } else {
                         let function = pure_function_encoder.encode_function()?;
@@ -367,7 +367,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_poly::Type)> {
         assert!(
-            self.is_pure(proc_def_id),
+            self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -430,7 +430,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_high::Type)> {
         assert!(
-            self.is_pure(proc_def_id),
+            self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );

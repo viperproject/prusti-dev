@@ -79,11 +79,19 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             tcx.hir().walk_attributes(&mut spec_collector);
             let def_spec = spec_collector.build_def_specs();
             if config::print_typeckd_specs() {
-                let mut values: Vec<_> = def_spec
-                    .specs
+                let loop_specs: Vec<_> = def_spec
+                    .loop_specs
                     .values()
                     .map(|spec| format!("{:?}", spec))
                     .collect();
+                let proc_specs: Vec<_> = def_spec
+                    .proc_specs
+                    .values()
+                    .map(|spec| format!("{:?}", spec.base_spec))
+                    .collect();
+                let mut values = Vec::new();
+                values.extend(loop_specs);
+                values.extend(proc_specs);
                 if config::hide_uuids() {
                     let uuid =
                         Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}")

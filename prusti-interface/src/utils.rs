@@ -318,6 +318,10 @@ pub fn has_to_model_impl_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "type_models_to_model_impl")
 }
 
+pub fn has_trait_bounds_ghost_constraint(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "ghost_constraint_trait_bounds_in_where_clause")
+}
+
 /// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.
 pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<String> {
     let mut strings = vec![];

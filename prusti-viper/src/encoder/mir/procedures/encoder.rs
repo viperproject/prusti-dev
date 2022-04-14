@@ -1240,7 +1240,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     )?;
                     post_call_block_builder.add_statement(assume_statement);
                 }
-                if self.encoder.is_pure(called_def_id) && self.def_id != called_def_id {
+                if self.encoder.is_pure(called_def_id, Some(call_substs))
+                    && self.def_id != called_def_id
+                {
                     // If we are verifying a pure function, we always need
                     // to encode it as a method
                     //

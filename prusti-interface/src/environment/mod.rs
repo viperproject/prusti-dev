@@ -12,7 +12,7 @@ use rustc_middle::mir;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt};
-use rustc_middle::ty::subst::SubstsRef;
+use rustc_middle::ty::subst::{Subst, SubstsRef};
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
 
@@ -289,10 +289,7 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| {
-                use crate::rustc_middle::ty::subst::Subst;
-                body.base_body.clone().subst(self.tcx, substs)
-            })
+            .or_insert_with(|| body.base_body.clone().subst(self.tcx, substs))
             .clone()
     }
 
@@ -326,10 +323,7 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| {
-                use crate::rustc_middle::ty::subst::Subst;
-                body.base_body.clone().subst(self.tcx, substs)
-            })
+            .or_insert_with(|| body.base_body.clone().subst(self.tcx, substs))
             .clone()
     }
 
@@ -424,12 +418,18 @@ impl<'tcx> Environment<'tcx> {
         // - identity for the impl:        `[A, B, C]`
         // - identity for Struct::f:       `[A, B, C, X, Y, Z]`
         //
-        // What we need is a substs suitable for a call to Trait::f, whic is in
+        // What we need is a substs suitable for a call to Trait::f, which is in
         // this case `[Struct<B, C>, A, X, Y, Z]`. More generally, it is the
         // concatenation of the trait ref substs with the identity of the impl
         // method after skipping the identity of the impl.
+        //
+        // We also need to subst the prefix (`[Struct<B, C>, A]` in the example
+        // above) with call substs, so that we get the trait's type parameters
+        // more precisely. We can do this directly with `impl_method_substs`
+        // because they contain the substs for the `impl` block as a prefix.
+        let call_trait_substs = trait_ref.substs.subst(self.tcx, impl_method_substs);
         let impl_substs = self.identity_substs(impl_def_id);
-        let trait_method_substs = self.tcx.mk_substs(trait_ref.substs.iter()
+        let trait_method_substs = self.tcx.mk_substs(call_trait_substs.iter()
             .chain(impl_method_substs.iter().skip(impl_substs.len())));
 
         // sanity check: do we now have the correct number of substs?
@@ -521,10 +521,16 @@ impl<'tcx> Environment<'tcx> {
 
     /// Checks whether the given type implements the trait with the given DefId.
     pub fn type_implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId, param_env: ty::ParamEnv<'tcx>) -> bool {
+        self.type_implements_trait_with_trait_substs(ty, trait_def_id, ty::List::empty(), param_env)
+    }
+
+    /// Checks whether the given type implements the trait with the given DefId.
+    /// Accounts for generic params on the trait by the given `trait_substs`.
+    pub fn type_implements_trait_with_trait_substs(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId, trait_substs: ty::subst::SubstsRef<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
         assert!(self.tcx.is_trait(trait_def_id));
         self.tcx.infer_ctxt().enter(|infcx|
             infcx
-                .type_implements_trait(trait_def_id, ty, ty::List::empty(), param_env)
+                .type_implements_trait(trait_def_id, ty, trait_substs, param_env)
                 .must_apply_considering_regions()
         )
     }
@@ -533,5 +539,45 @@ impl<'tcx> Environment<'tcx> {
     /// generic maps to itself.
     pub fn identity_substs(&self, def_id: ProcedureDefId) -> SubstsRef<'tcx> {
         ty::List::identity_for_item(self.tcx, def_id)
+    }
+
+    /// Evaluates the provided [ty::Predicate].
+    /// Returns true if the predicate is fulfilled.
+    /// Returns false if the predicate is not fulfilled or it could not be evaluated.
+    pub fn evaluate_predicate(&self, predicate: ty::Predicate<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool{
+        debug!("Evaluating predicate {:?}", predicate);
+        use rustc_trait_selection::traits;
+        use crate::rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
+
+        let obligation = traits::Obligation::new(
+            traits::ObligationCause::dummy(),
+            param_env,
+            predicate,
+        );
+
+        self.tcx.infer_ctxt().enter(|infcx| {
+            infcx.predicate_must_hold_considering_regions(&obligation)
+        })
+    }
+
+    /// A facade for [rustc_trait_selection::traits::normalize_to]
+    /// Normalizes associated types in foldable types,
+    /// i.e. this resolves projection types ([ty::TyKind::Projection]s)
+    pub fn normalize_to<T: ty::TypeFoldable<'tcx>>(&self, normalizable: T) -> T {
+        use rustc_trait_selection::traits;
+        self.tcx.infer_ctxt().enter(|infcx| {
+            let mut selcx = traits::SelectionContext::new(&infcx);
+            // We do not really care about obligations that are constructed
+            // in the normalization process
+            let mut obligations = vec![];
+
+            traits::normalize_to(
+                &mut selcx,
+                ty::ParamEnv::reveal_all(),
+                traits::ObligationCause::dummy(),
+                normalizable,
+                &mut obligations,
+            )
+        })
     }
 }

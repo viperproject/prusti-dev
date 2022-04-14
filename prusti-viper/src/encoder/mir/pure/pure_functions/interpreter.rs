@@ -21,9 +21,7 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_common::vir_local;
-
 use rustc_hash::FxHashMap;
-
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 
@@ -591,7 +589,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .resolve_method_call(self.def_id, def_id, call_substs);
                                 trace!("Resolved function call: {:?}", called_def_id);
 
-                                let is_pure_function = self.encoder.is_pure(called_def_id);
+                                let is_pure_function =
+                                    self.encoder.is_pure(called_def_id, Some(call_substs));
                                 let (function_name, return_type) = if is_pure_function {
                                     self.encoder
                                         .encode_pure_function_use(
