@@ -13,7 +13,7 @@ trait MyTrait {
     fn foo(&mut self);
 }
 
-#[extern_spec] //~ ERROR: the method's precondition may not be a valid weakening of the trait's precondition
+#[extern_spec]
 trait MyTrait {
     #[ghost_constraint(Self: HasContract, [
         requires(self.pre()), ensures(self.post())
