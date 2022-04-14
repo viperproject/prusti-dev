@@ -5,6 +5,7 @@ impl Positioned for Statement {
     fn position(&self) -> Position {
         match self {
             Self::Comment(statement) => statement.position(),
+            Self::OldLabel(statement) => statement.position(),
             Self::Inhale(statement) => statement.position(),
             Self::Exhale(statement) => statement.position(),
             Self::Assume(statement) => statement.position(),
@@ -26,6 +27,12 @@ impl Positioned for Statement {
 impl Positioned for Comment {
     fn position(&self) -> Position {
         Default::default()
+    }
+}
+
+impl Positioned for OldLabel {
+    fn position(&self) -> Position {
+        self.position
     }
 }
 
