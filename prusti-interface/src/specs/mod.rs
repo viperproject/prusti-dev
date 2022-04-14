@@ -148,9 +148,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
     fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for local_id in self.loop_specs.iter() {
-            def_spec.loop_specs.insert(local_id.to_def_id(), SpecGraph::new(typed::LoopSpecification {
+            def_spec.loop_specs.insert(local_id.to_def_id(),typed::LoopSpecification {
                 invariant: *local_id,
-            }));
+            });
         }
     }
 

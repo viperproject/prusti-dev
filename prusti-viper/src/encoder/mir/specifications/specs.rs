@@ -86,9 +86,7 @@ impl<'tcx> Specifications<'tcx> {
         def_id: &DefId,
     ) -> Option<&'a LoopSpecification> {
         trace!("Get loop specs of {:?}", def_id);
-        self.user_typed_specs
-            .get_loop_spec(def_id)
-            .map(|spec| &spec.base_spec)
+        self.user_typed_specs.get_loop_spec(def_id)
     }
 
     pub(super) fn get_and_refine_proc_spec<'a, 'env: 'a>(

@@ -82,7 +82,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                 let loop_specs: Vec<_> = def_spec
                     .loop_specs
                     .values()
-                    .map(|spec| format!("{:?}", spec.base_spec))
+                    .map(|spec| format!("{:?}", spec))
                     .collect();
                 let proc_specs: Vec<_> = def_spec
                     .proc_specs
