@@ -4,10 +4,21 @@ use vir_crate::{
     middle::{self as vir_mid},
 };
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub(in super::super) struct VariableVersionMap {
     /// Mapping from variable names to their versions.
     variable_versions: BTreeMap<String, u64>,
+}
+
+impl std::fmt::Display for VariableVersionMap {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{{")?;
+        for (variable_name, version) in &self.variable_versions {
+            writeln!(f, "{}: {}", variable_name, version)?;
+        }
+        writeln!(f, "}}")?;
+        Ok(())
+    }
 }
 
 impl VariableVersionMap {

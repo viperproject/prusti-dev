@@ -41,6 +41,10 @@ pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
         &self,
         function_identifier: &str,
     ) -> SpannedEncodingResult<(Vec<vir_high::Expression>, Vec<vir_high::Expression>)>;
+    fn get_pure_function_decl_mid(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<vir_mid::FunctionDecl>;
     /// Returns preconditions and postconditions of the specified pure function.
     fn get_pure_function_specs_mid(
         &self,
@@ -155,6 +159,35 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         let pres = function_decl.pres.clone();
         let posts = function_decl.posts.clone();
         Ok((pres, posts))
+    }
+
+    fn get_pure_function_decl_mid(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<vir_mid::FunctionDecl> {
+        let function_decl = self.get_pure_function_decl_high(function_identifier)?;
+        Ok(vir_mid::FunctionDecl {
+            name: function_decl.name.clone(),
+            type_arguments: function_decl
+                .type_arguments
+                .clone()
+                .to_middle_expression(self)?,
+            parameters: function_decl
+                .parameters
+                .clone()
+                .to_middle_expression(self)?,
+            return_type: function_decl
+                .return_type
+                .clone()
+                .to_middle_expression(self)?,
+            pres: function_decl.pres.clone().to_middle_expression(self)?,
+            posts: function_decl.posts.clone().to_middle_expression(self)?,
+            body: function_decl
+                .body
+                .clone()
+                .map(|body| body.to_middle_expression(self))
+                .transpose()?,
+        })
     }
 
     fn get_pure_function_specs_mid(

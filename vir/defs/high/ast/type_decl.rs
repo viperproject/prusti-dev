@@ -82,12 +82,15 @@ pub struct Struct {
     pub fields: Vec<FieldDecl>,
 }
 
+pub type DiscriminantValue = i128;
+pub type DiscriminantRange = (DiscriminantValue, DiscriminantValue);
+
 #[display(fmt = "{}", name)]
 pub struct Enum {
     pub name: String,
     pub discriminant_type: Type,
-    pub discriminant_bounds: Expression,
-    pub discriminant_values: Vec<Expression>,
+    pub discriminant_bounds: Vec<DiscriminantRange>,
+    pub discriminant_values: Vec<DiscriminantValue>,
     pub variants: Vec<Struct>,
 }
 
@@ -95,8 +98,8 @@ pub struct Enum {
 pub struct Union {
     pub name: String,
     pub discriminant_type: Type,
-    pub discriminant_bounds: Expression,
-    pub discriminant_values: Vec<Expression>,
+    pub discriminant_bounds: Vec<DiscriminantRange>,
+    pub discriminant_values: Vec<DiscriminantValue>,
     pub variants: Vec<Struct>,
 }
 

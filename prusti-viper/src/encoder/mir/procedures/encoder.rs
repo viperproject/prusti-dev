@@ -3,11 +3,19 @@ use crate::encoder::{
     borrows::ProcedureContractMirDef,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
-        casts::CastsEncoderInterface, constants::ConstantsEncoderInterface, errors::ErrorInterface,
-        panics::MirPanicsEncoderInterface, places::PlacesEncoderInterface,
-        predicates::MirPredicateEncoderInterface, pure::SpecificationEncoderInterface,
-        spans::SpanInterface, type_layouts::MirTypeLayoutsEncoderInterface,
+        casts::CastsEncoderInterface,
+        constants::ConstantsEncoderInterface,
+        errors::ErrorInterface,
+        generics::MirGenericsEncoderInterface,
+        panics::MirPanicsEncoderInterface,
+        places::PlacesEncoderInterface,
+        predicates::MirPredicateEncoderInterface,
+        pure::{PureFunctionEncoderInterface, SpecificationEncoderInterface},
+        spans::SpanInterface,
+        specifications::SpecificationsInterface,
+        type_layouts::MirTypeLayoutsEncoderInterface,
     },
+    mir_encoder::PRECONDITION_LABEL,
     Encoder,
 };
 use log::debug;
@@ -22,7 +30,10 @@ use rustc_middle::{mir, ty, ty::subst::SubstsRef};
 use rustc_span::Span;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
+    common::{
+        expression::{BinaryOperationHelpers, UnaryOperationHelpers},
+        position::Positioned,
+    },
     high::{
         self as vir_high,
         builders::procedure::{
@@ -48,14 +59,16 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
             procedure.get_span(),
         ));
     };
+    let mir = procedure.get_mir();
+    let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
     let mut procedure_encoder = ProcedureEncoder {
         encoder,
         def_id,
         _procedure: &procedure,
-        mir: procedure.get_mir(),
+        mir,
         lifetimes,
         check_panics: config::check_panics(),
-        discriminants: Default::default(),
+        locals_without_explicit_allocation,
         fresh_id_generator: 0,
     };
     procedure_encoder.encode()
@@ -68,7 +81,10 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     mir: &'p mir::Body<'tcx>,
     lifetimes: Lifetimes,
     check_panics: bool,
-    discriminants: BTreeSet<mir::Local>,
+    /// Locals that are not explicitly allocated or deallocated with
+    /// `StorageLive`/`StorageDead`. Such locals are assumed to be alive through
+    /// the entire body of the function.
+    locals_without_explicit_allocation: BTreeSet<mir::Local>,
     fresh_id_generator: usize,
 }
 
@@ -89,7 +105,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             assert_postconditions,
         );
         self.encode_body(&mut procedure_builder)?;
-        self.encode_discriminants(&mut procedure_builder)?;
+        self.encode_implicit_allocations(&mut procedure_builder)?;
         Ok(procedure_builder.build())
     }
 
@@ -200,17 +216,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         procedure_contract: &ProcedureContractMirDef<'tcx>,
         call_substs: SubstsRef<'tcx>,
-        arguments: &[vir_high::Expression],
+        arguments: Vec<vir_high::Expression>,
         result: &vir_high::Expression,
+        precondition_label: &str,
     ) -> SpannedEncodingResult<Vec<vir_high::Expression>> {
         let mut postconditions = Vec::new();
+        let arguments_in_old: Vec<_> = arguments
+            .into_iter()
+            .map(|argument| {
+                let position = argument.position();
+                vir_high::Expression::labelled_old(
+                    precondition_label.to_string(),
+                    argument,
+                    position,
+                )
+            })
+            .collect();
         for (assertion, assertion_substs) in
             procedure_contract.functional_postcondition(self.encoder.env(), call_substs)
         {
             let expression = self.encoder.encode_assertion_high(
                 &assertion,
-                None,
-                arguments,
+                Some(precondition_label),
+                &arguments_in_old,
                 Some(result),
                 self.def_id,
                 assertion_substs,
@@ -248,13 +276,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?;
             preconditions.push(assume_statement);
         }
+        let old_label = self.encoder.set_statement_error_ctxt(
+            vir_high::Statement::old_label_no_pos(PRECONDITION_LABEL.to_string()),
+            mir_span,
+            ErrorCtxt::UnexpectedAssumeMethodPrecondition,
+            self.def_id,
+        )?;
+        preconditions.push(old_label);
         let mut postconditions = vec![vir_high::Statement::comment(
             "Assert functional postconditions.".to_string(),
         )];
         let result: vir_high::Expression = self.encode_local(mir::RETURN_PLACE)?.into();
-        for expression in
-            self.encode_postcondition_expressions(&procedure_contract, substs, &arguments, &result)?
-        {
+        for expression in self.encode_postcondition_expressions(
+            &procedure_contract,
+            substs,
+            arguments,
+            &result,
+            PRECONDITION_LABEL,
+        )? {
             let assert_statement = self.encoder.set_statement_error_ctxt(
                 vir_high::Statement::assert_no_pos(expression),
                 mir_span,
@@ -266,27 +305,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok((preconditions, postconditions))
     }
 
-    fn encode_discriminants(
+    fn encode_implicit_allocations(
         &mut self,
         procedure_builder: &mut ProcedureBuilder,
     ) -> SpannedEncodingResult<()> {
-        for discriminant in std::mem::take(&mut self.discriminants) {
-            let local = self.encode_local(discriminant)?;
-            let mir_type = self.encoder.get_local_type(self.mir, discriminant)?;
+        procedure_builder.add_alloc_statement(vir_high::Statement::comment(
+            "Allocate implicitly allocated statements.".to_string(),
+        ));
+        for local in std::mem::take(&mut self.locals_without_explicit_allocation) {
+            let encoded_local = self.encode_local(local)?;
+            let mir_type = self.encoder.get_local_type(self.mir, local)?;
             let size = self.encoder.encode_type_size_expression(mir_type)?;
             let predicate =
-                vir_high::Predicate::memory_block_stack_no_pos(local.clone().into(), size);
+                vir_high::Predicate::memory_block_stack_no_pos(encoded_local.clone().into(), size);
             procedure_builder.add_alloc_statement(
                 self.encoder.set_statement_error_ctxt_from_position(
                     vir_high::Statement::inhale_no_pos(predicate.clone()),
-                    local.position,
+                    encoded_local.position,
                     ErrorCtxt::UnexpectedStorageLive,
                 )?,
             );
             procedure_builder.add_dealloc_statement(
                 self.encoder.set_statement_error_ctxt_from_position(
                     vir_high::Statement::exhale_no_pos(predicate.clone()),
-                    local.position,
+                    encoded_local.position,
                     ErrorCtxt::UnexpectedStorageLive,
                 )?,
             );
@@ -482,6 +524,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         block_builder.add_comment(format!("{:?} {:?}", location, statement));
         match &statement.kind {
             mir::StatementKind::StorageLive(local) => {
+                self.locals_without_explicit_allocation.remove(local);
                 let memory_block = self
                     .encoder
                     .encode_memory_block_for_local(self.mir, *local)?;
@@ -500,6 +543,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?);
             }
             mir::StatementKind::StorageDead(local) => {
+                self.locals_without_explicit_allocation.remove(local);
                 let memory_block = self
                     .encoder
                     .encode_memory_block_for_local(self.mir, *local)?;
@@ -524,14 +568,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .encode_place_high(self.mir, *target)?
                     .set_default_position(position);
                 self.encode_statement_assign(block_builder, location, encoded_target, source)?;
-                if let mir::Rvalue::Discriminant(_) = source {
-                    let local = target.as_local().expect("unimplemented");
-                    // FIXME: This assert is very likely to fail.
-                    assert!(
-                        self.discriminants.insert(local),
-                        "Duplicate discriminant temporary."
-                    );
-                }
             }
             _ => {
                 block_builder.add_comment("encode_statement: not encoded".to_string());
@@ -595,26 +631,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::BinaryOp(op, box (left, right)) => {
                 let encoded_left = self.encode_statement_operand(location, left)?;
                 let encoded_right = self.encode_statement_operand(location, right)?;
-                let kind = match op {
-                    mir::BinOp::Add => vir_high::BinaryOpKind::Add,
-                    mir::BinOp::Sub => vir_high::BinaryOpKind::Sub,
-                    mir::BinOp::Mul => vir_high::BinaryOpKind::Mul,
-                    mir::BinOp::Div => vir_high::BinaryOpKind::Div,
-                    mir::BinOp::Rem => vir_high::BinaryOpKind::Mod,
-                    // mir::BinOp::BitXor => vir_high::BinaryOpKind::BitXor,
-                    // mir::BinOp::BitAnd => vir_high::BinaryOpKind::BitAnd,
-                    // mir::BinOp::BitOr => vir_high::BinaryOpKind::BitOr,
-                    // mir::BinOp::Shl => vir_high::BinaryOpKind::Shl,
-                    // mir::BinOp::Shr => vir_high::BinaryOpKind::Shr,
-                    mir::BinOp::Eq => vir_high::BinaryOpKind::EqCmp,
-                    mir::BinOp::Lt => vir_high::BinaryOpKind::LtCmp,
-                    mir::BinOp::Le => vir_high::BinaryOpKind::LeCmp,
-                    mir::BinOp::Ne => vir_high::BinaryOpKind::NeCmp,
-                    mir::BinOp::Ge => vir_high::BinaryOpKind::GeCmp,
-                    mir::BinOp::Gt => vir_high::BinaryOpKind::GtCmp,
-                    // mir::BinOp::Offset => vir_high::BinaryOpKind::Offset,
-                    _ => unimplemented!("op kind: {:?}", op),
-                };
+                let kind = self.encode_binary_op_kind(*op)?;
                 let encoded_rvalue = vir_high::Rvalue::binary_op(kind, encoded_left, encoded_right);
                 block_builder.add_statement(self.set_statement_error(
                     location,
@@ -622,7 +639,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
                 )?);
             }
-            // mir::Rvalue::CheckedBinaryOp(BinOp, Box<(Operand<'tcx>, Operand<'tcx>)>),
+            mir::Rvalue::CheckedBinaryOp(op, box (left, right)) => {
+                let encoded_left = self.encode_statement_operand(location, left)?;
+                let encoded_right = self.encode_statement_operand(location, right)?;
+                let kind = self.encode_binary_op_kind(*op)?;
+                let encoded_rvalue =
+                    vir_high::Rvalue::checked_binary_op(kind, encoded_left, encoded_right);
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::Assign,
+                    vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
+                )?);
+            }
             // mir::Rvalue::NullaryOp(NullOp, Ty<'tcx>),
             mir::Rvalue::UnaryOp(op, operand) => {
                 let encoded_operand = self.encode_statement_operand(location, operand)?;
@@ -793,6 +821,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(encoded_operand)
     }
 
+    fn encode_binary_op_kind(
+        &self,
+        op: mir::BinOp,
+    ) -> SpannedEncodingResult<vir_high::BinaryOpKind> {
+        let kind = match op {
+            mir::BinOp::Add => vir_high::BinaryOpKind::Add,
+            mir::BinOp::Sub => vir_high::BinaryOpKind::Sub,
+            mir::BinOp::Mul => vir_high::BinaryOpKind::Mul,
+            mir::BinOp::Div => vir_high::BinaryOpKind::Div,
+            mir::BinOp::Rem => vir_high::BinaryOpKind::Mod,
+            // mir::BinOp::BitXor => vir_high::BinaryOpKind::BitXor,
+            // mir::BinOp::BitAnd => vir_high::BinaryOpKind::BitAnd,
+            // mir::BinOp::BitOr => vir_high::BinaryOpKind::BitOr,
+            // mir::BinOp::Shl => vir_high::BinaryOpKind::Shl,
+            // mir::BinOp::Shr => vir_high::BinaryOpKind::Shr,
+            mir::BinOp::Eq => vir_high::BinaryOpKind::EqCmp,
+            mir::BinOp::Lt => vir_high::BinaryOpKind::LtCmp,
+            mir::BinOp::Le => vir_high::BinaryOpKind::LeCmp,
+            mir::BinOp::Ne => vir_high::BinaryOpKind::NeCmp,
+            mir::BinOp::Ge => vir_high::BinaryOpKind::GeCmp,
+            mir::BinOp::Gt => vir_high::BinaryOpKind::GtCmp,
+            // mir::BinOp::Offset => vir_high::BinaryOpKind::Offset,
+            _ => unimplemented!("op kind: {:?}", op),
+        };
+        Ok(kind)
+    }
+
     fn encode_terminator(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
@@ -855,14 +910,54 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // The encoding of the call is expected to set the successor.
                 return Ok(());
             }
-            // TerminatorKind::Assert {
-            //     target, cleanup, ..
-            // } => {
-            //     graph.add_regular_edge(bb, target);
-            //     if let Some(target) = cleanup {
-            //         graph.add_unwind_edge(bb, target);
-            //     }
-            // }
+            TerminatorKind::Assert {
+                cond,
+                expected,
+                msg,
+                target,
+                cleanup,
+            } => {
+                // TODO: Move this thing to a method.
+                let condition = self
+                    .encoder
+                    .encode_operand_high(self.mir, cond)
+                    .with_default_span(span)?;
+
+                let guard = if *expected {
+                    condition
+                } else {
+                    vir_high::Expression::not(condition)
+                };
+
+                let (assert_msg, error_ctxt) = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                    let mut s = String::new();
+                    msg.fmt_assert_args(&mut s).unwrap();
+                    (s, ErrorCtxt::BoundsCheckAssert)
+                } else {
+                    let assert_msg = msg.description().to_string();
+                    (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg))
+                };
+
+                let target_label = self.encode_basic_block_label(*target);
+                block_builder.add_comment(format!("Rust assertion: {}", assert_msg));
+                if self.check_panics {
+                    block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                        vir_high::Statement::assert_no_pos(guard.clone()),
+                        span,
+                        error_ctxt,
+                        self.def_id,
+                    )?);
+                }
+                if let Some(cleanup) = cleanup {
+                    let successors = vec![
+                        (guard, target_label),
+                        (true.into(), self.encode_basic_block_label(*cleanup)),
+                    ];
+                    SuccessorBuilder::jump(vir_high::Successor::GotoSwitch(successors))
+                } else {
+                    SuccessorBuilder::jump(vir_high::Successor::Goto(target_label))
+                }
+            }
             // TerminatorKind::Yield { .. } => {
             //     graph.add_exit_edge(bb, "yield");
             // }
@@ -1046,6 +1141,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .env()
                 .resolve_method_call(self.def_id, called_def_id, call_substs);
 
+        let old_label = self.fresh_old_label();
+        block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+            vir_high::Statement::old_label_no_pos(old_label.clone()),
+            span,
+            ErrorCtxt::ProcedureCall,
+            self.def_id,
+        )?);
         let mut arguments = Vec::new();
         for arg in args {
             arguments.push(
@@ -1096,8 +1198,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let postcondition_expressions = self.encode_postcondition_expressions(
                 &procedure_contract,
                 call_substs,
-                &arguments,
+                arguments.clone(),
                 &encoded_target_place,
+                &old_label,
             )?;
             if let Some(target_place_local) = target_place.as_local() {
                 let size = self.encoder.encode_type_size_expression(
@@ -1120,7 +1223,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     block_builder.create_basic_block_builder(fresh_destination_label.clone());
                 post_call_block_builder.set_successor_jump(vir_high::Successor::Goto(target_label));
                 let statement = vir_high::Statement::inhale_no_pos(
-                    vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place),
+                    vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place.clone()),
                 );
                 post_call_block_builder.add_statement(self.encoder.set_statement_error_ctxt(
                     statement,
@@ -1129,6 +1232,37 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.def_id,
                 )?);
                 for expression in postcondition_expressions {
+                    let assume_statement = self.encoder.set_statement_error_ctxt(
+                        vir_high::Statement::assume_no_pos(expression),
+                        span,
+                        ErrorCtxt::UnexpectedAssumeMethodPostcondition,
+                        self.def_id,
+                    )?;
+                    post_call_block_builder.add_statement(assume_statement);
+                }
+                if self.encoder.is_pure(called_def_id) && self.def_id != called_def_id {
+                    // If we are verifying a pure function, we always need
+                    // to encode it as a method
+                    //
+                    // FIXME: This is not enough, we also need to handle
+                    // mutual-recursion case.
+                    let (function_name, return_type) = self
+                        .encoder
+                        .encode_pure_function_use_high(called_def_id, self.def_id, call_substs)
+                        .with_span(span)?;
+                    let type_arguments = self
+                        .encoder
+                        .encode_generic_arguments_high(called_def_id, call_substs)
+                        .with_span(span)?;
+                    let expression = vir_high::Expression::equals(
+                        encoded_target_place,
+                        vir_high::Expression::function_call(
+                            function_name,
+                            type_arguments,
+                            arguments,
+                            return_type,
+                        ),
+                    );
                     let assume_statement = self.encoder.set_statement_error_ctxt(
                         vir_high::Statement::assume_no_pos(expression),
                         span,
@@ -1184,6 +1318,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let name = format!("label_{}_custom", self.fresh_id_generator);
         self.fresh_id_generator += 1;
         vir_high::BasicBlockId::new(name)
+    }
+
+    fn fresh_old_label(&mut self) -> String {
+        let name = format!("label_{}_old", self.fresh_id_generator);
+        self.fresh_id_generator += 1;
+        name
     }
 
     fn register_error(&self, location: mir::Location, error_ctxt: ErrorCtxt) -> vir_high::Position {
