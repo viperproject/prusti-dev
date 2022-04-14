@@ -12,7 +12,7 @@ use rustc_span::Span;
 #[derive(Default, Debug, Clone)]
 pub struct DefSpecificationMap {
     pub proc_specs: HashMap<DefId, SpecGraph<ProcedureSpecification>>,
-    pub loop_specs: HashMap<DefId, SpecGraph<LoopSpecification>>,
+    pub loop_specs: HashMap<DefId, LoopSpecification>,
 }
 
 impl DefSpecificationMap {
@@ -20,7 +20,7 @@ impl DefSpecificationMap {
         Self::default()
     }
 
-    pub fn get_loop_spec(&self, def_id: &DefId) -> Option<&SpecGraph<LoopSpecification>> {
+    pub fn get_loop_spec(&self, def_id: &DefId) -> Option<&LoopSpecification> {
         self.loop_specs.get(def_id)
     }
 
