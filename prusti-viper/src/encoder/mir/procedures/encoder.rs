@@ -457,18 +457,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         lifetimes: BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<()> {
-        for (k, v) in lifetimes {
-            let encoded_target = vir_high::VariableDecl::new(k, vir_high::ty::Type::Lifetime {});
+        for (lifetime, constraints) in lifetimes {
+            let encoded_target = self.encode_lft_variable(lifetime)?;
+            let mut iter = constraints.into_iter();
+            let mut intersection = self.encode_lft_variable(iter.next().unwrap())?.into();
+            while let Some(name) = iter.next() {
+                intersection = vir_high::Expression::binary_op_no_pos(
+                    vir_high::BinaryOpKind::LifetimeIntersection,
+                    intersection,
+                    self.encode_lft_variable(name)?.into(),
+                );
+            }
             block_builder.add_statement(self.set_statement_error(
                 location,
                 ErrorCtxt::LifetimeEncoding,
-                vir_high::Statement::ghost_assignment_no_pos(
-                    encoded_target,
-                    v.into_iter().collect(),
-                ),
+                vir_high::Statement::ghost_assignment_no_pos(encoded_target, intersection),
             )?);
         }
         Ok(())
+    }
+
+    fn encode_lft_variable(
+        &self,
+        variable_name: String,
+    ) -> SpannedEncodingResult<vir_high::VariableDecl> {
+        Ok(vir_high::VariableDecl::new(
+            variable_name,
+            vir_high::Type::Lifetime,
+        ))
     }
 
     fn update_lifetimes(
