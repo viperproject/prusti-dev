@@ -158,7 +158,7 @@ pub mod trait_bounds {
         let param_env_lookup = if let Some(caller_def_id) = context.caller_proc_def_id {
             env.tcx().param_env(caller_def_id)
         } else {
-            ty::ParamEnv::reveal_all()
+            env.tcx().param_env(context.proc_def_id)
         };
 
         let all_bounds_satisfied = param_env_constraint
