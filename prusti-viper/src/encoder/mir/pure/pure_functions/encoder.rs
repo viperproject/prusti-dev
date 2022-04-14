@@ -29,6 +29,7 @@ use rustc_span::Span;
 use vir_crate::{
     common::identifier::WithIdentifier,
     high as vir_high,
+    high::operations::identifier::compute_function_identifier,
     polymorphic::{self as vir, ExprIterator},
 };
 
@@ -594,7 +595,12 @@ impl WithIdentifier for FunctionCallInfo {
 
 pub(super) struct FunctionCallInfoHigh {
     pub name: String,
-    // Will be needed for computing FunctionIdentifier.
-    pub _parameters: Vec<vir_high::VariableDecl>,
+    pub type_arguments: Vec<vir_high::Type>,
     pub return_type: vir_high::Type,
+}
+
+impl WithIdentifier for FunctionCallInfoHigh {
+    fn get_identifier(&self) -> String {
+        compute_function_identifier(&self.name, &self.type_arguments)
+    }
 }

@@ -1,6 +1,9 @@
 use super::super::types::{create_value_field, interface::HighTypeEncoderInterfacePrivate};
 use crate::encoder::{errors::EncodingResult, high::lower::IntoPolymorphic};
-use vir_crate::{high as vir_high, polymorphic as vir_poly};
+use vir_crate::{
+    high as vir_high,
+    polymorphic::{self as vir_poly, ExprIterator},
+};
 use vir_poly::Predicate;
 
 type Predicates = EncodingResult<Vec<vir_poly::Predicate>>;
@@ -148,8 +151,7 @@ impl IntoPredicates for vir_high::type_decl::Enum {
 
         let mut variants = Vec::new();
         for (variant, discriminant) in self.variants.iter().zip(self.discriminant_values.clone()) {
-            let guard =
-                vir_poly::Expr::eq_cmp(discriminant_loc.clone(), discriminant.lower(encoder));
+            let guard = vir_poly::Expr::eq_cmp(discriminant_loc.clone(), discriminant.into());
             let variant_ty = ty.clone().variant(variant.name.clone().into());
             let predicate = lower_struct(variant, &variant_ty, encoder)?;
             variants.push((guard, variant.name.clone(), predicate));
@@ -159,10 +161,20 @@ impl IntoPredicates for vir_high::type_decl::Enum {
             .filter(|(_, _, predicate)| !predicate.has_empty_body())
             .map(|(_, _, predicate)| Predicate::Struct(predicate.clone()))
             .collect();
-        let discriminant_bounds = self.discriminant_bounds.lower(encoder).replace_place(
-            &vir_high::Expression::discriminant().lower(encoder),
-            &discriminant_loc,
-        );
+        let discriminant_bounds = self
+            .discriminant_bounds
+            .iter()
+            .map(|&(from, to)| {
+                if from == to {
+                    vir_poly::Expr::eq_cmp(discriminant_loc.clone(), from.into())
+                } else {
+                    vir_poly::Expr::and(
+                        vir_poly::Expr::le_cmp(from.into(), discriminant_loc.clone()),
+                        vir_poly::Expr::le_cmp(discriminant_loc.clone(), to.into()),
+                    )
+                }
+            })
+            .disjoin();
         let enum_predicate =
             Predicate::new_enum(this, discriminant_field, discriminant_bounds, variants);
         predicates.push(enum_predicate);

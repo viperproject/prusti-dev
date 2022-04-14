@@ -7,7 +7,7 @@ use crate::encoder::{
         places::PlacesInterface,
         predicates_memory_block::PredicatesMemoryBlockInterface,
         snapshots::{
-            IntoSnapshot, SnapshotBytesInterface, SnapshotValidityInterface,
+            IntoProcedureSnapshot, SnapshotBytesInterface, SnapshotValidityInterface,
             SnapshotValuesInterface,
         },
         type_layouts::TypeLayoutsInterface,
@@ -18,7 +18,7 @@ use rustc_hash::FxHashSet;
 use std::borrow::Cow;
 use vir_crate::{
     common::expression::ExpressionIterator,
-    low::{self as vir_low, operations::ToLow},
+    low::{self as vir_low},
     middle as vir_mid,
 };
 
@@ -59,7 +59,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         use vir_low::macros::*;
         let type_decl = self.encoder.get_type_decl_mid(ty)?;
         self.encode_snapshot_to_bytes_function(ty)?;
-        let snapshot_type = ty.create_snapshot(self)?;
+        let snapshot_type = ty.to_procedure_snapshot(self)?;
         var_decls! {
             place: Place,
             root_address: Address,
@@ -107,7 +107,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let mut variant_predicates = Vec::new();
                 let discriminant_call =
                     self.obtain_enum_discriminant(snapshot.clone().into(), ty, position)?;
-                for (discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants) {
+                for (&discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants)
+                {
                     let variant_index = variant.name.clone().into();
                     let variant_place = self.encode_enum_variant_place(
                         ty,
@@ -133,7 +134,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     }
                     let variant_type = &variant_type;
                     let acc = expr! {
-                        ([ discriminant_call.clone() ] == [ discriminant.clone().to_low(self)? ]) ==>
+                        ([ discriminant_call.clone() ] == [ discriminant.into() ]) ==>
                         (acc(OwnedNonAliased<variant_type>(
                             [variant_place], root_address, [variant_snapshot]
                         )))
@@ -174,7 +175,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let mut variant_predicates = Vec::new();
                 let discriminant_call =
                     self.obtain_enum_discriminant(snapshot.clone().into(), ty, position)?;
-                for (discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants) {
+                for (&discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants)
+                {
                     let variant_index = variant.name.clone().into();
                     let variant_place = self.encode_enum_variant_place(
                         ty,
@@ -200,7 +202,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     }
                     let variant_type = &variant_type;
                     let acc = expr! {
-                        ([ discriminant_call.clone() ] == [ discriminant.clone().to_low(self)? ]) ==>
+                        ([ discriminant_call.clone() ] == [ discriminant.into() ]) ==>
                         (acc(OwnedNonAliased<variant_type>(
                             [variant_place], root_address, [variant_snapshot]
                         )))

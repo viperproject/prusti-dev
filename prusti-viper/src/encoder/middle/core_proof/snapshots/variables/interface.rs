@@ -3,7 +3,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         lowerer::{Lowerer, VariablesLowererInterface},
-        snapshots::{IntoSnapshot, SnapshotValuesInterface},
+        snapshots::{IntoProcedureSnapshot, SnapshotValuesInterface},
         types::TypesInterface,
     },
     mir::errors::ErrorInterface,
@@ -43,7 +43,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         let name = format!("{}$snapshot${}", name, version);
-        let ty = ty.create_snapshot(self)?;
+        let ty = ty.to_procedure_snapshot(self)?;
         self.create_variable(name, ty)
     }
     /// Copy all values of the old snapshot into the new snapshot, except the
@@ -154,6 +154,11 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
         &mut self,
         variable: &vir_mid::VariableDecl,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn snapshot_variable_version_at_label(
+        &mut self,
+        variable: &vir_mid::VariableDecl,
+        label: &str,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl>;
     #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_snapshot_update(
         &mut self,
@@ -175,6 +180,7 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
         &mut self,
         label: vir_mid::BasicBlockId,
     ) -> SpannedEncodingResult<()>;
+    fn save_old_label(&mut self, label: String) -> SpannedEncodingResult<()>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> {
@@ -206,6 +212,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
             .get_or_default(&variable.name);
         self.create_snapshot_variable(&variable.name, &variable.ty, version)
     }
+    fn snapshot_variable_version_at_label(
+        &mut self,
+        variable: &vir_mid::VariableDecl,
+        label: &str,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        let version = self
+            .snapshots_state
+            .variables_at_label
+            .get(label)
+            .unwrap_or_else(|| panic!("not found label {}", label))
+            .get_or_default(&variable.name);
+        self.create_snapshot_variable(&variable.name, &variable.ty, version)
+    }
     fn encode_snapshot_update(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
@@ -216,10 +235,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         use vir_low::macros::*;
         let base = target.get_base();
         self.ensure_type_definition(&base.ty)?;
-        let old_snapshot = base.create_snapshot(self)?;
+        let old_snapshot = base.to_procedure_snapshot(self)?;
         let new_snapshot = self.new_snapshot_variable_version(&base, position)?;
         self.snapshot_copy_except(statements, old_snapshot, new_snapshot, target, position)?;
-        statements.push(stmtp! { position => assume ([target.create_snapshot(self)?] == [value]) });
+        statements
+            .push(stmtp! { position => assume ([target.to_procedure_snapshot(self)?] == [value]) });
         Ok(())
     }
     fn set_current_block_for_snapshots(
@@ -281,6 +301,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         assert!(self
             .snapshots_state
             .variables
+            .insert(label, current_variables)
+            .is_none());
+        Ok(())
+    }
+    fn save_old_label(&mut self, label: String) -> SpannedEncodingResult<()> {
+        let current_variables = self.snapshots_state.current_variables.clone().unwrap();
+        assert!(self
+            .snapshots_state
+            .variables_at_label
             .insert(label, current_variables)
             .is_none());
         Ok(())
