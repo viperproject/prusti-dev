@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["parse_prusti",""],["parse_prusti_assert_pledge",""],["parse_prusti_pledge",""]],"struct":[["Arg","The representation of an argument to a quantifier (for example `a: i32`)"]]});
+initSidebarItems({"enum":[["NestedSpec","A specification enclosed in another specification (e.g. in spec entailments or ghost constraints)"]],"fn":[["parse_ghost_constraint",""],["parse_prusti",""],["parse_prusti_assert_pledge",""],["parse_prusti_pledge",""]],"struct":[["Arg","The representation of an argument to a quantifier (for example `a: i32`)"]]});
