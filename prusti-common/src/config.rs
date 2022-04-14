@@ -112,6 +112,7 @@ lazy_static! {
         settings.set_default("counterexample", false).unwrap();
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
+        settings.set_default("enable_ghost_constraints", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("disable_name_mangling", false).unwrap();
@@ -538,4 +539,9 @@ pub fn full_compilation() -> bool {
 /// Intern Viper identifiers to shorten them when possible.
 pub fn intern_names() -> bool {
     read_setting("intern_names")
+}
+
+/// Enables ghost constraint parsing and resolving.
+pub fn enable_ghost_constraints() -> bool {
+    read_setting("enable_ghost_constraints")
 }
