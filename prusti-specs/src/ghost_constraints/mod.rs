@@ -5,6 +5,7 @@ use crate::{
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{parse::ParseStream, parse_quote_spanned, spanned::Spanned};
+use syn::punctuated::Punctuated;
 
 pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let tokens_span = attr.span();
@@ -15,7 +16,7 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
         syn::Error::new(err.span(), "Could not parse trait bounds")
     )?;
 
-    verify_provided_trait_bounds(&trait_bounds)?;
+    validate_provided_trait_bounds(&trait_bounds)?;
 
     let mut new_items = vec![];
     let mut new_attrs = vec![];
@@ -39,9 +40,9 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
             ));
 
             // Add attribute to mark this as a "specification with constraint" (used for processing the contract in `SpecCollector`)
-            item_fn.attrs.push(parse_quote_spanned!(tokens_span=>
+            item_fn.attrs.push(parse_quote_spanned! {tokens_span=>
                 #[prusti::ghost_constraint_trait_bounds_in_where_clause]
-            ));
+            });
         }
 
         new_items.extend(generated_items);
@@ -53,22 +54,22 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
 
 fn generate_where_clause_for_spec(
     trait_bounds: &ProvidedTraitBounds,
-    preliminary_where_clause: Option<&syn::WhereClause>,
+    existing_where_clause: Option<&syn::WhereClause>,
 ) -> syn::WhereClause {
     let span = trait_bounds.span();
-    if let Some(mut where_clause) = preliminary_where_clause.cloned() {
-        where_clause.predicates.push(parse_quote_spanned!(span=>
+    if let Some(mut where_clause) = existing_where_clause.cloned() {
+        where_clause.predicates.push(parse_quote_spanned! {span=>
             #trait_bounds
-        ));
+        });
         where_clause
     } else {
-        parse_quote_spanned!(span=>
+        parse_quote_spanned! {span=>
             where #trait_bounds
-        )
+        }
     }
 }
 
-fn verify_provided_trait_bounds(trait_bounds: &ProvidedTraitBounds) -> syn::Result<()> {
+fn validate_provided_trait_bounds(trait_bounds: &ProvidedTraitBounds) -> syn::Result<()> {
     for bound in &trait_bounds.predicate_type.bounds {
         match bound {
             syn::TypeParamBound::Lifetime(lt) => {
@@ -78,20 +79,14 @@ fn verify_provided_trait_bounds(trait_bounds: &ProvidedTraitBounds) -> syn::Resu
                 ))
             }
             syn::TypeParamBound::Trait(trait_bound) => {
-                verify_provided_trait_bound(trait_bound)?;
+                if let Some(lt) = &trait_bound.lifetimes {
+                    return Err(syn::Error::new(
+                        lt.span(),
+                        "Lifetimes in ghost constraints not allowed",
+                    ));
+                }
             }
         }
-    }
-
-    Ok(())
-}
-
-fn verify_provided_trait_bound(trait_bound: &syn::TraitBound) -> syn::Result<()> {
-    if let Some(lt) = &trait_bound.lifetimes {
-        return Err(syn::Error::new(
-            lt.span(),
-            "Lifetimes in ghost constraints not allowed",
-        ));
     }
 
     Ok(())
@@ -109,27 +104,7 @@ impl syn::parse::Parse for ProvidedTraitBounds {
                 lifetimes: None,
                 bounded_ty: input.parse()?,
                 colon_token: input.parse()?,
-                bounds: {
-                    let mut bounds = syn::punctuated::Punctuated::new();
-
-                    loop {
-                        if input.is_empty() {
-                            break;
-                        }
-
-                        let value = input.parse()?;
-                        bounds.push_value(value);
-
-                        if !input.peek(syn::Token![+]) {
-                            break;
-                        }
-
-                        let punct = input.parse()?;
-                        bounds.push_punct(punct);
-                    }
-
-                    bounds
-                },
+                bounds: Punctuated::parse_separated_nonempty(input)?,
             },
         })
     }

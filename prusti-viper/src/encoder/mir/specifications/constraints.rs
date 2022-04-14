@@ -180,13 +180,8 @@ pub mod trait_bounds {
                 }
             });
 
-        if all_bounds_satisfied {
-            trace!("Constraint fulfilled");
-            true
-        } else {
-            trace!("Constraint not fulfilled");
-            false
-        }
+        trace!("Constraint fulfilled: {all_bounds_satisfied}");
+        all_bounds_satisfied
     }
 
     /// Substitutes the param environment

@@ -113,7 +113,7 @@ impl<T> SpecGraph<T> {
 /// Note: Unlike postconditions, the preconditions are not copied amongst the base spec
 /// and constrained specs.
 ///
-/// # A note about behavior subtyping
+/// # A note about behavioral subtyping
 /// For a [SpecGraph] to be sound, we require that the constrained specs are valid to the base spec
 /// w.r.t. behavioral subtyping rules.
 /// We at least require that for some base spec B and any constrained spec C:
