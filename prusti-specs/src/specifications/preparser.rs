@@ -52,8 +52,7 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
 
 pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
     let pts = PrustiTokenStream::new(tokens);
-    let (trait_bounds_ts, nested_specs_ts) = pts.parse_ghost_constraint()?;
-    Ok((trait_bounds_ts, nested_specs_ts))
+    pts.parse_ghost_constraint()
 }
 
 /*

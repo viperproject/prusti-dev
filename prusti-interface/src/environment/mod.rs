@@ -549,12 +549,11 @@ impl<'tcx> Environment<'tcx> {
         use rustc_trait_selection::traits;
         use crate::rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
 
-        let obligation = traits::Obligation {
-            cause: traits::ObligationCause::dummy(),
+        let obligation = traits::Obligation::new(
+            traits::ObligationCause::dummy(),
             param_env,
-            recursion_depth: 0, // Arbitrarily chosen magic number
             predicate,
-        };
+        );
 
         self.tcx.infer_ctxt().enter(|infcx| {
             infcx.predicate_must_hold_considering_regions(&obligation)
