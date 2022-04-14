@@ -2,7 +2,7 @@ pub(crate) use super::{
     super::{cfg::procedure::BasicBlockId, operations_internal::ty::Typed, Expression, Position},
     predicate::Predicate,
     rvalue::{Operand, Rvalue},
-    ty::{Type, VariantIndex},
+    ty::{LifetimeConst, Type, VariantIndex},
     variable::VariableDecl,
 };
 use crate::common::display;
@@ -24,6 +24,7 @@ pub enum Statement {
     JoinBlock(JoinBlock),
     SplitBlock(SplitBlock),
     ConvertOwnedIntoMemoryBlock(ConvertOwnedIntoMemoryBlock),
+    RestoreMutBorrowed(RestoreMutBorrowed),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
     WritePlace(WritePlace),
@@ -142,6 +143,20 @@ pub struct SplitBlock {
     place
 )]
 pub struct ConvertOwnedIntoMemoryBlock {
+    pub place: Expression,
+    pub condition: Option<Vec<BasicBlockId>>,
+    pub position: Position,
+}
+
+/// Restore a mutably borrowed place.
+#[display(
+    fmt = "restore-mut-borrowed{} &{} {}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    lifetime,
+    place
+)]
+pub struct RestoreMutBorrowed {
+    pub lifetime: LifetimeConst,
     pub place: Expression,
     pub condition: Option<Vec<BasicBlockId>>,
     pub position: Position,

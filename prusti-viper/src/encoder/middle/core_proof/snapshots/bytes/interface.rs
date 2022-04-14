@@ -2,7 +2,7 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
         lowerer::{DomainsLowererInterface, Lowerer},
-        predicates_memory_block::PredicatesMemoryBlockInterface,
+        predicates::PredicatesMemoryBlockInterface,
         snapshots::SnapshotDomainsInterface,
     },
 };
@@ -13,6 +13,13 @@ use vir_crate::{
 };
 
 pub(in super::super::super) trait SnapshotBytesInterface {
+    /// Encodes the `to_bytes` function. For types without pointers and
+    /// references `to_bytes` is a bijection from the snapshot into byte
+    /// representation of the value (simply speaking a snapshot is just “typed
+    /// bytes”). However, for types with references and pointers, `to_bytes` is
+    /// not a bijection because it maps only the values of the main memory
+    /// block. Simply speaking, for a value allocated on a stack, `to_bytes`
+    /// maps only the part of the memory that is on the stack.
     fn encode_snapshot_to_bytes_function(
         &mut self,
         ty: &vir_mid::Type,
@@ -24,6 +31,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotBytesInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<()> {
+        // Before editing this, please read the documentation on the trait
+        // method.
         if !self.snapshots_state.encoded_to_bytes.contains(ty) {
             self.snapshots_state.encoded_to_bytes.insert(ty.clone());
             let domain_name = self.encode_snapshot_domain_name(ty)?;

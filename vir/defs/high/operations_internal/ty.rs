@@ -76,9 +76,16 @@ impl Type {
     }
     pub fn erase_lifetime(&mut self) {
         if let Type::Reference(reference) = self {
-            reference.lifetime_const = LifetimeConst {
+            reference.lifetime = LifetimeConst {
                 name: String::from("pure_erased"),
             };
+        }
+    }
+    pub fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+        if let Type::Reference(reference) = self {
+            vec![reference.lifetime.clone()]
+        } else {
+            Vec::new()
         }
     }
 }

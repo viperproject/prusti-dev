@@ -1,4 +1,4 @@
-use super::permission::Permission;
+use super::permission::{MutBorrowed, Permission};
 use crate::encoder::{errors::SpannedEncodingResult, mir::types::MirTypeEncoderInterface, Encoder};
 use vir_crate::{
     common::position::Positioned,
@@ -323,7 +323,10 @@ impl CollectPermissionChanges for vir_high::ast::rvalue::Ref {
         produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
         consumed_permissions.push(Permission::Owned(self.place.clone()));
-        produced_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::MutBorrowed(MutBorrowed {
+            lifetime: self.lifetime.clone(),
+            place: self.place.clone(),
+        }));
         Ok(())
     }
 }

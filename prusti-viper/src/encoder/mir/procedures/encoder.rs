@@ -461,7 +461,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let encoded_target = self.encode_lft_variable(lifetime)?;
             let mut iter = constraints.into_iter();
             let mut intersection = self.encode_lft_variable(iter.next().unwrap())?.into();
-            while let Some(name) = iter.next() {
+            for name in iter {
                 intersection = vir_high::Expression::binary_op_no_pos(
                     vir_high::BinaryOpKind::LifetimeIntersection,
                     intersection,
@@ -616,7 +616,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let region_name = region.to_text();
                 let encoded_rvalue = vir_high::Rvalue::ref_(
                     encoded_place,
-                    region_name,
+                    vir_high::ty::LifetimeConst::new(region_name),
                     is_mut,
                     rd_perm,
                     encoded_target.clone(),

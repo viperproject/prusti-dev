@@ -6,10 +6,12 @@
 //!   and pure function definitions where we do not use SSA.
 
 mod common;
+mod context_independent;
 mod procedure;
 mod pure;
 
 pub(in super::super) use self::{
+    context_independent::IntoSnapshot,
     procedure::{IntoProcedureBoolExpression, IntoProcedureSnapshot},
     pure::{IntoPureBoolExpression, IntoPureSnapshot},
 };

@@ -37,11 +37,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         predicate_name: &str,
     ) -> SpannedEncodingResult<()> {
         if !self
-            .predicates_memory_block_state
+            .predicates_encoding_state
+            .memory_block
             .encoded_predicates
             .contains(predicate_name)
         {
-            self.predicates_memory_block_state
+            self.predicates_encoding_state
+                .memory_block
                 .encoded_predicates
                 .insert(predicate_name.to_string());
             let predicate = vir_low::PredicateDecl::new(
@@ -67,14 +69,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         let expression = vir_low::Expression::predicate_access_predicate(
             predicate_name.to_string(),
             vec![place, size],
-            vir_low::PermAmount::Write,
+            vir_low::Expression::full_permission(),
             position,
         );
         Ok(expression)
     }
 }
 
-pub(in super::super) trait PredicatesMemoryBlockInterface {
+pub(in super::super::super) trait PredicatesMemoryBlockInterface {
     fn bytes_type(&mut self) -> SpannedEncodingResult<vir_low::Type>;
     fn encode_memory_block_predicate(&mut self) -> SpannedEncodingResult<()>;
     fn encode_memory_block_stack_drop_acc(
@@ -111,7 +113,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
         size: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         if !self
-            .predicates_memory_block_state
+            .predicates_encoding_state
+            .memory_block
             .is_memory_block_bytes_encoded
         {
             use vir_low::macros::*;
@@ -121,7 +124,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
             };
             function.name = "MemoryBlock$bytes".to_string();
             self.declare_function(function)?;
-            self.predicates_memory_block_state
+            self.predicates_encoding_state
+                .memory_block
                 .is_memory_block_bytes_encoded = true;
         }
         let expression = vir_low::Expression::function_call(

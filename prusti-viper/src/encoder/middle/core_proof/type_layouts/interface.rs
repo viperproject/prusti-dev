@@ -1,7 +1,10 @@
 use crate::encoder::{
     errors::SpannedEncodingResult,
     high::{type_layouts::HighTypeLayoutsEncoderInterface, types::HighTypeEncoderInterface},
-    middle::core_proof::{lowerer::Lowerer, snapshots::IntoProcedureSnapshot},
+    middle::core_proof::{
+        lowerer::Lowerer,
+        snapshots::{IntoProcedureSnapshot, IntoSnapshot},
+    },
 };
 use vir_crate::{low as vir_low, middle as vir_mid};
 
@@ -16,7 +19,7 @@ pub(in super::super) trait TypeLayoutsInterface {
 impl<'p, 'v: 'p, 'tcx: 'v> TypeLayoutsInterface for Lowerer<'p, 'v, 'tcx> {
     fn size_type(&mut self) -> SpannedEncodingResult<vir_low::Type> {
         let usize = vir_mid::Type::Int(vir_mid::ty::Int::Usize);
-        usize.to_procedure_snapshot(self)
+        usize.to_snapshot(self)
     }
     fn encode_type_size_expression(
         &mut self,

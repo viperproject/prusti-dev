@@ -13,7 +13,7 @@ pub(super) use self::{
     domains::SnapshotDomainsInterface,
     into_snapshot::{
         IntoProcedureBoolExpression, IntoProcedureSnapshot, IntoPureBoolExpression,
-        IntoPureSnapshot,
+        IntoPureSnapshot, IntoSnapshot,
     },
     state::SnapshotsState,
     validity::{valid_call, valid_call2, SnapshotValidityInterface},
