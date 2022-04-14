@@ -12,6 +12,7 @@ use prusti_interface::data::ProcedureDefId;
 use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_middle::ty::subst::SubstsRef;
 
+use prusti_interface::specs::typed::ProcedureSpecificationKind;
 use std::cell::RefCell;
 use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
 
@@ -274,15 +275,19 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             );
 
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
-                let (mut function, needs_patching) =
-                    if let Some(predicate_body) = self.get_predicate_body(proc_def_id) {
-                        (
-                            pure_function_encoder.encode_predicate_function(&predicate_body)?,
-                            false,
-                        )
-                    } else if self.is_trusted(proc_def_id) {
+                let (mut function, needs_patching) = match (
+                    self.is_trusted(proc_def_id),
+                    self.get_proc_kind(proc_def_id),
+                ) {
+                    // Predicate bodies are encoded even though the function is trusted
+                    (_, ProcedureSpecificationKind::Predicate(Some(predicate_body))) => (
+                        pure_function_encoder.encode_predicate_function(&predicate_body)?,
+                        false,
+                    ),
+                    (true, _) | (_, ProcedureSpecificationKind::Predicate(None)) => {
                         (pure_function_encoder.encode_bodyless_function()?, false)
-                    } else {
+                    }
+                    (_, ProcedureSpecificationKind::Pure) => {
                         let function = pure_function_encoder.encode_function()?;
                         // Test the new encoding.
                         let _ = super::new_encoder::encode_function_decl(
@@ -292,7 +297,11 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                             substs,
                         )?;
                         (function, true)
-                    };
+                    }
+                    (_, ProcedureSpecificationKind::Impure) => {
+                        unreachable!("trying to encode an impure function in pure encoder")
+                    }
+                };
 
                 if needs_patching {
                     self.mirror_encoder

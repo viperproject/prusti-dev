@@ -1,7 +1,10 @@
 use crate::encoder::mir::specifications::specs::Specifications;
 use log::trace;
 use prusti_interface::{
-    specs::{typed, typed::DefSpecificationMap},
+    specs::{
+        typed,
+        typed::{DefSpecificationMap, ProcedureSpecificationKind},
+    },
     utils::has_spec_only_attr,
 };
 use rustc_hir::def_id::{DefId, LocalDefId};
@@ -21,7 +24,10 @@ impl SpecificationsState {
 }
 
 pub(crate) trait SpecificationsInterface {
+    // TODO abstract-predicates: Maybe this should be deleted (and ProcedureSpecificationKind::is_pure)
     fn is_pure(&self, def_id: DefId) -> bool;
+
+    fn get_proc_kind(&self, def_id: DefId) -> ProcedureSpecificationKind;
 
     fn is_trusted(&self, def_id: DefId) -> bool;
 
@@ -54,6 +60,16 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
             .unwrap_or(false);
         trace!("is_pure {:?} = {}", def_id, result);
         result
+    }
+
+    fn get_proc_kind(&self, def_id: DefId) -> ProcedureSpecificationKind {
+        self.specifications_state
+            .specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(self.env(), def_id)
+            .map(|spec| spec.kind)
+            .and_then(|kind| kind.extract_with_selective_replacement().copied())
+            .unwrap_or(ProcedureSpecificationKind::Impure)
     }
 
     fn is_trusted(&self, def_id: DefId) -> bool {
