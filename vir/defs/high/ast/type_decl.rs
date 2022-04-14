@@ -1,4 +1,8 @@
-pub(crate) use super::{expression::Expression, field::FieldDecl, ty::Type};
+pub(crate) use super::{
+    expression::Expression,
+    field::FieldDecl,
+    ty::{Type, Uniqueness},
+};
 use crate::common::display;
 
 #[derive_helpers]
@@ -109,10 +113,10 @@ pub struct Array {
     pub element_type: Type,
 }
 
-#[display(fmt = "&{}", target_type)]
+#[display(fmt = "&{} {}", uniqueness, target_type)]
 pub struct Reference {
+    pub uniqueness: Uniqueness,
     pub target_type: Type,
-    pub lifetime: LifetimeConst,
 }
 
 #[display(fmt = "*{}", target_type)]

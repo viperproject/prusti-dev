@@ -70,13 +70,3 @@ impl<T: IntoProcedureSnapshot> IntoProcedureSnapshot for Vec<T> {
         Ok(snapshots)
     }
 }
-
-impl IntoProcedureSnapshot for vir_mid::Type {
-    type Target = vir_low::Type;
-    fn to_procedure_snapshot<'p, 'v: 'p, 'tcx: 'v>(
-        &self,
-        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
-    ) -> SpannedEncodingResult<Self::Target> {
-        ProcedureSnapshot::default().type_to_snapshot(lowerer, self)
-    }
-}

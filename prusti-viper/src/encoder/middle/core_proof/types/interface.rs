@@ -5,8 +5,8 @@ use crate::encoder::{
         addresses::AddressesInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{
-            IntoProcedureSnapshot, IntoPureSnapshot, SnapshotAdtsInterface,
-            SnapshotDomainsInterface, SnapshotValidityInterface,
+            IntoPureSnapshot, IntoSnapshot, SnapshotAdtsInterface, SnapshotDomainsInterface,
+            SnapshotValidityInterface,
         },
     },
 };
@@ -83,7 +83,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 for field in decl.iter_fields() {
                     parameters.push(vir_low::VariableDecl::new(
                         field.name.clone(),
-                        field.ty.to_procedure_snapshot(self)?,
+                        field.ty.to_snapshot(self)?,
                     ));
                 }
                 self.register_struct_constructor(&domain_name, parameters.clone())?;
@@ -94,7 +94,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 for field in decl.iter_fields() {
                     parameters.push(vir_low::VariableDecl::new(
                         field.name.clone(),
-                        field.ty.to_procedure_snapshot(self)?,
+                        field.ty.to_snapshot(self)?,
                     ));
                 }
                 self.register_struct_constructor(&domain_name, parameters.clone())?;
@@ -154,11 +154,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 self.register_constant_constructor(&domain_name, address_type.clone())?;
                 self.encode_validity_axioms_primitive(&domain_name, address_type, true.into())?;
             }
-            vir_mid::TypeDecl::Reference(reference) => {
+            vir_mid::TypeDecl::Reference(reference) if reference.uniqueness.is_unique() => {
                 self.ensure_type_definition(&reference.target_type)?;
-                let address_type = self.address_type()?;
-                self.register_constant_constructor(&domain_name, address_type.clone())?;
-                self.encode_validity_axioms_primitive(&domain_name, address_type, true.into())?;
+                let target_type = reference.target_type.to_snapshot(self)?;
+                let parameters = vars! {
+                    address: Address,
+                    target_current: {target_type.clone()},
+                    target_final: {target_type}
+                };
+                self.register_struct_constructor(&domain_name, parameters.clone())?;
+                self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
             }
             _ => unimplemented!("type: {:?}", type_decl),
         };
@@ -175,7 +180,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         use vir_low::macros::*;
         let parameter_domain_name = self.encode_snapshot_domain_name(parameter_type)?;
         let domain_name = self.encode_snapshot_domain_name(ty)?;
-        let snapshot_type = ty.to_procedure_snapshot(self)?;
+        let snapshot_type = ty.to_snapshot(self)?;
         let mut constructor_calls = Vec::new();
         for parameter in parameters.iter() {
             constructor_calls.push(self.snapshot_constructor_constant_call(
@@ -253,7 +258,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                 .encoded_unary_operations
                 .insert(variant_name.clone());
             use vir_low::macros::*;
-            let snapshot_type = argument_type.to_procedure_snapshot(self)?;
+            let snapshot_type = argument_type.to_snapshot(self)?;
             let result_type = argument_type;
             let result_domain = self.encode_snapshot_domain_name(result_type)?;
             self.register_alternative_constructor(
@@ -262,7 +267,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                 vars! { argument: {snapshot_type} },
             )?;
             // Simplification axioms.
-            let op = op.to_pure_snapshot(self)?;
+            let op = op.to_snapshot(self)?;
             let simplification = match argument_type {
                 vir_mid::Type::Bool => {
                     assert_eq!(op, vir_low::UnaryOpKind::Not);
@@ -303,7 +308,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                 .encoded_binary_operations
                 .insert(variant_name.clone());
             use vir_low::macros::*;
-            let snapshot_type = argument_type.to_procedure_snapshot(self)?;
+            let snapshot_type = argument_type.to_snapshot(self)?;
             let result_type = op.get_result_type(argument_type);
             let result_domain = self.encode_snapshot_domain_name(result_type)?;
             self.register_alternative_constructor(
@@ -312,7 +317,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                 vars! { left: {snapshot_type.clone()}, right: {snapshot_type} },
             )?;
             // Simplification axioms.
-            let op = op.to_pure_snapshot(self)?;
+            let op = op.to_snapshot(self)?;
             let constant_type = match argument_type {
                 vir_mid::Type::Bool => Some(ty! { Bool }),
                 vir_mid::Type::Int(_) => Some(ty! {Int}),

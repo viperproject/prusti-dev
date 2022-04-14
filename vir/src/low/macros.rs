@@ -1,6 +1,7 @@
 pub macro ty {
     (Int) => {$crate::low::ast::ty::Type::Int},
     (Bool) => {$crate::low::ast::ty::Type::Bool},
+    (Perm) => {$crate::low::ast::ty::Type::Perm},
     (Place) => {$crate::low::ast::ty::Type::domain("Place".to_string())},
     (Address) => {$crate::low::ast::ty::Type::domain("Address".to_string())},
     (Lifetime) => {$crate::low::ast::ty::Type::domain("Lifetime".to_string())},
@@ -37,6 +38,10 @@ pub macro method_name( $method_name:ident<$ty:tt> ) {
     )
 }
 
+pub macro predicate_name( $method_name:ident<$ty:tt> ) {
+    $crate::low::macros::method_name!($method_name<$ty>)
+}
+
 pub macro expr {
     (true) => {
         $crate::low::ast::expression::Expression::constant_no_pos(
@@ -58,14 +63,14 @@ pub macro expr {
                 $crate::common::identifier::WithIdentifier::get_identifier($ty)
             ),
             vec![ $( $crate::low::macros::expr!( $argument ) ),* ],
-            $crate::low::ast::expression::PermAmount::Write,
+            $crate::low::ast::expression::Expression::full_permission(),
         )
     },
     ( acc($predicate_name:ident( $($argument:tt),* )) ) => {
         $crate::low::ast::expression::Expression::predicate_access_predicate_no_pos(
             stringify!($predicate_name).to_string(),
             vec![ $( $crate::low::macros::expr!( $argument ) ),* ],
-            $crate::low::ast::expression::PermAmount::Write,
+            $crate::low::ast::expression::Expression::full_permission(),
         )
     },
     ( old( $argument:tt ) ) => {
@@ -93,6 +98,12 @@ pub macro expr {
                 $crate::low::macros::expr!($($body)+)
             )
         }
+    },
+    ( wand( $lhs:tt --* $rhs:tt ) ) => {
+        $crate::low::ast::expression::Expression::magic_wand_no_pos(
+            $crate::low::macros::expr!( $lhs ),
+            $crate::low::macros::expr!( $rhs ),
+        )
     },
     ( $domain_name:ident <$ty:tt> :: $function_name:ident( $($argument:tt),* ) ) => {
         $crate::low::ast::expression::Expression::domain_function_call(
@@ -168,6 +179,14 @@ pub macro expr {
             Default::default(),
         )
     },
+    ($lhs: tt < $rhs: tt) => {
+        $crate::low::ast::expression::Expression::binary_op(
+            $crate::low::ast::expression::BinaryOpKind::LtCmp,
+            $crate::low::macros::expr!( $lhs ),
+            $crate::low::macros::expr!( $rhs ),
+            Default::default(),
+        )
+    },
     ($lhs: tt && $rhs: tt) => {
         $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::And,
@@ -176,8 +195,12 @@ pub macro expr {
             Default::default(),
         )
     },
-    ($arg1: tt && $arg2: tt && $arg3: tt) => {
-        $crate::low::macros::expr!{ ( ($arg1 && $arg2) && $arg3 ) }
+    ($arg1: tt && $arg2: tt $(&& $arg3: tt)+) => {
+        {
+            let mut expression = $crate::low::macros::expr!{ ($arg1 && $arg2) };
+            $(expression = $crate::low::macros::expr!{ ([expression] && $arg3) };)+
+            expression
+        }
     },
     ([ $e: expr ]) => { $e },
     (( $($tokens: tt)+ )) => { $crate::low::macros::expr!($($tokens)+) },
@@ -217,22 +240,24 @@ pub macro stmt {
             $crate::low::macros::expr!($expr)
         )
     },
-    (call<$condition:ident> $method_name:ident<$ty:tt>( $($argument:tt),* )) => {
+    (call<$condition:ident> $method_name:ident<$ty:tt>( $($argument:tt),* $(; $arguments:tt )? )) => {{
         $crate::low::ast::statement::Statement::conditional_no_pos(
             $condition,
             vec![
-                $crate::low::macros::stmt!{ call $method_name<$ty>( $($argument),* ) }
+                $crate::low::macros::stmt!{ call $method_name<$ty>( $($argument),* $(; $arguments )? ) }
             ],
             Vec::new(),
         )
-    },
-    (call $method_name:ident<$ty:tt>( $($argument:tt),* )) => {
+    }},
+    (call $method_name:ident<$ty:tt>( $($argument:tt),*  $(; $arguments:tt )? )) => {{
+        let mut argument_expressions =  vec![ $( $crate::low::macros::expr!( $argument ) ),* ];
+        $(argument_expressions.extend($arguments);)?
         $crate::low::ast::statement::Statement::method_call_no_pos(
             $crate::low::macros::method_name!{ $method_name<$ty> },
-            vec![ $( $crate::low::macros::expr!( $argument ) ),* ],
+            argument_expressions,
             Vec::new(),
         )
-    },
+    }},
     (fold<$condition:ident> $predicate_name:ident<$ty:tt>( $($argument:tt),* )) => {
         $crate::low::ast::statement::Statement::conditional_no_pos(
             $condition,
@@ -259,6 +284,20 @@ pub macro stmt {
     (unfold $predicate_name:ident<$ty:tt>( $($argument:tt),* )) => {
         $crate::low::ast::statement::Statement::unfold_no_pos(
             $crate::low::macros::expr!(acc($predicate_name<$ty>( $($argument),* )))
+        )
+    },
+    (apply<$condition:ident> $lhs:tt --* $rhs:tt) => {
+        $crate::low::ast::statement::Statement::conditional_no_pos(
+            $condition,
+            vec![
+                $crate::low::macros::stmt!{ apply $lhs --* $rhs }
+            ],
+            Vec::new(),
+        )
+    },
+    (apply $lhs:tt --* $rhs:tt) => {
+        $crate::low::ast::statement::Statement::apply_magic_wand_no_pos(
+            $crate::low::macros::expr!{ wand( $lhs --* $rhs ) }
         )
     },
     ({ $($tokens: tt)+ }) => { $crate::low::macros::stmt!($($tokens)+) },
@@ -308,7 +347,10 @@ pub macro method {
         }
     },
     (
-        $method_name:ident<$ty:tt>( $( $parameter_name:ident : $parameter_type:tt ),* )
+        $method_name:ident<$ty:tt>(
+            $( $parameter_name:ident : $parameter_type:tt ),*
+            $(,* $parameter_list:ident )?
+        )
             returns ( $( $result_name:ident : $result_type:tt ),* )
         $( raw_code { $( $statement:stmt; )+ } )?
         $( requires $pre:tt; )*
@@ -318,9 +360,11 @@ pub macro method {
             $( let $parameter_name = $crate::low::macros::var! { $parameter_name: $parameter_type }; )*
             $( let $result_name = $crate::low::macros::var! { $result_name: $result_type }; )*
             $( $( $statement; )+ )?
+            let mut parameters = vec![ $($parameter_name.clone()),* ];
+            $( parameters.extend($parameter_list); )?
             $crate::low::cfg::method::MethodDecl::new(
                 $crate::low::macros::method_name!{ $method_name<$ty> },
-                vec![ $($parameter_name.clone()),* ],
+                parameters,
                 vec![ $($result_name.clone()),* ],
                 vec![ $( $crate::low::macros::expr!( $pre ) ),* ],
                 vec![ $( $crate::low::macros::expr!( $post ) ),* ],
