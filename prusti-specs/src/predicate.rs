@@ -3,7 +3,7 @@
 use crate::{extensions::HasSignature, rewriter, SpecificationId};
 use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
-use syn::{parse::Parse, spanned::Spanned};
+use syn::{parse::Parse, parse_quote_spanned, spanned::Spanned};
 use crate::extensions::HasMacro;
 
 #[derive(Debug)]

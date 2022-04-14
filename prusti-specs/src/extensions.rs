@@ -1,7 +1,7 @@
 //! Various extensions to syn types and TokenStreams
 use proc_macro2::{TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{Expr, FnArg, ImplItemMacro, ImplItemMethod, ItemFn, Macro, Pat, PatType, Signature, Token, TraitItemMacro, TraitItemMethod, TypePath};
+use syn::{Expr, FnArg, ImplItemMacro, ImplItemMethod, ItemFn, Macro, parse_quote_spanned, Pat, PatType, Signature, Token, TraitItemMacro, TraitItemMethod, TypePath};
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
