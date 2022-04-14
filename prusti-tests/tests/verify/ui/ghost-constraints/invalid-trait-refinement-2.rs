@@ -13,7 +13,7 @@ trait MyTrait {
     fn foo(&mut self);
 }
 
-#[extern_spec] //~ ERROR: the method's postcondition may not be a valid strengthening of the trait's postcondition.
+#[extern_spec]
 trait MyTrait {
     #[ghost_constraint(Self: HasContract, [
     requires(self.pre()), ensures(self.post())
