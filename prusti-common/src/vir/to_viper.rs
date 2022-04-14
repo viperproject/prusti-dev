@@ -88,6 +88,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::Domain(ref name) => ast.domain_type(name, &[], &[]),
             Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${}", name), &[], &[]),
             Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(ast)),
+            Type::Map(ref key_type, ref val_type) => ast.map_type(key_type.to_viper(ast), val_type.to_viper(ast)),
             Type::Float(Float::F32) => ast.backend_f32_type(),
             Type::Float(Float::F64) => ast.backend_f64_type(),
             Type::BitVector(bv_size) => match bv_size {

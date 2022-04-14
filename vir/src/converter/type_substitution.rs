@@ -37,6 +37,11 @@ impl Generic for Type {
                 *seq.typ = typ.substitute(map);
                 Type::Seq(seq)
             }
+            Type::Map(mut m) => {
+                *m.key_type = m.key_type.substitute(map);
+                *m.val_type = m.val_type.substitute(map);
+                Type::Map(m)
+            }
             Type::TypedRef(mut typed_ref) => {
                 typed_ref.arguments = typed_ref
                     .arguments

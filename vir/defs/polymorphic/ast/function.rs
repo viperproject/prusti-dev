@@ -117,6 +117,7 @@ pub fn compute_identifier(
             Type::Domain(_) => typ.name(),
             Type::Snapshot(_) => format!("Snap${}", typ.name()),
             Type::Seq(seq_type) => format!("Seq${}", type_name(&seq_type.typ)),
+            Type::Map(map) => format!("Map${}${}", type_name(&map.key_type), type_name(&map.val_type)),
         }
     }
     for arg in type_arguments {

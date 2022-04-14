@@ -810,11 +810,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Type::Float(vir::Float::F32) => BuiltinMethodKind::HavocF32,
                 vir::Type::Float(vir::Float::F64) => BuiltinMethodKind::HavocF64,
                 vir::Type::BitVector(value) => BuiltinMethodKind::HavocBV(value),
-                vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::TypeVar(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Snapshot(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Seq(_) => BuiltinMethodKind::HavocRef,
+                vir::Type::TypedRef(_) |
+                vir::Type::TypeVar(_) |
+                vir::Type::Domain(_) |
+                vir::Type::Snapshot(_) |
+                vir::Type::Seq(_) |
+                vir::Type::Map(_) => BuiltinMethodKind::HavocRef,
             };
             let stmt = vir::Stmt::MethodCall( vir::MethodCall {
                 method_name: self.encoder.encode_builtin_method_use(builtin_method),
