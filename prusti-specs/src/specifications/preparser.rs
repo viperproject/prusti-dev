@@ -2,7 +2,7 @@
 
 use proc_macro2::{Span, TokenStream, TokenTree, Delimiter, Spacing};
 use std::collections::VecDeque;
-use quote::{ToTokens, quote, quote_spanned};
+use quote::{ToTokens, quote, quote_spanned, TokenStreamExt};
 use proc_macro2::Punct;
 use proc_macro2::Spacing::*;
 use syn::spanned::Spanned;
@@ -157,19 +157,6 @@ impl PrustiTokenStream {
         Self { tokens, source_span }
     }
 
-    fn empty(source_span: Span) -> Self {
-        Self {
-            tokens: VecDeque::default(),
-            source_span,
-        }
-    }
-
-    fn extend(&mut self, other: PrustiTokenStream) {
-        for token in other.tokens.into_iter() {
-            self.tokens.push_back(token)
-        }
-    }
-
     fn is_empty(&self) -> bool {
         self.tokens.is_empty()
     }
@@ -236,7 +223,7 @@ impl PrustiTokenStream {
 
     fn parse_ghost_constraint(self) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
         let span = self.source_span;
-        let arguments = self.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
+        let mut arguments = self.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
         let parsing_error = || {
             error(span, "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)")
         };
@@ -249,27 +236,19 @@ impl PrustiTokenStream {
         // as the ghost constraints.
         // This is due to the fact that the prusti token stream also splits on commas
         // inside the ghost constraint.
-        let mut arg_iter = arguments.into_iter().peekable();
-        let mut trait_bounds_ts = PrustiTokenStream::empty(span);
-        let mut nested_specs: Option<Vec<NestedSpec<TokenStream>>> = None;
-        while let Some(mut arg) = arg_iter.next() {
-            if arg_iter.peek().is_some() {
-                // arg is part of ghost constraint
-                trait_bounds_ts.extend(arg);
-                trait_bounds_ts.tokens.push_back(PrustiToken::Token(TokenTree::Punct(Punct::new(',', Spacing::Alone))))
-            } else {
-                // last arg is nested spec
-                nested_specs = Some(arg.pop_group_of_nested_specs(Span::call_site())?);
-            }
-        }
-        trait_bounds_ts.tokens.pop_back(); // Remove trailing comma in trait bounds which we added in the loop
+        let nested_specs = arguments
+            .remove(arguments.len() - 1)
+            .pop_group_of_nested_specs(Span::call_site())?;
 
-        if nested_specs.is_none() {
-            return parsing_error();
-        }
+        let constraint_tokens = arguments.into_iter()
+            .map(|arg| arg.parse_rust_only())
+            .collect::<Result<Vec<TokenStream>, _>>()?;
 
-        let trait_bounds_ts = trait_bounds_ts.parse_rust_only()?;
-        Ok((trait_bounds_ts, nested_specs.unwrap()))
+        let mut trait_bounds_ts = TokenStream::new();
+        trait_bounds_ts.append_separated(constraint_tokens, TokenTree::Punct(Punct::new(',', Spacing::Alone)));
+
+        // let trait_bounds_ts = trait_bounds_ts.parse_rust_only()?;
+        Ok((trait_bounds_ts, nested_specs))
     }
 
     /// The core of the Pratt parser algorithm. [self.tokens] is the source of
