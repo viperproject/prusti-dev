@@ -18,10 +18,10 @@ pub use self::{
         rvalue::{Operand, OperandKind, Rvalue},
         statement::{
             Assert, Assign, Assume, Comment, Consume, CopyPlace, EndLft, Exhale, GhostAssignment,
-            Inhale, LeakAll, MovePlace, NewLft, Statement, WriteAddress, WritePlace,
+            Inhale, LeakAll, MovePlace, NewLft, OldLabel, Statement, WriteAddress, WritePlace,
         },
         ty::{self, Type},
-        type_decl::{self, TypeDecl},
+        type_decl::{self, DiscriminantRange, DiscriminantValue, TypeDecl},
         variable::VariableDecl,
     },
     cfg::procedure::{BasicBlock, BasicBlockId, ProcedureDecl, Successor},

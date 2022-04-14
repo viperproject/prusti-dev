@@ -12,5 +12,6 @@ pub(in super::super) struct SnapshotsState {
     pub(super) encoded_to_bytes: FxHashSet<vir_mid::Type>,
     pub(super) all_variables: AllVariablesMap,
     pub(super) variables: BTreeMap<vir_mid::BasicBlockId, VariableVersionMap>,
+    pub(super) variables_at_label: BTreeMap<String, VariableVersionMap>,
     pub(super) current_variables: Option<VariableVersionMap>,
 }

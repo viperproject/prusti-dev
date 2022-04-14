@@ -37,7 +37,7 @@ impl Tuple {
             .enumerate()
             .map(|(index, argument_type)| {
                 std::borrow::Cow::Owned(FieldDecl::new(
-                    format!("tuple${}", index),
+                    format!("tuple_{}", index),
                     argument_type.clone(),
                 ))
             })

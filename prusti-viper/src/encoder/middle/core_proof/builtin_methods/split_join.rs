@@ -5,7 +5,7 @@ use crate::encoder::{
         compute_address::ComputeAddressInterface,
         lowerer::Lowerer,
         predicates_memory_block::PredicatesMemoryBlockInterface,
-        snapshots::{IntoSnapshot, SnapshotBytesInterface, SnapshotValuesInterface},
+        snapshots::{IntoProcedureSnapshot, SnapshotBytesInterface, SnapshotValuesInterface},
         type_layouts::TypeLayoutsInterface,
         utils::type_decl_encoder::TypeDeclWalker,
     },
@@ -63,7 +63,7 @@ impl TypeDeclWalker for SplitJoinHelper {
                 field_address.clone(),
                 field_size_of.clone(),
             )?;
-            let snapshot = var! { snapshot: {ty.create_snapshot(lowerer)?} }.into();
+            let snapshot = var! { snapshot: {ty.to_procedure_snapshot(lowerer)?} }.into();
             let field_snapshot =
                 lowerer.obtain_struct_field_snapshot(ty, field, snapshot, Default::default())?;
             let to_bytes = ty! { Bytes };
