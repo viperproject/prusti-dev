@@ -37,6 +37,8 @@ pub enum Expr {
     ContainerOp(ContainerOp),
     /// Viper Seq
     Seq(Seq),
+    /// Viper Map
+    Map(Map),
     /// Unfolding: predicate name, predicate_args, in_expr, permission amount, enum variant
     Unfolding(Unfolding),
     /// Cond: guard, then_expr, else_expr
@@ -95,6 +97,7 @@ impl fmt::Display for Expr {
             Expr::SnapApp(snap_app) => snap_app.fmt(f),
             Expr::ContainerOp(container_op) => container_op.fmt(f),
             Expr::Seq(seq) => seq.fmt(f),
+            Expr::Map(map) => map.fmt(f),
             Expr::Downcast(downcast_expr) => downcast_expr.fmt(f),
             Expr::Cast(expr) => expr.fmt(f),
         }
@@ -126,6 +129,7 @@ impl Expr {
             | Expr::SnapApp(SnapApp { position, .. })
             | Expr::ContainerOp(ContainerOp { position, .. })
             | Expr::Cast(Cast { position, .. })
+            | Expr::Map(Map { position, .. })
             | Expr::Seq(Seq { position, .. }) => *position,
             Expr::Downcast(DowncastExpr { base, .. }) => base.pos(),
         }
@@ -133,206 +137,33 @@ impl Expr {
 
     #[must_use]
     pub fn set_pos(self, position: Position) -> Self {
-        match self {
-            Expr::Local(Local { variable, .. }) => Expr::Local(Local { variable, position }),
-            Expr::Variant(Variant {
-                base,
-                variant_index,
-                ..
-            }) => Expr::Variant(Variant {
-                base,
-                variant_index,
-                position,
-            }),
-            Expr::Field(FieldExpr { base, field, .. }) => Expr::Field(FieldExpr {
-                base,
-                field,
-                position,
-            }),
-            Expr::AddrOf(AddrOf {
-                base, addr_type, ..
-            }) => Expr::AddrOf(AddrOf {
-                base,
-                addr_type,
-                position,
-            }),
-            Expr::Const(ConstExpr { value, .. }) => Expr::Const(ConstExpr { value, position }),
-            Expr::LabelledOld(LabelledOld { label, base, .. }) => Expr::LabelledOld(LabelledOld {
-                label,
-                base,
-                position,
-            }),
-            Expr::MagicWand(MagicWand {
-                left,
-                right,
-                borrow,
-                ..
-            }) => Expr::MagicWand(MagicWand {
-                left,
-                right,
-                borrow,
-                position,
-            }),
-            Expr::PredicateAccessPredicate(PredicateAccessPredicate {
-                predicate_type,
-                argument,
-                permission,
-                ..
-            }) => Expr::PredicateAccessPredicate(PredicateAccessPredicate {
-                predicate_type,
-                argument,
-                permission,
-                position,
-            }),
-            Expr::FieldAccessPredicate(FieldAccessPredicate {
-                base, permission, ..
-            }) => Expr::FieldAccessPredicate(FieldAccessPredicate {
-                base,
-                permission,
-                position,
-            }),
-            Expr::UnaryOp(UnaryOp {
-                op_kind, argument, ..
-            }) => Expr::UnaryOp(UnaryOp {
-                op_kind,
-                argument,
-                position,
-            }),
-            Expr::BinOp(BinOp {
-                op_kind,
-                left,
-                right,
-                ..
-            }) => Expr::BinOp(BinOp {
-                op_kind,
-                left,
-                right,
-                position,
-            }),
-            Expr::Unfolding(Unfolding {
-                predicate,
-                arguments,
-                base,
-                permission,
-                variant,
-                ..
-            }) => Expr::Unfolding(Unfolding {
-                predicate,
-                arguments,
-                base,
-                permission,
-                variant,
-                position,
-            }),
-            Expr::Cond(Cond {
-                guard,
-                then_expr,
-                else_expr,
-                ..
-            }) => Expr::Cond(Cond {
-                guard,
-                then_expr,
-                else_expr,
-                position,
-            }),
-            Expr::ForAll(ForAll {
-                variables,
-                triggers,
-                body,
-                ..
-            }) => Expr::ForAll(ForAll {
-                variables,
-                triggers,
-                body,
-                position,
-            }),
-            Expr::Exists(Exists {
-                variables,
-                triggers,
-                body,
-                ..
-            }) => Expr::Exists(Exists {
-                variables,
-                triggers,
-                body,
-                position,
-            }),
-            Expr::LetExpr(LetExpr {
-                variable,
-                def,
-                body,
-                ..
-            }) => Expr::LetExpr(LetExpr {
-                variable,
-                def,
-                body,
-                position,
-            }),
-            Expr::FuncApp(FuncApp {
-                function_name,
-                type_arguments,
-                arguments,
-                formal_arguments,
-                return_type,
-                ..
-            }) => Expr::FuncApp(FuncApp {
-                function_name,
-                type_arguments,
-                arguments,
-                formal_arguments,
-                return_type,
-                position,
-            }),
-            Expr::DomainFuncApp(DomainFuncApp {
-                domain_function,
-                arguments,
-                ..
-            }) => Expr::DomainFuncApp(DomainFuncApp {
-                domain_function,
-                arguments,
-                position,
-            }),
-            Expr::InhaleExhale(InhaleExhale {
-                inhale_expr,
-                exhale_expr,
-                ..
-            }) => Expr::InhaleExhale(InhaleExhale {
-                inhale_expr,
-                exhale_expr,
-                position,
-            }),
-            Expr::SnapApp(SnapApp { base, .. }) => Expr::SnapApp(SnapApp { base, position }),
-            Expr::ContainerOp(ContainerOp {
-                op_kind,
-                left,
-                right,
-                ..
-            }) => Expr::ContainerOp(ContainerOp {
-                op_kind,
-                left,
-                right,
-                position,
-            }),
-            Expr::Seq(Seq { typ, elements, .. }) => Expr::Seq(Seq {
-                typ,
-                elements,
-                position,
-            }),
-            Expr::Downcast(DowncastExpr {
-                base,
-                enum_place,
-                field,
-            }) => Expr::Downcast(DowncastExpr {
-                base,
-                enum_place,
-                field,
-            }),
-            Expr::Cast(Cast { kind, base, .. }) => Expr::Cast(Cast {
-                kind,
-                base,
-                position,
-            }),
+
+        // a macro to update the position for all cases
+        // it depends on the variants specific type to have the same name as the variant, except in the two special cases.
+        macro_rules! __set_pos__ {
+            ($($Variant:tt),*) => {
+                match self {
+                    $(Expr:: $Variant (inner) => Expr:: $Variant ($Variant {
+                        position,
+                        ..inner
+                    }),)*
+                    Expr::Field(inner) => Expr::Field(FieldExpr {
+                        position,
+                        ..inner
+                    }),
+                    Expr::Const(inner) => Expr::Const(ConstExpr {
+                        position,
+                        ..inner
+                    }),
+                    Expr::Downcast(..) => self,
+                }
+            }
         }
+
+        __set_pos__! (
+            Local, Variant, AddrOf, LabelledOld, MagicWand, PredicateAccessPredicate, FieldAccessPredicate, UnaryOp, BinOp,
+            ContainerOp, Seq, Map, Unfolding, Cond, ForAll, Exists, LetExpr, FuncApp, DomainFuncApp, InhaleExhale, SnapApp, Cast
+        )
     }
 
     // Replace all Position::default() positions with `pos`
@@ -375,7 +206,7 @@ impl Expr {
 
     pub fn pred_permission(place: Expr, perm: PermAmount) -> Option<Self> {
         let typ = place.get_type();
-        if typ.is_typed_ref_or_type_var() || typ.is_seq() {
+        if typ.is_typed_ref_or_type_var() || typ.is_seq() || typ.is_map() {
             Some(Expr::predicate_access_predicate(typ.clone(), place, perm))
         } else {
             None
@@ -1301,7 +1132,8 @@ impl Expr {
             }) => {
                 todo!("get_type container_op({:?}, {}, {})", op_kind, left, right)
             }
-            Expr::Seq(Seq { typ, .. }) => typ,
+            Expr::Map(Map {typ, .. })
+            | Expr::Seq(Seq { typ, .. }) => typ,
             Expr::Cast(Cast { kind, .. }) => match kind {
                 CastKind::BVIntoInt(_) => &Type::Int,
                 CastKind::IntIntoBV(BitVector::Signed(BitVectorSize::BV8)) => {
@@ -1762,6 +1594,7 @@ impl Expr {
                     | Expr::Downcast(..)
                     | Expr::ContainerOp(..)
                     | Expr::Seq(..)
+                    | Expr::Map(..)
                     | Expr::SnapApp(..)
                     | Expr::Cast(..) => true.into(),
                 }
@@ -2420,6 +2253,49 @@ impl PartialEq for Seq {
 impl Hash for Seq {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (&self.typ, &*self.elements).hash(state);
+    }
+}
+
+/// Corresponding to `ExplicitMap`, the elements are expressions of Maplets, i.e. key-value pairs
+#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+pub struct Map {
+    /// *Map* type, not the type of keys or values
+    pub typ: Type,
+    /// a list of Maplets this map consists of
+    pub elements: Vec<Expr>,
+    pub position: Position,
+}
+
+impl PartialEq for Map {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.typ, &*self.elements) == (&other.typ, &*other.elements)
+    }
+}
+
+impl Hash for Map {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        (&self.typ, &*self.elements).hash(state);
+    }
+}
+
+impl fmt::Display for Map {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let typ = &self.typ;
+        let elems_printed = self
+            .elements
+            .iter()
+            .map(|e| format!("{}", e))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let map_ty = match typ {
+            Type::Map(m) => m,
+            _ => unreachable!(),
+        };
+        write!(
+            f,
+            "Map[{}, {}]({})",
+            map_ty.key_type, map_ty.val_type, elems_printed
+        )
     }
 }
 

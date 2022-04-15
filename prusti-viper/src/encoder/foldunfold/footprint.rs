@@ -94,6 +94,14 @@ impl ExprFootprintGetter for vir::Expr {
                     hs
                 }),
 
+            vir::Expr::Map(vir::Map { elements, .. }) => elements
+                .iter()
+                .map(|e| e.get_footprint(predicates))
+                .fold(FxHashSet::default(), |mut hs, fp| {
+                    hs.extend(fp);
+                    hs
+                }),
+
             vir::Expr::Cond(vir::Cond {
                 box guard,
                 box then_expr,

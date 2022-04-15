@@ -2883,6 +2883,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             return Ok(stmts);
         }
+        if let Some(suffix) = full_func_proc_name.strip_prefix("prusti_contracts::Map::<K, V>::") {
+            let (place, _) = destination.unwrap(); // return types of these map functions are not `never`.
+            let (encoded_target, mut stmts, typ, _) = self.encode_place(&place, ArrayAccessKind::Shared, location)?;
+            let position = self.register_error(call_site_span, ErrorCtxt::Unexpected);
+            let typ =  self.encoder.encode_type(typ).unwrap();
+
+            let encoded_args = arguments
+                .into_iter()
+                .map(|arg| vir::Expr::local(self.encode_prusti_local(arg)))
+                .collect::<Vec<_>>();
+
+            let rhs = match suffix {
+                "empty" => todo!(),
+                "insert" => todo!(),
+                "delete" => todo!(),
+                _ => unreachable!("no further map functions."),
+            };
+
+            let ass = vir::Stmt::Assign(vir::Assign {
+                target: encoded_target,
+                source: rhs,
+                kind: vir::AssignKind::Copy,
+            });
+
+            stmts.push(ass);
+
+            return Ok(stmts);
+        }
 
         let (target_local, encoded_target) = {
             match destination.as_ref() {
