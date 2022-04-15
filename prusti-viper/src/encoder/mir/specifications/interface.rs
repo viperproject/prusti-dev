@@ -13,7 +13,7 @@ use rustc_span::Span;
 use std::{cell::RefCell, hash::Hash};
 
 pub(crate) struct SpecificationsState<'tcx> {
-    specs: RefCell<Specifications>,
+    specs: RefCell<Specifications<'tcx>>,
 }
 
 impl<'tcx> SpecificationsState<'tcx> {
@@ -35,7 +35,9 @@ pub(super) struct FunctionCallEncodingQuery<'tcx> {
 pub(super) enum SpecQuery<'tcx> {
     FunctionDefEncoding(DefId, SubstsRef<'tcx>),
     FunctionCallEncoding(FunctionCallEncodingQuery<'tcx>),
-    PureOrTrustedCheck(DefId, SubstsRef<'tcx>),
+    /// For determining the [ProcedureSpecificationKind] of a procedure, e.g.
+    /// for a check whether the function is pure or impure
+    GetProcKind(DefId, SubstsRef<'tcx>),
     FetchSpan(DefId),
 }
 
@@ -44,10 +46,10 @@ impl<'tcx> SpecQuery<'tcx> {
         match self {
             SpecQuery::FunctionDefEncoding(def_id, _)
             | SpecQuery::FunctionCallEncoding(FunctionCallEncodingQuery {
-                                                  called_def_id: def_id,
-                                                  ..
-                                              })
-            | SpecQuery::PureOrTrustedCheck(def_id, _)
+                called_def_id: def_id,
+                ..
+            })
+            | SpecQuery::GetProcKind(def_id, _)
             | SpecQuery::FetchSpan(def_id) => *def_id,
         }
     }
@@ -63,17 +65,21 @@ impl<'tcx> SpecQuery<'tcx> {
                     call_substs: new_substs,
                 })
             }
-            PureOrTrustedCheck(_, _) => PureOrTrustedCheck(new_def_id, new_substs),
+            GetProcKind(_, _) => GetProcKind(new_def_id, new_substs),
             FetchSpan(_) => FetchSpan(new_def_id),
         }
     }
 }
 
-pub(crate) trait SpecificationsInterface {
+pub(crate) trait SpecificationsInterface<'tcx> {
     // TODO abstract-predicates: Maybe this should be deleted (and ProcedureSpecificationKind::is_pure)
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
-    fn get_proc_kind(&self, def_id: DefId) -> ProcedureSpecificationKind;
+    fn get_proc_kind(
+        &self,
+        def_id: DefId,
+        substs: Option<SubstsRef<'tcx>>,
+    ) -> ProcedureSpecificationKind;
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
@@ -81,11 +87,7 @@ pub(crate) trait SpecificationsInterface {
 
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
-    fn get_loop_specs(
-        &self,
-        def_id: DefId,
-        substs: SubstsRef<'tcx>,
-    ) -> Option<typed::LoopSpecification>;
+    fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification>;
 
     /// Get the specifications attached to a function.
     fn get_procedure_specs(
@@ -111,9 +113,10 @@ pub(crate) trait SpecificationsInterface {
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
+    // TODO hansenj: Maybe this should not exist
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
-        let query = SpecQuery::PureOrTrustedCheck(def_id, substs);
+        let query = SpecQuery::GetProcKind(def_id, substs);
         let result = self
             .specifications_state
             .specs
@@ -126,11 +129,17 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         result
     }
 
-    fn get_proc_kind(&self, def_id: DefId) -> ProcedureSpecificationKind {
+    fn get_proc_kind(
+        &self,
+        def_id: DefId,
+        substs: Option<SubstsRef<'tcx>>,
+    ) -> ProcedureSpecificationKind {
+        let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
+        let query = SpecQuery::GetProcKind(def_id, substs);
         self.specifications_state
             .specs
             .borrow_mut()
-            .get_and_refine_proc_spec(self.env(), def_id)
+            .get_and_refine_proc_spec(self.env(), query)
             .map(|spec| spec.kind)
             .and_then(|kind| kind.extract_with_selective_replacement().copied())
             .unwrap_or(ProcedureSpecificationKind::Impure)
@@ -138,7 +147,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
-        let query = SpecQuery::PureOrTrustedCheck(def_id, substs);
+        let query = SpecQuery::GetProcKind(def_id, substs);
         let result = self
             .specifications_state
             .specs
@@ -162,11 +171,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         result.cloned()
     }
 
-    fn get_loop_specs(
-        &self,
-        def_id: DefId,
-        _substs: SubstsRef<'tcx>,
-    ) -> Option<typed::LoopSpecification> {
+    fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification> {
         self.specifications_state
             .specs
             .borrow()

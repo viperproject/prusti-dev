@@ -182,7 +182,7 @@ impl<'a> GeneratedStruct<'a> {
         let mut trait_method_attrs = trait_method.attrs.clone();
         trait_method_attrs
             .iter_mut()
-            .for_each(|attr| attr.tokens = attr.tokens.clone().rewrite_self());
+            .for_each(|attr| attr.tokens = attr.tokens.clone().rewrite_self(Some(self_type_ident.to_string().as_str())));
         trait_method_sig.rewrite_receiver(&self.self_type_ident);
         let trait_method_inputs = &trait_method_sig.inputs;
 

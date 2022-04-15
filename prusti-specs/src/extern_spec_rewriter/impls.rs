@@ -185,7 +185,7 @@ fn rewrite_method(
     let span = method.span();
 
     for attr in method.attrs.iter_mut() {
-        attr.tokens = attr.tokens.clone().rewrite_self();
+        attr.tokens = attr.tokens.clone().rewrite_self(None);
     }
 
     method.rewrite_receiver(original_ty);

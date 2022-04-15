@@ -278,7 +278,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
                 let (mut function, needs_patching) = match (
                     self.is_trusted(proc_def_id, Some(substs)),
-                    self.get_proc_kind(proc_def_id),
+                    self.get_proc_kind(proc_def_id, Some(substs)),
                 ) {
                     // Predicate bodies are encoded even though the function is trusted
                     (_, ProcedureSpecificationKind::Predicate(Some(predicate_body))) => (
