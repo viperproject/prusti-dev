@@ -113,20 +113,14 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
-    // TODO hansenj: Maybe this should not exist
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
-        let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
-        let query = SpecQuery::GetProcKind(def_id, substs);
-        let result = self
-            .specifications_state
-            .specs
-            .borrow_mut()
-            .get_and_refine_proc_spec(self.env(), query)
-            // In case of error -> It is emitted in get_and_refine_proc_spec
-            .map(|spec| spec.kind.is_pure().unwrap_or(false))
-            .unwrap_or(false);
-        trace!("is_pure {:?} = {}", query, result);
-        result
+        let kind = self.get_proc_kind(def_id, substs);
+        let pure = matches!(
+            kind,
+            ProcedureSpecificationKind::Pure | ProcedureSpecificationKind::Predicate(_)
+        );
+        trace!("is_pure {:?} = {}", def_id, pure);
+        pure
     }
 
     fn get_proc_kind(

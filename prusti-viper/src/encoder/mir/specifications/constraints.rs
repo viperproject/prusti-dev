@@ -8,9 +8,7 @@ use prusti_interface::{
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{
     ty,
-    ty::{
-        subst::{Subst, SubstsRef},
-    },
+    ty::subst::{Subst, SubstsRef},
 };
 use rustc_span::{MultiSpan, Span};
 
