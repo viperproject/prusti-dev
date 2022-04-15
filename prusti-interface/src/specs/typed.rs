@@ -1,70 +1,266 @@
+use crate::{environment::Environment, utils::has_trait_bounds_ghost_constraint};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
 use prusti_specs::specifications::common;
+use rustc_hash::FxHashMap;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::{collections::HashMap, fmt::Debug};
 use std::fmt::{Display, Formatter};
 use rustc_span::Span;
 
-#[derive(Debug, Clone)]
-pub enum SpecificationSet {
-    Procedure(ProcedureSpecification),
-    Loop(LoopSpecification),
+/// A map of specifications keyed by crate-local DefIds.
+#[derive(Default, Debug, Clone)]
+pub struct DefSpecificationMap {
+    pub proc_specs: HashMap<DefId, SpecGraph<ProcedureSpecification>>,
+    pub loop_specs: HashMap<DefId, LoopSpecification>,
 }
 
-impl SpecificationSet {
-    pub fn empty_procedure_set() -> Self {
-        SpecificationSet::Procedure(ProcedureSpecification::empty())
+impl DefSpecificationMap {
+    pub fn new() -> Self {
+        Self::default()
     }
 
-    pub fn is_procedure(&self) -> bool {
-        matches!(self, SpecificationSet::Procedure(_))
+    pub fn get_loop_spec(&self, def_id: &DefId) -> Option<&LoopSpecification> {
+        self.loop_specs.get(def_id)
     }
 
-    #[track_caller]
-    pub fn expect_procedure(&self) -> &ProcedureSpecification {
-        if let SpecificationSet::Procedure(spec) = self {
-            return spec;
+    pub fn get_proc_spec(&self, def_id: &DefId) -> Option<&SpecGraph<ProcedureSpecification>> {
+        self.proc_specs.get(def_id)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ProcedureSpecification {
+    pub span: Option<Span>,
+    pub kind: SpecificationItem<ProcedureSpecificationKind>,
+    pub pres: SpecificationItem<Vec<LocalDefId>>,
+    pub posts: SpecificationItem<Vec<LocalDefId>>,
+    pub pledges: SpecificationItem<Vec<Pledge>>,
+    pub trusted: SpecificationItem<bool>,
+}
+
+impl ProcedureSpecification {
+    pub fn empty() -> Self {
+        ProcedureSpecification {
+            span: None,
+            // We never create an empty "kind". Having no concrete user-annotation
+            // defaults to an impure function
+            kind: SpecificationItem::Inherent(ProcedureSpecificationKind::Impure),
+            pres: SpecificationItem::Empty,
+            posts: SpecificationItem::Empty,
+            pledges: SpecificationItem::Empty,
+            trusted: SpecificationItem::Inherent(false),
         }
-        unreachable!("expected Procedure: {:?}", self);
     }
+}
 
-    #[track_caller]
-    pub fn as_procedure(&self) -> Option<&ProcedureSpecification> {
-        if let SpecificationSet::Procedure(spec) = self {
-            return Some(spec);
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum ProcedureSpecificationKind {
+    Impure,
+    Pure,
+    /// The specification is a predicate with the enclosed body.
+    /// The body can be None to account for abstract predicates.
+    Predicate(Option<LocalDefId>),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum SpecConstraintKind {
+    ResolveGenericParamTraitBounds,
+}
+
+impl Display for ProcedureSpecificationKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ProcedureSpecificationKind::Impure => write!(f, "Impure"),
+            ProcedureSpecificationKind::Pure => write!(f, "Pure"),
+            ProcedureSpecificationKind::Predicate(_) => write!(f, "Predicate"),
         }
-        None
     }
+}
 
-    #[track_caller]
-    pub fn expect_mut_procedure(&mut self) -> &mut ProcedureSpecification {
-        if let SpecificationSet::Procedure(spec) = self {
-            return spec;
+#[derive(Debug, Clone)]
+pub struct LoopSpecification {
+    pub invariant: LocalDefId,
+}
+
+/// The base container to store a contract of a procedure.
+/// A contract can be divided into multiple specifications:
+/// - **Base spec**: A spec without constraints.
+/// - **Constrained specs**: Multiple specs which have [SpecConstraintKind] constraints.
+#[derive(Default, Debug, Clone)]
+pub struct SpecGraph<T> {
+    /// The base specification which has no constraints
+    pub base_spec: T,
+
+    /// Specs which are active when the corresponding [SpecConstraintKind] holds on callsite
+    pub specs_with_constraints: FxHashMap<SpecConstraintKind, T>,
+}
+
+impl<T> SpecGraph<T> {
+    pub fn new(spec: T) -> Self {
+        Self {
+            base_spec: spec,
+            specs_with_constraints: FxHashMap::default(),
         }
-        unreachable!("expected Procedure: {:?}", self);
     }
+}
 
-    #[track_caller]
-    pub fn into_procedure(self) -> ProcedureSpecification {
-        if let SpecificationSet::Procedure(spec) = self {
-            return spec;
+/// Provides various methods to construct a [SpecGraph] for a [ProcedureSpecification].
+/// In particular, these methods ensure that the resulting [SpecGraph]'s specs are *consistent*,
+/// which means:
+/// - The postconditions of any constrained spec always contain the postconditions of the base spec
+/// - The [ProcedureSpecificationKind] for the base spec and constrained specs is always the same
+/// - The `trusted` flag for the base spec and constrained specs is always the same
+/// - The [Pledge]s for the base spec and constrained specs are always the same
+///
+/// Note: Unlike postconditions, the preconditions are not copied amongst the base spec
+/// and constrained specs.
+///
+/// # A note about behavioral subtyping
+/// For a [SpecGraph] to be sound, we require that the constrained specs are valid to the base spec
+/// w.r.t. behavioral subtyping rules.
+/// We at least require that for some base spec B and any constrained spec C:
+/// - (a) The postconditions of C are at least as strong as the postconditions of B
+/// - (b) The preconditions of C are at least as weak as the preconditions of B
+/// - *...more..*
+///
+/// The consistency guarantees mentioned above satisfy (a) by construction but do not guarantee (b).
+///
+/// **Important**: There is no automatic check that guarantees the validity of a [SpecGraph].
+///
+/// # Example: Pre- and postconditions
+/// ```ignore
+/// trait MarkerTrait {}
+///
+/// trait SomeTrait {
+///     #[requires(x > 0)]
+///     #[ensures(x > 0)]
+///     #[ghost_constraint(T: MarkerTrait, [
+///         requires(x > 10),
+///         ensures(x > 10),
+///     ])]
+///     fn foo<T>(&self, x: i32) -> i32;
+/// }
+///
+/// struct SomeStruct;
+/// #[refine_trait_spec]
+/// impl SomeTrait for SomeStruct {
+///     #[requires(x >= 0)]
+///     #[ensures(x > 10)]
+///     #[ghost_constraint(T: MarkerTrait, [
+///         requires(x >= -5),
+///         ensures(x > 20),
+///     ])]
+///     fn foo<T>(&self, x: i32) -> i32 {
+///         42
+///     }
+/// }
+/// ```
+/// Let `B_T` be the base spec of `SomeTrait`, `B_S` be the base spec of `SomeStruct`,
+/// `C_T` be the constrained spec of `SomeTrait` and `C_S` be the constrained spec of `SomeStruct`.
+/// - The computed [SpecGraph] of `SomeTrait` will be:
+///     - `pres(B_T) ≡ x > 0`
+///     - `posts(B_T) ≡ x > 0`
+///     - `pres(C_T) ≡ x > 10`
+///     - `posts(C_T) ≡ posts(B_T) && x > 10 ≡ x > 0 && x > 10`
+/// - The computed [SpecGraph] of `SomeStruct` will be:
+///     - `pres(B_S) ≡ x >= 0`
+///     - `posts(B_S) ≡ x > 10`
+///     - `pres(C_S) ≡ x >= -5`
+///     - `posts(C_S) ≡ posts(B_S) && x > 20 ≡ x > 10 && x > 20`
+///
+/// When using `SomeStruct::foo`, we resolve to either `B_S` or `C_S`.
+/// ```ignore
+/// impl MarkerTrait for i32 {}
+/// fn main() {
+///     let s = SomeStruct;
+///     let r = s.foo::<i32>(100); // i32 implements MarkerTrait -> C_S is active
+///     let r = s.foo::<u32>(100); // i32 does not implement MarkerTrait -> B_S is active
+/// }
+/// ```
+impl SpecGraph<ProcedureSpecification> {
+    /// Attaches the precondition `pre` to this [SpecGraph].
+    ///
+    /// If this precondition has a constraint it will be attached to the corresponding
+    /// constrained spec, otherwise just to the base spec.
+    pub fn add_precondition<'tcx>(&mut self, pre: LocalDefId, env: &Environment<'tcx>) {
+        match self.get_constraint(pre, env) {
+            None => {
+                self.base_spec.pres.push(pre);
+                // Preconditions are explicitly not copied (as opposed to postconditions)
+                // This would always violate behavioral subtyping rules
+            }
+            Some(constraint) => {
+                self.get_constrained_spec_mut(constraint).pres.push(pre);
+            }
         }
-        unreachable!("expected Procedure: {:?}", self);
     }
 
-    #[track_caller]
-    pub fn expect_loop(&self) -> &LoopSpecification {
-        if let SpecificationSet::Loop(spec) = self {
-            return spec;
+    /// Attaches the postcondition `post` to this [SpecGraph].
+    ///
+    /// If this postcondition has a constraint it will be attached to the corresponding
+    /// constrained spec **and** the base spec, otherwise just to the base spec.
+    pub fn add_postcondition<'tcx>(&mut self, post: LocalDefId, env: &Environment<'tcx>) {
+        match self.get_constraint(post, env) {
+            None => {
+                self.base_spec.posts.push(post);
+                self.specs_with_constraints.values_mut().for_each(|s| s.posts.push(post));
+            }
+            Some(obligation) => {
+                self.get_constrained_spec_mut(obligation).posts.push(post);
+            }
         }
-        unreachable!("expected Loop: {:?}", self);
     }
 
-    #[track_caller]
-    pub fn as_loop(&self) -> Option<&LoopSpecification> {
-        if let SpecificationSet::Loop(spec) = self {
-            return Some(spec);
+    /// Attaches the `pledge` to the base spec and all constrained specs.
+    pub fn add_pledge(&mut self, pledge: Pledge) {
+        self.base_spec.pledges.push(pledge.clone());
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.pledges.push(pledge.clone()));
+    }
+
+    /// Sets the trusted flag for the base spec and all constrained specs.
+    pub fn set_trusted(&mut self, trusted: bool) {
+        self.base_spec.trusted.set(trusted);
+        self.specs_with_constraints.values_mut().for_each(|s| s.trusted.set(trusted));
+    }
+
+    /// Sets the [ProcedureSpecificationKind] for the base spec and all constrained specs.
+    pub fn set_kind(&mut self, kind: ProcedureSpecificationKind) {
+        self.base_spec.kind.set(kind);
+        self.specs_with_constraints.values_mut().for_each(|s| s.kind.set(kind));
+    }
+
+    /// Sets the span for the base spec and all constrained specs.
+    pub fn set_span(&mut self, span: Span) {
+        self.base_spec.span = Some(span);
+        self.specs_with_constraints.values_mut().for_each(|s| s.span = Some(span));
+    }
+
+    /// Lazily gets/creates a constrained spec.
+    /// If the constrained spec does not yet exist, the base spec serves as a template for
+    /// the newly created constrained spec.
+    fn get_constrained_spec_mut(
+        &mut self,
+        constraint: SpecConstraintKind,
+    ) -> &mut ProcedureSpecification {
+        self.specs_with_constraints
+            .entry(constraint)
+            .or_insert_with(|| self.base_spec.clone())
+    }
+
+    /// Gets the constraint of a spec function `spec`.
+    ///
+    /// Multiple constraints are currently not supported.
+    fn get_constraint<'tcx>(
+        &self,
+        spec: LocalDefId,
+        env: &Environment<'tcx>,
+    ) -> Option<SpecConstraintKind> {
+        let attrs = env.tcx().get_attrs(spec.to_def_id());
+        if has_trait_bounds_ghost_constraint(attrs) {
+            return Some(SpecConstraintKind::ResolveGenericParamTraitBounds);
         }
         None
     }
@@ -128,11 +324,59 @@ impl<T> SpecificationItem<T> {
     pub fn extract_with_selective_replacement(&self) -> Option<&T> {
         self.extract_with_strategy(|(_, refined)| refined)
     }
+
+    #[track_caller]
+    pub fn expect_empty_or_inherent(&self) -> Option<&T> {
+        match self {
+            SpecificationItem::Empty => None,
+            SpecificationItem::Inherent(item) => Some(item),
+            _ => unreachable!(),
+        }
+    }
+
+    #[track_caller]
+    pub fn expect_inherent(&self) -> &T {
+        match self {
+            SpecificationItem::Inherent(item) => item,
+            _ => unreachable!(),
+        }
+    }
+
+    #[track_caller]
+    pub fn expect_inherited(&self) -> &T {
+        match self {
+            SpecificationItem::Inherited(item) => item,
+            _ => unreachable!(),
+        }
+    }
+
+    #[track_caller]
+    pub fn expect_refined(&self) -> (&T, &T) {
+        match self {
+            SpecificationItem::Refined(a, b) => (a, b),
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl<T: Clone> SpecificationItem<T> {
+    pub fn set(&mut self, new_value: T) {
+        match self {
+            SpecificationItem::Empty => *self = SpecificationItem::Inherent(new_value),
+            SpecificationItem::Inherent(val) => *val = new_value,
+            SpecificationItem::Refined(_, values) => *values = new_value,
+            SpecificationItem::Inherited(inherited) => {
+                *self = SpecificationItem::Refined(inherited.clone(), new_value)
+            }
+        }
+    }
 }
 
 impl SpecificationItem<bool> {
     pub fn extract_inherit(&self) -> Option<bool> {
-        self.extract_with_strategy(|(refined_from, refined)| *(refined_from.unwrap_or(&false)) || *refined)
+        self.extract_with_strategy(|(refined_from, refined)| {
+            *(refined_from.unwrap_or(&false)) || *refined
+        })
     }
 }
 
@@ -207,6 +451,19 @@ impl<T> SpecificationItem<Vec<T>> {
     }
 }
 
+impl<T: Clone> SpecificationItem<Vec<T>> {
+    pub fn push(&mut self, value: T) {
+        match self {
+            SpecificationItem::Empty => *self = SpecificationItem::Inherent(vec![value]),
+            SpecificationItem::Inherent(values) => values.push(value),
+            SpecificationItem::Refined(_, values) => values.push(value),
+            SpecificationItem::Inherited(inherited) => {
+                *self = SpecificationItem::Refined(inherited.clone(), vec![value])
+            }
+        }
+    }
+}
+
 pub trait Refinable {
     fn refine(self, other: &Self) -> Self where Self: Sized;
 }
@@ -266,82 +523,6 @@ impl Refinable for ProcedureSpecification {
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
         }
-    }
-}
-
-impl Refinable for SpecificationSet {
-    fn refine(self, other: &Self) -> Self {
-        if self.is_procedure() && other.is_procedure() {
-            let self_proc = self.into_procedure();
-            let other_proc = other.expect_procedure();
-            let refined = self_proc.refine(other_proc);
-            return SpecificationSet::Procedure(refined);
-        }
-        self
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ProcedureSpecification {
-    pub span: Option<Span>,
-    pub kind: SpecificationItem<ProcedureSpecificationKind>,
-    pub pres: SpecificationItem<Vec<LocalDefId>>,
-    pub posts: SpecificationItem<Vec<LocalDefId>>,
-    pub pledges: SpecificationItem<Vec<Pledge>>,
-    pub trusted: SpecificationItem<bool>,
-}
-
-impl ProcedureSpecification {
-    pub fn empty() -> Self {
-        ProcedureSpecification {
-            span: None,
-            // We never create an empty "kind". Having no concrete user-annotation
-            // defaults to an impure function
-            kind: SpecificationItem::Inherent(ProcedureSpecificationKind::Impure),
-            pres: SpecificationItem::Empty,
-            posts: SpecificationItem::Empty,
-            pledges: SpecificationItem::Empty,
-            trusted: SpecificationItem::Inherent(false),
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum ProcedureSpecificationKind {
-    Impure,
-    Pure,
-    /// The specification is a predicate with the enclosed body.
-    /// The body can be None to account for abstract predicates.
-    Predicate(Option<LocalDefId>),
-}
-
-impl Display for ProcedureSpecificationKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ProcedureSpecificationKind::Impure => write!(f, "Impure"),
-            ProcedureSpecificationKind::Pure => write!(f, "Pure"),
-            ProcedureSpecificationKind::Predicate(_) => write!(f, "Predicate"),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct LoopSpecification {
-    pub invariant: LocalDefId,
-}
-
-/// A map of specifications keyed by local or external DefIds.
-#[derive(Default, Debug, Clone)]
-pub struct DefSpecificationMap {
-    pub specs: HashMap<DefId, SpecificationSet>,
-}
-
-impl DefSpecificationMap {
-    pub fn new() -> Self {
-        Self::default()
-    }
-    pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet> {
-        self.specs.get(def_id)
     }
 }
 
@@ -421,6 +602,72 @@ mod tests {
             refine_from_refined_with_inherited_unrefinable: (Refined(1, 2), Inherited(3)),
             refine_from_refined_with_refined: (Refined(1, 2), Refined(3,4)),
         );
+    }
+
+    mod specification_item {
+        use crate::specs::typed::SpecificationItem;
+
+        #[test]
+        fn set_value_of_empty() {
+            let mut item: SpecificationItem<i32> = SpecificationItem::Empty;
+            item.set(1);
+            assert!(matches!(item, SpecificationItem::Inherent(1)));
+        }
+
+        #[test]
+        fn set_value_of_inherent() {
+            let mut item = SpecificationItem::Inherent(1);
+            item.set(2);
+            assert!(matches!(item, SpecificationItem::Inherent(2)));
+        }
+
+        #[test]
+        fn set_value_of_inherited() {
+            let mut item = SpecificationItem::Inherited(1);
+            item.set(2);
+            assert!(matches!(item, SpecificationItem::Refined(1, 2)));
+        }
+
+        #[test]
+        fn set_value_of_refined() {
+            let mut item = SpecificationItem::Refined(1, 2);
+            item.set(3);
+            assert!(matches!(item, SpecificationItem::Refined(1, 3)));
+        }
+
+        #[test]
+        fn push_value_to_empty() {
+            let mut item: SpecificationItem<Vec<i32>> = SpecificationItem::Empty;
+            item.push(1);
+            let vec = item.expect_inherent();
+            assert_eq!(vec, &vec![1]);
+        }
+
+        #[test]
+        fn push_value_to_inherent() {
+            let mut item = SpecificationItem::Inherent(vec![1]);
+            item.push(2);
+            let vec = item.expect_inherent();
+            assert_eq!(vec, &vec![1, 2]);
+        }
+
+        #[test]
+        fn push_value_to_inherited() {
+            let mut item = SpecificationItem::Inherited(vec![1, 2]);
+            item.push(3);
+            let (refined_from, refined) = item.expect_refined();
+            assert_eq!(refined_from, &vec![1, 2]);
+            assert_eq!(refined, &vec![3]);
+        }
+
+        #[test]
+        fn push_value_to_refined() {
+            let mut item = SpecificationItem::Refined(vec![1, 2], vec![3, 4]);
+            item.push(5);
+            let (refined_from, refined) = item.expect_refined();
+            assert_eq!(refined_from, &vec![1, 2]);
+            assert_eq!(refined, &vec![3, 4, 5]);
+        }
     }
 
     mod specification_item_kind {

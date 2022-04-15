@@ -7,6 +7,7 @@ use rustc_span::{Span, MultiSpan};
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::collections::HashMap;
 use std::convert::TryInto;
+use std::fmt::Debug;
 use crate::environment::Environment;
 use crate::PrustiError;
 use crate::utils::{has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr, has_abstract_predicate_attr};
@@ -20,7 +21,7 @@ use typed::SpecIdRef;
 
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
-use crate::specs::typed::{ProcedureSpecificationKind, SpecificationItem};
+use crate::specs::typed::{ProcedureSpecification, SpecGraph, ProcedureSpecificationKind};
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -72,11 +73,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
-        // First: Build specs as they are typed by the user
         for (local_id, refs) in self.procedure_specs.iter() {
-            let mut pres = vec![];
-            let mut posts = vec![];
-            let mut pledges = vec![];
+            let mut spec = SpecGraph::new(ProcedureSpecification::empty());
+            spec.set_span(self.env.get_def_span(local_id.to_def_id()));
 
             let mut kind = if refs.abstract_predicate {
                 ProcedureSpecificationKind::Predicate(None)
@@ -89,13 +88,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             for spec_id_ref in &refs.spec_id_refs {
                 match spec_id_ref {
                     SpecIdRef::Precondition(spec_id) => {
-                        pres.push(*self.spec_functions.get(spec_id).unwrap());
+                        spec.add_precondition(*self.spec_functions.get(spec_id).unwrap(), self.env);
                     }
                     SpecIdRef::Postcondition(spec_id) => {
-                        posts.push(*self.spec_functions.get(spec_id).unwrap());
+                        spec.add_postcondition(*self.spec_functions.get(spec_id).unwrap(), self.env);
                     }
                     SpecIdRef::Pledge { lhs, rhs } => {
-                        pledges.push(typed::Pledge {
+                        spec.add_pledge(typed::Pledge {
                             reference: None, // FIXME: Currently only `result` is supported.
                             lhs: lhs.as_ref().map(|spec_id| *self.spec_functions.get(spec_id).unwrap()),
                             rhs: *self.spec_functions.get(rhs).unwrap(),
@@ -107,28 +106,28 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 }
             }
 
-            // Wrap everything into a specification item
-            let pres = SpecificationItem::new(pres);
-            let posts = SpecificationItem::new(posts);
-            let pledges = SpecificationItem::new(pledges);
-            let trusted = SpecificationItem::Inherent(refs.trusted);
+            spec.set_trusted(refs.trusted);
 
-            // We never create an empty kind. This would lead to refinement inheritance
-            // if there is a trait involved.
-            // Instead, we require the user to explicitly make annotations
-            let kind = SpecificationItem::Inherent(kind);
+            // We do not want to create an empty kind.
+            // This would lead to refinement inheritance if there is a trait involved.
+            // Instead, we require the user to explicitly make annotations.
+            spec.set_kind(kind);
 
-            def_spec.specs.insert(
-                local_id.to_def_id(),
-                typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
-                    span: Some(self.env.get_def_span(local_id.to_def_id())),
-                    pres,
-                    posts,
-                    pledges,
-                    kind,
-                    trusted,
-                })
-            );
+            if !spec.specs_with_constraints.is_empty() && !prusti_common::config::enable_ghost_constraints() {
+                let span = self.env.tcx().def_span(*local_id);
+                PrustiError::unsupported(
+                    "Ghost constraints need to be enabled with a feature flag",
+                    MultiSpan::from(span)
+                ).emit(self.env);
+            } else if !spec.specs_with_constraints.is_empty() && !*spec.base_spec.trusted.expect_inherent() {
+                let span = self.env.tcx().def_span(*local_id);
+                PrustiError::unsupported(
+                    "Ghost constraints can only be used on trusted functions",
+                    MultiSpan::from(span),
+                ).emit(self.env);
+            } else {
+                def_spec.proc_specs.insert(local_id.to_def_id(), spec);
+            }
         }
     }
 
@@ -137,7 +136,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         for (extern_spec_decl, spec_id) in self.extern_resolver.extern_fn_map.iter() {
             let target_def_id = extern_spec_decl.get_target_def_id();
 
-            if def_spec.specs.contains_key(&target_def_id) {
+            if def_spec.proc_specs.contains_key(&target_def_id) {
                 PrustiError::incorrect(
                     format!("external specification provided for {}, which already has a specification",
                             self.env.get_item_name(target_def_id)),
@@ -145,16 +144,16 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 ).emit(self.env);
             }
 
-            let spec = def_spec.specs.remove(spec_id).unwrap();
-            def_spec.specs.insert(target_def_id, spec);
+            let spec = def_spec.proc_specs.remove(spec_id).unwrap();
+            def_spec.proc_specs.insert(target_def_id, spec);
         }
     }
 
     fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for local_id in self.loop_specs.iter() {
-            def_spec.specs.insert(local_id.to_def_id(), typed::SpecificationSet::Loop(typed::LoopSpecification {
+            def_spec.loop_specs.insert(local_id.to_def_id(),typed::LoopSpecification {
                 invariant: *local_id,
-            }));
+            });
         }
     }
 

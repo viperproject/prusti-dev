@@ -24,8 +24,9 @@ type Key = (ProcedureDefId, Vec<vir_high::Type>);
 
 type FunctionConstructor<'v, 'tcx> = Box<
     dyn FnOnce(
-        &crate::encoder::encoder::Encoder<'v, 'tcx>,
-    ) -> SpannedEncodingResult<vir_high::FunctionDecl>,
+            &crate::encoder::encoder::Encoder<'v, 'tcx>,
+        ) -> SpannedEncodingResult<vir_high::FunctionDecl>
+        + 'tcx,
 >;
 
 /// Depending on the context of the pure encoding,
@@ -237,7 +238,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     ) -> SpannedEncodingResult<()> {
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
-            self.is_pure(proc_def_id),
+            self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -276,7 +277,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
 
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
                 let (mut function, needs_patching) = match (
-                    self.is_trusted(proc_def_id),
+                    self.is_trusted(proc_def_id, Some(substs)),
                     self.get_proc_kind(proc_def_id),
                 ) {
                     // Predicate bodies are encoded even though the function is trusted
@@ -375,7 +376,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_poly::Type)> {
         assert!(
-            self.is_pure(proc_def_id),
+            self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -438,7 +439,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<(String, vir_high::Type)> {
         assert!(
-            self.is_pure(proc_def_id),
+            self.is_pure(proc_def_id, Some(substs)),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -461,6 +462,19 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 proc_def_id,
                 parent_def_id,
                 substs,
+            )?;
+
+            let identifier = function_call_info.get_identifier();
+            self.register_function_constructor_mir(
+                identifier,
+                Box::new(move |encoder| {
+                    super::new_encoder::encode_function_decl(
+                        encoder,
+                        proc_def_id,
+                        proc_def_id,
+                        substs,
+                    )
+                }),
             )?;
 
             // FIXME: Refactor encode_pure_function_use to depend on this function.
@@ -487,13 +501,14 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         } else {
             drop(functions_borrow); // Release the borrow.
 
-            // The function is not yet encoded. Trigger the encoding.
-            if let Some(constructor) = self
+            let constructor = self
                 .pure_function_encoder_state
                 .function_constructors
                 .borrow_mut()
-                .remove(function_identifier)
-            {
+                .remove(function_identifier);
+
+            // The function is not yet encoded. Trigger the encoding.
+            if let Some(constructor) = constructor {
                 let function = std::rc::Rc::new(constructor(self)?);
                 let identifier = function.get_identifier();
                 assert_eq!(&identifier, function_identifier);

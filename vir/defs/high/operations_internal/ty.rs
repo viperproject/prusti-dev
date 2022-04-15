@@ -1,6 +1,7 @@
 use super::super::ast::{
     expression::{visitors::ExpressionFolder, *},
     ty::{visitors::TypeFolder, *},
+    type_decl::DiscriminantValue,
 };
 use rustc_hash::FxHashMap;
 
@@ -106,28 +107,28 @@ impl super::super::ast::type_decl::Enum {
             })
         }
     }
-    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<&Expression> {
+    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<DiscriminantValue> {
         self.iter_discriminant_variants()
             .find(|(_, variant)| variant_index.as_ref() == variant.name)
             .map(|(discriminant, _)| discriminant)
     }
     pub fn iter_discriminant_variants(
         &self,
-    ) -> impl Iterator<Item = (&Expression, &super::super::ast::type_decl::Struct)> {
-        self.discriminant_values.iter().zip(&self.variants)
+    ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
+        self.discriminant_values.iter().cloned().zip(&self.variants)
     }
 }
 
 impl super::super::ast::type_decl::Union {
-    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<&Expression> {
+    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<DiscriminantValue> {
         self.iter_discriminant_variants()
             .find(|(_, variant)| variant_index.as_ref() == variant.name)
             .map(|(discriminant, _)| discriminant)
     }
     pub fn iter_discriminant_variants(
         &self,
-    ) -> impl Iterator<Item = (&Expression, &super::super::ast::type_decl::Struct)> {
-        self.discriminant_values.iter().zip(&self.variants)
+    ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
+        self.discriminant_values.iter().cloned().zip(&self.variants)
     }
 }
 
