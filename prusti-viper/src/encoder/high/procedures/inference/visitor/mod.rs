@@ -166,7 +166,8 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             "Statement has default position: {}",
             statement
         );
-        let (consumed_permissions, produced_permissions) = collect_permission_changes(&statement)?;
+        let (consumed_permissions, produced_permissions) =
+            collect_permission_changes(self.encoder, &statement)?;
         debug!(
             "lower_statement {}: {}",
             statement,

@@ -50,6 +50,10 @@ mod private {
 
     /// Macro for creating type models.
     pub use prusti_contracts_impl::model;
+
+    /// A macro to add trait bounds on a generic type parameter and specifications
+    /// which are active only when these bounds are satisfied for a call.
+    pub use prusti_contracts_impl::ghost_constraint;
 }
 
 #[cfg(feature = "prusti")]
@@ -90,6 +94,10 @@ mod private {
 
     /// Macro for creating type models.
     pub use prusti_contracts_internal::model;
+
+    /// A macro to add trait bounds on a generic type parameter and specifications
+    /// which are active only when these bounds are satisfied for a call.
+    pub use prusti_contracts_internal::ghost_constraint;
 }
 
 /// This function is used to evaluate an expression in the context just

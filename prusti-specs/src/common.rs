@@ -200,7 +200,7 @@ mod tests {
                             .path
                             .to_token_stream()
                             .to_string()
-                            .replace(" ", "")
+                            .replace(' ', "")
                     );
                 }
                 _ => panic!(),
@@ -216,7 +216,7 @@ mod tests {
                     let ty = type_ref.elem.as_ref();
                     assert_eq!(
                         "::core::marker::PhantomData<()>",
-                        ty.to_token_stream().to_string().replace(" ", "")
+                        ty.to_token_stream().to_string().replace(' ', "")
                     );
                 }
                 _ => panic!(),

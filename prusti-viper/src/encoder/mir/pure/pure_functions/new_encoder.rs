@@ -129,7 +129,7 @@ pub(super) fn encode_function_call_info<'p, 'v: 'p, 'tcx: 'v>(
     );
     Ok(FunctionCallInfoHigh {
         name: encoder.encode_function_name(),
-        _parameters: encoder.encode_parameters()?,
+        type_arguments: encoder.encode_type_arguments()?,
         return_type: encoder.encode_return_type()?,
     })
 }

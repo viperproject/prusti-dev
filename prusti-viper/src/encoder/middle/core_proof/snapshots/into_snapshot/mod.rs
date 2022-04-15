@@ -1,17 +1,15 @@
-//! The trait `IntoSnapshot` and its implementations.
+//! The traits for converting expressions into snapshots:
+//!
+//! + `procedure` contains the traits for converting in procedure contains where
+//!   we need to use SSA form
+//! + `pure` contanins the traits for converting in pure contexts such as axioms
+//!   and pure function definitions where we do not use SSA.
 
-mod expression;
-mod ty;
-mod variable;
-mod vec;
+mod common;
+mod procedure;
+mod pure;
 
-use super::super::lowerer::Lowerer;
-use crate::encoder::errors::SpannedEncodingResult;
-
-pub(in super::super) trait IntoSnapshot {
-    type Target;
-    fn create_snapshot<'p, 'v: 'p, 'tcx: 'v>(
-        &self,
-        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
-    ) -> SpannedEncodingResult<Self::Target>;
-}
+pub(in super::super) use self::{
+    procedure::{IntoProcedureBoolExpression, IntoProcedureSnapshot},
+    pure::{IntoPureBoolExpression, IntoPureSnapshot},
+};

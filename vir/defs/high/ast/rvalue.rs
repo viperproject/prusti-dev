@@ -18,7 +18,7 @@ pub enum Rvalue {
     // Len(Len),
     // Cast(Cast),
     BinaryOp(BinaryOp),
-    // CheckedBinaryOp(CheckedBinaryOp),
+    CheckedBinaryOp(CheckedBinaryOp),
     // NullaryOp(NullaryOp),
     UnaryOp(UnaryOp),
     Discriminant(Discriminant),
@@ -42,6 +42,13 @@ pub struct AddressOf {
 
 #[display(fmt = "{}({}, {})", kind, left, right)]
 pub struct BinaryOp {
+    pub kind: BinaryOpKind,
+    pub left: Operand,
+    pub right: Operand,
+}
+
+#[display(fmt = "checked {}({}, {})", kind, left, right)]
+pub struct CheckedBinaryOp {
     pub kind: BinaryOpKind,
     pub left: Operand,
     pub right: Operand,

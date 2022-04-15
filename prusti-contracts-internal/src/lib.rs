@@ -67,3 +67,13 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
 pub fn model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::type_model(_attr.into(), tokens.into()).into()
 }
+
+#[proc_macro_attribute]
+pub fn ghost_constraint(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(
+        SpecAttributeKind::GhostConstraint,
+        attr.into(),
+        tokens.into(),
+    )
+    .into()
+}
