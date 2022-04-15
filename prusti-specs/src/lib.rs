@@ -418,7 +418,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                     .map(|mut spec_item_fn| {
                         spec_item_fn.rewrite_receiver(&self_type_path);
                         spec_item_fn.rewrite_self_type_to_new_type(self_type_path, &trait_path);
-                        spec_item_fn.rewrite_self()
+                        spec_item_fn.rewrite_self(None)
                     })
                     .for_each(|spec_item_fn| generated_spec_items.push(spec_item_fn));
 
@@ -443,7 +443,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                 };
 
                 spec_function.rewrite_receiver(&*impl_block.self_ty);
-                let patched_function = spec_function.rewrite_self();
+                let patched_function = spec_function.rewrite_self(None);
                 generated_spec_items.push(patched_function);
 
                 // Add patched predicate function to new items

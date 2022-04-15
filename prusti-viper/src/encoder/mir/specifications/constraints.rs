@@ -61,7 +61,7 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
         }
 
         let context = match query {
-            SpecQuery::PureOrTrustedCheck(_, _) | SpecQuery::FetchSpan(_) => {
+            SpecQuery::GetProcKind(_, _) | SpecQuery::FetchSpan(_) => {
                 trace!("No need to resolve obligations for cause {:?}", query);
                 return Ok(&self.base_spec);
             }

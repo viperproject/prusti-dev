@@ -1,33 +1,36 @@
 //! Various extensions to syn types and TokenStreams
-use proc_macro2::{TokenStream, TokenTree};
+
+use proc_macro2::{Group, Ident, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{Expr, FnArg, ImplItemMacro, ImplItemMethod, ItemFn, Macro, parse_quote_spanned, Pat, PatType, Signature, Token, TraitItemMacro, TraitItemMethod, TypePath};
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 
-/// Rewrites every occurence of "self" to "_self" in a token stream
+
+/// Rewrites every occurence of "self" to "_self" in a token stream.
+/// Optionally allows for rewriting a "Self" type to a new type.
 pub trait SelfRewriter {
-    fn rewrite_self(self) -> Self;
+    fn rewrite_self(self, type_replacement: Option<&str>) -> Self;
 }
 
 impl<T: ToTokens+Parse> SelfRewriter for T {
-    fn rewrite_self(self) -> Self {
+    fn rewrite_self(self, type_replacement: Option<&str>) -> Self {
         let tokens = self.to_token_stream();
         let tokens_span = tokens.span();
         let rewritten = TokenStream::from_iter(tokens.into_iter().map(|token| match token {
             TokenTree::Group(group) => {
                 let new_group =
-                    proc_macro2::Group::new(group.delimiter(), group.stream().rewrite_self());
-                new_group.to_token_stream()
+                    proc_macro2::Group::new(group.delimiter(), group.stream().rewrite_self(type_replacement));
+                TokenTree::Group(new_group)
             }
-            TokenTree::Ident(mut ident) => {
-                if ident == "self" {
-                    ident = proc_macro2::Ident::new("_self", ident.span());
-                }
-                ident.into_token_stream()
+            TokenTree::Ident(ident) if ident == "self" => {
+                TokenTree::Ident(proc_macro2::Ident::new("_self", ident.span()))
+            },
+            TokenTree::Ident(ident) if ident == "Self" && type_replacement.is_some() => {
+                TokenTree::Ident(proc_macro2::Ident::new(type_replacement.unwrap(), ident.span()))
             }
-            _ => token.into_token_stream(),
+            other => other,
         }));
         parse_quote_spanned!(tokens_span=>
             #rewritten
@@ -73,9 +76,35 @@ impl<'a> AssociatedTypeRewriter<'a> {
     pub fn rewrite_method_sig(&mut self, signature: &mut syn::Signature) {
         syn::visit_mut::visit_signature_mut(self, signature);
     }
+
+    fn rewrite_tokens(&self, self_replacement_as_str: &str, tokens: TokenStream) -> TokenStream {
+        let it = tokens.into_iter();
+        it.map(|tt| {
+            match tt {
+                TokenTree::Ident(ident) if ident == "Self" => {
+                    TokenTree::Ident(Ident::new(self_replacement_as_str, ident.span()))
+                }
+                TokenTree::Group(group) => {
+                    TokenTree::Group(Group::new(group.delimiter(), self.rewrite_tokens(self_replacement_as_str, group.stream())))
+                },
+                other => other,
+            }
+        }).collect()
+    }
 }
 
 impl<'a> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a> {
+    fn visit_attribute_mut(&mut self, attr: &mut syn::Attribute) {
+        let self_replacement = self.self_type.to_token_stream().to_string();
+
+        // Note: Attribute tokens are not visited by a syn visitor,
+        // so we visit the attribute tokens "manually"
+        attr.tokens = self.rewrite_tokens(self_replacement.as_str(), attr.tokens.clone());
+
+        syn::visit_mut::visit_attribute_mut(self, attr);
+    }
+
+
     fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
         if ty_path.qself.is_none()
             && !ty_path.path.segments.is_empty()
