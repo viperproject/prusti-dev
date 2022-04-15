@@ -19,7 +19,8 @@ use prusti_common::config;
 use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{ty, ty::subst::SubstsRef};
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
+use rustc_errors::MultiSpan;
 use vir_crate::polymorphic::ExprIterator;
 
 // TODO: this variant (poly) should not need to exist, eventually should be

@@ -10,7 +10,6 @@
 // + Use our copy of `codegen_fulfill_obligation` that does not record delayed
 //   span bugs, which is the main motivation for duplication.
 
-use rustc_errors::ErrorGuaranteed;
 use rustc_hir::def_id::{DefId};
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::ty::subst::SubstsRef;
@@ -24,6 +23,7 @@ use rustc_data_structures::sso::SsoHashSet;
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::ops::ControlFlow;
+use super::error_guaranteed::ErrorGuaranteed;
 
 use tracing::debug;
 
@@ -129,7 +129,7 @@ pub fn resolve_instance<'tcx>(
     let (param_env, (did, substs)) = key.into_parts();
     if let Some(did) = did.as_local() {
         if let Some(param_did) = tcx.opt_const_param_of(did) {
-            return tcx.resolve_instance_of_const_arg(param_env.and((did, param_did, substs)));
+            return Ok(tcx.resolve_instance_of_const_arg(param_env.and((did, param_did, substs)))?);
         }
     }
 
@@ -374,6 +374,6 @@ fn resolve_associated_item<'tcx>(
         | traits::ImplSource::DiscriminantKind(..)
         | traits::ImplSource::Pointee(..)
         | traits::ImplSource::TraitUpcasting(_)
-        | traits::ImplSource::ConstDrop(_) => None,
+        | traits::ImplSource::ConstDestruct(_) => None,
     })
 }

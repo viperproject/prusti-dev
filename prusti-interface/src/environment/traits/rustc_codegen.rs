@@ -7,6 +7,7 @@
 
 // Changes:
 // + Fix compilation errors.
+// + Add ErrorGuaranteed struct.
 // + Remove all diagnostics (this is the main motivation for duplication).
 
 
@@ -21,9 +22,9 @@ use rustc_trait_selection::traits::{
     FulfillmentContext, ImplSource, Obligation, ObligationCause, SelectionContext, TraitEngine,
     Unimplemented,
 };
-use rustc_errors::ErrorGuaranteed;
 use rustc_middle::ty::fold::TypeFoldable;
 use rustc_middle::ty::{self, TyCtxt};
+use super::error_guaranteed::ErrorGuaranteed;
 
 /// Attempts to resolve an obligation to an `ImplSource`. The result is
 /// a shallow `ImplSource` resolution, meaning that we do not

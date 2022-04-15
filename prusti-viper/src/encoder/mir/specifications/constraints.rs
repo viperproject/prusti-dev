@@ -13,7 +13,8 @@ use rustc_middle::{
         TypeFoldable,
     },
 };
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
+use rustc_errors::MultiSpan;
 
 pub(super) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
     fn resolve(

@@ -17,7 +17,7 @@ use prusti_common::config;
 use prusti_interface::environment::mir_dump::graphviz::ToText;
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty;
-use rustc_span::MultiSpan;
+use rustc_errors::MultiSpan;
 
 use vir_crate::high::{self as vir, operations::ty::Typed};
 

@@ -723,9 +723,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_item_name(&self, def_id: DefId) -> String {
         let full_name = format!("m_{}", encode_identifier(self.env.get_unique_item_name(def_id)));
         let short_name = format!("m_{}", encode_identifier(
-            self.env.tcx().opt_item_name(def_id)
-                .map(|s| s.name.to_ident_string())
-                .unwrap_or_else(|| self.env.get_item_name(def_id))
+            self.env.get_item_name(def_id)
         ));
         self.intern_viper_identifier(full_name, short_name)
     }
@@ -842,9 +840,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             "sf_{}_{}",
             kind_name,
             encode_identifier(
-                self.env.tcx().opt_item_name(def_id)
-                    .map(|s| s.name.to_ident_string())
-                    .unwrap_or_else(|| self.env.get_item_name(def_id))
+                self.env.get_item_name(def_id)
             )
         );
         self.intern_viper_identifier(full_name, short_name)
