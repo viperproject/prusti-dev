@@ -104,6 +104,59 @@ impl fmt::Display for Expr {
     }
 }
 
+macro_rules! __unary_op__ {
+    ($($fn_name:ident $kind_name:ident),*) => {
+        impl Expr {$(
+            #[allow(clippy::should_implement_trait)]
+            pub fn $fn_name(expr: Expr) -> Self {
+                Expr::UnaryOp(UnaryOp {
+                    op_kind: UnaryOpKind:: $kind_name,
+                    argument: Box::new(expr),
+                    position: Position::default(),
+                })
+            }
+        )*}
+    }
+}
+
+__unary_op__! {
+    not Not,
+    minus Minus
+}
+
+macro_rules! __binary_op__ {
+    ($($fn_name:ident $kind_name:ident),*) => {
+        impl Expr{$(
+            #[allow(clippy::should_implement_trait)]
+            pub fn $fn_name(left: Expr, right: Expr) -> Self {
+                Expr::BinOp(BinOp {
+                    op_kind: BinaryOpKind:: $kind_name,
+                    left: Box::new(left),
+                    right: Box::new(right),
+                    position: Position::default(),
+                })
+            }
+        )*}
+    }
+}
+
+__binary_op__! {
+    gt_cmp GtCmp,
+    ge_cmp GeCmp,
+    lt_cmp LtCmp,
+    le_cmp LeCmp,
+    eq_cmp EqCmp,
+    add Add,
+    sub Sub,
+    mul Mul,
+    div Div,
+    modulo Mod,
+    and And,
+    or Or,
+    implies Implies
+}
+
+
 impl Expr {
     pub fn pos(&self) -> Position {
         match self {
@@ -229,23 +282,6 @@ impl Expr {
         })
     }
 
-    #[allow(clippy::should_implement_trait)]
-    pub fn not(expr: Expr) -> Self {
-        Expr::UnaryOp(UnaryOp {
-            op_kind: UnaryOpKind::Not,
-            argument: Box::new(expr),
-            position: Position::default(),
-        })
-    }
-
-    pub fn minus(expr: Expr) -> Self {
-        Expr::UnaryOp(UnaryOp {
-            op_kind: UnaryOpKind::Minus,
-            argument: Box::new(expr),
-            position: Position::default(),
-        })
-    }
-
     pub fn bin_op(op_kind: BinaryOpKind, left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOp {
             op_kind,
@@ -255,102 +291,8 @@ impl Expr {
         })
     }
 
-    pub fn gt_cmp(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::GtCmp,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
-    pub fn ge_cmp(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::GeCmp,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
-    pub fn lt_cmp(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::LtCmp,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
-    pub fn le_cmp(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::LeCmp,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
-    pub fn eq_cmp(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::EqCmp,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
     pub fn ne_cmp(left: Expr, right: Expr) -> Self {
         Expr::not(Expr::eq_cmp(left, right))
-    }
-
-    #[allow(clippy::should_implement_trait)]
-    pub fn add(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::Add,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
-    #[allow(clippy::should_implement_trait)]
-    pub fn sub(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::Sub,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
-    #[allow(clippy::should_implement_trait)]
-    pub fn mul(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::Mul,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
-    #[allow(clippy::should_implement_trait)]
-    pub fn div(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::Div,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
-    pub fn modulo(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::Mod,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
     }
 
     #[allow(clippy::should_implement_trait)]
@@ -373,35 +315,8 @@ impl Expr {
         )
     }
 
-    pub fn and(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::And,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
-    pub fn or(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::Or,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
-    }
-
     pub fn xor(left: Expr, right: Expr) -> Self {
         Expr::not(Expr::eq_cmp(left, right))
-    }
-
-    pub fn implies(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOp {
-            op_kind: BinaryOpKind::Implies,
-            left: Box::new(left),
-            right: Box::new(right),
-            position: Position::default(),
-        })
     }
 
     pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
