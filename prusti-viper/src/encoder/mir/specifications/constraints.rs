@@ -10,7 +10,6 @@ use rustc_middle::{
     ty,
     ty::{
         subst::{Subst, SubstsRef},
-        TypeFoldable,
     },
 };
 use rustc_span::{MultiSpan, Span};
@@ -171,13 +170,7 @@ pub mod trait_bounds {
                 // where `<Self as B>::OtherAssocType` can be normalized to some concrete type.
                 let normalized_predicate = env.normalize_to(predicate);
 
-                if normalized_predicate.needs_subst() || normalized_predicate.needs_infer() {
-                    debug!("Predicate needs further substitutions to be resolved");
-                    false
-                } else {
-                    // Resolve the predicate by making a query to the compiler
-                    env.evaluate_predicate(normalized_predicate, param_env_lookup)
-                }
+                env.evaluate_predicate(normalized_predicate, param_env_lookup)
             });
 
         trace!("Constraint fulfilled: {all_bounds_satisfied}");
