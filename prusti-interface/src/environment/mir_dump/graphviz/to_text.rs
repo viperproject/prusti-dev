@@ -44,7 +44,7 @@ impl ToText for rustc_middle::mir::Local {
 
 impl ToText for rustc_middle::ty::RegionVid {
     fn to_text(&self) -> String {
-        format!("lft{}", self.index())
+        format!("lft_{}", self.index())
     }
 }
 
