@@ -144,6 +144,7 @@ pub enum BinaryOpKind {
     And,
     Or,
     Implies,
+    LifetimeIntersection,
 }
 
 #[display(fmt = "({}) {} ({})", left, op_kind, right)]

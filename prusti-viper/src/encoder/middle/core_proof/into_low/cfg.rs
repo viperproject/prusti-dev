@@ -6,10 +6,10 @@ use crate::encoder::{
         addresses::AddressesInterface,
         block_markers::BlockMarkersInterface,
         builtin_methods::BuiltinMethodsInterface,
+        lifetimes::LifetimesInterface,
         lowerer::{Lowerer, VariablesLowererInterface},
         places::PlacesInterface,
-        predicates_memory_block::PredicatesMemoryBlockInterface,
-        predicates_owned::PredicatesOwnedInterface,
+        predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
         snapshots::{
             IntoProcedureBoolExpression, IntoProcedureSnapshot, SnapshotValidityInterface,
             SnapshotVariablesInterface,
@@ -210,16 +210,46 @@ impl IntoLow for vir_mid::Statement {
                 let place = lowerer.encode_expression_as_place(&statement.place)?;
                 let address = lowerer.extract_root_address(&statement.place)?;
                 let snapshot = statement.place.to_procedure_snapshot(lowerer)?;
+                let lifetimes = lowerer.extract_lifetime_variables_as_expr(ty)?;
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
                     stmtp! {
                         statement.position =>
-                        call<low_condition> into_memory_block<ty>([place], [address], [snapshot])
+                        call<low_condition> into_memory_block<ty>([place], [address], [snapshot]; lifetimes)
                     }
                 } else {
                     stmtp! {
                         statement.position =>
-                        call into_memory_block<ty>([place], [address], [snapshot])
+                        call into_memory_block<ty>([place], [address], [snapshot]; lifetimes)
+                    }
+                };
+                Ok(vec![low_statement])
+            }
+            Self::RestoreMutBorrowed(statement) => {
+                let ty = statement.place.get_type();
+                lowerer.encode_into_memory_block_method(ty)?;
+                let place = lowerer.encode_expression_as_place(&statement.place)?;
+                let address = lowerer.extract_root_address(&statement.place)?;
+                let snapshot = statement.place.to_procedure_snapshot(lowerer)?;
+                let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
+                let validity = lowerer.encode_snapshot_valid_call_for_type(snapshot.clone(), ty)?;
+                let low_statement = if let Some(condition) = statement.condition {
+                    let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                    stmtp! {
+                        statement.position =>
+                        apply<low_condition> (acc(DeadLifetimeToken(lifetime))) --* (
+                            (acc(OwnedNonAliased<ty>([place], [address], [snapshot]))) &&
+                            (acc(DeadLifetimeToken(lifetime)))
+                        )
+                    }
+                } else {
+                    stmtp! {
+                        statement.position =>
+                        apply (acc(DeadLifetimeToken(lifetime))) --* (
+                            (acc(OwnedNonAliased<ty>([place], [address], [snapshot]))) &&
+                            [validity] &&
+                            (acc(DeadLifetimeToken(lifetime)))
+                        )
                     }
                 };
                 Ok(vec![low_statement])
@@ -333,6 +363,7 @@ impl IntoLow for vir_mid::Statement {
                 let targets = vec![vir_low::Expression::local_no_pos(
                     statement.target.to_procedure_snapshot(lowerer)?,
                 )];
+                lowerer.encode_newlft_method()?;
                 Ok(vec![Statement::method_call(
                     String::from("newlft"),
                     vec![],
@@ -344,6 +375,7 @@ impl IntoLow for vir_mid::Statement {
                 let arguments = vec![vir_low::Expression::local_no_pos(
                     statement.lifetime.to_procedure_snapshot(lowerer)?,
                 )];
+                lowerer.encode_endlft_method()?;
                 Ok(vec![Statement::method_call(
                     String::from("endlft"),
                     arguments,
@@ -352,20 +384,12 @@ impl IntoLow for vir_mid::Statement {
                 )])
             }
             Self::GhostAssignment(statement) => {
-                let lifetime_type = vir_low::ty::Type::Domain(vir_low::ty::Domain {
-                    name: String::from("Lifetime"),
-                });
-                Ok(vec![match statement.value.len() {
-                    1 => Statement::assign(
-                        statement.target.to_procedure_snapshot(lowerer)?,
-                        vir_low::Expression::local_no_pos(vir_low::VariableDecl {
-                            name: statement.value.get(0).unwrap().to_string(),
-                            ty: lifetime_type,
-                        }),
-                        statement.position,
-                    ),
-                    _ => unimplemented!(),
-                }])
+                let statements = vec![Statement::assign(
+                    statement.target.to_procedure_snapshot(lowerer)?,
+                    statement.value.to_procedure_snapshot(lowerer)?,
+                    statement.position,
+                )];
+                Ok(statements)
             }
         }
     }

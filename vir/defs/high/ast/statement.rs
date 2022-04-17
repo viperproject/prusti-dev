@@ -182,9 +182,9 @@ pub struct EndLft {
     pub position: Position,
 }
 
-#[display(fmt = "ghost-assign {} := {:?}", target, value)]
+#[display(fmt = "ghost-assign {} := {}", target, value)]
 pub struct GhostAssignment {
     pub target: VariableDecl,
-    pub value: Vec<String>,
+    pub value: Expression,
     pub position: Position,
 }

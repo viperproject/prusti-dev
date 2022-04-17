@@ -4,7 +4,9 @@ use crate::encoder::{
     middle::core_proof::{
         function_gas::FunctionGasInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
-        snapshots::{IntoPureBoolExpression, IntoPureSnapshot, SnapshotValidityInterface},
+        snapshots::{
+            IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot, SnapshotValidityInterface,
+        },
     },
 };
 use std::collections::BTreeMap;
@@ -48,7 +50,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     self.encode_snapshot_valid_call_for_type(argument, &parameter_mid.ty)?;
                 pres.push(argument_validity);
             }
-            let return_type = function_decl.return_type.to_pure_snapshot(self)?;
+            let return_type = function_decl.return_type.to_snapshot(self)?;
             let gas_amount = self.function_gas_constant(2)?;
             let function = vir_low::FunctionDecl::new(
                 caller_function_name,
