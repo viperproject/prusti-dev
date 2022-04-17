@@ -1,6 +1,6 @@
 pub(crate) use super::super::{
     expression::{BinaryOpKind, Expression, UnaryOpKind},
-    ty::Type,
+    ty::{LifetimeConst, Type},
     Position,
 };
 use crate::common::display;
@@ -26,10 +26,10 @@ pub enum Rvalue {
     // ShallowInitBox(ShallowInitBox),
 }
 
-#[display(fmt = "ref {}", place)]
+#[display(fmt = "&{} {}", lifetime, place)]
 pub struct Ref {
     pub place: Expression,
-    pub lifetime_name: String,
+    pub lifetime: LifetimeConst,
     pub is_mut: bool,
     pub rd_perm: u32,
     pub target: Expression,

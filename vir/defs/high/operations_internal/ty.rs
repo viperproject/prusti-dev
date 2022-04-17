@@ -76,9 +76,16 @@ impl Type {
     }
     pub fn erase_lifetime(&mut self) {
         if let Type::Reference(reference) = self {
-            reference.lifetime_const = LifetimeConst {
+            reference.lifetime = LifetimeConst {
                 name: String::from("pure_erased"),
             };
+        }
+    }
+    pub fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+        if let Type::Reference(reference) = self {
+            vec![reference.lifetime.clone()]
+        } else {
+            Vec::new()
         }
     }
 }
@@ -363,7 +370,8 @@ impl Typed for BinaryOp {
             | BinaryOpKind::Sub
             | BinaryOpKind::Mul
             | BinaryOpKind::Div
-            | BinaryOpKind::Mod => {
+            | BinaryOpKind::Mod
+            | BinaryOpKind::LifetimeIntersection => {
                 let ty1 = self.left.get_type();
                 let ty2 = self.right.get_type();
                 assert_eq!(ty1, ty2, "expr: {:?}", self);

@@ -3,7 +3,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         lowerer::{Lowerer, VariablesLowererInterface},
-        snapshots::{IntoProcedureSnapshot, SnapshotValuesInterface},
+        snapshots::{IntoProcedureSnapshot, IntoSnapshot, SnapshotValuesInterface},
         types::TypesInterface,
     },
     mir::errors::ErrorInterface,
@@ -43,7 +43,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         let name = format!("{}$snapshot${}", name, version);
-        let ty = ty.to_procedure_snapshot(self)?;
+        let ty = ty.to_snapshot(self)?;
         self.create_variable(name, ty)
     }
     /// Copy all values of the old snapshot into the new snapshot, except the

@@ -100,8 +100,11 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         let pure_lifetime = vir_high::ty::LifetimeConst {
             name: String::from("pure_erased"),
         };
-        let return_type =
-            vir_high::Type::reference(vir_high::Type::slice(element_type.clone()), pure_lifetime);
+        let return_type = vir_high::Type::reference(
+            pure_lifetime,
+            vir_high::ty::Uniqueness::Shared,
+            vir_high::Type::slice(element_type.clone()),
+        );
         Ok(vir_high::Expression::function_call(
             name,
             vec![element_type.clone()],

@@ -14,6 +14,7 @@ impl Positioned for Expression {
             Self::Unfolding(expression) => expression.position(),
             Self::UnaryOp(expression) => expression.position(),
             Self::BinaryOp(expression) => expression.position(),
+            Self::PermBinaryOp(expression) => expression.position(),
             Self::ContainerOp(expression) => expression.position(),
             Self::Seq(expression) => expression.position(),
             Self::Conditional(expression) => expression.position(),
@@ -81,6 +82,12 @@ impl Positioned for UnaryOp {
 }
 
 impl Positioned for BinaryOp {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for PermBinaryOp {
     fn position(&self) -> Position {
         self.position
     }

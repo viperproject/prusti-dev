@@ -210,6 +210,7 @@ impl IntoPolymorphic<vir_poly::BinaryOpKind> for vir_high::expression::BinaryOpK
             vir_high::expression::BinaryOpKind::And => vir_poly::BinaryOpKind::And,
             vir_high::expression::BinaryOpKind::Or => vir_poly::BinaryOpKind::Or,
             vir_high::expression::BinaryOpKind::Implies => vir_poly::BinaryOpKind::Implies,
+            vir_high::expression::BinaryOpKind::LifetimeIntersection => unreachable!(),
         }
     }
 }

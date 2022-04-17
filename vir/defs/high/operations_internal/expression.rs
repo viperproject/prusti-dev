@@ -35,7 +35,8 @@ impl BinaryOpKind {
             | BinaryOpKind::Sub
             | BinaryOpKind::Mul
             | BinaryOpKind::Div
-            | BinaryOpKind::Mod => argument_type,
+            | BinaryOpKind::Mod
+            | BinaryOpKind::LifetimeIntersection => argument_type,
         }
     }
 }

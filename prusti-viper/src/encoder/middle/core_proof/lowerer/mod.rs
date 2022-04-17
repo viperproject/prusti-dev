@@ -9,8 +9,8 @@ use super::{
     builtin_methods::BuiltinMethodsState,
     compute_address::ComputeAddressState,
     into_low::IntoLow,
-    predicates_memory_block::PredicatesMemoryBlockState,
-    predicates_owned::{PredicatesOwnedInterface, PredicatesOwnedState},
+    lifetimes::LifetimesState,
+    predicates::{PredicatesOwnedInterface, PredicatesState},
     snapshots::{SnapshotVariablesInterface, SnapshotsState},
     types::TypesState,
 };
@@ -57,13 +57,13 @@ pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     domains_state: DomainsLowererState,
     predicates_state: PredicatesLowererState,
     methods_state: MethodsLowererState,
-    pub(super) predicates_memory_block_state: PredicatesMemoryBlockState,
-    pub(super) predicates_owned_state: PredicatesOwnedState,
+    pub(super) predicates_encoding_state: PredicatesState,
     pub(super) builtin_methods_state: BuiltinMethodsState,
     pub(super) compute_address_state: ComputeAddressState,
     pub(super) snapshots_state: SnapshotsState,
     pub(super) types_state: TypesState,
     pub(super) adts_state: AdtsState,
+    pub(super) lifetimes_state: LifetimesState,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
@@ -76,13 +76,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             domains_state: Default::default(),
             predicates_state: Default::default(),
             methods_state: Default::default(),
-            predicates_memory_block_state: Default::default(),
+            predicates_encoding_state: Default::default(),
             builtin_methods_state: Default::default(),
             compute_address_state: Default::default(),
             snapshots_state: Default::default(),
             types_state: Default::default(),
-            predicates_owned_state: Default::default(),
             adts_state: Default::default(),
+            lifetimes_state: Default::default(),
         }
     }
     pub(super) fn lower_procedure(

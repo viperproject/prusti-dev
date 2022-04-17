@@ -15,6 +15,7 @@ impl Positioned for Statement {
             Self::JoinBlock(statement) => statement.position(),
             Self::SplitBlock(statement) => statement.position(),
             Self::ConvertOwnedIntoMemoryBlock(statement) => statement.position(),
+            Self::RestoreMutBorrowed(statement) => statement.position(),
             Self::MovePlace(statement) => statement.position(),
             Self::CopyPlace(statement) => statement.position(),
             Self::WritePlace(statement) => statement.position(),
@@ -89,6 +90,12 @@ impl Positioned for SplitBlock {
 }
 
 impl Positioned for ConvertOwnedIntoMemoryBlock {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for RestoreMutBorrowed {
     fn position(&self) -> Position {
         self.position
     }

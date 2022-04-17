@@ -30,6 +30,11 @@ pub(in super::super) trait PlacesInterface {
         base_place: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
+    fn encode_deref_place(
+        &mut self,
+        base_place: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
@@ -61,5 +66,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
         self.encode_variant_access_function_app("Place", base_place, base_type, variant, position)
+    }
+    fn encode_deref_place(
+        &mut self,
+        base_place: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
+        let return_type = self.place_type()?;
+        self.create_domain_func_app(
+            "Place",
+            "deref_reference_place",
+            vec![base_place],
+            return_type,
+            position,
+        )
     }
 }

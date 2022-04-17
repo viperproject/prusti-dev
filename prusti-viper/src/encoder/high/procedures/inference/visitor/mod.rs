@@ -2,7 +2,7 @@ use super::{ensurer::ensure_required_permissions, state::FoldUnfoldState};
 use crate::encoder::{
     errors::SpannedEncodingResult,
     high::procedures::inference::{
-        action::{Action, ConversionState, FoldingActionState},
+        action::{Action, ConversionState, FoldingActionState, RestorationState},
         permission::PermissionKind,
         semantics::collect_permission_changes,
     },
@@ -18,7 +18,7 @@ use vir_crate::{
     high::{self as vir_high},
     middle::{
         self as vir_mid,
-        operations::{ToMiddleExpression, ToMiddleStatement},
+        operations::{ToMiddleExpression, ToMiddleStatement, ToMiddleType},
     },
 };
 
@@ -237,6 +237,19 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 Action::OwnedIntoMemoryBlock(ConversionState { place, condition }) => {
                     let position = place.position();
                     vir_mid::Statement::convert_owned_into_memory_block(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        position,
+                    )
+                }
+                Action::RestoreMutBorrowed(RestorationState {
+                    lifetime,
+                    place,
+                    condition,
+                }) => {
+                    let position = place.position();
+                    vir_mid::Statement::restore_mut_borrowed(
+                        lifetime.to_middle_type(self.encoder)?,
                         place.to_middle_expression(self.encoder)?,
                         condition,
                         position,
