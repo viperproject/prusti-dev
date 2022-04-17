@@ -227,6 +227,9 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <span class="ident">errors</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18">EncodingError</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
     <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/interface.rs.html#83-149">mir::pure::PureFunctionEncoderInterface</a>,
@@ -307,7 +310,7 @@
     ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
         <span class="comment">// FIXME: Should use encode_builtin_function_use.</span>
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;lookup_pure&quot;</span>;
-        <span class="kw">let</span> <span class="ident">element_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#205-207">extract_container_element_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#76">container</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">element_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#208-210">extract_container_element_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#76">container</a>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#81">element_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="prelude-val">Ok</span>(<span class="ident">vir_high::Expression::function_call</span>(
             <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#80">name</a>,
@@ -325,12 +328,15 @@
     ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
         <span class="comment">// FIXME: Should use encode_builtin_function_use.</span>
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;subslice&quot;</span>;
-        <span class="kw">let</span> <span class="ident">element_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#205-207">extract_container_element_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#94">container</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">element_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#208-210">extract_container_element_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#94">container</a>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">pure_lifetime</span> <span class="op">=</span> <a class="ident" href="../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a> {
             <span class="ident">name</span>: <span class="ident">String::from</span>(<span class="string">&quot;pure_erased&quot;</span>),
         };
-        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span>
-            <span class="ident">vir_high::Type::reference</span>(<span class="ident">vir_high::Type::slice</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#99">element_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#100">pure_lifetime</a>);
+        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="ident">vir_high::Type::reference</span>(
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#100">pure_lifetime</a>,
+            <span class="ident">vir_high::ty::Uniqueness::Shared</span>,
+            <span class="ident">vir_high::Type::slice</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#99">element_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        );
         <span class="prelude-val">Ok</span>(<span class="ident">vir_high::Expression::function_call</span>(
             <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#98">name</a>,
             <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#99">element_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()],
@@ -346,13 +352,13 @@
     ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
         <span class="comment">// FIXME: Should use encode_builtin_function_use.</span>
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;len&quot;</span>;
-        <span class="kw">let</span> <span class="ident">element_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#205-207">extract_container_element_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#116">container</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">element_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#208-210">extract_container_element_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#119">container</a>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::Usize</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">vir_high::Expression::function_call</span>(
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#119">name</a>,
-            <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#120">element_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()],
-            <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#116">container</a>],
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#121">return_type</a>,
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#122">name</a>,
+            <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#123">element_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()],
+            <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#119">container</a>],
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#124">return_type</a>,
         ))
     }
 
@@ -364,12 +370,12 @@
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;into_slice&quot;</span>;
         <span class="comment">// FIXME: Check that argumet types of container and</span>
         <span class="comment">// target_container_type match.</span>
-        <span class="kw">let</span> <span class="ident">element_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#205-207">extract_container_element_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#132">container</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">element_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#208-210">extract_container_element_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#135">container</a>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">vir_high::Expression::function_call</span>(
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#135">name</a>,
-            <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#138">element_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()],
-            <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#132">container</a>],
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#133">target_container_type</a>,
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#138">name</a>,
+            <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#141">element_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()],
+            <span class="macro">vec!</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#135">container</a>],
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#136">target_container_type</a>,
         ))
     }
 
@@ -377,44 +383,44 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">function_identifier</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">std::rc::Rc</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/function/struct.FunctionDecl.html">vir_high::FunctionDecl</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#148">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/interface.rs.html#139-142">get_pure_function_decl_mir</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#149">function_identifier</a>)
+        <a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#151">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/interface.rs.html#139-142">get_pure_function_decl_mir</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#152">function_identifier</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">get_pure_function_specs_high</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">function_identifier</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">function_decl</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#155">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#36-39">get_pure_function_decl_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#156">function_identifier</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">pres</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#158">function_decl</a>.<span class="ident">pres</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let</span> <span class="ident">posts</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#158">function_decl</a>.<span class="ident">posts</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#159">pres</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#160">posts</a>))
+        <span class="kw">let</span> <span class="ident">function_decl</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#158">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#36-39">get_pure_function_decl_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#159">function_identifier</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">pres</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#161">function_decl</a>.<span class="ident">pres</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let</span> <span class="ident">posts</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#161">function_decl</a>.<span class="ident">posts</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#162">pres</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#163">posts</a>))
     }
 
     <span class="kw">fn</span> <span class="ident">get_pure_function_decl_mid</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">function_identifier</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/middle/ast/function/struct.FunctionDecl.html">vir_mid::FunctionDecl</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">function_decl</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#165">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#36-39">get_pure_function_decl_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#166">function_identifier</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">function_decl</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#36-39">get_pure_function_decl_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#169">function_identifier</a>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../vir/gen/middle/ast/function/struct.FunctionDecl.html">vir_mid::FunctionDecl</a> {
-            <span class="ident">name</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">function_decl</a>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">type_arguments</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">function_decl</a>
+            <span class="ident">name</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#171">function_decl</a>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">type_arguments</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#171">function_decl</a>
                 .<span class="ident">type_arguments</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-                .<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#165">self</a>)<span class="question-mark">?</span>,
-            <span class="ident">parameters</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">function_decl</a>
+                .<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">self</a>)<span class="question-mark">?</span>,
+            <span class="ident">parameters</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#171">function_decl</a>
                 .<span class="ident">parameters</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-                .<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#165">self</a>)<span class="question-mark">?</span>,
-            <span class="ident">return_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">function_decl</a>
+                .<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">self</a>)<span class="question-mark">?</span>,
+            <span class="ident">return_type</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#171">function_decl</a>
                 .<span class="ident">return_type</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-                .<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#165">self</a>)<span class="question-mark">?</span>,
-            <span class="ident">pres</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">function_decl</a>.<span class="ident">pres</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#165">self</a>)<span class="question-mark">?</span>,
-            <span class="ident">posts</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">function_decl</a>.<span class="ident">posts</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#165">self</a>)<span class="question-mark">?</span>,
-            <span class="ident">body</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">function_decl</a>
+                .<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">self</a>)<span class="question-mark">?</span>,
+            <span class="ident">pres</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#171">function_decl</a>.<span class="ident">pres</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">self</a>)<span class="question-mark">?</span>,
+            <span class="ident">posts</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#171">function_decl</a>.<span class="ident">posts</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">self</a>)<span class="question-mark">?</span>,
+            <span class="ident">body</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#171">function_decl</a>
                 .<span class="ident">body</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">body</span><span class="op">|</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#188">body</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#165">self</a>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">body</span><span class="op">|</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#191">body</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#168">self</a>))
                 .<span class="ident">transpose</span>()<span class="question-mark">?</span>,
         })
     }
@@ -423,10 +429,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">function_identifier</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">pres</span>, <span class="ident">posts</span>) <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#194">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#40-43">get_pure_function_specs_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#195">function_identifier</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">pres</span>, <span class="ident">posts</span>) <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#197">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#40-43">get_pure_function_specs_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#198">function_identifier</a>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>((
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#197">pres</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#194">self</a>)<span class="question-mark">?</span>,
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#197">posts</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#194">self</a>)<span class="question-mark">?</span>,
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#200">pres</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#197">self</a>)<span class="question-mark">?</span>,
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#200">posts</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleExpression.html">to_middle_expression</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#197">self</a>)<span class="question-mark">?</span>,
         ))
     }
 }
@@ -434,7 +440,7 @@
 <span class="kw">fn</span> <span class="ident">extract_container_element_type</span>(
     <span class="ident">container</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
 ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#206">container</a>.<a class="ident" href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">get_type</a>() {
+    <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#209">container</a>.<a class="ident" href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">get_type</a>() {
         <span class="ident">vir_high::Type::Array</span>(<a class="ident" href="../../../../../vir/gen/high/ast/ty/struct.Array.html">vir_high::ty::Array</a> { <span class="ident">element_type</span>, .. })
         <span class="op">|</span> <span class="ident">vir_high::Type::Slice</span>(<a class="ident" href="../../../../../vir/gen/high/ast/ty/struct.Slice.html">vir_high::ty::Slice</a> { <span class="ident">element_type</span>, .. })
         <span class="op">|</span> <span class="ident">vir_high::Type::Reference</span>(<a class="ident" href="../../../../../vir/gen/high/ast/ty/struct.Reference.html">vir_high::ty::Reference</a> {
@@ -444,10 +450,10 @@
         <span class="op">|</span> <span class="ident">vir_high::Type::Reference</span>(<a class="ident" href="../../../../../vir/gen/high/ast/ty/struct.Reference.html">vir_high::ty::Reference</a> {
             <span class="ident">target_type</span>: <span class="kw">box</span> <span class="ident">vir_high::Type::Slice</span>(<a class="ident" href="../../../../../vir/gen/high/ast/ty/struct.Slice.html">vir_high::ty::Slice</a> { <span class="ident">element_type</span>, .. }),
             ..
-        }) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#209">element_type</a>),
+        }) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#212">element_type</a>),
         <span class="ident">container_ty</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">EncodingError::unsupported</span>(<span class="macro">format!</span>(
             <span class="string">&quot;unsupported container: {}&quot;</span>,
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#219">container_ty</a>
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/pure_functions/interface.rs.html#222">container_ty</a>
         ))),
     }
 }

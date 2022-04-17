@@ -44,12 +44,21 @@
 <span id="39">39</span>
 <span id="40">40</span>
 <span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     <span class="ident">middle::core_proof</span>::{
         <span class="ident">lowerer</span>::{<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#43-87">DomainsLowererInterface</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#52-67">Lowerer</a>},
-        <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/predicates_memory_block/interface.rs.html#77-91">predicates_memory_block::PredicatesMemoryBlockInterface</a>,
-        <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/domains/interface.rs.html#11-21">snapshots::SnapshotDomainsInterface</a>,
+        <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/predicates/memory_block/interface.rs.html#79-93">predicates::PredicatesMemoryBlockInterface</a>,
+        <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/domains/interface.rs.html#14-24">snapshots::SnapshotDomainsInterface</a>,
     },
 };
 <span class="kw">use</span> <span class="ident">vir_crate</span>::{
@@ -59,27 +68,36 @@
 };
 
 <span class="kw">pub</span>(<span class="kw">in</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/mod.rs.html#1"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span></a>) <span class="kw">trait</span> <span class="ident">SnapshotBytesInterface</span> {
+    <span class="doccomment">/// Encodes the `to_bytes` function. For types without pointers and</span>
+    <span class="doccomment">/// references `to_bytes` is a bijection from the snapshot into byte</span>
+    <span class="doccomment">/// representation of the value (simply speaking a snapshot is just “typed</span>
+    <span class="doccomment">/// bytes”). However, for types with references and pointers, `to_bytes` is</span>
+    <span class="doccomment">/// not a bijection because it maps only the values of the main memory</span>
+    <span class="doccomment">/// block. Simply speaking, for a value allocated on a stack, `to_bytes`</span>
+    <span class="doccomment">/// maps only the part of the memory that is on the stack.</span>
     <span class="kw">fn</span> <span class="ident">encode_snapshot_to_bytes_function</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#15-20">SnapshotBytesInterface</a> <span class="kw">for</span> <span class="ident">Lowerer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#15-27">SnapshotBytesInterface</a> <span class="kw">for</span> <span class="ident">Lowerer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">encode_snapshot_to_bytes_function</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#24">self</a>.<span class="ident">snapshots_state</span>.<span class="ident">encoded_to_bytes</span>.<span class="ident">contains</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#25">ty</a>) {
-            <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#24">self</a>.<span class="ident">snapshots_state</span>.<span class="ident">encoded_to_bytes</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#25">ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <span class="kw">let</span> <span class="ident">domain_name</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#24">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/domains/interface.rs.html#12">encode_snapshot_domain_name</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#25">ty</a>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">domain_type</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#24">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/domains/interface.rs.html#13-16">encode_snapshot_domain_type</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#25">ty</a>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#24">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/predicates_memory_block/interface.rs.html#78">bytes_type</a>()<span class="question-mark">?</span>;
-            <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#24">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#56-62">declare_domain_function</a>(
-                <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#29">domain_name</a>,
-                <span class="ident">std::borrow::Cow::Owned</span>(<span class="macro">format!</span>(<span class="string">&quot;to_bytes${}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#25">ty</a>.<a class="ident" href="../../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>())),
-                <span class="ident">std::borrow::Cow::Owned</span>(<span class="macro">vec!</span>[<span class="ident">vir_low::VariableDecl::new</span>(<span class="string">&quot;snapshot&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#30">domain_type</a>)]),
-                <span class="ident">std::borrow::Cow::Owned</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#31">return_type</a>),
+        <span class="comment">// Before editing this, please read the documentation on the trait</span>
+        <span class="comment">// method.</span>
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#31">self</a>.<span class="ident">snapshots_state</span>.<span class="ident">encoded_to_bytes</span>.<span class="ident">contains</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#32">ty</a>) {
+            <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#31">self</a>.<span class="ident">snapshots_state</span>.<span class="ident">encoded_to_bytes</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#32">ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="kw">let</span> <span class="ident">domain_name</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#31">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/domains/interface.rs.html#15">encode_snapshot_domain_name</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#32">ty</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">domain_type</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#31">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/domains/interface.rs.html#16-19">encode_snapshot_domain_type</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#32">ty</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#31">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/predicates/memory_block/interface.rs.html#80">bytes_type</a>()<span class="question-mark">?</span>;
+            <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#31">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#56-62">declare_domain_function</a>(
+                <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#38">domain_name</a>,
+                <span class="ident">std::borrow::Cow::Owned</span>(<span class="macro">format!</span>(<span class="string">&quot;to_bytes${}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#32">ty</a>.<a class="ident" href="../../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>())),
+                <span class="ident">std::borrow::Cow::Owned</span>(<span class="macro">vec!</span>[<span class="ident">vir_low::VariableDecl::new</span>(<span class="string">&quot;snapshot&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#39">domain_type</a>)]),
+                <span class="ident">std::borrow::Cow::Owned</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/bytes/interface.rs.html#40">return_type</a>),
             )<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
