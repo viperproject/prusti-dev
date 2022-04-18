@@ -44,6 +44,9 @@ impl Statement {
             fn walk_rvalue(&mut self, rvalue: &Rvalue) {
                 rvalue.check_no_default_position();
             }
+            fn walk_operand(&mut self, operand: &Operand) {
+                operand.expression.check_no_default_position();
+            }
         }
         Checker.walk_statement(self)
     }
