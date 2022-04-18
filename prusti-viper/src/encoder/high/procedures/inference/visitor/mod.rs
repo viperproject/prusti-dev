@@ -260,16 +260,42 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         }
         state.remove_permissions(&consumed_permissions)?;
         state.insert_permissions(produced_permissions)?;
-        if let vir_high::Statement::LeakAll(vir_high::LeakAll {}) = &statement {
-            // FIXME: Instead of leaking, we should:
-            // 1. Unfold all Owned into MemoryBlock.
-            // 2. Deallocate all MemoryBlock.
-            // 3. Perform a leak check (this actually should be done always at
-            //    the end of the exit block).
-            state.clear()?;
-        } else {
-            self.current_statements
-                .push(statement.to_middle_statement(self.encoder)?);
+        match &statement {
+            vir_high::Statement::LeakAll(vir_high::LeakAll {}) => {
+                // FIXME: Instead of leaking, we should:
+                // 1. Unfold all Owned into MemoryBlock.
+                // 2. Deallocate all MemoryBlock.
+                // 3. Perform a leak check (this actually should be done always at
+                //    the end of the exit block).
+                state.clear()?;
+            }
+            vir_high::Statement::SetUnionVariant(statement) => {
+                let position = statement.position();
+                // Split the memory block for the union itself.
+                let parent = statement.variant_place.get_parent_ref().unwrap();
+                let place = parent
+                    .get_parent_ref()
+                    .unwrap()
+                    .clone()
+                    .to_middle_expression(self.encoder)?;
+                let variant = parent.clone().unwrap_variant().variant_index;
+                let encoded_statement = vir_mid::Statement::split_block(
+                    place,
+                    None,
+                    Some(variant.to_middle_type(self.encoder)?),
+                    position,
+                );
+                self.current_statements.push(encoded_statement);
+                // Split the memory block for the union's field.
+                let place = parent.clone().to_middle_expression(self.encoder)?;
+                let encoded_statement =
+                    vir_mid::Statement::split_block(place, None, None, position);
+                self.current_statements.push(encoded_statement);
+            }
+            _ => {
+                self.current_statements
+                    .push(statement.to_middle_statement(self.encoder)?);
+            }
         }
         let new_block = self
             .basic_blocks

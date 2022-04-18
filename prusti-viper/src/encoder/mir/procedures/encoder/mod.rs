@@ -1,4 +1,4 @@
-use self::initialisation::InitializationData;
+use self::{initialisation::InitializationData, specification_blocks::SpecificationBlocks};
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
     borrows::ProcedureContractMirDef,
@@ -47,6 +47,7 @@ use vir_crate::{
 
 mod elaborate_drops;
 mod initialisation;
+mod specification_blocks;
 
 pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     encoder: &mut Encoder<'v, 'tcx>,
@@ -70,6 +71,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let init_data = InitializationData::new(tcx, mir, &move_env);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
     let rd_perm = lifetimes.lifetime_count();
+    let specification_blocks = SpecificationBlocks::build(tcx, mir);
     let mut procedure_encoder = ProcedureEncoder {
         encoder,
         def_id,
@@ -78,6 +80,8 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         move_env: &move_env,
         init_data,
         lifetimes,
+        specification_blocks,
+        specification_block_encoding: Default::default(),
         check_panics: config::check_panics(),
         locals_without_explicit_allocation,
         fresh_id_generator: 0,
@@ -94,6 +98,10 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     move_env: &'p MoveDataParamEnv<'tcx>,
     init_data: InitializationData<'p, 'tcx>,
     lifetimes: Lifetimes,
+    /// Information about the specification blocks.
+    specification_blocks: SpecificationBlocks,
+    /// Specifications to be inserted at the given point.
+    specification_block_encoding: BTreeMap<mir::BasicBlock, Vec<vir_high::Statement>>,
     check_panics: bool,
     /// Locals that are not explicitly allocated or deallocated with
     /// `StorageLive`/`StorageDead`. Such locals are assumed to be alive through
@@ -366,8 +374,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         block_builder.build();
         procedure_builder.set_entry(entry_label);
+        self.encode_specification_blocks()?;
         for (bb, data) in self.mir.basic_blocks().iter_enumerated() {
-            self.encode_basic_block(procedure_builder, bb, data)?;
+            if !self.specification_blocks.is_specification_block(bb) {
+                self.encode_basic_block(procedure_builder, bb, data)?;
+            }
         }
         Ok(())
     }
@@ -1012,7 +1023,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 targets,
                 discr,
                 switch_ty,
-            } => self.encode_terminator_switch_int(span, targets, discr, *switch_ty)?,
+            } => {
+                self.encode_terminator_switch_int(block_builder, span, targets, discr, *switch_ty)?
+            }
             TerminatorKind::Resume => SuccessorBuilder::exit_resume_panic(),
             // TerminatorKind::Abort => {
             //     graph.add_exit_edge(bb, "abort");
@@ -1137,12 +1150,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_terminator_switch_int(
-        &self,
+        &mut self,
+        block_builder: &mut BasicBlockBuilder,
         span: Span,
         targets: &mir::SwitchTargets,
         discr: &mir::Operand<'tcx>,
         switch_ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<SuccessorBuilder> {
+        {
+            // Check whether we should not omit the spec block.
+            let all_targets = targets.all_targets();
+            if all_targets.len() == 2 {
+                if let Some(spec) = all_targets
+                    .iter()
+                    .position(|target| self.specification_blocks.is_specification_block(*target))
+                {
+                    let real_target = all_targets[(spec + 1) % 2];
+                    let spec_target = all_targets[spec];
+                    block_builder.add_comment(format!("Spefication from block: {:?}", spec_target));
+                    block_builder.add_statements(
+                        self.specification_block_encoding
+                            .remove(&spec_target)
+                            .unwrap(),
+                    );
+                    return Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
+                        self.encode_basic_block_label(real_target),
+                    )));
+                }
+            }
+        }
         let discriminant = self
             .encoder
             .encode_operand_high(self.mir, discr)
@@ -1329,7 +1365,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
         cleanup: &Option<mir::BasicBlock>,
     ) -> SpannedEncodingResult<bool> {
-        match called_function {
+        let successor = match called_function {
             "core::panicking::panic" => {
                 let panic_message = format!("{:?}", args[0]);
                 let panic_cause = self.encoder.encode_panic_cause(span)?;
@@ -1344,19 +1380,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 } else {
                     debug!("Absence of panic will not be checked")
                 }
+                assert!(destination.is_none());
+                if let Some(cleanup) = cleanup {
+                    vir_high::Successor::Goto(self.encode_basic_block_label(*cleanup))
+                } else {
+                    unimplemented!();
+                }
             }
             _ => return Ok(false),
-        }
-        if let Some(destination) = destination {
-            unimplemented!("destination: {:?}", destination);
-        }
-        if let Some(cleanup) = cleanup {
-            block_builder.set_successor_jump(vir_high::Successor::Goto(
-                self.encode_basic_block_label(*cleanup),
-            ))
-        } else {
-            unimplemented!();
-        }
+        };
+        block_builder.set_successor_jump(successor);
         Ok(true)
     }
 
@@ -1584,5 +1617,92 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let position = self.register_error(location, error_ctxt.clone());
         self.encoder
             .set_statement_error_ctxt_from_position(statement, position, error_ctxt)
+    }
+
+    fn encode_specification_blocks(&mut self) -> SpannedEncodingResult<()> {
+        // Collect the entry points into the specification blocks.
+        let mut entry_points: BTreeMap<_, _> = self
+            .specification_blocks
+            .entry_points()
+            .map(|bb| (bb, Vec::new()))
+            .collect();
+
+        // Encode the specification blocks.
+        for (bb, statements) in &mut entry_points {
+            self.encode_specification_block(*bb, statements)?;
+        }
+        assert!(self.specification_block_encoding.is_empty());
+        self.specification_block_encoding = entry_points;
+        Ok(())
+    }
+
+    fn encode_specification_block(
+        &mut self,
+        bb: mir::BasicBlock,
+        encoded_statements: &mut Vec<vir_high::Statement>,
+    ) -> SpannedEncodingResult<()> {
+        let block = &self.mir[bb];
+        let span = self.encoder.get_mir_terminator_span(block.terminator());
+        match &block.terminator().kind {
+            mir::TerminatorKind::Call {
+                func: mir::Operand::Constant(box mir::Constant { literal, .. }),
+                args,
+                destination: _,
+                cleanup: _,
+                fn_span: _,
+                from_hir_call: _,
+            } => {
+                if let ty::TyKind::FnDef(def_id, _substs) = literal.ty().kind() {
+                    let full_called_function_name = self.encoder.env().tcx().def_path_str(*def_id);
+                    match full_called_function_name.as_ref() {
+                        "prusti_contracts::prusti_set_union_active_field" => {
+                            assert_eq!(args.len(), 1);
+                            let argument_place = if let mir::Operand::Move(place) = args[0] {
+                                place
+                            } else {
+                                unreachable!()
+                            };
+                            // Find the place whose address was stored in the argument by
+                            // iterating backwards through statements.
+                            let mut statement_index = block.statements.len() - 1;
+                            let union_variant_place = loop {
+                                if let Some(statement) = block.statements.get(statement_index) {
+                                    if let mir::StatementKind::Assign(box (
+                                        target_place,
+                                        mir::Rvalue::AddressOf(_, union_variant_place),
+                                    )) = &statement.kind
+                                    {
+                                        if *target_place == argument_place {
+                                            break union_variant_place;
+                                        }
+                                    }
+                                    statement_index -= 1;
+                                } else {
+                                    unreachable!();
+                                }
+                            };
+                            let encoded_variant_place = self
+                                .encoder
+                                .encode_place_high(self.mir, *union_variant_place)?;
+                            let statement = self.encoder.set_statement_error_ctxt(
+                                vir_high::Statement::set_union_variant_no_pos(
+                                    encoded_variant_place,
+                                ),
+                                span,
+                                ErrorCtxt::SetEnumVariant,
+                                self.def_id,
+                            )?;
+                            statement.check_no_default_position();
+                            encoded_statements.push(statement);
+                        }
+                        _ => unreachable!(),
+                    }
+                } else {
+                    unreachable!();
+                }
+            }
+            _ => unreachable!(),
+        }
+        Ok(())
     }
 }

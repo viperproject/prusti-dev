@@ -17,6 +17,7 @@ impl Positioned for Statement {
             Self::Assign(statement) => statement.position(),
             Self::Consume(statement) => statement.position(),
             Self::LeakAll(statement) => statement.position(),
+            Self::SetUnionVariant(statement) => statement.position(),
             Self::NewLft(statement) => statement.position(),
             Self::EndLft(statement) => statement.position(),
             Self::GhostAssignment(statement) => statement.position(),
@@ -100,6 +101,12 @@ impl Positioned for Consume {
 impl Positioned for LeakAll {
     fn position(&self) -> Position {
         Default::default()
+    }
+}
+
+impl Positioned for SetUnionVariant {
+    fn position(&self) -> Position {
+        self.position
     }
 }
 

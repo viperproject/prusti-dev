@@ -780,11 +780,9 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         let name = encode_struct_name(encoder, adt_def.did());
         // We treat union fields as variants.
         let variant = adt_def.non_enum_variant();
-        let num_variants = variant.fields.len();
-        let discriminant_bounds = (0, num_variants.try_into().unwrap());
-        let discriminant_values = (0..num_variants)
-            .map(|value| value.try_into().unwrap())
-            .collect();
+        let num_variants: i128 = variant.fields.len().try_into().unwrap();
+        let discriminant_bounds = (0, num_variants - 1);
+        let discriminant_values = (0..num_variants).collect();
         let mut variants = Vec::new();
         for field in &variant.fields {
             let field_name = field.ident(tcx).as_str().to_string();
