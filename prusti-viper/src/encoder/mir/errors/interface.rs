@@ -246,6 +246,16 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
                     self.error_ctxt.clone(),
                 )
             }
+            fn fold_operand(&mut self, operand: vir_high::Operand) -> vir_high::Operand {
+                vir_high::Operand {
+                    expression: self.encoder.set_surrounding_error_context_for_expression(
+                        operand.expression,
+                        self.default_position,
+                        self.error_ctxt.clone(),
+                    ),
+                    ..operand
+                }
+            }
         }
         let default_position = self.register_error(span, error_ctxt.clone(), def_id);
         let mut visitor = Visitor {
