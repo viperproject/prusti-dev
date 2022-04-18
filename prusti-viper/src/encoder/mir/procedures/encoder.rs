@@ -1,3 +1,4 @@
+use self::initialisation::InitializationData;
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
     borrows::ProcedureContractMirDef,
@@ -27,6 +28,7 @@ use prusti_interface::environment::{
 use rustc_data_structures::graph::WithStartNode;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty, ty::subst::SubstsRef};
+use rustc_mir_dataflow::{move_paths::LookupResult, on_all_drop_children_bits, MoveDataParamEnv};
 use rustc_span::Span;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
@@ -42,6 +44,9 @@ use vir_crate::{
         operations::ty::Typed,
     },
 };
+
+mod elaborate_drops;
+mod initialisation;
 
 pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     encoder: &mut Encoder<'v, 'tcx>,
@@ -60,12 +65,17 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         ));
     };
     let mir = procedure.get_mir();
+    let tcx = encoder.env().tcx();
+    let move_env = self::initialisation::create_move_data_param_env(tcx, mir, def_id);
+    let init_data = InitializationData::new(tcx, mir, &move_env);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
     let mut procedure_encoder = ProcedureEncoder {
         encoder,
         def_id,
         _procedure: &procedure,
         mir,
+        move_env: &move_env,
+        init_data,
         lifetimes,
         check_panics: config::check_panics(),
         locals_without_explicit_allocation,
@@ -79,6 +89,8 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     def_id: DefId,
     _procedure: &'p Procedure<'tcx>,
     mir: &'p mir::Body<'tcx>,
+    move_env: &'p MoveDataParamEnv<'tcx>,
+    init_data: InitializationData<'p, 'tcx>,
     lifetimes: Lifetimes,
     check_panics: bool,
     /// Locals that are not explicitly allocated or deallocated with
@@ -351,8 +363,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         block_builder.build();
         procedure_builder.set_entry(entry_label);
-        for bb in self.mir.basic_blocks().indices() {
-            self.encode_basic_block(procedure_builder, bb)?;
+        for (bb, data) in self.mir.basic_blocks().iter_enumerated() {
+            self.encode_basic_block(procedure_builder, bb, data)?;
         }
         Ok(())
     }
@@ -366,6 +378,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         procedure_builder: &mut ProcedureBuilder,
         bb: mir::BasicBlock,
+        data: &mir::BasicBlockData<'tcx>,
     ) -> SpannedEncodingResult<()> {
         let label = self.encode_basic_block_label(bb);
         let mut block_builder = procedure_builder.create_basic_block_builder(label);
@@ -373,7 +386,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             statements,
             terminator,
             ..
-        } = &self.mir[bb];
+        } = data;
         let mut location = mir::Location {
             block: bb,
             statement_index: 0,
@@ -899,12 +912,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 SuccessorBuilder::exit_resume_panic()
             }
             // TerminatorKind::DropAndReplace { target, unwind, .. }
-            // | TerminatorKind::Drop { target, unwind, .. } => {
-            //     graph.add_regular_edge(bb, target);
-            //     if let Some(target) = unwind {
-            //         graph.add_unwind_edge(bb, target);
-            //     }
-            // }
+            TerminatorKind::Drop {
+                place,
+                target,
+                unwind,
+            } => {
+                self.encode_terminator_drop(block_builder, location, span, *place, *target, unwind)?
+            }
             TerminatorKind::Call {
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 args,
@@ -1051,6 +1065,97 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(SuccessorBuilder::jump(vir_high::Successor::GotoSwitch(
             successors,
         )))
+    }
+
+    fn encode_terminator_drop(
+        &mut self,
+        block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
+        span: Span,
+        place: mir::Place<'tcx>,
+        target: mir::BasicBlock,
+        unwind: &Option<mir::BasicBlock>,
+    ) -> SpannedEncodingResult<SuccessorBuilder> {
+        self.init_data.seek_before(location);
+        let path = self.move_env.move_data.rev_lookup.find(place.as_ref());
+        debug!(
+            "collect_drop_flags: {:?}, place {:?} ({:?})",
+            location, place, path
+        );
+        let path = match path {
+            LookupResult::Exact(e) => e,
+            LookupResult::Parent(_) => {
+                unimplemented!();
+            }
+        };
+        let mut successor = None;
+        on_all_drop_children_bits(
+            self.encoder.env().tcx(),
+            self.mir,
+            self.move_env,
+            path,
+            |child| {
+                let live_dead = self.init_data.maybe_live_dead(child);
+                debug!(
+                    "collect_drop_flags: collecting {:?} from {:?}@{:?} - {:?}",
+                    child, place, path, live_dead
+                );
+                let target_block = self.encode_basic_block_label(target);
+                successor = Some((|| {
+                    match live_dead {
+                        (true, false) => {
+                            // The place is definitely live, emit the drop
+                            // function call.
+                            //
+                            // FIXME: Assert that the lifetimes used in type
+                            // of the place are alive at this point (by
+                            // exhaling them and inhaling). Do not forget to
+                            // take into account
+                            // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.GenericParamDef.html#structfield.pure_wrt_drop
+                            let argument = vir_high::Operand::new(
+                                vir_high::OperandKind::Move,
+                                self.encoder.encode_place_high(self.mir, place)?,
+                            );
+                            let statement = self.encoder.set_statement_error_ctxt(
+                                vir_high::Statement::consume_no_pos(argument),
+                                span,
+                                ErrorCtxt::DropCall,
+                                self.def_id,
+                            )?;
+                            statement.check_no_default_position();
+                            block_builder.add_statement(statement);
+                            if let Some(unwind_block) = unwind {
+                                let encoded_unwind_block =
+                                    self.encode_basic_block_label(*unwind_block);
+                                Ok(SuccessorBuilder::jump(vir_high::Successor::NonDetChoice(
+                                    target_block,
+                                    encoded_unwind_block,
+                                )))
+                            } else {
+                                Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
+                                    target_block,
+                                )))
+                            }
+                        }
+                        (false, true) => {
+                            // The place is definitely dead, emit just a jump to the next block.
+                            Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
+                                target_block,
+                            )))
+                        }
+                        (true, true) => {
+                            // The place could be either alive or dead. We need a dynamic drop flag.
+                            unimplemented!();
+                        }
+                        (false, false) => {
+                            // This should not be possible.
+                            unreachable!();
+                        }
+                    }
+                })());
+            },
+        );
+        successor.unwrap()
     }
 
     #[allow(clippy::too_many_arguments)]
