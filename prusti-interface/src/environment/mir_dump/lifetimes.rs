@@ -68,16 +68,18 @@ impl Lifetimes {
             })
             .collect()
     }
-    pub fn edge_count(&self) -> u32 {
-        self.facts
-            .input_facts
-            .take()
-            .unwrap()
-            .cfg_edge
-            .len()
-            .try_into()
-            .unwrap()
+    pub fn lifetime_count(&self) -> u32 {
+        let original_lifetimes_count: u32 = self.get_original_lifetimes().len().try_into().unwrap();
+        let borrowck_in_facts = self.borrowck_in_facts();
+        let subset_lifetimes: BTreeSet<Region> = borrowck_in_facts
+            .subset_base
+            .iter()
+            .flat_map(|&(r1, r2, _)| [r1, r2])
+            .collect();
+        let subset_lifetimes_count: u32 = subset_lifetimes.len().try_into().unwrap();
+        original_lifetimes_count + subset_lifetimes_count
     }
+
     fn borrowck_in_facts(&self) -> Ref<AllInputFacts> {
         Ref::map(self.facts.input_facts.borrow(), |facts| {
             facts.as_ref().unwrap()
