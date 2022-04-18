@@ -173,8 +173,15 @@ impl IntoLow for vir_mid::Statement {
                 let discriminant = if let Some(variant_index) = &statement.enum_variant {
                     // TODO: Remove code duplication with JoinBlock variant.
                     let type_decl = lowerer.encoder.get_type_decl_mid(ty)?;
-                    let enum_decl = type_decl.unwrap_enum();
-                    Some(enum_decl.get_discriminant(variant_index).unwrap().into())
+                    match type_decl {
+                        vir_mid::TypeDecl::Enum(decl) => {
+                            Some(decl.get_discriminant(variant_index).unwrap().into())
+                        }
+                        vir_mid::TypeDecl::Union(decl) => {
+                            Some(decl.get_discriminant(variant_index).unwrap().into())
+                        }
+                        _ => unreachable!("type: {}", type_decl),
+                    }
                 } else {
                     None
                 };

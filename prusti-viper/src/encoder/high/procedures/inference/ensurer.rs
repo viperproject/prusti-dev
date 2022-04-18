@@ -268,18 +268,32 @@ fn ensure_permission_in_state(
     } else if permission_kind == PermissionKind::MemoryBlock
         && can_place_be_ensured_in(context, &place, PermissionKind::Owned, predicate_state)?
     {
-        let places = predicate_state.collect_owned_with_prefix(&place)?;
-        if places.is_empty() {
-            // We have Owned and we need MemoryBlock. Fully unfold.
-            // PROBLEM: we don't have a place here for a deref and it will recursively call itself without doing anything
-            unimplemented!("Deref not yet supported");
-        }
-        for place in places {
+        // We have Owned and we need MemoryBlock.
+        if predicate_state.contains_prefix_of(PermissionKind::Owned, &place) {
+            // We have Owned that contains the place we need. Unfold as we need
+            // and convert into MemoryBlock.
+            ensure_permission_in_state(
+                context,
+                predicate_state,
+                place.clone(),
+                PermissionKind::Owned,
+                actions,
+            )?;
             predicate_state.remove(PermissionKind::Owned, &place)?;
             predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
             actions.push(Action::owned_into_memory_block(place));
+        } else {
+            // We have a mix of Owned and MemoryBlock. Convert all Owned into
+            // MemoryBlock and then obtain the MemoryBlock we need.
+            let places = predicate_state.collect_owned_with_prefix(&place)?;
+            assert!(!places.is_empty(), "Something went wrong.");
+            for place in places {
+                predicate_state.remove(PermissionKind::Owned, &place)?;
+                predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
+                actions.push(Action::owned_into_memory_block(place));
+            }
+            ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?;
         }
-        ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?;
     } else if permission_kind == PermissionKind::Owned
         && can_place_be_ensured_in(
             context,

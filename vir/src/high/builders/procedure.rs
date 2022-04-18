@@ -149,6 +149,11 @@ impl<'a> BasicBlockBuilder<'a> {
         statement.check_no_default_position();
         self.statements.push(statement);
     }
+    pub fn add_statements(&mut self, statements: Vec<vir_high::Statement>) {
+        for statement in statements {
+            self.add_statement(statement);
+        }
+    }
     pub fn set_successor(&mut self, successor: SuccessorBuilder) {
         assert!(self.successor == SuccessorBuilder::Undefined);
         self.successor = successor;

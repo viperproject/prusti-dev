@@ -76,6 +76,9 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::LeakAll(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::SetUnionVariant(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
             vir_high::Statement::NewLft(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
@@ -463,6 +466,28 @@ impl CollectPermissionChanges for vir_high::LeakAll {
         _consumed_permissions: &mut Vec<Permission>,
         _produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::SetUnionVariant {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        // FIXME: The place is provided by the user. Therefore, instead of just
+        // unwrapping we should check that we got the variant of an union and
+        // report an error if that is not the case.
+        let parent = self
+            .variant_place
+            .get_parent_ref()
+            .unwrap()
+            .get_parent_ref()
+            .unwrap();
+        consumed_permissions.push(Permission::MemoryBlock(parent.clone()));
+        produced_permissions.push(Permission::MemoryBlock(self.variant_place.clone()));
         Ok(())
     }
 }
