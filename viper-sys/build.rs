@@ -712,6 +712,18 @@ fn main() {
                 method!("extractedHeaps"),
                 method!("extractedModel"),
                 method!("modelAtLabel"),
+                method!("domains"),
+                method!("non_domain_functions"),
+            ]),
+            java_class!("viper.silicon.reporting.DomainEntry", vec![
+                method!("name"),
+                method!("functions"),
+            ]),
+            java_class!("viper.silicon.reporting.ExtractedFunction", vec![
+                method!("toString"),
+                method!("fname"),
+                method!("options"),
+                method!("default"),
             ]),
             java_class!("viper.silicon.reporting.ExtractedModel", vec![
                 method!("entries"),
@@ -748,6 +760,10 @@ fn main() {
             java_class!("viper.silicon.reporting.SeqEntry", vec![
                 method!("name"),
                 method!("values"),
+            ]),
+            java_class!("viper.silicon.reporting.DomainValueEntry", vec![
+                method!("domain"),
+                method!("id"),
             ]),
             java_class!("viper.silicon.reporting.ExtractedHeap", vec![
                 method!("entries"),
