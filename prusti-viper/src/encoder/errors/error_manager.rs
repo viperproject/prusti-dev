@@ -127,7 +127,9 @@ pub enum ErrorCtxt {
     /// Failed to call a drop handler.
     DropCall,
     /// Failed to encode lifetimes
-    LifetimeEncoding
+    LifetimeEncoding,
+    /// Failed to encode LifetimeTake
+    LifetimeTake,
 }
 
 /// The error manager
