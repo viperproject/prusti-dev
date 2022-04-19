@@ -552,7 +552,18 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     let viper_elems = elems.iter().map(|e| e.to_viper(ast)).collect::<Vec<_>>();
                     ast.explicit_seq(&viper_elems)
                 }
-            }
+            },
+            Expr::Map(ty, elems, _pos) => {
+                let (key_ty, val_ty) = force_matches!(ty, Type::Map(box k, box v) => (k, v));
+                let viper_key_ty = key_ty.to_viper(ast);
+                let viper_val_ty = val_ty.to_viper(ast);
+                if elems.is_empty() {
+                    ast.empty_map(viper_key_ty, viper_val_ty)
+                } else {
+                    let viper_elems = elems.iter().map(|e| e.to_viper(ast)).collect::<Vec<_>>();
+                    ast.explicit_map(&viper_elems)
+                }
+            },
             Expr::Unfolding(
                 ref predicate_name,
                 ref args,

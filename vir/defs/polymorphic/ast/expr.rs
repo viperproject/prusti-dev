@@ -126,7 +126,7 @@ __unary_op__! {
 
 macro_rules! __binary_op__ {
     ($($fn_name:ident $kind_name:ident),*) => {
-        impl Expr{$(
+        impl Expr {$(
             #[allow(clippy::should_implement_trait)]
             pub fn $fn_name(left: Expr, right: Expr) -> Self {
                 Expr::BinOp(BinOp {

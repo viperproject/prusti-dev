@@ -2895,7 +2895,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .collect::<Vec<_>>();
 
             let rhs = match suffix {
-                "empty" => todo!(),
+                "empty" => vir::Expr::Map(vir::Map {
+                    typ,
+                    elements: vec![],
+                    position,
+                }),
                 "insert" => todo!(),
                 "delete" => todo!(),
                 _ => unreachable!("no further map functions."),

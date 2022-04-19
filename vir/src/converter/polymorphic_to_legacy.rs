@@ -254,7 +254,14 @@ impl From<polymorphic::Expr> for legacy::Expr {
                     .collect(),
                 seq.position.into(),
             ),
-            polymorphic::Expr::Map(_map) => unimplemented!("hope that legacy isn't used"),
+            polymorphic::Expr::Map(map) => legacy::Expr::Map(
+                map.typ.into(),
+                map.elements
+                    .into_iter()
+                    .map(Into::into)
+                    .collect(),
+                map.position.into(),
+            ),
             polymorphic::Expr::Unfolding(unfolding) => legacy::Expr::Unfolding(
                 unfolding.predicate.name(),
                 unfolding
