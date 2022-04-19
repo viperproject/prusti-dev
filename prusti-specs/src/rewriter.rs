@@ -7,7 +7,7 @@ use proc_macro2::{TokenStream, Span};
 use syn::{Type, punctuated::Punctuated, Pat, Token, parse_quote_spanned};
 use syn::spanned::Spanned;
 use quote::{quote_spanned, format_ident};
-use crate::extensions::{HasSignature};
+use crate::common::HasSignature;
 use crate::specifications::preparser::{
     parse_prusti,
     parse_prusti_pledge, parse_prusti_assert_pledge,

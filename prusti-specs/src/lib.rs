@@ -10,7 +10,6 @@
 mod common;
 mod parse_quote_spanned;
 mod span_overrider;
-mod extensions;
 mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
@@ -32,8 +31,8 @@ use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
 use prusti_utils::force_matches;
 pub use extern_spec_rewriter::ExternSpecKind;
+use crate::common::{RewritableReceiver, SelfTypeRewriter};
 use crate::specifications::preparser::{NestedSpec, parse_ghost_constraint};
-use crate::extensions::{RewriteMethodReceiver, SelfRewriter, AssociatedTypeRewritable};
 use crate::predicate::{is_predicate_macro, ParsedPredicate};
 
 macro_rules! handle_result {
@@ -416,9 +415,9 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                         x => unimplemented!("Unexpected variant: {:?}", x),
                     })
                     .map(|mut spec_item_fn| {
-                        spec_item_fn.rewrite_receiver(&self_type_path);
-                        spec_item_fn.rewrite_self_type_to_new_type(self_type_path, &trait_path);
-                        spec_item_fn.rewrite_self(None)
+                        spec_item_fn.rewrite_self_type(self_type_path, Some(&trait_path));
+                        spec_item_fn.rewrite_receiver(self_type_path);
+                        spec_item_fn
                     })
                     .for_each(|spec_item_fn| generated_spec_items.push(spec_item_fn));
 
@@ -442,9 +441,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                     _ => unreachable!(),
                 };
 
-                spec_function.rewrite_receiver(&*impl_block.self_ty);
-                let patched_function = spec_function.rewrite_self(None);
-                generated_spec_items.push(patched_function);
+                spec_function.rewrite_receiver(self_type_path);
+                generated_spec_items.push(spec_function);
 
                 // Add patched predicate function to new items
                 new_items.push(syn::ImplItem::Method(predicate.patched_function));

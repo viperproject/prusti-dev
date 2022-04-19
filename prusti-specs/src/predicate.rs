@@ -1,10 +1,10 @@
 //! Predicate parsing
 
-use crate::{extensions::HasSignature, rewriter, SpecificationId};
+use crate::{rewriter, SpecificationId};
 use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use syn::{parse::Parse, parse_quote_spanned, spanned::Spanned};
-use crate::extensions::HasMacro;
+use crate::common::{HasMacro, HasSignature};
 
 #[derive(Debug)]
 pub struct PredicateWithBody<T: ToTokens> {
@@ -56,7 +56,7 @@ impl ToTokens for ParsedPredicate {
     }
 }
 
-pub fn is_predicate_macro<T: HasMacro>(makro: &T) -> bool {
+pub(crate) fn is_predicate_macro<T: HasMacro>(makro: &T) -> bool {
     makro
         .mac()
         .path
