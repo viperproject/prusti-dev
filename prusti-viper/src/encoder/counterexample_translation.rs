@@ -1,5 +1,6 @@
 use rustc_hash::{FxHashMap};
 
+use log::{debug};
 
 use viper::silicon_counterexample::*;
 
@@ -148,7 +149,9 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         let mut entries_to_process = vec![];
         for vdi in &self.var_debug_info {
             let rust_name = vdi.name.to_ident_string();
+            debug!("Rust name: {:?}", rust_name);
             let span = vdi.source_info.span;
+            debug!("Span: {:?}", span);
             let local: mir::Local = if let mir::VarDebugInfoContents::Place(place) = vdi.value {
                 if let Some(local) = place.as_local() {
                     local
@@ -159,10 +162,15 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 continue;
             };
             let index = local.index();
+            debug!("Index: {:?}", index);
             let var_local = Local::from(local);
+            debug!("var_local: {:?}", var_local);
             let typ = self.local_variable_manager.get_type(var_local);
+            debug!("Type: {:?}", typ);
             let is_arg = index > 0 && index <= self.mir.arg_count;
+            debug!("is_arg: {:?}", is_arg);
             let vir_name = self.local_variable_manager.get_name(var_local);
+            debug!("vir_name: {:?}", vir_name);
             entries_to_process.push((rust_name.clone(), span, vir_name.clone(), typ, is_arg));
         }
         entries_to_process

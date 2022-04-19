@@ -1,14 +1,17 @@
 use rustc_hash::FxHashMap;
 
-use jni::{objects::{JObject, JValue}, JNIEnv};
+use jni::{objects::JObject, JNIEnv};
 use jni_utils::JniUtils;
 use viper_sys::wrappers::{scala, viper::silicon};
+
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SiliconCounterexample {
     //pub heap: Heap,
     //pub old_heaps: FxHashMap<String, Heap>,
     pub model: Model,
+    pub functions: Functions,
+    pub domains: Domains,
     pub old_models: FxHashMap<String, Model>,
     // label_order because HashMaps do not guarantee order of elements
     // whereas the Map used in scala does guarantee it
@@ -63,15 +66,39 @@ pub enum ModelEntry {
     LitInt(String),
     LitFloat(String),
     LitBool(bool),
-    LitPerm(f64),
+    LitPerm(String),
     Ref(String, FxHashMap<String, ModelEntry>),
     NullRef(String),
     RecursiveRef(String),
     Var(String),
     Seq(String, Vec<ModelEntry>), // not necessarily supported
     Other(String, String),
+    DomainValue(String, String),
     UnprocessedModel, // do not use these at all
 }
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Functions{
+    pub entries: FxHashMap<String, FunctionEntry>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FunctionEntry{
+    pub options: Vec<(Vec<Option<ModelEntry>>,Option<ModelEntry>)>,
+    pub default: Option<ModelEntry>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Domains{
+    pub entries: FxHashMap<String, DomainEntry>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DomainEntry{
+    pub functions: Functions,
+}
+
+
 
 // methods unwrapping scala converter to newly defined structures
 
@@ -83,7 +110,7 @@ fn unwrap_counterexample<'a>(
     let converter_wrapper = silicon::reporting::Converter::with(env);
     let ce_wrapper = silicon::interfaces::SiliconMappedCounterexample::with(env);
     let converter_original = jni.unwrap_result(ce_wrapper.call_converter(counterexample));
-
+    
     /*
     let heap_scala = jni.
         unwrap_result(
@@ -117,10 +144,22 @@ fn unwrap_counterexample<'a>(
         .map(|(label, m)| (label, unwrap_model(env, jni, m)))
         .collect::<FxHashMap<_, _>>();
 
+
+    let functions_scala = jni.unwrap_result(converter_wrapper.call_non__domain__functions(converter_original));
+    debug!("Print functions: {:?}", jni.to_string(functions_scala));
+    let functions = unwrap_functions(env, jni, functions_scala);
+    
+    let domains_scala = jni.unwrap_result(converter_wrapper.call_domains(converter_original));
+    debug!("Print domains: {:?}", jni.to_string(domains_scala));
+    let domains = unwrap_domains(env, jni, domains_scala);
+
+
     SiliconCounterexample {
         //heap,
         //old_heaps,
         model,
+        functions,
+        domains,
         old_models,
         label_order: jni.stringmap_to_keyvec(old_models_scala),
     }
@@ -222,9 +261,13 @@ fn unwrap_model_entry<'a>(
         }
         "viper.silicon.reporting.LitPermEntry" => {
             let lit_perm_wrapper = silicon::reporting::LitPermEntry::with(env);
-            let jvalue = jni.unwrap_result(lit_perm_wrapper.call_value(entry));
-            let value = jni.unwrap_result(JValue::from(jvalue).d());
-            Some(ModelEntry::LitPerm(value))
+            //let rational_wrapper = silicon::state::terms::Rational::with(env);
+            let value = jni.to_string(jni.unwrap_result(lit_perm_wrapper.call_value(entry))); //not very elegant
+            debug!("LitPermEntry: {:?}", value);
+            //let numerator = jni.to_string(jni.unwrap_result(rational_wrapper.call_numerator(jvalue))).parse();
+            //let denominator = jni.unwrap_result(rational_wrapper.call_denominator(jvalue));
+            //let value = numerator/denominator;
+            Some(ModelEntry::LitPerm(value)) 
         }
         "viper.silicon.reporting.RefEntry" => {
             let ref_wrapper = silicon::reporting::RefEntry::with(env);
@@ -278,6 +321,89 @@ fn unwrap_model_entry<'a>(
                 .collect();
             Some(ModelEntry::Seq(name, res))
         }
+        "viper.silicon.reporting.DomainValueEntry" => {
+            let domain_wrapper = silicon::reporting::DomainValueEntry::with(env);
+            let domain = jni.to_string(jni.unwrap_result(domain_wrapper.call_domain(entry)));
+            let id = jni.to_string(jni.unwrap_result(domain_wrapper.call_id(entry)));
+            Some(ModelEntry::DomainValue(domain, id))
+        }
         _ => None,
     }
+}
+
+fn unwrap_functions<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, functions: JObject<'a>) -> Functions {
+    let functions_wrapper = silicon::reporting::ExtractedFunction::with(env);
+    let entries_scala = jni.seq_to_vec(functions);
+    let mut entries = FxHashMap::default();
+    for entry_scala in entries_scala{
+        let fname = jni.to_string(jni.unwrap_result(functions_wrapper.call_fname(entry_scala)));
+        let entry = unwrap_function_entry(env, jni, entry_scala, &functions_wrapper);
+        entries.insert(fname,entry);
+    }
+    Functions{entries}
+}
+
+
+fn unwrap_function_entry<'a>(
+    env: &'a JNIEnv<'a>,
+    jni: JniUtils<'a>,
+    entry: JObject<'a>,
+    functions_wrapper: &silicon::reporting::ExtractedFunction
+) -> FunctionEntry {
+    let default_scala = jni.unwrap_result(functions_wrapper.call_default(entry));
+    debug!("default value: {:?}", jni.to_string(default_scala));
+    let mut tmp = FxHashMap::default(); //We don't care about recusivley unwrapped ModelEntries
+    //Since default is always a ConstantEntry, tmp is empty anyway
+    let default = unwrap_model_entry(env, jni, default_scala, &mut tmp);
+    debug!("default value translated: {:?}", default);
+
+    let iter_wrapper = scala::collection::Iterable::with(env);
+    let options_scala = jni.unwrap_result(functions_wrapper.call_options(entry));
+    let options_scala_seq = jni.unwrap_result(iter_wrapper.call_toSeq(options_scala));
+    let options = jni.seq_to_vec(options_scala_seq)
+            .into_iter()
+            .map( | entry | {
+                unwrap_option_entry(env, jni, entry)
+            }
+        ).collect::<Vec<_>>();
+    FunctionEntry { options, default }
+}
+fn unwrap_option_entry<'a>(
+    env: &'a JNIEnv<'a>,
+    jni: JniUtils<'a>,
+    entry: JObject<'a>,
+) -> (Vec<Option<ModelEntry>>, Option<ModelEntry>) {
+    let product_wrapper = scala::Product::with(env);
+    let args_scala = jni.unwrap_result(product_wrapper.call_productElement(entry, 0));
+    let result_scala = jni.unwrap_result(product_wrapper.call_productElement(entry, 1));
+    debug!("args: {:?}", jni.to_string(args_scala));
+    debug!("result: {:?}", jni.to_string(result_scala));
+    let args = jni.list_to_vec(args_scala).into_iter()
+    .map(| arg | {
+        let mut tmp = FxHashMap::default();
+        let arg = unwrap_model_entry(env, jni, arg, &mut tmp);
+        arg
+    }).collect::<Vec<_>>();
+    debug!("args translated: {:?}", args);
+    let mut tmp = FxHashMap::default(); //We don't care about recusivley unwrapped ModelEntries
+    //Since default is always a ConstantEntry, tmp is empty anyway
+    let result = unwrap_model_entry(env, jni, result_scala, &mut tmp);
+    debug!("result translated: {:?}", result);
+    (args, result)
+}
+
+fn unwrap_domains<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, domains: JObject<'a>) -> Domains {
+    let domains_wrapper = silicon::reporting::DomainEntry::with(env);
+    let entries_scala = jni.seq_to_vec(domains);
+    let mut entries = FxHashMap::default();
+    for entry_scala in entries_scala{
+        let dname = jni.to_string(jni.unwrap_result(domains_wrapper.call_name(entry_scala)));
+
+        debug!("Domain Name: {:?}", dname);
+        let functions_scala = jni.unwrap_result(domains_wrapper.call_functions(entry_scala));
+        let entry = unwrap_functions(env, jni, functions_scala);
+        debug!("functions from domain: {:?}", entry);
+        entries.insert(dname,DomainEntry{functions: entry});
+    }
+    Domains{entries}
 }
