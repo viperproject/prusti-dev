@@ -391,8 +391,23 @@ impl IntoLow for vir_mid::Statement {
                 )];
                 Ok(statements)
             }
-            Self::LifetimeTake(_statement) => {
-                unimplemented!();
+            Self::LifetimeTake(statement) => {
+                let targets = vec![vir_low::Expression::local_no_pos(
+                    statement.target.to_procedure_snapshot(lowerer)?,
+                )];
+                let mut arguments: Vec<vir_low::Expression> = Vec::new();
+                for variable_decl in statement.value {
+                    arguments.push(vir_low::Expression::local_no_pos(
+                        variable_decl.to_procedure_snapshot(lowerer)?,
+                    ));
+                }
+                let statements = vec![Statement::method_call(
+                    String::from("lft_tok_sep_take"),
+                    arguments,
+                    targets,
+                    statement.position,
+                )];
+                Ok(statements)
             }
         }
     }

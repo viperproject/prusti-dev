@@ -486,10 +486,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         constraints: BTreeSet<String>,
     ) -> SpannedEncodingResult<()> {
         let encoded_target = self.encode_lft_variable(lifetime)?;
-        let lifetimes: Vec<vir_high::ty::LifetimeConst> = constraints
-            .into_iter()
-            .map(|name| vir_high::ty::LifetimeConst { name })
-            .collect();
+        let mut lifetimes: Vec<vir_high::VariableDecl> = Vec::new();
+        for lifetime_name in constraints {
+            lifetimes.push(self.encode_lft_variable(lifetime_name)?);
+        }
         block_builder.add_statement(self.set_statement_error(
             location,
             ErrorCtxt::LifetimeEncoding,
