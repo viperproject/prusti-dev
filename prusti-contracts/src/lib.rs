@@ -98,6 +98,10 @@ mod private {
     /// A macro to add trait bounds on a generic type parameter and specifications
     /// which are active only when these bounds are satisfied for a call.
     pub use prusti_contracts_internal::ghost_constraint;
+
+    pub fn prusti_set_union_active_field<T>(_arg: T) {
+        unreachable!();
+    }
 }
 
 /// This function is used to evaluate an expression in the context just

@@ -1103,13 +1103,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             source_value.clone().into(),
                             position,
                         )?;
+                        let address = expr! { ComputeAddress::compute_address(source_place, source_address) };
                         self.encode_fully_join_memory_block(
+                            &mut statements,
+                            ty,
+                            address.clone(),
+                            position,
+                        )?;
+                        statements.push(stmtp! { position =>
+                            call write_place<ty>(target_place, target_address, source_value)
+                        });
+                        let to_bytes = ty! { Bytes };
+                        let memory_block_bytes =
+                            self.encode_memory_block_bytes_expression(address, size_of.clone())?;
+                        statements.push(stmtp! { position =>
+                            assert ([memory_block_bytes] == (Snap<ty>::to_bytes(source_value)))
+                        });
+                        self.encode_fully_split_memory_block(
                             &mut statements,
                             ty,
                             expr! { ComputeAddress::compute_address(source_place, source_address) },
                             position,
                         )?;
-                        statements.push(stmtp! { position => call write_place<ty>(target_place, target_address, source_value)});
                         self.encode_fully_fold_owned_non_aliased(
                             &mut statements,
                             ty,
@@ -1464,6 +1479,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             } else {
                 let mut helper = SplitJoinHelper::new(false);
                 helper.walk_type(ty, (), self)?;
+                let to_bytes = ty! { Bytes };
+                var_decls! { address: Address };
+                let size_of = self.encode_type_size_expression(ty)?;
+                let memory_block_bytes =
+                    self.encode_memory_block_bytes_expression(address.into(), size_of)?;
+                let bytes_quantifier = expr! {
+                    forall(
+                        snapshot: {ty.to_snapshot(self)?} ::
+                        [ { (Snap<ty>::to_bytes(snapshot)) } ]
+                        ((old([memory_block_bytes])) == (Snap<ty>::to_bytes(snapshot))) ==>
+                        [ helper.field_to_bytes_equalities.into_iter().conjoin() ]
+                    )
+                };
+                helper.postconditions.push(bytes_quantifier);
                 vir_low::MethodDecl::new(
                     method_name! { memory_block_split<ty> },
                     vars! { address: Address },
