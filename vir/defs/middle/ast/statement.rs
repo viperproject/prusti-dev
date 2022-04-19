@@ -33,6 +33,7 @@ pub enum Statement {
     NewLft(NewLft),
     EndLft(EndLft),
     GhostAssignment(GhostAssignment),
+    LifetimeTake(LifetimeTake),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -216,5 +217,13 @@ pub struct EndLft {
 pub struct GhostAssignment {
     pub target: VariableDecl,
     pub value: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "{} := shorten_lifetime({:?}, {})", target, value, rd_perm)]
+pub struct LifetimeTake {
+    pub target: VariableDecl,
+    pub value: Vec<LifetimeConst>,
+    pub rd_perm: u32,
     pub position: Position,
 }

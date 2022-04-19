@@ -69,6 +69,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let move_env = self::initialisation::create_move_data_param_env(tcx, mir, def_id);
     let init_data = InitializationData::new(tcx, mir, &move_env);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
+    let rd_perm = lifetimes.lifetime_count();
     let mut procedure_encoder = ProcedureEncoder {
         encoder,
         def_id,
@@ -80,6 +81,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         check_panics: config::check_panics(),
         locals_without_explicit_allocation,
         fresh_id_generator: 0,
+        rd_perm,
     };
     procedure_encoder.encode()
 }
@@ -98,6 +100,7 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// the entire body of the function.
     locals_without_explicit_allocation: BTreeSet<mir::Local>,
     fresh_id_generator: usize,
+    rd_perm: u32,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -369,11 +372,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
-    fn read_permission_amount(&mut self) -> u32 {
-        // TODO: count lifetimes, not cfg_edges
-        self.lifetimes.edge_count()
-    }
-
     fn encode_basic_block(
         &mut self,
         procedure_builder: &mut ProcedureBuilder,
@@ -422,11 +420,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         original_lifetimes: &mut BTreeSet<String>,
         derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<()> {
-        let (new_lifetimes, ended_lifetimes, new_derived_lifetimes) =
+        let (new_lifetimes, ended_lifetimes, introduced_derived_lifetimes) =
             self.update_lifetimes(original_lifetimes, derived_lifetimes, location);
         self.encode_end_lft(block_builder, location, ended_lifetimes)?;
         self.encode_new_lft(block_builder, location, new_lifetimes)?;
-        self.encode_lft_assignment(block_builder, location, new_derived_lifetimes)?;
+        self.encode_lft_assignments(block_builder, location, introduced_derived_lifetimes)?;
         Ok(())
     }
 
@@ -464,28 +462,67 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    fn encode_lft_intersection(
+        &mut self,
+        lifetimes: BTreeSet<String>,
+    ) -> SpannedEncodingResult<vir_high::Expression> {
+        let mut iter = lifetimes.into_iter();
+        let mut intersection = self.encode_lft_variable(iter.next().unwrap())?.into();
+        for name in iter {
+            intersection = vir_high::Expression::binary_op_no_pos(
+                vir_high::BinaryOpKind::LifetimeIntersection,
+                intersection,
+                self.encode_lft_variable(name)?.into(),
+            );
+        }
+        Ok(intersection)
+    }
+
+    fn encode_lifetime_take(
+        &mut self,
+        block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
+        lifetime: String,
+        constraints: BTreeSet<String>,
+    ) -> SpannedEncodingResult<()> {
+        let encoded_target = self.encode_lft_variable(lifetime)?;
+        let lifetimes: Vec<vir_high::ty::LifetimeConst> = constraints
+            .into_iter()
+            .map(|name| vir_high::ty::LifetimeConst { name })
+            .collect();
+        block_builder.add_statement(self.set_statement_error(
+            location,
+            ErrorCtxt::LifetimeEncoding,
+            vir_high::Statement::lifetime_take_no_pos(encoded_target, lifetimes, self.rd_perm),
+        )?);
+        Ok(())
+    }
+
     fn encode_lft_assignment(
+        &mut self,
+        block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
+        lifetime: String,
+        constraints: BTreeSet<String>,
+    ) -> SpannedEncodingResult<()> {
+        let encoded_target = self.encode_lft_variable(lifetime)?;
+        let intersection = self.encode_lft_intersection(constraints)?;
+        block_builder.add_statement(self.set_statement_error(
+            location,
+            ErrorCtxt::LifetimeEncoding,
+            vir_high::Statement::ghost_assignment_no_pos(encoded_target, intersection),
+        )?);
+        Ok(())
+    }
+
+    fn encode_lft_assignments(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
         lifetimes: BTreeMap<String, BTreeSet<String>>,
     ) -> SpannedEncodingResult<()> {
         for (lifetime, constraints) in lifetimes {
-            let encoded_target = self.encode_lft_variable(lifetime)?;
-            let mut iter = constraints.into_iter();
-            let mut intersection = self.encode_lft_variable(iter.next().unwrap())?.into();
-            for name in iter {
-                intersection = vir_high::Expression::binary_op_no_pos(
-                    vir_high::BinaryOpKind::LifetimeIntersection,
-                    intersection,
-                    self.encode_lft_variable(name)?.into(),
-                );
-            }
-            block_builder.add_statement(self.set_statement_error(
-                location,
-                ErrorCtxt::LifetimeEncoding,
-                vir_high::Statement::ghost_assignment_no_pos(encoded_target, intersection),
-            )?);
+            self.encode_lft_assignment(block_builder, location, lifetime, constraints)?;
         }
         Ok(())
     }
@@ -625,13 +662,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     }
                 );
                 let encoded_place = self.encoder.encode_place_high(self.mir, *place)?;
-                let rd_perm = self.read_permission_amount();
                 let region_name = region.to_text();
                 let encoded_rvalue = vir_high::Rvalue::ref_(
                     encoded_place,
                     vir_high::ty::LifetimeConst::new(region_name),
                     is_mut,
-                    rd_perm,
+                    self.rd_perm,
                     encoded_target.clone(),
                 );
                 let assign_statement = vir_high::Statement::assign(
@@ -877,6 +913,85 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(kind)
     }
 
+    fn needed_derived_lifetimes_for_block(
+        &mut self,
+        bb: &mir::BasicBlock,
+    ) -> BTreeMap<String, BTreeSet<String>> {
+        let first_location = mir::Location {
+            block: *bb,
+            statement_index: 0,
+        };
+        self.lifetimes
+            .get_origin_contains_loan_at_mid(first_location)
+    }
+
+    fn needed_original_lifetimes_for_block(&mut self, bb: &mir::BasicBlock) -> BTreeSet<String> {
+        let first_location = mir::Location {
+            block: *bb,
+            statement_index: 0,
+        };
+        self.lifetimes.get_loan_live_at_start(first_location)
+    }
+
+    fn encode_merge_blocks_new_lft(
+        &mut self,
+        target: mir::BasicBlock,
+        location: mir::Location,
+        block_builder: &mut BasicBlockBuilder,
+    ) -> SpannedEncodingResult<()> {
+        let needed_original_lifetimes = self.needed_original_lifetimes_for_block(&target);
+        let current_original_lifetimes = self.lifetimes.get_loan_live_at_start(location);
+        let difference_original_lifetimes: BTreeSet<String> = needed_original_lifetimes
+            .difference(&current_original_lifetimes)
+            .cloned()
+            .collect();
+        self.encode_new_lft(block_builder, location, difference_original_lifetimes)?;
+        Ok(())
+    }
+
+    fn encode_merge_blocks_shorten_lifetime(
+        &mut self,
+        target: mir::BasicBlock,
+        location: mir::Location,
+        block_builder: &mut BasicBlockBuilder,
+    ) -> SpannedEncodingResult<()> {
+        let needed_derived_lifetimes = self.needed_derived_lifetimes_for_block(&target);
+        let current_derived_lifetimes = self.lifetimes.get_origin_contains_loan_at_mid(location);
+        for (derived_lifetime, needed_derived_from) in needed_derived_lifetimes {
+            if current_derived_lifetimes
+                .get(&derived_lifetime[..])
+                .is_some()
+            {
+                self.encode_lifetime_take(
+                    block_builder,
+                    location,
+                    derived_lifetime,
+                    needed_derived_from,
+                )?;
+            } else {
+                // TODO: check if/when this case happens
+                self.encode_lft_assignment(
+                    block_builder,
+                    location,
+                    derived_lifetime,
+                    needed_derived_from,
+                )?;
+            }
+        }
+        Ok(())
+    }
+
+    fn encode_merge_blocks(
+        &mut self,
+        target: mir::BasicBlock,
+        location: mir::Location,
+        block_builder: &mut BasicBlockBuilder,
+    ) -> SpannedEncodingResult<()> {
+        self.encode_merge_blocks_new_lft(target, location, block_builder)?;
+        self.encode_merge_blocks_shorten_lifetime(target, location, block_builder)?;
+        Ok(())
+    }
+
     fn encode_terminator(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
@@ -887,9 +1002,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.encoder.get_span_of_location(self.mir, location);
         use rustc_middle::mir::TerminatorKind;
         let successor = match &terminator.kind {
-            TerminatorKind::Goto { target } => SuccessorBuilder::jump(vir_high::Successor::Goto(
-                self.encode_basic_block_label(*target),
-            )),
+            TerminatorKind::Goto { target } => {
+                self.encode_merge_blocks(*target, location, block_builder)?;
+                SuccessorBuilder::jump(vir_high::Successor::Goto(
+                    self.encode_basic_block_label(*target),
+                ))
+            }
             TerminatorKind::SwitchInt {
                 targets,
                 discr,
