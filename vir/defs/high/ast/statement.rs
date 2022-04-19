@@ -27,6 +27,7 @@ pub enum Statement {
     WriteAddress(WriteAddress),
     Assign(Assign),
     LeakAll(LeakAll),
+    SetUnionVariant(SetUnionVariant),
     NewLft(NewLft),
     EndLft(EndLft),
     GhostAssignment(GhostAssignment),
@@ -170,6 +171,12 @@ pub struct Assign {
 /// Tells fold-unfold to leak all predicates. This marks the end of the
 /// unwinding path.
 pub struct LeakAll {}
+
+#[display(fmt = "set-union-variant {}", variant_place)]
+pub struct SetUnionVariant {
+    pub variant_place: Expression,
+    pub position: Position,
+}
 
 #[display(fmt = "{} = newlft()", target)]
 pub struct NewLft {
