@@ -2876,7 +2876,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let ass = vir::Stmt::Assign(vir::Assign {
                 target: encoded_target,
                 source: rhs,
-                kind: vir::AssignKind::Copy,
+                kind: vir::AssignKind::Ghost,
             });
 
             stmts.push(ass);
@@ -2900,15 +2900,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     elements: vec![],
                     position,
                 }),
-                "insert" => todo!(),
-                "delete" => todo!(),
+                //"insert" => vir::Expr::ContainerOp(vir::ContainerOp {
+                //    op_kind: vir::ContainerOpKind::MapUpdate,
+                //    left: Box::new(encoded_args[0].clone()),
+                //    right: todo!("take the key/value arguments and construct a maplet"),
+                //    position,
+                //}),
+                "delete" => todo!("is there a corresponding operation in viper ir?"),
                 _ => unreachable!("no further map functions."),
             };
 
             let ass = vir::Stmt::Assign(vir::Assign {
                 target: encoded_target,
                 source: rhs,
-                kind: vir::AssignKind::Copy,
+                kind: vir::AssignKind::Ghost,
             });
 
             stmts.push(ass);

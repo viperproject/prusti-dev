@@ -2,9 +2,10 @@ use prusti_contracts::*;
 
 fn test_construct_maps() {
     ghost! {
-        let m0: Map<u32, u32> = Map::empty();
+        //let m0: Map<u32, u32> = Map::empty();
         //let m1 = m0.insert(0, 0);
         //let m2 = m1.delete(0);
+        assert!(Map::<u32, u32>::empty() == Map::<u32, u32>::empty());
     }
 }
 
