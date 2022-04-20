@@ -31,7 +31,7 @@ use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
 use prusti_utils::force_matches;
 pub use extern_spec_rewriter::ExternSpecKind;
-use crate::common::{RewritableReceiver, SelfTypeRewriter};
+use crate::common::{merge_generics, RewritableReceiver, SelfTypeRewriter};
 use crate::specifications::preparser::{NestedSpec, parse_ghost_constraint};
 use crate::predicate::{is_predicate_macro, ParsedPredicate};
 
@@ -377,6 +377,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
 pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let mut impl_block: syn::ItemImpl = handle_result!(syn::parse2(tokens));
+    let impl_generics = &impl_block.generics;
 
     let trait_path: syn::TypePath = match &impl_block.trait_ {
         Some((_, trait_path, _)) => parse_quote_spanned!(trait_path.span()=>#trait_path),
@@ -415,6 +416,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                         x => unimplemented!("Unexpected variant: {:?}", x),
                     })
                     .map(|mut spec_item_fn| {
+                        merge_generics(&mut spec_item_fn.sig.generics, impl_generics);
                         spec_item_fn.rewrite_self_type(self_type_path, Some(&trait_path));
                         spec_item_fn.rewrite_receiver(self_type_path);
                         spec_item_fn
