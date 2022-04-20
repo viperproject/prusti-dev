@@ -16,24 +16,35 @@ mod syn_extensions {
     /// Trait which signals that the corresponding syn item contains generics
     pub(crate) trait HasGenerics {
         fn generics(&self) -> &Generics;
+        fn generics_mut(&mut self) -> &mut Generics;
+    }
+
+    impl HasGenerics for Generics {
+        fn generics(&self) -> &Generics {
+            self
+        }
+        fn generics_mut(&mut self) -> &mut Generics { self }
     }
 
     impl HasGenerics for ItemTrait {
         fn generics(&self) -> &Generics {
             &self.generics
         }
+        fn generics_mut(&mut self) -> &mut Generics { &mut self.generics }
     }
 
     impl HasGenerics for ItemStruct {
         fn generics(&self) -> &Generics {
             &self.generics
         }
+        fn generics_mut(&mut self) -> &mut Generics { &mut self.generics }
     }
 
     impl HasGenerics for ItemImpl {
         fn generics(&self) -> &syn::Generics {
             &self.generics
         }
+        fn generics_mut(&mut self) -> &mut Generics { &mut self.generics }
     }
 
     /// Abstraction over everything that has a [syn::Signature]
@@ -310,6 +321,18 @@ mod receiver_rewriter {
             makro.tokens = self.rewrite_tokens(makro.tokens.clone());
             syn::visit_mut::visit_macro_mut(self, makro);
         }
+    }
+}
+
+/// Copies the [syn::Generics] of `source` to the generics of `target`
+pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
+    let generics_target = target.generics_mut();
+    let generics_source = source.generics();
+
+    generics_target.params.extend(generics_source.params.clone());
+    if let (Some(target_where), Some(source_where)) =
+        (generics_target.where_clause.as_mut(), generics_source.where_clause.as_ref()) {
+        target_where.predicates.extend(source_where.predicates.clone());
     }
 }
 
