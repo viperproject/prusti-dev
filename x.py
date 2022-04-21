@@ -16,6 +16,7 @@ import time
 import json 
 import signal
 import shutil
+import datetime
 
 verbose = False
 dry_run = False
@@ -210,11 +211,14 @@ def get_env():
     return env
 
 
-def run_command(args, env=None, cwd=None, on_exit=None):
+def run_command(args, env=None, cwd=None, on_exit=None, report_time=False):
     """Run a command with the given arguments."""
     if env is None:
         env = get_env()
+    start_time = datetime.datetime.now()
     completed = subprocess.run(args, env=env, cwd=cwd)
+    if report_time:
+        print(datetime.datetime.now() - start_time)
     if on_exit is not None:
         on_exit()
     if completed.returncode != 0:
@@ -480,7 +484,8 @@ def verify_test(args):
     run_command(
         [prusti_path, '--edition=2018', test_path] + compile_flags,
         env,
-        on_exit=lambda : generate_launch_json('log/config/prusti-rustc-args', 'log/config/prusti-rustc-env')
+        on_exit=lambda : generate_launch_json('log/config/prusti-rustc-args', 'log/config/prusti-rustc-env'),
+        report_time=True,
     )
 
 def generate_launch_json(args_file, env_file):
