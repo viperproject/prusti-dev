@@ -17,9 +17,9 @@ pub use self::{
         },
         rvalue::{Operand, OperandKind, Rvalue},
         statement::{
-            Assert, Assign, Assume, Comment, Consume, CopyPlace, EndLft, Exhale, GhostAssignment,
-            Inhale, LeakAll, LifetimeTake, MovePlace, NewLft, OldLabel, SetUnionVariant, Statement,
-            WriteAddress, WritePlace,
+            Assert, Assign, Assume, CloseMutRef, Comment, Consume, CopyPlace, EndLft, Exhale,
+            GhostAssignment, Inhale, LeakAll, LifetimeTake, MovePlace, NewLft, OldLabel,
+            OpenMutRef, SetUnionVariant, Statement, WriteAddress, WritePlace,
         },
         ty::{self, Type},
         type_decl::{self, DiscriminantRange, DiscriminantValue, TypeDecl},

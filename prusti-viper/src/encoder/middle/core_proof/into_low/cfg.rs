@@ -401,6 +401,12 @@ impl IntoLow for vir_mid::Statement {
             Self::LifetimeTake(_statement) => {
                 unimplemented!();
             }
+            Self::OpenMutRef(_statement) => {
+                unimplemented!();
+            }
+            Self::CloseMutRef(_statement) => {
+                unimplemented!();
+            }
         }
     }
 }
