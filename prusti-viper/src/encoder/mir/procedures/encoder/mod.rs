@@ -821,6 +821,60 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    fn encode_close_mut_ref(
+        &mut self,
+        block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
+        deref_base: &Option<vir_high::Expression>,
+        object: vir_high::Expression,
+    ) -> SpannedEncodingResult<()> {
+        if let Some(base) = deref_base {
+            if let vir_high::ty::Type::Reference(vir_high::ty::Reference { lifetime, .. }) =
+                base.get_type()
+            {
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::CloseMutRef,
+                    vir_high::Statement::close_mut_ref_no_pos(
+                        lifetime.clone(),
+                        self.rd_perm,
+                        object,
+                    ),
+                )?);
+            } else {
+                unreachable!();
+            };
+        }
+        Ok(())
+    }
+
+    fn encode_open_mut_ref(
+        &mut self,
+        block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
+        deref_base: &Option<vir_high::Expression>,
+        object: vir_high::Expression,
+    ) -> SpannedEncodingResult<()> {
+        if let Some(base) = deref_base {
+            if let vir_high::ty::Type::Reference(vir_high::ty::Reference { lifetime, .. }) =
+                base.get_type()
+            {
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::OpenMutRef,
+                    vir_high::Statement::open_mut_ref_no_pos(
+                        lifetime.clone(),
+                        self.rd_perm,
+                        object,
+                    ),
+                )?);
+            } else {
+                unreachable!();
+            }
+        }
+        Ok(())
+    }
+
     fn encode_assign_operand(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
@@ -829,22 +883,48 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         operand: &mir::Operand<'tcx>,
     ) -> SpannedEncodingResult<()> {
         let span = self.encoder.get_span_of_location(self.mir, location);
+
+        let deref_base: Option<vir_high::Expression> = match &encoded_target {
+            vir_high::Expression::Deref(vir_high::Deref { box base, .. }) => Some(base.clone()),
+            _ => None,
+        };
+        self.encode_open_mut_ref(block_builder, location, &deref_base, encoded_target.clone())?;
+
         match operand {
             mir::Operand::Move(source) => {
                 let encoded_source = self.encoder.encode_place_high(self.mir, *source)?;
                 block_builder.add_statement(self.set_statement_error(
                     location,
                     ErrorCtxt::MovePlace,
-                    vir_high::Statement::move_place_no_pos(encoded_target, encoded_source),
+                    vir_high::Statement::move_place_no_pos(encoded_target.clone(), encoded_source),
                 )?);
             }
             mir::Operand::Copy(source) => {
                 let encoded_source = self.encoder.encode_place_high(self.mir, *source)?;
+
+                let deref_base: Option<vir_high::Expression> = match &encoded_source {
+                    vir_high::Expression::Deref(vir_high::Deref { box base, .. }) => {
+                        Some(base.clone())
+                    }
+                    _ => None,
+                };
+                self.encode_open_mut_ref(
+                    block_builder,
+                    location,
+                    &deref_base,
+                    encoded_source.clone(),
+                )?;
+
                 block_builder.add_statement(self.set_statement_error(
                     location,
                     ErrorCtxt::CopyPlace,
-                    vir_high::Statement::copy_place_no_pos(encoded_target, encoded_source),
+                    vir_high::Statement::copy_place_no_pos(
+                        encoded_target.clone(),
+                        encoded_source.clone(),
+                    ),
                 )?);
+
+                self.encode_close_mut_ref(block_builder, location, &deref_base, encoded_source)?;
             }
             mir::Operand::Constant(constant) => {
                 let encoded_constant = self
@@ -854,10 +934,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 block_builder.add_statement(self.set_statement_error(
                     location,
                     ErrorCtxt::WritePlace,
-                    vir_high::Statement::write_place_no_pos(encoded_target, encoded_constant),
+                    vir_high::Statement::write_place_no_pos(
+                        encoded_target.clone(),
+                        encoded_constant,
+                    ),
                 )?);
             }
         }
+
+        self.encode_close_mut_ref(block_builder, location, &deref_base, encoded_target)?;
+
         Ok(())
     }
 
