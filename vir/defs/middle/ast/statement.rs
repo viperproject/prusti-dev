@@ -34,6 +34,8 @@ pub enum Statement {
     EndLft(EndLft),
     GhostAssignment(GhostAssignment),
     LifetimeTake(LifetimeTake),
+    OpenMutRef(OpenMutRef),
+    CloseMutRef(CloseMutRef),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -225,5 +227,21 @@ pub struct LifetimeTake {
     pub target: VariableDecl,
     pub value: Vec<LifetimeConst>,
     pub rd_perm: u32,
+    pub position: Position,
+}
+
+#[display(fmt = "open_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+pub struct OpenMutRef {
+    pub lifetime: LifetimeConst,
+    pub rd_perm: u32,
+    pub object: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "close_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+pub struct CloseMutRef {
+    pub lifetime: LifetimeConst,
+    pub rd_perm: u32,
+    pub object: Expression,
     pub position: Position,
 }
