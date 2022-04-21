@@ -113,6 +113,7 @@ lazy_static! {
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
         settings.set_default("enable_ghost_constraints", false).unwrap();
+        settings.set_default("enable_iterators", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("disable_name_mangling", false).unwrap();
@@ -599,4 +600,9 @@ pub fn intern_names() -> bool {
 /// Enables ghost constraint parsing and resolving.
 pub fn enable_ghost_constraints() -> bool {
     read_setting("enable_ghost_constraints")
+}
+
+/// Enables (experimental) iterator support
+pub fn enable_iterators() -> bool {
+    read_setting("enable_iterators")
 }

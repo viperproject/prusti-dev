@@ -2196,9 +2196,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         "std::iter::Iterator::next" |
-                        "core::iter::Iterator::next" => {
+                        "core::iter::Iterator::next" if !config::enable_iterators() => {
                             return Err(SpannedEncodingError::unsupported(
-                                "iterators are not fully supported yet",
+                                "iterators are not fully supported yet, enable them with a feature flag",
                                 term.source_info.span,
                             ));
                         }
