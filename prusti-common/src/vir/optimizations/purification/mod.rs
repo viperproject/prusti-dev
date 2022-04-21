@@ -203,7 +203,21 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
             && targets.len() == 1
             && self.targets.contains(&targets[0].name)
         {
-            Stmt::comment(format!("replaced havoc call for {:?}", targets))
+            let target = &targets[0];
+            let target_name = force_matches!(target.typ, Type::TypedRef(..) => target.typ.name());
+            match target_name.as_str() {
+                "bool" => Stmt::MethodCall(ast::MethodCall {
+                    method_name: "builtin$havoc_bool".to_string(),
+                    arguments,
+                    targets: vec![ast::LocalVar::new(&target.name, Type::Bool)],
+                }),
+                "i32" | "usize" | "u32" => Stmt::MethodCall(ast::MethodCall {
+                    method_name: "builtin$havoc_int".to_string(),
+                    arguments,
+                    targets: vec![ast::LocalVar::new(&target.name, Type::Int)],
+                }),
+                x => unreachable!("{}", x),
+            }
         } else {
             Stmt::MethodCall(ast::MethodCall {
                 method_name,
