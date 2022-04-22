@@ -1,10 +1,11 @@
 //! Common code for spec-rewriting
 
 use std::borrow::BorrowMut;
-use syn::{GenericParam, parse_quote};
+use std::collections::{HashMap, HashSet};
+use proc_macro2::Ident;
+use syn::{GenericParam, parse_quote, TypeParam};
 use syn::spanned::Spanned;
 use uuid::Uuid;
-use prusti_utils::force_matches;
 pub(crate) use syn_extensions::*;
 pub(crate) use self_type_rewriter::*;
 pub(crate) use receiver_rewriter::*;
@@ -331,24 +332,32 @@ pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
     let generics_target = target.generics_mut();
     let generics_source = source.generics();
 
-    // This is not particularly fast or "elegant", but we can expect a reasonably
-    // small amount of type parameters in general (n < 10)
+    // Merge all type params
+    let mut existing_target_type_params: HashMap<Ident, &mut TypeParam> = HashMap::new();
+    let mut new_generic_params: HashSet<GenericParam> = HashSet::new();
+    for param_target in generics_target.params.iter_mut() {
+        if let GenericParam::Type(type_param_target) = param_target {
+            existing_target_type_params.insert(type_param_target.ident.clone(), type_param_target);
+        }
+    }
+
     for param_source in generics_source.params.iter() {
         // Lifetimes and consts are currently not handled
         if let GenericParam::Type(type_param_source) = param_source {
-            let in_target = generics_target.params.iter_mut()
-                .find(|gp| match gp {
-                    GenericParam::Type(tp) => tp.ident.eq(&type_param_source.ident),
-                    _ => false
-                }
-                ).map(|gp| force_matches!(gp, GenericParam::Type(tp) => tp));
-            match in_target {
-                Some(target_type_param) => target_type_param.bounds.extend(type_param_source.bounds.clone()),
-                None => generics_target.params.push(GenericParam::Type(type_param_source.clone()))
+            // We can remove the target type param here, because the source will not have the
+            // same type param with the same identifiers
+            let maybe_type_param_source = existing_target_type_params.remove(&type_param_source.ident);
+            if let Some(type_param_target) = maybe_type_param_source {
+                type_param_target.bounds.extend(type_param_source.bounds.clone());
+            } else {
+                new_generic_params.insert(GenericParam::Type(type_param_source.clone()));
             }
         }
     }
 
+    generics_target.params.extend(new_generic_params);
+
+    // Merge the where clause
     match (generics_target.where_clause.as_mut(), generics_source.where_clause.as_ref()) {
         (Some(target_where), Some(source_where)) => target_where.predicates.extend(source_where.predicates.clone()),
         (None, Some(source_where)) => generics_target.where_clause = Some(source_where.clone()),
