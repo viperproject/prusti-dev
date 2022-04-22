@@ -9,9 +9,16 @@ struct TwoPSet {
 }
 
 #[extern_spec]
-impl HashSet<u64> {
+impl<T, S> HashSet<T, S>
+where
+    T: Eq + std::hash::Hash,
+    S: std::hash::BuildHasher,
+{
     #[pure]
-    pub fn contains(&self, value: &u64) -> bool;
+    pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
+    where
+        T: std::borrow::Borrow<Q>,
+        Q: std::hash::Hash + Eq;
 }
 
 impl TwoPSet {

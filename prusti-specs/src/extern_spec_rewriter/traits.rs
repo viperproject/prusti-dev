@@ -3,11 +3,8 @@ use crate::{ExternSpecKind, parse_quote_spanned};
 use crate::specifications::common::generate_struct_name_for_trait;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
-use std::collections::HashMap;
 use syn::{parse_quote, spanned::Spanned};
 use super::common::*;
-
-type AssocTypesToGenericsMap<'a> = HashMap<&'a syn::Ident, syn::TypeParam>;
 
 /// Generates a struct for a `syn::ItemTrait` which is used for checking
 /// compilation of external specs on traits.
@@ -15,19 +12,15 @@ type AssocTypesToGenericsMap<'a> = HashMap<&'a syn::Ident, syn::TypeParam>;
 /// Given an extern spec for traits
 /// ```rust
 /// #[extern_spec]
-/// trait SomeTrait {
-///     type ArgTy;
-///     type RetTy;
-///
+/// trait SomeTrait<T> {
 ///     fn foo(&self, arg: Self::ArgTy) -> Self::RetTy;
 /// }
 /// ```
 /// it produces a struct
 /// ```rust
-/// struct Aux<TSelf, TArgTy, TRetTy> {
-///     // phantom data for TSelf, TArgTy, TRetTy
+/// struct Aux<T, TSelf> where TSelf: SomeTrait {
+///     // phantom data for T, TSelf
 /// }
-/// where TSelf: SomeTrait<ArgTy = TArgTy, RetTy = TRetTy>
 /// ```
 /// and a corresponding impl block with methods of `SomeTrait`.
 ///
@@ -53,6 +46,12 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
         #[allow(non_camel_case_types)] struct #struct_ident {}
     };
 
+    // Add a new type parameter to struct which represents an implementation of the trait
+    let self_type_ident = syn::Ident::new("Prusti_T_Self", item_trait.span());
+    new_struct.generics.params.push(syn::GenericParam::Type(
+        parse_quote!(#self_type_ident),
+    ));
+
     let parsed_generics = parse_trait_type_params(item_trait)?;
     // Generic type parameters are added as generics to the struct
     for parsed_generic in parsed_generics.iter() {
@@ -61,48 +60,17 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
         }
     }
 
-    // Find associated types in trait
-    let mut assoc_types_to_generics_map = HashMap::new();
-    let associated_type_decls = get_associated_types(item_trait);
-
-    for &decl in associated_type_decls.iter() {
-        if decl.default.is_some() {
-            return Err(syn::Error::new(decl.span(), "Defaults for associated types in external trait specs are invalid"));
-        }
-    }
-
-    for associated_type_decl in associated_type_decls {
-        let associated_type_ident = &associated_type_decl.ident;
-        let generic_ident = syn::Ident::new(
-            format!("Prusti_T_{}", associated_type_ident).as_str(),
-            associated_type_ident.span(),
-        );
-        let type_param: syn::TypeParam =
-            parse_quote_spanned! {associated_type_ident.span()=> #generic_ident };
-        assoc_types_to_generics_map.insert(associated_type_ident, type_param);
-    }
-
-    // Add them as generics
-    assoc_types_to_generics_map
-        .values()
-        .map(|param| syn::GenericParam::Type(param.clone()))
-        .for_each(|generic_param| new_struct.generics.params.push(generic_param));
-
-    // Add a new type parameter to struct which represents an implementation of the trait
-    let self_type_param_ident = syn::Ident::new("Prusti_T_Self", item_trait.span());
-    new_struct.generics.params.push(syn::GenericParam::Type(
-        parse_quote!(#self_type_param_ident),
-    ));
+    let self_type_trait: syn::TypePath = parse_quote_spanned! {item_trait.span()=>
+        #trait_ident :: <#(#parsed_generics),*>
+    };
 
     // Add a where clause which restricts this self type parameter to the trait
     if item_trait.generics.where_clause.as_ref().is_some() {
         let span = item_trait.generics.where_clause.as_ref().unwrap().span();
         return Err(syn::Error::new(span, "Where clauses for extern traits specs are not supported"));
     }
-    let trait_assoc_type_idents = assoc_types_to_generics_map.keys();
-    let trait_assoc_type_generics = assoc_types_to_generics_map.values();
     let self_where_clause: syn::WhereClause = parse_quote! {
-        where #self_type_param_ident: #trait_ident <#(#parsed_generics),* #(#trait_assoc_type_idents = #trait_assoc_type_generics),*>
+        where #self_type_ident: #self_type_trait
     };
     new_struct.generics.where_clause = Some(self_where_clause);
 
@@ -111,9 +79,8 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
     Ok(GeneratedStruct {
         generated_struct: new_struct,
         item_trait,
-        assoc_types_to_generics_map,
-        self_type_param_ident,
-        parsed_generics,
+        self_type_ident,
+        self_type_trait,
     })
 }
 
@@ -135,10 +102,9 @@ fn parse_trait_type_params(item_trait: &syn::ItemTrait) -> syn::Result<Vec<Provi
 
 struct GeneratedStruct<'a> {
     item_trait: &'a syn::ItemTrait,
-    assoc_types_to_generics_map: AssocTypesToGenericsMap<'a>,
-    self_type_param_ident: syn::Ident,
+    self_type_ident: syn::Ident,
+    self_type_trait: syn::TypePath,
     generated_struct: syn::ItemStruct,
-    parsed_generics: Vec<ProvidedTypeParam>
 }
 
 impl<'a> GeneratedStruct<'a> {
@@ -167,13 +133,16 @@ impl<'a> GeneratedStruct<'a> {
         for trait_item in self.item_trait.items.iter() {
             match trait_item {
                 syn::TraitItem::Type(_) => {
-                    // Ignore associated types, they are encoded as generics in the struct
+                    return Err(syn::Error::new(
+                        trait_item.span(),
+                        "Associated types in external trait specs should not be declared",
+                    ));
                 }
                 syn::TraitItem::Method(trait_method) => {
                     if trait_method.default.is_some() {
                         return Err(syn::Error::new(
                             trait_method.default.as_ref().unwrap().span(),
-                            "Default methods in external trait specs are invalid"
+                            "Default methods in external trait specs are invalid",
                         ));
                     }
 
@@ -190,15 +159,22 @@ impl<'a> GeneratedStruct<'a> {
     /// Generates a "stub" implementation for a trait method
     fn generate_method_stub(&self, trait_method: &syn::TraitItemMethod) -> syn::ImplItemMethod {
         let mut trait_method_sig = trait_method.sig.clone();
+        let self_type_ident = &self.self_type_ident;
+        let self_type_trait = &self.self_type_trait;
+        let trait_method_ident = &trait_method_sig.ident;
+
+        // Create the method signature
+        let method_path: syn::ExprPath = parse_quote_spanned! {trait_method_ident.span()=>
+            <#self_type_ident as #self_type_trait> :: #trait_method_ident
+        };
 
         // Rewrite occurrences of associated types in signature to defined generics
-        let self_ty_ident = &self.self_type_param_ident;
-        AssociatedTypeRewriter::new(
-            parse_quote! { #self_ty_ident },
-            &self.assoc_types_to_generics_map,
-        )
-            .rewrite_method_sig(&mut trait_method_sig);
-        let trait_method_ident = &trait_method_sig.ident;
+        let self_type_path = parse_quote_spanned! {self_type_ident.span()=> #self_type_ident };
+        let mut rewriter = AssociatedTypeRewriter::new(
+            &self_type_path,
+            &self.self_type_trait,
+        );
+        rewriter.rewrite_method_sig(&mut trait_method_sig);
 
         // Rewrite "self" to "_self" in method attributes and method inputs
         let mut trait_method_attrs = trait_method.attrs.clone();
@@ -206,15 +182,13 @@ impl<'a> GeneratedStruct<'a> {
             .iter_mut()
             .for_each(|attr| attr.tokens = rewrite_self(attr.tokens.clone()));
         let trait_method_inputs =
-            rewrite_method_inputs(&self.self_type_param_ident, &mut trait_method_sig.inputs);
+            rewrite_method_inputs(&self.self_type_ident, &mut trait_method_sig.inputs);
 
-        // Create the method signature
-        let trait_ident = &self.item_trait.ident;
-        let parsed_generics = &self.parsed_generics;
-        let self_param_ident = &self.self_type_param_ident;
-        let method_path: syn::ExprPath = parse_quote_spanned! {trait_method_ident.span()=>
-            <#self_param_ident as #trait_ident :: <#(#parsed_generics),*> > :: #trait_method_ident
-        };
+        // We need to rewrite `Self` in the attributes tokens as well
+        // to account for ghost constraints with a bound on `Self`
+        for attr in trait_method_attrs.iter_mut() {
+            rewriter.rewrite_attribute(attr);
+        }
 
         // Create method
         let extern_spec_kind_string: String = ExternSpecKind::Trait.into();
@@ -229,16 +203,6 @@ impl<'a> GeneratedStruct<'a> {
             }
         };
     }
-}
-
-fn get_associated_types(item_trait: &syn::ItemTrait) -> Vec<&syn::TraitItemType> {
-    let mut result = vec![];
-    for trait_item in item_trait.items.iter() {
-        if let syn::TraitItem::Type(assoc_type) = trait_item {
-            result.push(assoc_type);
-        }
-    }
-    result
 }
 
 #[derive(Debug)]

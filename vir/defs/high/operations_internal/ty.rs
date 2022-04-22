@@ -1,6 +1,7 @@
 use super::super::ast::{
     expression::{visitors::ExpressionFolder, *},
     ty::{visitors::TypeFolder, *},
+    type_decl::DiscriminantValue,
 };
 use rustc_hash::FxHashMap;
 
@@ -18,8 +19,20 @@ impl Type {
                 arguments,
                 variant: Some(variant),
             }),
-            Type::Enum(Enum { .. }) => {
+            Type::Union(Union {
+                name,
+                arguments,
+                variant: None,
+            }) => Type::Union(Union {
+                name,
+                arguments,
+                variant: Some(variant),
+            }),
+            Type::Enum(_) => {
                 unreachable!("setting variant on enum type that already has variant set");
+            }
+            Type::Union(_) => {
+                unreachable!("setting variant on union type that already has variant set");
             }
             _ => {
                 unreachable!("setting variant on non-enum type");
@@ -39,11 +52,41 @@ impl Type {
                 arguments: arguments.clone(),
                 variant: None,
             })),
+            Type::Union(Union {
+                name,
+                arguments,
+                variant: Some(_),
+            }) => Some(Type::Union(Union {
+                name: name.clone(),
+                arguments: arguments.clone(),
+                variant: None,
+            })),
             _ => None,
         }
     }
     pub fn is_heap_primitive(&self) -> bool {
         self.is_bool() || self.is_int() || self.is_float()
+    }
+    pub fn has_variants(&self) -> bool {
+        match self {
+            Type::Enum(enum_ty) => enum_ty.variant.is_none(),
+            Type::Union(union_ty) => union_ty.variant.is_none(),
+            _ => false,
+        }
+    }
+    pub fn erase_lifetime(&mut self) {
+        if let Type::Reference(reference) = self {
+            reference.lifetime = LifetimeConst {
+                name: String::from("pure_erased"),
+            };
+        }
+    }
+    pub fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+        if let Type::Reference(reference) = self {
+            vec![reference.lifetime.clone()]
+        } else {
+            Vec::new()
+        }
     }
 }
 
@@ -70,6 +113,29 @@ impl super::super::ast::type_decl::Enum {
                     .unwrap_or(false)
             })
         }
+    }
+    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<DiscriminantValue> {
+        self.iter_discriminant_variants()
+            .find(|(_, variant)| variant_index.as_ref() == variant.name)
+            .map(|(discriminant, _)| discriminant)
+    }
+    pub fn iter_discriminant_variants(
+        &self,
+    ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
+        self.discriminant_values.iter().cloned().zip(&self.variants)
+    }
+}
+
+impl super::super::ast::type_decl::Union {
+    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<DiscriminantValue> {
+        self.iter_discriminant_variants()
+            .find(|(_, variant)| variant_index.as_ref() == variant.name)
+            .map(|(discriminant, _)| discriminant)
+    }
+    pub fn iter_discriminant_variants(
+        &self,
+    ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
+        self.discriminant_values.iter().cloned().zip(&self.variants)
     }
 }
 
@@ -304,7 +370,8 @@ impl Typed for BinaryOp {
             | BinaryOpKind::Sub
             | BinaryOpKind::Mul
             | BinaryOpKind::Div
-            | BinaryOpKind::Mod => {
+            | BinaryOpKind::Mod
+            | BinaryOpKind::LifetimeIntersection => {
                 let ty1 = self.left.get_type();
                 let ty2 = self.right.get_type();
                 assert_eq!(ty1, ty2, "expr: {:?}", self);

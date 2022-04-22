@@ -36,4 +36,6 @@ pub enum Successor {
     Goto(BasicBlockId),
     #[display(fmt = "switch")]
     GotoSwitch(Vec<(Expression, BasicBlockId)>),
+    #[display(fmt = "non-det-switch")]
+    NonDetChoice(BasicBlockId, BasicBlockId),
 }

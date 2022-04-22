@@ -7,12 +7,16 @@
 #![allow(clippy::iter_with_drain)]
 
 #[macro_use]
+mod common;
 mod parse_quote_spanned;
 mod span_overrider;
 mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
 mod spec_attribute_kind;
+mod ghost_constraints;
+mod type_model;
+mod user_provided_type_params;
 pub mod specifications;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
@@ -26,6 +30,7 @@ use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
 use prusti_utils::force_matches;
 pub use extern_spec_rewriter::ExternSpecKind;
+use crate::specifications::preparser::{NestedSpec, parse_ghost_constraint};
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
@@ -48,7 +53,8 @@ fn extract_prusti_attributes(
                     SpecAttributeKind::Requires
                     | SpecAttributeKind::Ensures
                     | SpecAttributeKind::AfterExpiry
-                    | SpecAttributeKind::AssertOnExpiry => {
+                    | SpecAttributeKind::AssertOnExpiry
+                    | SpecAttributeKind::GhostConstraint => {
                         // We need to drop the surrounding parenthesis to make the
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
@@ -140,6 +146,7 @@ fn generate_spec_and_assertions(
             // only exists so we successfully parse it and emit an error in
             // `check_incompatible_attrs`; so we'll never reach here.
             SpecAttributeKind::Predicate => unreachable!(),
+            SpecAttributeKind::GhostConstraint => ghost_constraints::generate(attr_tokens, item),
         };
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
@@ -374,6 +381,16 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
             syn::ImplItem::Method(method) => {
                 let mut method_item = untyped::AnyFnItem::ImplMethod(method);
                 let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item);
+
+                let illegal_attribute_span = prusti_attributes.iter()
+                    .filter(|(kind, _)| kind == &SpecAttributeKind::GhostConstraint)
+                    .map(|(_, tokens)| tokens.span())
+                    .next();
+                if let Some(span) = illegal_attribute_span {
+                    let err = Err(syn::Error::new(span, "Ghost constraints in trait spec refinements not supported"));
+                    handle_result!(err);
+                }
+
                 let (spec_items, generated_attributes) = handle_result!(
                     generate_spec_and_assertions(prusti_attributes, &method_item)
                 );
@@ -500,5 +517,18 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
         #[prusti::trusted]
         #[prusti::pred_spec_id_ref = #spec_id_str]
         #cleaned_fn
+    }
+}
+
+pub fn type_model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let item: syn::Item = handle_result!(syn::parse2(tokens));
+
+    match item {
+        syn::Item::Struct(item_struct) => {
+            handle_result!(type_model::rewrite(item_struct))
+        }
+        _ => {
+            unimplemented!("Only structs can be attributed with 'model'")
+        }
     }
 }

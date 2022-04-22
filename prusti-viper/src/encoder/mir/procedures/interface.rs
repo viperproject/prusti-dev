@@ -1,4 +1,4 @@
-use crate::encoder::errors::SpannedEncodingResult;
+use crate::encoder::{errors::SpannedEncodingResult, mir::spans::SpanInterface};
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
@@ -37,7 +37,7 @@ impl<'v, 'tcx: 'v> MirProcedureEncoderInterface<'tcx> for super::super::super::E
         Ok(procedure)
     }
     fn get_span_of_location(&self, mir: &mir::Body<'tcx>, location: mir::Location) -> Span {
-        mir.source_info(location).span
+        self.get_mir_location_span(mir, location)
     }
     fn decode_procedure_def_id(&self, procedure_name: &str) -> DefId {
         self.mir_procedure_encoder_state.encoded_procedure_def_ids[procedure_name]
