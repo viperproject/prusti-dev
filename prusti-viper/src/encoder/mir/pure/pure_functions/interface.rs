@@ -276,36 +276,37 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             );
 
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
-                let proc_kind = self.get_proc_kind(proc_def_id, Some(substs));
-
-                let mut function = if self.is_trusted(proc_def_id, Some(substs)) {
-                    pure_function_encoder.encode_bodyless_function()?
-                } else {
-                    match proc_kind {
-                        ProcedureSpecificationKind::Predicate(Some(predicate_body)) => {
-                            pure_function_encoder.encode_predicate_function(&predicate_body)?
-                        }
-                        ProcedureSpecificationKind::Predicate(None) => {
-                            pure_function_encoder.encode_bodyless_function()?
-                        }
-                        ProcedureSpecificationKind::Pure => {
-                            let function = pure_function_encoder.encode_function()?;
-                            // Test the new encoding.
-                            let _ = super::new_encoder::encode_function_decl(
-                                self,
-                                proc_def_id,
-                                proc_def_id,
-                                substs,
-                            )?;
-                            function
-                        }
-                        ProcedureSpecificationKind::Impure => {
-                            unreachable!("trying to encode an impure function in pure encoder")
-                        }
+                let (mut function, needs_patching) = match (
+                    self.is_trusted(proc_def_id, Some(substs)),
+                    self.get_proc_kind(proc_def_id, Some(substs)),
+                ) {
+                    // Predicates with bodies are always trusted because checking their body
+                    // is not necessary. The body of a predicate still needs to be encoded
+                    // though as opposed to other trusted functions.
+                    (_, ProcedureSpecificationKind::Predicate(Some(predicate_body))) => (
+                        pure_function_encoder.encode_predicate_function(&predicate_body)?,
+                        false,
+                    ),
+                    (true, _) | (_, ProcedureSpecificationKind::Predicate(None)) => {
+                        (pure_function_encoder.encode_bodyless_function()?, false)
+                    }
+                    (_, ProcedureSpecificationKind::Pure) => {
+                        let function = pure_function_encoder.encode_function()?;
+                        // Test the new encoding.
+                        let _ = super::new_encoder::encode_function_decl(
+                            self,
+                            proc_def_id,
+                            proc_def_id,
+                            substs,
+                        )?;
+                        (function, true)
+                    }
+                    (_, ProcedureSpecificationKind::Impure) => {
+                        unreachable!("trying to encode an impure function in pure encoder")
                     }
                 };
 
-                if matches!(proc_kind, ProcedureSpecificationKind::Pure) {
+                if needs_patching {
                     self.mirror_encoder
                         .borrow_mut()
                         .encode_mirrors(proc_def_id, &mut function);
