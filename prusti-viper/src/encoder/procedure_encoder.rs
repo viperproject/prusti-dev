@@ -607,12 +607,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn block_assert_to_assume(&mut self, block: &CfgBlockIndex) {
         let bb = &mut self.cfg_method.basic_blocks[block.block_index];
         for stmt in &mut bb.stmts {
-            match stmt {
-                vir::Stmt::Assert(assert) => {
-                    let expr = assert.expr.clone();
-                    *stmt = vir::Stmt::Inhale(vir::Inhale { expr });
-                }
-                _ => (),
+            if let vir::Stmt::Assert(assert) = stmt {
+                let expr = assert.expr.clone();
+                *stmt = vir::Stmt::Inhale(vir::Inhale { expr });
             }
         }
         match bb.successor.clone() {
