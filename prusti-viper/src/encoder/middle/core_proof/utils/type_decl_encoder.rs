@@ -19,6 +19,7 @@ pub(in super::super) trait TypeDeclWalker {
             vir_mid::Type::Bool
             | vir_mid::Type::Int(_)
             | vir_mid::Type::Float(_)
+            | vir_mid::Type::Reference(_)
             | vir_mid::Type::Pointer(_) => self.before_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
             vir_mid::Type::Tuple(_)
@@ -34,7 +35,6 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::Type::Enum(_)
             | vir_mid::Type::Union(_) => self.before_composite(ty, parameters, lowerer),
             // vir_mid::Type::Array(Array) => {},
-            // vir_mid::Type::Reference(Reference) => {},
             // vir_mid::Type::Never => {},
             // vir_mid::Type::Closure(Closure) => {},
             // vir_mid::Type::Unsupported(Unsupported) => {},
@@ -168,6 +168,7 @@ pub(in super::super) trait TypeDeclWalker {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
+            | vir_mid::TypeDecl::Reference(_)
             | vir_mid::TypeDecl::Pointer(_) => {
                 self.walk_primitive(ty, &parameters, lowerer)?;
             }
@@ -193,7 +194,6 @@ pub(in super::super) trait TypeDeclWalker {
                 self.walk_uion(ty, decl, &parameters, lowerer)?;
             }
             // vir_mid::TypeDecl::Array(Array) => {},
-            // vir_mid::TypeDecl::Reference(Reference) => {},
             // vir_mid::TypeDecl::Never => {},
             // vir_mid::TypeDecl::Closure(Closure) => {},
             // vir_mid::TypeDecl::Unsupported(Unsupported) => {},
@@ -213,6 +213,7 @@ pub(in super::super) trait TypeDeclWalker {
             vir_mid::Type::Bool
             | vir_mid::Type::Int(_)
             | vir_mid::Type::Float(_)
+            | vir_mid::Type::Reference(_)
             | vir_mid::Type::Pointer(_) => self.after_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
             vir_mid::Type::Tuple(_)
@@ -228,7 +229,6 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::Type::Enum(_)
             | vir_mid::Type::Union(_) => self.after_composite(ty, parameters, lowerer),
             // vir_mid::Type::Array(Array) => {},
-            // vir_mid::Type::Reference(Reference) => {},
             // vir_mid::Type::Never => {},
             // vir_mid::Type::Closure(Closure) => {},
             // vir_mid::Type::Unsupported(Unsupported) => {},
