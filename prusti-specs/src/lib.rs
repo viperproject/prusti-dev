@@ -432,17 +432,11 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
             syn::ImplItem::Macro(makro) if is_predicate_macro(&makro) => {
                 let parsed_predicate = handle_result!(predicate::parse_predicate_in_impl(makro.mac.tokens.clone()));
 
-                let predicate = match parsed_predicate {
-                    ParsedPredicate::Impl(predicate) => predicate,
-                    _ => unreachable!(),
-                };
+                let predicate = force_matches!(parsed_predicate, ParsedPredicate::Impl(p) => p);
 
                 // Patch spec function: Rewrite self with _self: <SpecStruct>
-                let mut spec_function = match predicate.spec_function {
-                    syn::Item::Fn(item_fn) => item_fn,
-                    _ => unreachable!(),
-                };
-
+                let mut spec_function = force_matches!(predicate.spec_function,
+                    syn::Item::Fn(item_fn) => item_fn);
                 spec_function.rewrite_receiver(self_type_path);
                 generated_spec_items.push(spec_function);
 
