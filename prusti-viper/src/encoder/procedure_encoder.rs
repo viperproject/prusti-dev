@@ -512,11 +512,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(still_unresolved_edges)
     }
 
-    fn stmt_preconditions(&self, stmt: &vir::Stmt) -> Vec<vir::Expr> {
+    fn stmt_preconditions(&self, stmt: &vir::Stmt) -> Vec<(Option<String>, vir::Expr)> {
         use vir::{ExprFolder, StmtWalker};
         struct FindFnApps<'a, 'b, 'c> {
             recurse: bool,
-            preconds: Vec<vir::Expr>,
+            preconds: Vec<(Option<String>, vir::Expr)>,
             encoder: &'a Encoder<'b, 'c>,
         }
         fn is_const_true(expr: &vir::Expr) -> bool {
@@ -527,10 +527,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 })
             )
         }
+        impl<'a, 'b, 'c> FindFnApps<'a, 'b, 'c> {
+            fn push_precond(&mut self, expr: vir::Expr, fn_name: Option<String>) {
+                let expr = self.fold(expr);
+                if !is_const_true(&expr) {
+                    self.preconds.push((fn_name, expr));
+                }
+            }
+        }
         impl<'a, 'b, 'c> StmtWalker for FindFnApps<'a, 'b, 'c> {
             fn walk_exhale(&mut self, statement: &vir::Exhale) {
-                let expr = self.fold(statement.expr.clone());
-                self.preconds.push(expr);
+                self.push_precond(statement.expr.clone(), None);
             }
             fn walk_expr(&mut self, expr: &vir::Expr) {
                 self.fold(expr.clone());
@@ -545,9 +552,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let pres = self.encoder.get_function(&identifier).unwrap().pres.clone();
                     // Avoid recursively collecting preconditions: they should be self-framing anyway
                     self.recurse = false;
-                    let pres = pres.into_iter().map(|expr| self.fold(expr)).collect::<Vec<_>>();
+                    let pres: vir::Expr = pres.into_iter().fold(true.into(), |acc, expr| vir_expr! { [acc] && [expr] });
+                    self.push_precond(pres, Some(function_name));
                     self.recurse = true;
-                    self.preconds.extend(pres);
 
                     for arg in arguments {
                         self.fold(arg);
@@ -586,9 +593,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             recurse: true, preconds: Vec::new(), encoder: self.encoder
         };
         walker.walk(stmt);
-        walker.preconds.into_iter().filter(|exp| !is_const_true(exp)).collect()
+        walker.preconds
     }
-    fn block_preconditions(&self, block: &CfgBlockIndex) -> Vec<vir::Expr> {
+    fn block_preconditions(&self, block: &CfgBlockIndex) -> Vec<(Option<String>, vir::Expr)> {
         let bb = &self.cfg_method.basic_blocks[block.block_index];
         let mut preconds: Vec<_> = bb.stmts.iter().flat_map(|stmt| self.stmt_preconditions(stmt)).collect();
         match &bb.successor {
@@ -840,10 +847,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             Some((mid_g, mid_b1))
         } else {
             // Cannot add loop guard to loop invariant
-            let warning_msg = "the loop guard was not automatically added as a `body_invariant` \
-                (it requires the viper preconditions: [".to_string() + &preconds.iter().map(|pe|
-                    format!("{}", pe)
-                ).collect::<Vec<_>>().join(", ") + "] to hold)";
+            let fn_names: Vec<_> = preconds.iter().filter_map(|(name, _)| name.as_ref()).map(|name| {
+                assert!(name.starts_with("m_"));
+                &name[2..]
+            }).collect();
+            let warning_msg = if fn_names.len() == 0 {
+                "the loop guard was not automatically added as a `body_invariant!(...)`, consider doing this manually".to_string()
+            } else {
+                "the loop guard was not automatically added as a `body_invariant!(...)`, \
+                due to the following pure functions with preconditions: [".to_string() + &fn_names.join(", ") + "]"
+            };
             // Span of loop guard
             let span_lg = loop_guard_evaluation.last().map(|bb| self.mir_encoder.get_span_of_basic_block(*bb));
             // Span of entire loop body before inv; the last elem (if any) will be the `body_invariant!(...)` bb
