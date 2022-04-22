@@ -159,6 +159,11 @@ impl<'tcx> ErrorManager<'tcx> {
         &self.position_manager
     }
 
+    /// Used prior to encoding each function, to get stable `next_pos_id` for caching
+    pub fn reset_pos_id<T: std::hash::Hash>(&mut self, fn_name: &T) {
+        self.position_manager.reset_pos_id(fn_name)
+    }
+
     /// Register a new VIR position.
     pub fn register_span<T: Into<MultiSpan>>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
         self.position_manager.register_span(def_id, span)

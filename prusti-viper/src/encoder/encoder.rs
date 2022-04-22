@@ -784,6 +784,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             info!("Encoding: {} ({})", proc_name, proc_def_path);
             assert!(substs.is_empty());
 
+            // Make pos_id stable for caching
+            self.error_manager().reset_pos_id(&proc_name);
+
             if config::unsafe_core_proof() {
                 if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id) {
                     self.register_encoding_error(error);

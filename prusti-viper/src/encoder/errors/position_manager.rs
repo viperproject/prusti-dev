@@ -8,6 +8,7 @@ use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
 use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
+use std::hash::{Hash, Hasher};
 use log::{debug, trace};
 use prusti_interface::data::ProcedureDefId;
 
@@ -85,5 +86,13 @@ impl<'tcx> PositionManager<'tcx>
 
     pub fn get_span(&self, pos: Position) -> Option<&MultiSpan> {
         self.source_span.get(&pos.id())
+    }
+
+    /// Used prior to encoding each function, to get stable `next_pos_id` for caching
+    pub fn reset_pos_id<T: Hash>(&mut self, fn_name: &T) {
+        let mut s = std::collections::hash_map::DefaultHasher::new();
+        fn_name.hash(&mut s);
+        // Avoid overflows, slightly increase probability of clashes
+        self.next_pos_id = s.finish() / 2;
     }
 }
