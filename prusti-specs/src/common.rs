@@ -217,8 +217,8 @@ mod self_type_rewriter {
 /// See [RewritableReceiver]
 mod receiver_rewriter {
     use proc_macro2::{Ident, TokenStream, TokenTree};
-    use quote::{quote, quote_spanned, ToTokens};
-    use syn::{FnArg, ImplItemMethod, ItemFn, Macro, parse_quote_spanned};
+    use quote::{quote, quote_spanned};
+    use syn::{FnArg, ImplItemMethod, ItemFn, Macro, parse_quote_spanned, TypePath};
     use syn::spanned::Spanned;
     use syn::visit_mut::VisitMut;
 
@@ -239,28 +239,28 @@ mod receiver_rewriter {
     /// }
     /// ```
     pub(crate) trait RewritableReceiver {
-        fn rewrite_receiver<T: ToTokens>(&mut self, new_ty: &T);
+        fn rewrite_receiver(&mut self, new_ty: &TypePath);
     }
 
     impl RewritableReceiver for ImplItemMethod {
-        fn rewrite_receiver<T: ToTokens>(&mut self, new_ty: &T) {
+        fn rewrite_receiver(&mut self, new_ty: &TypePath) {
             let mut rewriter = Rewriter {new_ty};
             rewriter.rewrite_impl_item_method(self);
         }
     }
 
     impl RewritableReceiver for ItemFn {
-        fn rewrite_receiver<T: ToTokens>(&mut self, new_ty: &T) {
+        fn rewrite_receiver(&mut self, new_ty: &TypePath) {
             let mut rewriter = Rewriter {new_ty};
             rewriter.rewrite_item_fn(self);
         }
     }
 
-    struct Rewriter<'a, T: ToTokens> {
-        new_ty: &'a T,
+    struct Rewriter<'a> {
+        new_ty: &'a TypePath,
     }
 
-    impl<'a, T: ToTokens> Rewriter<'a, T> {
+    impl<'a> Rewriter<'a> {
         fn rewrite_impl_item_method(&mut self, item: &mut ImplItemMethod) {
             syn::visit_mut::visit_impl_item_method_mut(self, item);
         }
@@ -283,12 +283,12 @@ mod receiver_rewriter {
                 other => other,
             }));
             parse_quote_spanned! {tokens_span=>
-            #rewritten
-        }
+                #rewritten
+            }
         }
     }
 
-    impl<'a, T: ToTokens> VisitMut for Rewriter<'a, T> {
+    impl<'a> VisitMut for Rewriter<'a> {
         fn visit_fn_arg_mut(&mut self, fn_arg: &mut FnArg) {
             if let FnArg::Receiver(receiver) = fn_arg {
                 let span = receiver.span();
