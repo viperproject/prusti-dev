@@ -117,21 +117,21 @@ impl<H: HasSignature> MethodParamsAsCallArguments for H {
 
 impl MethodParamsAsCallArguments for Punctuated<FnArg, Token![,]> {
     fn params_as_call_args(&self) -> Punctuated<Expr, Token!(,)> {
-        let mut args = Punctuated::new();
-        for param in self.iter() {
-            let span = param.span();
-            match param {
-                FnArg::Typed(PatType { pat: box Pat::Ident(ident), .. }) => {
-                    args.push(parse_quote_spanned! {span=>#ident });
-                    args.push_punct(<Token![,]>::default());
-                },
-                FnArg::Receiver(_) => {
-                    args.push(parse_quote_spanned! {span=>self})
-                }
-                _ => unimplemented!(),
-            }
-        }
-        args
+        Punctuated::from_iter(
+            self.iter()
+                .map(|param| {
+                    let span = param.span();
+                    let call_arg: Expr = match param {
+                        FnArg::Typed(PatType { pat: box Pat::Ident(ident), .. }) =>
+                            parse_quote_spanned! {span=>#ident },
+                        FnArg::Receiver(_) =>
+                            parse_quote_spanned! {span=>self},
+                        _ =>
+                            unimplemented!(),
+                    };
+                    call_arg
+                })
+        )
     }
 }
 

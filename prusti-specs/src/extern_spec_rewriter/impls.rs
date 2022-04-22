@@ -290,7 +290,7 @@ mod tests {
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn foo(_self: &MyStruct::<I,O, i32>, arg1: I, arg2: i32) -> O {
-                        <MyStruct::<I,O,i32>> :: foo(_self, arg1, arg2, );
+                        <MyStruct::<I,O,i32>> :: foo(_self, arg1, arg2);
                         unimplemented!()
                     }
                 }
