@@ -149,10 +149,12 @@ impl<'v, 'tcx: 'v> NonSpecExprVisitor<'tcx> for CheckPredicatesVisitor<'tcx> {
         // General check: The "path" of a predicate doesn't appear anywhere
         // (e.g. as in a function call or an argument when we pass the predicate to another function)
         if let hir::ExprKind::Path(ref path) = ex.kind {
-            let res = self.tcx.typeck(owner_def_id).qpath_res(path, ex.hir_id);
-            if let hir::def::Res::Def(_, def_id) = res {
-                if let Some(pred_def_span) = self.predicates.get(&def_id) {
-                    self.pred_usages.push((ex.span, *pred_def_span));
+            if self.tcx.is_mir_available(owner_def_id) && !self.tcx.is_constructor(owner_def_id.to_def_id()) {
+                let res = self.tcx.typeck(owner_def_id).qpath_res(path, ex.hir_id);
+                if let hir::def::Res::Def(_, def_id) = res {
+                    if let Some(pred_def_span) = self.predicates.get(&def_id) {
+                        self.pred_usages.push((ex.span, *pred_def_span));
+                    }
                 }
             }
         }
@@ -160,11 +162,13 @@ impl<'v, 'tcx: 'v> NonSpecExprVisitor<'tcx> for CheckPredicatesVisitor<'tcx> {
         // When we deal with predicates in impls, the above path resolving is not enough,
         // i.e. when Foo::bar is a predicate and we call `foo.bar()` on some `foo: Foo`,
         // we do not observe the called def id `bar` via path resolution.
-        let resolved_called_method = self.tcx.typeck(owner_def_id).type_dependent_def_id(ex.hir_id);
-        if let Some(called_def_id) = resolved_called_method {
-            if !self.tcx.is_constructor(called_def_id) {
-                if let Some(pred_def_span) = self.predicates.get(&called_def_id) {
-                    self.pred_usages.push((ex.span, *pred_def_span));
+        if self.tcx.is_mir_available(owner_def_id) && !self.tcx.is_constructor(owner_def_id.to_def_id()) {
+            let resolved_called_method = self.tcx.typeck(owner_def_id).type_dependent_def_id(ex.hir_id);
+            if let Some(called_def_id) = resolved_called_method {
+                if !self.tcx.is_constructor(called_def_id) {
+                    if let Some(pred_def_span) = self.predicates.get(&called_def_id) {
+                        self.pred_usages.push((ex.span, *pred_def_span));
+                    }
                 }
             }
         }
