@@ -19,4 +19,13 @@ impl PlaceExpressionDomainEncoder for PlaceAddressEncoder {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         lowerer.root_address(local)
     }
+
+    fn encode_deref(
+        &mut self,
+        _deref: &vir_mid::expression::Deref,
+        _lowerer: &mut Lowerer,
+        _arg: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        unreachable!("The address cannot be dereferenced; use the value instead.")
+    }
 }
