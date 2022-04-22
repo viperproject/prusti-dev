@@ -153,7 +153,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         rhs: &mir::Rvalue<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<()> {
-        let encoded_lhs = self.encode_place(lhs)?;
+        let encoded_lhs = self.encode_place(lhs)?.erase_lifetime();
         let ty = self
             .encoder
             .encode_type_of_place_high(self.mir, lhs)

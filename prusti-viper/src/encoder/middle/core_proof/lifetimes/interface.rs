@@ -49,6 +49,11 @@ pub(in super::super) trait LifetimesInterface {
         &mut self,
         lifetime: vir_mid::ty::LifetimeConst,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn encode_lifetime_token(
+        &mut self,
+        lifetime: vir_low::VariableDecl,
+        permission: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn extract_lifetime_variables(
         &mut self,
         ty: &vir_mid::Type,
@@ -57,6 +62,10 @@ pub(in super::super) trait LifetimesInterface {
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
+    fn extract_lifetime_variables_from_definition(
+        &mut self,
+        type_decl: &vir_mid::TypeDecl,
+    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
@@ -253,6 +262,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
         lifetime_variable.to_procedure_snapshot(self)
     }
 
+    fn encode_lifetime_token(
+        &mut self,
+        lifetime: vir_low::VariableDecl,
+        permission: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        Ok(vir_low::Expression::predicate_access_predicate_no_pos(
+            "LifetimeToken".to_string(),
+            vec![lifetime.into()],
+            permission,
+        ))
+    }
+
     fn extract_lifetime_variables(
         &mut self,
         ty: &vir_mid::Type,
@@ -273,5 +294,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             .into_iter()
             .map(|lifetime| lifetime.into())
             .collect())
+    }
+
+    fn extract_lifetime_variables_from_definition(
+        &mut self,
+        type_decl: &vir_mid::TypeDecl,
+    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>> {
+        let lifetimes = match type_decl {
+            vir_mid::TypeDecl::Reference(_) => {
+                use vir_low::macros::*;
+                vec![var!(lifetime: Lifetime)]
+            }
+            _ => Vec::new(),
+        };
+        Ok(lifetimes)
     }
 }

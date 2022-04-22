@@ -3,11 +3,15 @@ use super::{
 };
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    middle::core_proof::lowerer::{DomainsLowererInterface, Lowerer, VariablesLowererInterface},
+    middle::core_proof::{
+        lowerer::{DomainsLowererInterface, Lowerer, VariablesLowererInterface},
+        references::ReferencesInterface,
+        snapshots::IntoProcedureSnapshot,
+    },
 };
 use vir_crate::{
     low as vir_low,
-    middle::{self as vir_mid},
+    middle::{self as vir_mid, operations::ty::Typed},
 };
 
 pub(in super::super) trait AddressesInterface {
@@ -64,6 +68,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
         let result = match place {
             vir_mid::Expression::Local(local) => self.root_address(local)?,
             vir_mid::Expression::LabelledOld(_) => unimplemented!(),
+            vir_mid::Expression::Deref(deref) => {
+                let base_snapshot = deref.base.to_procedure_snapshot(self)?;
+                self.reference_address_snapshot(
+                    deref.base.get_type(),
+                    base_snapshot,
+                    Default::default(),
+                )?
+            }
             _ => self.extract_root_address(place.get_parent_ref().unwrap())?,
         };
         Ok(result)
