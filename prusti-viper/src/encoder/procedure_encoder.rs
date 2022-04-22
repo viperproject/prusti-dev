@@ -851,7 +851,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 assert!(name.starts_with("m_"));
                 &name[2..]
             }).collect();
-            let warning_msg = if fn_names.len() == 0 {
+            let warning_msg = if fn_names.is_empty() {
                 "the loop guard was not automatically added as a `body_invariant!(...)`, consider doing this manually".to_string()
             } else {
                 "the loop guard was not automatically added as a `body_invariant!(...)`, \
