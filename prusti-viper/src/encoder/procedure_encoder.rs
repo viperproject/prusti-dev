@@ -2203,8 +2203,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             ));
                         }
 
+                        // TODO: use extern_spec
                         "core::ops::IndexMut::index_mut" |
-                        "std::ops::IndexMut::index_mut" |
+                        "std::ops::IndexMut::index_mut" => {
+                            return Err(SpannedEncodingError::unsupported(
+                                "mutably slicing is not fully supported yet",
+                                term.source_info.span,
+                            ));
+                        }
+
                         "core::ops::Index::index" |
                         "std::ops::Index::index" => {
                             debug!("Encoding call of array/slice index call");
@@ -2213,6 +2220,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     destination,
                                     args,
                                     location,
+                                    term.source_info.span,
                                 ).with_span(span)?
                             );
                         }
@@ -2406,6 +2414,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         args: &[mir::Operand<'tcx>],
         location: mir::Location,
+        error_span: Span
     ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!("encode_sequence_index_call(destination={:?}, args={:?})", destination, args);
         // args[0] is the base array/slice, args[1] is the index
@@ -2477,14 +2486,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         self.slice_created_at.insert(location, encoded_lhs);
 
+        let original_len = enc_sequence_types.len(self.encoder, base_seq_expr);
+
         // TODO: there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
         // manually re-do and hardcode them here when we probably just encoded the type
         // and the construction of the fields.
         let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
         let start = match &*idx_ident {
             "std::ops::Range" | "core::ops::Range" |
-            "std::ops::RangeFrom" | "core::ops::RangeFrom" =>
-                self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty)?,
+            "std::ops::RangeFrom" | "core::ops::RangeFrom" => {
+                let start_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty)?;
+                // Check indexing in bounds
+                stmts.push(vir::Stmt::Assert( vir::Assert {
+                    expr: vir_expr!{ [start_expr] >= [vir::Expr::from(0usize)] },
+                    position: self.register_error(error_span, ErrorCtxt::HardcodedBoundsCheckAssert("the range start value may be smaller than 0 when slicing".to_string())),
+                }));
+                start_expr
+            }
             // RangeInclusive is wierdly differnet to all of the other Range*s in that the struct fields are private
             // and it is created with a new() fn and start/end are accessed with getter fns
             // See https://github.com/rust-lang/rust/issues/67371 for why this is the case...
@@ -2498,19 +2516,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
         let end = match &*idx_ident {
             "std::ops::Range" | "core::ops::Range" |
-            "std::ops::RangeTo" | "core::ops::RangeTo" =>
-                self.encoder.encode_struct_field_value(encoded_idx, "end", usize_ty)?,
+            "std::ops::RangeTo" | "core::ops::RangeTo" => {
+                let end_expr = self.encoder.encode_struct_field_value(encoded_idx, "end", usize_ty)?;
+                // Check indexing in bounds
+                stmts.push(vir::Stmt::Assert( vir::Assert {
+                    expr: vir_expr!{ [end_expr] <= [original_len] },
+                    position: self.register_error(error_span, ErrorCtxt::HardcodedBoundsCheckAssert("the range end value may be out of bounds when slicing".to_string())),
+                }));
+                end_expr
+            }
             "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
                 EncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string())
             ),
             "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => {
                 let end_expr = self.encoder.encode_struct_field_value(encoded_idx, "end", usize_ty)?;
-                vir_expr!{ [end_expr] + [vir::Expr::from(1usize)] }
+                let end_expr = vir_expr!{ [end_expr] + [vir::Expr::from(1usize)] };
+                // Check indexing in bounds
+                stmts.push(vir::Stmt::Assert( vir::Assert {
+                    expr: vir_expr!{ [end_expr] <= [original_len] },
+                    position: self.register_error(error_span, ErrorCtxt::HardcodedBoundsCheckAssert("the range end value may be out of bounds when slicing".to_string())),
+                }));
+                end_expr
             }
             "std::ops::RangeFrom" | "core::ops::RangeFrom" |
-            "std::ops::RangeFull" | "core::ops::RangeFull" => {
-                enc_sequence_types.len(self.encoder, base_seq_expr)
-            }
+            "std::ops::RangeFull" | "core::ops::RangeFull" => original_len,
             _ => unreachable!("{}", idx_ident)
         };
 
@@ -2521,6 +2550,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // length
         let length = vir_expr!{ [end] - [start] };
+        // start must be leq than end
+        stmts.push(vir::Stmt::Assert( vir::Assert {
+            expr: vir_expr!{ [start] <= [end] },
+            position: self.register_error(error_span, ErrorCtxt::HardcodedBoundsCheckAssert("the range end may be smaller than the start when slicing".to_string())),
+        }));
+
         let slice_len_call = slice_types_lhs.len(self.encoder, lhs_slice_expr.clone());
         stmts.push(vir_stmt!{
             inhale [vir_expr!{ [slice_len_call] == [length] }]
