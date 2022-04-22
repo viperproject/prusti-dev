@@ -8,6 +8,7 @@ use super::{
             *,
         },
         position::Position,
+        ty::{visitors::TypeFolder, LifetimeConst, Type},
     },
     ty::Typed,
 };
@@ -34,7 +35,8 @@ impl BinaryOpKind {
             | BinaryOpKind::Sub
             | BinaryOpKind::Mul
             | BinaryOpKind::Div
-            | BinaryOpKind::Mod => argument_type,
+            | BinaryOpKind::Mod
+            | BinaryOpKind::LifetimeIntersection => argument_type,
         }
     }
 }
@@ -56,10 +58,28 @@ impl Expression {
             Expression::Local(_) => None,
             Expression::Variant(Variant { box ref base, .. })
             | Expression::Field(Field { box ref base, .. })
+            | Expression::Deref(Deref { box ref base, .. })
             | Expression::AddrOf(AddrOf { box ref base, .. }) => Some(base),
             Expression::LabelledOld(_) => None,
             expr => unreachable!("{}", expr),
         }
+    }
+    pub fn iter_prefixes(&self) -> impl Iterator<Item = &Expression> {
+        struct PrefixIterator<'a> {
+            expr: Option<&'a Expression>,
+        }
+        impl<'a> Iterator for PrefixIterator<'a> {
+            type Item = &'a Expression;
+            fn next(&mut self) -> Option<Self::Item> {
+                if let Some(current) = self.expr.take() {
+                    self.expr = current.get_parent_ref();
+                    Some(current)
+                } else {
+                    None
+                }
+            }
+        }
+        PrefixIterator { expr: Some(self) }
     }
     pub fn is_place(&self) -> bool {
         match self {
@@ -72,6 +92,29 @@ impl Expression {
             _ => false,
         }
     }
+    pub fn erase_lifetime(self) -> Expression {
+        struct DefaultLifetimeEraser {}
+        impl ExpressionFolder for DefaultLifetimeEraser {
+            fn fold_type(&mut self, ty: Type) -> Type {
+                TypeFolder::fold_type(self, ty)
+            }
+            fn fold_variable_decl(&mut self, variable_decl: VariableDecl) -> VariableDecl {
+                VariableDecl {
+                    name: variable_decl.name,
+                    ty: TypeFolder::fold_type(self, variable_decl.ty),
+                }
+            }
+        }
+        impl TypeFolder for DefaultLifetimeEraser {
+            fn fold_lifetime_const(&mut self, _lifetime: LifetimeConst) -> LifetimeConst {
+                LifetimeConst {
+                    name: String::from("pure_erased"),
+                }
+            }
+        }
+        DefaultLifetimeEraser {}.fold_expression(self)
+    }
+
     #[must_use]
     pub fn replace_place(self, target: &Expression, replacement: &Expression) -> Self {
         debug_assert!(target.is_place());
@@ -258,6 +301,27 @@ impl Expression {
         }
         DefaultPositionReplacer { new_position }.fold_expression(self)
     }
+    #[must_use]
+    pub fn replace_position(self, new_position: Position) -> Self {
+        struct PositionReplacer {
+            new_position: Position,
+        }
+        impl ExpressionFolder for PositionReplacer {
+            fn fold_position(&mut self, _position: Position) -> Position {
+                self.new_position
+            }
+        }
+        PositionReplacer { new_position }.fold_expression(self)
+    }
+    pub fn check_no_default_position(&self) {
+        struct Checker;
+        impl ExpressionWalker for Checker {
+            fn walk_position(&mut self, position: &Position) {
+                assert!(!position.is_default());
+            }
+        }
+        Checker.walk_expression(self)
+    }
     pub fn has_prefix(&self, potential_prefix: &Expression) -> bool {
         if self == potential_prefix {
             true
@@ -288,7 +352,9 @@ impl Expression {
     }
 
     pub fn into_variant(self, variant_name: VariantIndex) -> Self {
+        use crate::common::position::Positioned;
         let ty = self.get_type().clone().variant(variant_name.clone());
-        self.variant_no_pos(variant_name, ty)
+        let position = self.position();
+        self.variant(variant_name, ty, position)
     }
 }

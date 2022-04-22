@@ -77,7 +77,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) mir_type_encoder_state: MirTypeEncoderState<'tcx>,
     pub(super) high_type_encoder_state: HighTypeEncoderState<'tcx>,
     pub(super) pure_function_encoder_state: PureFunctionEncoderState<'v, 'tcx>,
-    pub(super) specifications_state: SpecificationsState,
+    pub(super) specifications_state: SpecificationsState<'tcx>,
     spec_functions: RefCell<FxHashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_discriminant_funcs: RefCell<FxHashMap<String, vir::FunctionIdentifier>>,
     type_cast_functions: RefCell<FxHashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
@@ -273,10 +273,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         proc_def_id: ProcedureDefId,
         substs: SubstsRef<'tcx>,
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-        let spec = typed::SpecificationSet::Procedure(
-            self.get_procedure_specs(proc_def_id)
-                .unwrap_or_else(typed::ProcedureSpecification::empty)
-        );
+        let spec = self.get_procedure_specs(proc_def_id, substs)
+            .unwrap_or_else(typed::ProcedureSpecification::empty);
         compute_procedure_contract(proc_def_id, self.env(), spec, substs)
     }
 
@@ -320,6 +318,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .clone()
     }
 
+    pub fn get_mir_procedure_contract_for_call(
+        &self,
+        caller_def_id: ProcedureDefId,
+        called_def_id: ProcedureDefId,
+        call_substs: SubstsRef<'tcx>,
+    ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
+        let (called_def_id, call_substs) = self.env()
+            .resolve_method_call(caller_def_id, called_def_id, call_substs);
+        let spec = self.get_procedure_specs(called_def_id, call_substs)
+            .unwrap_or_else(typed::ProcedureSpecification::empty);
+        let contract = compute_procedure_contract(
+            called_def_id,
+            self.env(),
+            spec,
+            call_substs,
+        )?;
+        Ok(contract)
+    }
+
     pub fn get_procedure_contract_for_def(
         &self,
         proc_def_id: ProcedureDefId,
@@ -343,12 +360,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         let (called_def_id, call_substs) = self.env()
             .resolve_method_call(caller_def_id, called_def_id, call_substs);
-        let spec = self.get_procedure_specs(called_def_id)
+        let spec = self.get_procedure_specs_for_call(called_def_id, caller_def_id, call_substs)
             .unwrap_or_else(typed::ProcedureSpecification::empty);
         let contract = compute_procedure_contract(
             called_def_id,
             self.env(),
-            typed::SpecificationSet::Procedure(spec),
+            spec,
             call_substs,
         )?;
         Ok(contract.to_call_site_contract(args, target))
@@ -543,7 +560,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<()> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
-            !self.is_trusted(def_id),
+            !self.is_trusted(def_id, None),
             "procedure is marked as trusted: {:?}",
             def_id
         );
@@ -775,7 +792,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 continue;
             }
 
-            if self.is_pure(proc_def_id) {
+            if self.is_pure(proc_def_id, None) {
                 // Check that the pure Rust function satisfies the basic
                 // requirements by trying to encode it as a Viper function,
                 // which will automatically run the validity checks.
@@ -790,7 +807,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     continue;
                 }
             }
-            if self.is_trusted(proc_def_id) {
+            if self.is_trusted(proc_def_id, None) {
                 debug!(
                     "Trusted procedure will not be encoded or verified: {:?}",
                     proc_def_id

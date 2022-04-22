@@ -1,6 +1,8 @@
-use proc_macro2::{TokenStream, TokenTree};
+use proc_macro2::{Group, Ident, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
+use syn::parse_quote_spanned;
 use syn::spanned::Spanned;
+use syn::visit_mut::VisitMut;
 
 /// Rewrites every occurence of "self" to "_self" in a token stream
 pub fn rewrite_self(tokens: TokenStream) -> TokenStream {
@@ -141,11 +143,40 @@ impl<'a> AssociatedTypeRewriter<'a> {
     }
 
     pub fn rewrite_method_sig(&mut self, signature: &mut syn::Signature) {
-        syn::visit_mut::visit_signature_mut(self, signature);
+        self.visit_signature_mut(signature);
+    }
+
+    pub fn rewrite_attribute(&mut self, attr: &mut syn::Attribute) {
+        self.visit_attribute_mut(attr);
+    }
+
+    fn rewrite_tokens(&self, self_replacement_as_str: &str, tokens: TokenStream) -> TokenStream {
+        let it = tokens.into_iter();
+        it.map(|tt| {
+            match tt {
+                TokenTree::Ident(ident) if ident == "Self" => {
+                    TokenTree::Ident(Ident::new(self_replacement_as_str, ident.span()))
+                }
+                TokenTree::Group(group) => {
+                    TokenTree::Group(Group::new(group.delimiter(), self.rewrite_tokens(self_replacement_as_str, group.stream())))
+                },
+                other => other,
+            }
+        }).collect()
     }
 }
 
 impl<'a> syn::visit_mut::VisitMut for AssociatedTypeRewriter<'a> {
+    fn visit_attribute_mut(&mut self, attr: &mut syn::Attribute) {
+        let self_replacement = self.self_type.to_token_stream().to_string();
+
+        // Note: Attribute tokens are not visited by a syn visitor,
+        // so we visit the attribute tokens "manually"
+        attr.tokens = self.rewrite_tokens(self_replacement.as_str(), attr.tokens.clone());
+
+        syn::visit_mut::visit_attribute_mut(self, attr);
+    }
+
     fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
         if ty_path.qself.is_none()
             && !ty_path.path.segments.is_empty()

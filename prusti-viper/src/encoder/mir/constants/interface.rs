@@ -25,6 +25,7 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
             mir::ConstantKind::Val(val, _) => ty::ConstKind::Value(val),
         };
         let mir_type = constant.ty();
+        let _ = self.encode_type_high(mir_type)?; // Trigger encoding of the type.
         let scalar_value = self.const_eval_intlike(value)?;
 
         let expr = match mir_type.kind() {

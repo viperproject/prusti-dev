@@ -107,9 +107,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                     // Nothing to do.
                 }
                 // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
-                vir_mid::TypeDecl::Tuple(tuple_decl) => {
-                    if !tuple_decl.arguments.is_empty() {
-                        unimplemented!();
+                vir_mid::TypeDecl::Tuple(decl) => {
+                    for field in decl.iter_fields() {
+                        let axiom = self.encode_compute_address_axiom_for_field(ty, &field)?;
+                        self.compute_address_state.axioms.push(axiom);
+                        self.encode_compute_address(&field.ty)?;
                     }
                 }
                 vir_mid::TypeDecl::Struct(decl) => {
@@ -163,8 +165,50 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                         self.encode_compute_address(&variant_ty)?;
                     }
                 }
+                vir_mid::TypeDecl::Union(decl) => {
+                    self.encode_compute_address(&decl.discriminant_type)?;
+                    for variant in &decl.variants {
+                        use vir_low::macros::*;
+                        let compute_address = ty!(Address);
+                        let body = expr! {
+                            forall(
+                                place: Place, address: Address ::
+                                raw_code {
+                                    let variant_index = variant.name.clone().into();
+                                    let variant_place = self.encode_enum_variant_place(
+                                        ty,
+                                        &variant_index,
+                                        place.clone().into(),
+                                        Default::default()
+                                    )?;
+                                    let variant_address = self.encode_enum_variant_address(
+                                        ty,
+                                        &variant_index,
+                                        expr! { ComputeAddress::compute_address(place, address) },
+                                        Default::default(),
+                                    )?;
+                                }
+                                [ { (ComputeAddress::compute_address([variant_place.clone()], address)) } ]
+                                (ComputeAddress::compute_address([variant_place], address)) == [variant_address]
+                            )
+                        };
+                        let axiom = vir_low::DomainAxiomDecl {
+                            name: format!(
+                                "{}${}$compute_address_axiom",
+                                ty.get_identifier(),
+                                variant.name
+                            ),
+                            body,
+                        };
+                        self.compute_address_state.axioms.push(axiom);
+                        let variant_ty = ty.clone().variant(variant.name.clone().into());
+                        self.encode_compute_address(&variant_ty)?;
+                    }
+                }
                 // vir_mid::TypeDecl::Array(Array) => {},
-                // vir_mid::TypeDecl::Reference(Reference) => {},
+                vir_mid::TypeDecl::Reference(_reference) => {
+                    // Do nothing
+                }
                 // vir_mid::TypeDecl::Never => {},
                 // vir_mid::TypeDecl::Closure(Closure) => {},
                 // vir_mid::TypeDecl::Unsupported(Unsupported) => {},

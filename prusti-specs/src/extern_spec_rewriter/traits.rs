@@ -46,6 +46,12 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
         #[allow(non_camel_case_types)] struct #struct_ident {}
     };
 
+    // Add a new type parameter to struct which represents an implementation of the trait
+    let self_type_ident = syn::Ident::new("Prusti_T_Self", item_trait.span());
+    new_struct.generics.params.push(syn::GenericParam::Type(
+        parse_quote!(#self_type_ident),
+    ));
+
     let parsed_generics = parse_trait_type_params(item_trait)?;
     // Generic type parameters are added as generics to the struct
     for parsed_generic in parsed_generics.iter() {
@@ -53,12 +59,6 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
             new_struct.generics.params.push(syn::GenericParam::Type(type_param.clone()));
         }
     }
-
-    // Add a new type parameter to struct which represents an implementation of the trait
-    let self_type_ident = syn::Ident::new("Prusti_T_Self", item_trait.span());
-    new_struct.generics.params.push(syn::GenericParam::Type(
-        parse_quote!(#self_type_ident),
-    ));
 
     let self_type_trait: syn::TypePath = parse_quote_spanned! {item_trait.span()=>
         #trait_ident :: <#(#parsed_generics),*>
@@ -170,11 +170,11 @@ impl<'a> GeneratedStruct<'a> {
 
         // Rewrite occurrences of associated types in signature to defined generics
         let self_type_path = parse_quote_spanned! {self_type_ident.span()=> #self_type_ident };
-        AssociatedTypeRewriter::new(
+        let mut rewriter = AssociatedTypeRewriter::new(
             &self_type_path,
             &self.self_type_trait,
-        )
-            .rewrite_method_sig(&mut trait_method_sig);
+        );
+        rewriter.rewrite_method_sig(&mut trait_method_sig);
 
         // Rewrite "self" to "_self" in method attributes and method inputs
         let mut trait_method_attrs = trait_method.attrs.clone();
@@ -183,6 +183,12 @@ impl<'a> GeneratedStruct<'a> {
             .for_each(|attr| attr.tokens = rewrite_self(attr.tokens.clone()));
         let trait_method_inputs =
             rewrite_method_inputs(&self.self_type_ident, &mut trait_method_sig.inputs);
+
+        // We need to rewrite `Self` in the attributes tokens as well
+        // to account for ghost constraints with a bound on `Self`
+        for attr in trait_method_attrs.iter_mut() {
+            rewriter.rewrite_attribute(attr);
+        }
 
         // Create method
         let extern_spec_kind_string: String = ExternSpecKind::Trait.into();
