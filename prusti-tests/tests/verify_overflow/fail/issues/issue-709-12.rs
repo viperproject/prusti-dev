@@ -12,7 +12,7 @@ impl B {
     #[requires(index <= self.0.len())]
     #[ensures(result.len() == index)]
     pub fn get_mut(&mut self, index: usize) -> &mut [A] {
-        &mut self.0[0..index]
+        &mut self.0[0..index] //~ ERROR mutably slicing is not fully supported yet
     }
 }
 
