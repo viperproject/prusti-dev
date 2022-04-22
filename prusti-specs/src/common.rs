@@ -1,9 +1,10 @@
 //! Common code for spec-rewriting
 
 use std::borrow::BorrowMut;
-use syn::parse_quote;
+use syn::{GenericParam, parse_quote};
 use syn::spanned::Spanned;
 use uuid::Uuid;
+use prusti_utils::force_matches;
 pub(crate) use syn_extensions::*;
 pub(crate) use self_type_rewriter::*;
 pub(crate) use receiver_rewriter::*;
@@ -325,14 +326,33 @@ mod receiver_rewriter {
 }
 
 /// Copies the [syn::Generics] of `source` to the generics of `target`
+/// **Important**: Lifetimes and const params are currently ignored
 pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
     let generics_target = target.generics_mut();
     let generics_source = source.generics();
 
-    generics_target.params.extend(generics_source.params.clone());
-    if let (Some(target_where), Some(source_where)) =
-        (generics_target.where_clause.as_mut(), generics_source.where_clause.as_ref()) {
-        target_where.predicates.extend(source_where.predicates.clone());
+    // This is not particularly fast or "elegant", but we can expect a reasonably
+    // small amount of type parameters in general (n < 10)
+    for param_source in generics_source.params.iter() {
+        // Lifetimes and consts are currently not handled
+        if let GenericParam::Type(type_param_source) = param_source {
+            let in_target = generics_target.params.iter_mut()
+                .find(|gp| match gp {
+                    GenericParam::Type(tp) => tp.ident.eq(&type_param_source.ident),
+                    _ => false
+                }
+                ).map(|gp| force_matches!(gp, GenericParam::Type(tp) => tp));
+            match in_target {
+                Some(target_type_param) => target_type_param.bounds.extend(type_param_source.bounds.clone()),
+                None => generics_target.params.push(GenericParam::Type(type_param_source.clone()))
+            }
+        }
+    }
+
+    match (generics_target.where_clause.as_mut(), generics_source.where_clause.as_ref()) {
+        (Some(target_where), Some(source_where)) => target_where.predicates.extend(source_where.predicates.clone()),
+        (None, Some(source_where)) => generics_target.where_clause = Some(source_where.clone()),
+        _ => (),
     }
 }
 
@@ -416,6 +436,65 @@ pub(crate) fn add_phantom_data_for_generic_params(item_struct: &mut syn::ItemStr
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    mod merge_generics {
+        use syn::parse_quote;
+        use crate::merge_generics;
+
+        macro_rules! test_merge {
+            ([$($source:tt)+] into [$($target:tt)+] gives [$($expected:tt)+]) => {
+                let mut target: syn::ItemImpl = parse_quote! { $($target)+ };
+                let source: syn::ItemImpl = parse_quote! { $($source)+ };
+                merge_generics(&mut target, &source);
+                let expected: syn::ItemImpl = parse_quote! { $($expected)+ };
+                assert_eq!(expected, target);
+            }
+        }
+
+        #[test]
+        fn test_params() {
+            test_merge! {
+                [impl<U: B> Foo for Bar {}] into
+                [impl<T: A> Foo for Bar {}] gives
+                [impl<T: A, U: B> Foo for Bar {}]
+            }
+            test_merge! {
+                [impl<T: B> Foo for Bar {}] into
+                [impl<T: A> Foo for Bar {}] gives
+                [impl<T: A+B> Foo for Bar {}]
+            }
+            test_merge! {
+                [impl<T: B, U: C> Foo for Bar {}] into
+                [impl<T: A> Foo for Bar {}] gives
+                [impl<T: A+B, U: C> Foo for Bar {}]
+            }
+            test_merge! {
+                [impl<T: A> Foo for Bar {}] into
+                [impl<> Foo for Bar {}] gives
+                [impl<T: A> Foo for Bar {}]
+            }
+        }
+
+        #[test]
+        fn test_where_clause() {
+            test_merge! {
+                [impl<U> Foo for Bar where U: B {}] into
+                [impl<T> Foo for Bar where T: A {}] gives
+                [impl<T, U> Foo for Bar where T: A, U: B {}]
+            }
+            test_merge! {
+                [impl<T> Foo for Bar where T: B {}] into
+                [impl<T> Foo for Bar where T: A {}] gives
+                [impl<T> Foo for Bar where T: A, T: B {}]
+            }
+            test_merge! {
+                [impl<T> Foo for Bar where T: A {}] into
+                [impl<T> Foo for Bar {}] gives
+                [impl<T> Foo for Bar where T: A {}]
+            }
+        }
+    }
+
     mod phantom_data {
         use super::*;
         use quote::ToTokens;
