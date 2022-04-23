@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["purify_methods","This purifies local variables in a method body"]]});
+initSidebarItems({"fn":[["is_purifiable_type",""],["purify_methods","This purifies local variables in a method body"]]});
