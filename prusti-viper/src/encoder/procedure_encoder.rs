@@ -1703,7 +1703,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )),
             std::cmp::Ordering::Equal => {
                 let borrow_info = &borrow_infos[0];
-    
+
                 // Get the magic wand info.
                 let (post_label, lhs, rhs) = self
                     .magic_wand_at_location
@@ -1715,14 +1715,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         (post_label, lhs, rhs)
                     })
                     .unwrap();
-    
+
                 // Obtain the LHS permission.
                 for (path, _) in &borrow_info.blocking_paths {
                     let (encoded_place, _, _) = self.encode_generic_place(
                         contract.def_id, Some(loan_location), path
                     ).with_span(span)?;
                     let encoded_place = replace_fake_exprs(encoded_place);
-    
+
                     // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
                     if node.incoming_zombies {
                         for &in_loan in node.reborrowing_loans.iter() {
@@ -1745,7 +1745,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ));
                     }
                 }
-    
+
                 let pos = self.register_error(
                     //self.mir.span,
                     // TODO change to where the loan expires?
@@ -5178,6 +5178,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             kind: vir::AssignKind::Move,
                         }));
                         alloc_stmts
+                    }
+                    _ if config::enable_purification_optimization() &&
+                         prusti_common::vir::optimizations::purification::is_purifiable_type(lhs.get_type()) => {
+                        self.encode_copy2(src, lhs.clone(), ty, location)?
                     }
                     _ => {
                         // Just move.
