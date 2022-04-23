@@ -17,6 +17,11 @@ pub fn purify_methods(
     methods
 }
 
+pub fn is_purifiable_type(ty: &Type) -> bool {
+    debug_assert!(crate::config::enable_purification_optimization());
+    SUPPORTED_TYPES.contains(&ty.name().as_str())
+}
+
 fn translate_type(typ: &Type) -> Type {
     match typ {
         Type::TypedRef(..) => match typ.name().as_str() {
