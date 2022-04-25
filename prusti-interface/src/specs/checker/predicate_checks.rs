@@ -11,8 +11,9 @@ use crate::{
     utils::{has_prusti_attr},
     PrustiError,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use log::debug;
+use crate::utils::has_abstract_predicate_attr;
 
 /// Checks for illegal predicate usages
 #[derive(Default)]
@@ -21,11 +22,20 @@ pub struct IllegalPredicateUsagesChecker;
 impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
     fn check(&self, env: &Environment<'tcx>) -> Vec<PrustiError> {
         let collected_predicates = self.collect_predicates(env);
-        debug!("Predicate funcs: {:?}", collected_predicates);
-        let illegal_pred_usages = self.collect_illegal_predicate_usages(collected_predicates, env);
+        debug!("Predicate funcs: {:?}", collected_predicates.predicates);
+        debug!("Abstract predicates with bodies: {:?}", collected_predicates.abstract_predicate_with_bodies);
+        let illegal_pred_usages = self.collect_illegal_predicate_usages(collected_predicates.predicates, env);
         debug!("Predicate usages: {:?}", illegal_pred_usages);
 
-        illegal_pred_usages.into_iter().map(|(usage_span, def_span)|
+        let body_errors = collected_predicates.abstract_predicate_with_bodies.into_iter().map(|def_id| {
+            let span = env.tcx().def_span(def_id);
+            PrustiError::incorrect(
+                "abstract predicates must not have bodies".to_string(),
+                MultiSpan::from_span(span),
+            )
+        });
+
+        let illegal_usage_errors = illegal_pred_usages.into_iter().map(|(usage_span, def_span)|
             PrustiError::incorrect(
                 "using predicate from non-specification code is not allowed".to_string(),
                 MultiSpan::from_span(usage_span),
@@ -33,21 +43,24 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
                 "this is a specification-only predicate function",
                 Some(def_span),
             )
-        ).collect()
+        );
+
+        body_errors.chain(illegal_usage_errors).collect()
     }
 }
 
 impl IllegalPredicateUsagesChecker {
     /// Map of the `DefID`s to the `Span`s of `predicate!` functions found in the first pass.
-    fn collect_predicates<'tcx>(&self, env: &Environment<'tcx>) -> HashMap<DefId, Span> {
+    fn collect_predicates<'tcx>(&self, env: &Environment<'tcx>) -> CollectPredicatesVisitor<'tcx> {
         let mut collect = CollectPredicatesVisitor {
             tcx: env.tcx(),
             predicates: HashMap::new(),
+            abstract_predicate_with_bodies: HashSet::new(),
         };
         env.tcx().hir().walk_toplevel_module(&mut collect);
         env.tcx().hir().walk_attributes(&mut collect);
 
-        collect.predicates
+        collect
     }
 
     /// Span of use and definition of predicates used outside of specifications, collected in the second pass.
@@ -70,6 +83,7 @@ impl IllegalPredicateUsagesChecker {
 struct CollectPredicatesVisitor<'tcx> {
     tcx: TyCtxt<'tcx>,
     predicates: HashMap<DefId, Span>,
+    abstract_predicate_with_bodies: HashSet<DefId>,
 }
 
 impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
@@ -97,6 +111,22 @@ impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
 
         intravisit::walk_fn(self, fk, fd, b, s, id);
     }
+
+    fn visit_trait_item(&mut self, ti: &'tcx hir::TraitItem<'tcx>) {
+        let def_id = ti.def_id.to_def_id();
+        let attrs = self.tcx.get_attrs(def_id);
+
+        if has_abstract_predicate_attr(attrs) {
+            let span = self.tcx.def_span(def_id);
+            self.predicates.insert(def_id, span);
+        } else if has_prusti_attr(attrs, "pred_spec_id_ref") {
+            if let hir::TraitItemKind::Fn(_, hir::TraitFn::Provided(_)) = &ti.kind {
+                self.abstract_predicate_with_bodies.insert(def_id);
+            }
+        }
+
+        intravisit::walk_trait_item(self, ti);
+    }
 }
 
 /// Second predicate checks visitor: check any references to predicate functions
@@ -114,12 +144,29 @@ impl<'v, 'tcx: 'v> NonSpecExprVisitor<'tcx> for CheckPredicatesVisitor<'tcx> {
     }
 
     fn visit_expr(&mut self, ex: &'tcx hir::Expr<'tcx>) {
+        let owner_def_id = ex.hir_id.owner;
+
+        // General check: The "path" of a predicate doesn't appear anywhere
+        // (e.g. as in a function call or an argument when we pass the predicate to another function)
         if let hir::ExprKind::Path(ref path) = ex.kind {
-            let def_id = ex.hir_id.owner;
-            if self.tcx.is_mir_available(def_id) && !self.tcx.is_constructor(def_id.to_def_id()) {
-                let res = self.tcx.typeck(def_id).qpath_res(path, ex.hir_id);
+            if self.tcx.is_mir_available(owner_def_id) && !self.tcx.is_constructor(owner_def_id.to_def_id()) {
+                let res = self.tcx.typeck(owner_def_id).qpath_res(path, ex.hir_id);
                 if let hir::def::Res::Def(_, def_id) = res {
                     if let Some(pred_def_span) = self.predicates.get(&def_id) {
+                        self.pred_usages.push((ex.span, *pred_def_span));
+                    }
+                }
+            }
+        }
+
+        // When we deal with predicates in impls, the above path resolving is not enough,
+        // i.e. when Foo::bar is a predicate and we call `foo.bar()` on some `foo: Foo`,
+        // we do not observe the called def id `bar` via path resolution.
+        if self.tcx.is_mir_available(owner_def_id) && !self.tcx.is_constructor(owner_def_id.to_def_id()) {
+            let resolved_called_method = self.tcx.typeck(owner_def_id).type_dependent_def_id(ex.hir_id);
+            if let Some(called_def_id) = resolved_called_method {
+                if !self.tcx.is_constructor(called_def_id) {
+                    if let Some(pred_def_span) = self.predicates.get(&called_def_id) {
                         self.pred_usages.push((ex.span, *pred_def_span));
                     }
                 }

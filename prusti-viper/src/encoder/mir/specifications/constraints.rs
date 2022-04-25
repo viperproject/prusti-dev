@@ -8,10 +8,7 @@ use prusti_interface::{
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{
     ty,
-    ty::{
-        subst::{Subst, SubstsRef},
-        TypeFoldable,
-    },
+    ty::subst::{Subst, SubstsRef},
 };
 use rustc_span::{MultiSpan, Span};
 
@@ -61,7 +58,7 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
         }
 
         let context = match query {
-            SpecQuery::PureOrTrustedCheck(_, _) | SpecQuery::FetchSpan(_) => {
+            SpecQuery::GetProcKind(_, _) | SpecQuery::FetchSpan(_) => {
                 trace!("No need to resolve obligations for cause {:?}", query);
                 return Ok(&self.base_spec);
             }
@@ -171,13 +168,7 @@ pub mod trait_bounds {
                 // where `<Self as B>::OtherAssocType` can be normalized to some concrete type.
                 let normalized_predicate = env.normalize_to(predicate);
 
-                if normalized_predicate.needs_subst() || normalized_predicate.needs_infer() {
-                    debug!("Predicate needs further substitutions to be resolved");
-                    false
-                } else {
-                    // Resolve the predicate by making a query to the compiler
-                    env.evaluate_predicate(normalized_predicate, param_env_lookup)
-                }
+                env.evaluate_predicate(normalized_predicate, param_env_lookup)
             });
 
         trace!("Constraint fulfilled: {all_bounds_satisfied}");

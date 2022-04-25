@@ -4770,7 +4770,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     _,
                     mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
                 )) = stmt.kind {
-                    if let Some(spec) = self.encoder.get_loop_specs(cl_def_id, cl_substs) {
+                    if let Some(spec) = self.encoder.get_loop_specs(cl_def_id) {
                         encoded_specs.push(self.encoder.encode_invariant(
                             self.mir,
                             bbi,

@@ -7,6 +7,7 @@ use proc_macro2::{TokenStream, Span};
 use syn::{Type, punctuated::Punctuated, Pat, Token, parse_quote_spanned};
 use syn::spanned::Spanned;
 use quote::{quote_spanned, format_ident};
+use crate::common::HasSignature;
 use crate::specifications::preparser::{
     parse_prusti,
     parse_prusti_pledge, parse_prusti_assert_pledge,
@@ -48,7 +49,7 @@ impl AstRewriter {
 
     /// Check whether function `item` contains a parameter called `keyword`. If
     /// yes, return its span.
-    fn check_contains_keyword_in_params(&self, item: &untyped::AnyFnItem, keyword: &str) -> Option<Span> {
+    fn check_contains_keyword_in_params<T: HasSignature>(&self, item: &T, keyword: &str) -> Option<Span> {
         for param in &item.sig().inputs {
             if let syn::FnArg::Typed(syn::PatType {
                     pat,
@@ -64,7 +65,7 @@ impl AstRewriter {
         None
     }
 
-    fn generate_result_arg(&self, item: &untyped::AnyFnItem) -> syn::FnArg {
+    fn generate_result_arg<T: HasSignature + Spanned>(&self, item: &T) -> syn::FnArg {
         let item_span = item.span();
         let output_ty = match &item.sig().output {
             syn::ReturnType::Default => parse_quote_spanned!(item_span=> ()),
@@ -82,12 +83,12 @@ impl AstRewriter {
     }
 
     /// Turn an expression into the appropriate function
-    pub fn generate_spec_item_fn(
+    pub fn generate_spec_item_fn<T: HasSignature + Spanned>(
         &mut self,
         spec_type: SpecItemType,
         spec_id: SpecificationId,
         expr: TokenStream,
-        item: &untyped::AnyFnItem,
+        item: &T,
     ) -> syn::Result<syn::Item> {
         if let Some(span) = self.check_contains_keyword_in_params(item, "result") {
             return Err(syn::Error::new(
@@ -135,12 +136,12 @@ impl AstRewriter {
     }
 
     /// Parse an assertion into a Rust expression
-    pub fn process_assertion(
+    pub fn process_assertion<T: HasSignature + Spanned>(
         &mut self,
         spec_type: SpecItemType,
         spec_id: SpecificationId,
         tokens: TokenStream,
-        item: &untyped::AnyFnItem,
+        item: &T,
     ) -> syn::Result<syn::Item> {
         self.generate_spec_item_fn(
             spec_type,
