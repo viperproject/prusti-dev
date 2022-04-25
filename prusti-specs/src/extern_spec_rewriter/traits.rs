@@ -1,9 +1,10 @@
 //! Encoding of external specs for traits
-use crate::{ExternSpecKind, parse_quote_spanned};
+use crate::{ExternSpecKind, is_predicate_macro, parse_quote_spanned};
 use crate::specifications::common::generate_struct_name_for_trait;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
-use syn::{parse_quote, spanned::Spanned};
+use syn::parse_quote;
+use syn::spanned::Spanned;
 use super::common::*;
 
 /// Generates a struct for a `syn::ItemTrait` which is used for checking
@@ -146,8 +147,15 @@ impl<'a> GeneratedStruct<'a> {
                         ));
                     }
 
-                    let method = self.generate_method_stub(trait_method);
+                    let (method, spec_fns) = self.generate_method_stub(trait_method)?;
                     struct_impl.items.push(syn::ImplItem::Method(method));
+                    struct_impl.items.extend(spec_fns.into_iter().map(syn::ImplItem::Method));
+                },
+                syn::TraitItem::Macro(makro) if is_predicate_macro(makro) => {
+                    return Err(syn::Error::new(
+                        makro.span(),
+                        "Can not declare abstract predicate in external spec"
+                    ));
                 }
                 _ => unimplemented!("Unimplemented trait item for extern spec"),
             };
@@ -156,52 +164,13 @@ impl<'a> GeneratedStruct<'a> {
         Ok(struct_impl)
     }
 
-    /// Generates a "stub" implementation for a trait method
-    fn generate_method_stub(&self, trait_method: &syn::TraitItemMethod) -> syn::ImplItemMethod {
-        let mut trait_method_sig = trait_method.sig.clone();
+    fn generate_method_stub(&self, trait_method: &syn::TraitItemMethod) -> syn::Result<(syn::ImplItemMethod, Vec<syn::ImplItemMethod>)> {
         let self_type_ident = &self.self_type_ident;
-        let self_type_trait = &self.self_type_trait;
-        let trait_method_ident = &trait_method_sig.ident;
-
-        // Create the method signature
-        let method_path: syn::ExprPath = parse_quote_spanned! {trait_method_ident.span()=>
-            <#self_type_ident as #self_type_trait> :: #trait_method_ident
+        let self_type_path: syn::TypePath = parse_quote_spanned! {self_type_ident.span()=>
+            #self_type_ident
         };
 
-        // Rewrite occurrences of associated types in signature to defined generics
-        let self_type_path = parse_quote_spanned! {self_type_ident.span()=> #self_type_ident };
-        let mut rewriter = AssociatedTypeRewriter::new(
-            &self_type_path,
-            &self.self_type_trait,
-        );
-        rewriter.rewrite_method_sig(&mut trait_method_sig);
-
-        // Rewrite "self" to "_self" in method attributes and method inputs
-        let mut trait_method_attrs = trait_method.attrs.clone();
-        trait_method_attrs
-            .iter_mut()
-            .for_each(|attr| attr.tokens = rewrite_self(attr.tokens.clone()));
-        let trait_method_inputs =
-            rewrite_method_inputs(&self.self_type_ident, &mut trait_method_sig.inputs);
-
-        // We need to rewrite `Self` in the attributes tokens as well
-        // to account for ghost constraints with a bound on `Self`
-        for attr in trait_method_attrs.iter_mut() {
-            rewriter.rewrite_attribute(attr);
-        }
-
-        // Create method
-        let extern_spec_kind_string: String = ExternSpecKind::Trait.into();
-        return parse_quote_spanned! {trait_method.span()=>
-            #[trusted]
-            #[prusti::extern_spec = #extern_spec_kind_string]
-            #(#trait_method_attrs)*
-            #[allow(unused)]
-            #trait_method_sig {
-                #method_path ( #trait_method_inputs );
-                unimplemented!();
-            }
-        };
+        generate_extern_spec_method_stub(trait_method, &self_type_path, Some(&self.self_type_trait), ExternSpecKind::Trait)
     }
 }
 
