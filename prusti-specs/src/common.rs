@@ -1,7 +1,7 @@
 //! Common code for spec-rewriting
 
 use std::borrow::BorrowMut;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use proc_macro2::Ident;
 use syn::{GenericParam, parse_quote, TypeParam};
 use syn::spanned::Spanned;
@@ -334,7 +334,7 @@ pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
 
     // Merge all type params
     let mut existing_target_type_params: HashMap<Ident, &mut TypeParam> = HashMap::new();
-    let mut new_generic_params: HashSet<GenericParam> = HashSet::new();
+    let mut new_generic_params: Vec<GenericParam> = Vec::new();
     for param_target in generics_target.params.iter_mut() {
         if let GenericParam::Type(type_param_target) = param_target {
             existing_target_type_params.insert(type_param_target.ident.clone(), type_param_target);
@@ -350,7 +350,7 @@ pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
             if let Some(type_param_target) = maybe_type_param_source {
                 type_param_target.bounds.extend(type_param_source.bounds.clone());
             } else {
-                new_generic_params.insert(GenericParam::Type(type_param_source.clone()));
+                new_generic_params.push(GenericParam::Type(type_param_source.clone()));
             }
         }
     }
