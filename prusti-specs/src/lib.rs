@@ -415,12 +415,6 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                         syn::Item::Fn(spec_item_fn) => spec_item_fn,
                         x => unimplemented!("Unexpected variant: {:?}", x),
                     })
-                    .map(|mut spec_item_fn| {
-                        merge_generics(&mut spec_item_fn.sig.generics, impl_generics);
-                        spec_item_fn.rewrite_self_type(self_type_path, Some(&trait_path));
-                        spec_item_fn.rewrite_receiver(self_type_path);
-                        spec_item_fn
-                    })
                     .for_each(|spec_item_fn| generated_spec_items.push(spec_item_fn));
 
                 let new_item = parse_quote_spanned! {method_item.span()=>
@@ -435,9 +429,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                 let predicate = force_matches!(parsed_predicate, ParsedPredicate::Impl(p) => p);
 
                 // Patch spec function: Rewrite self with _self: <SpecStruct>
-                let mut spec_function = force_matches!(predicate.spec_function,
+                let spec_function = force_matches!(predicate.spec_function,
                     syn::Item::Fn(item_fn) => item_fn);
-                spec_function.rewrite_receiver(self_type_path);
                 generated_spec_items.push(spec_function);
 
                 // Add patched predicate function to new items
@@ -446,6 +439,14 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
             _ => new_items.push(item),
         }
     }
+
+    // Patch the spec items (merge generics, handle associated types, rewrite receiver)
+    for generated_spec_item in generated_spec_items.iter_mut() {
+        merge_generics(&mut generated_spec_item.sig.generics, impl_generics);
+        generated_spec_item.rewrite_self_type(self_type_path, Some(&trait_path));
+        generated_spec_item.rewrite_receiver(self_type_path);
+    }
+
     impl_block.items = new_items;
     quote_spanned! {impl_block.span()=>
         #(#generated_spec_items)*
