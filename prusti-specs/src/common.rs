@@ -4,6 +4,7 @@ use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use proc_macro2::Ident;
 use syn::{GenericParam, parse_quote, TypeParam};
+use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use uuid::Uuid;
 pub(crate) use syn_extensions::*;
@@ -327,7 +328,19 @@ mod receiver_rewriter {
 }
 
 /// Copies the [syn::Generics] of `source` to the generics of `target`
-/// **Important**: Lifetimes and const params are currently ignored
+/// **Important**: Lifetimes and const params are currently ignored.
+/// If `source` has generic params which do not appear in `target`, they are added first.
+///
+/// # Example
+/// ```ignore
+/// impl<A: U, B: V> Foo for Bar where WI{
+///     fn baz<C>(...) -> ... where WF
+/// }
+/// ```
+/// When merging the `impl` into `baz`, we'll get
+/// ```ignore
+/// fn baz<A: U, B: V, C>(...) -> ... where WI, WF
+/// ```
 pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
     let generics_target = target.generics_mut();
     let generics_source = source.generics();
@@ -355,7 +368,13 @@ pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
         }
     }
 
-    generics_target.params.extend(new_generic_params);
+    // Merge the new parameters with the existing ones.
+    // New parameters are added as a prefix.
+    if !new_generic_params.is_empty() {
+        let existing_params = generics_target.params.clone();
+        new_generic_params.extend(existing_params);
+        generics_target.params = Punctuated::from_iter(new_generic_params);
+    }
 
     // Merge the where clause
     match (generics_target.where_clause.as_mut(), generics_source.where_clause.as_ref()) {
@@ -465,7 +484,7 @@ mod tests {
             test_merge! {
                 [impl<U: B> Foo for Bar {}] into
                 [impl<T: A> Foo for Bar {}] gives
-                [impl<T: A, U: B> Foo for Bar {}]
+                [impl<U: B, T: A> Foo for Bar {}]
             }
             test_merge! {
                 [impl<T: B> Foo for Bar {}] into
@@ -475,7 +494,7 @@ mod tests {
             test_merge! {
                 [impl<T: B, U: C> Foo for Bar {}] into
                 [impl<T: A> Foo for Bar {}] gives
-                [impl<T: A+B, U: C> Foo for Bar {}]
+                [impl<U: C, T: A+B> Foo for Bar {}]
             }
             test_merge! {
                 [impl<T: A> Foo for Bar {}] into
@@ -489,7 +508,7 @@ mod tests {
             test_merge! {
                 [impl<U> Foo for Bar where U: B {}] into
                 [impl<T> Foo for Bar where T: A {}] gives
-                [impl<T, U> Foo for Bar where T: A, U: B {}]
+                [impl<U, T> Foo for Bar where T: A, U: B {}]
             }
             test_merge! {
                 [impl<T> Foo for Bar where T: B {}] into
