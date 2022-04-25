@@ -134,7 +134,6 @@ fn patch_predicate_macro_body<R: Parse>(
 
     parse_quote_spanned!(input_span=>
         #[allow(unused_must_use, unused_variables, dead_code)]
-        #[prusti::trusted]
         #[prusti::pred_spec_id_ref = #spec_id_str]
         #visibility #signature {
             unimplemented!("predicate")
