@@ -6,6 +6,7 @@ use crate::common::display;
 pub enum Type {
     Int,
     Bool,
+    Perm,
     Float(Float),
     BitVector(BitVector),
     Seq(Seq),

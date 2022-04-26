@@ -2,7 +2,7 @@ use super::Environment;
 
 use rustc_span::def_id::DefId;
 
-mod graphviz;
+pub mod graphviz;
 pub mod lifetimes;
 mod mir;
 

@@ -1,7 +1,9 @@
 use super::{super::lower::IntoPolymorphic, encoder::encode_builtin_function_name_with_type_args};
 use crate::encoder::{
     builtin_encoder::{BuiltinEncoder, BuiltinFunctionKind},
+    errors::SpannedEncodingResult,
     high::builtin_functions::encoder::encode_builtin_function_def,
+    mir::pure::PureFunctionEncoderInterface,
 };
 use log::trace;
 
@@ -9,6 +11,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use std::cell::RefCell;
 use vir_crate::{
+    common::identifier::WithIdentifier,
     high::{self as vir_high},
     polymorphic as vir_poly,
 };
@@ -93,7 +96,10 @@ impl IntoPolymorphic<BuiltinFunctionKind> for BuiltinFunctionHighKind {
 }
 
 trait HighBuiltinFunctionEncoderInterfacePrivate<'tcx> {
-    fn encode_builtin_function_def_high(&self, function_kind: BuiltinFunctionHighKind);
+    fn encode_builtin_function_def_high(
+        &self,
+        function_kind: BuiltinFunctionHighKind,
+    ) -> SpannedEncodingResult<()>;
     fn encode_builtin_function_name_with_type_args_high(
         &self,
         function: &BuiltinFunctionHighKind,
@@ -104,7 +110,10 @@ trait HighBuiltinFunctionEncoderInterfacePrivate<'tcx> {
 impl<'v, 'tcx: 'v> HighBuiltinFunctionEncoderInterfacePrivate<'tcx>
     for crate::encoder::encoder::Encoder<'v, 'tcx>
 {
-    fn encode_builtin_function_def_high(&self, function_kind: BuiltinFunctionHighKind) {
+    fn encode_builtin_function_def_high(
+        &self,
+        function_kind: BuiltinFunctionHighKind,
+    ) -> SpannedEncodingResult<()> {
         trace!("encode_builtin_function_def_high({:?})", function_kind);
         if !self
             .high_builtin_function_encoder_state
@@ -112,12 +121,17 @@ impl<'v, 'tcx: 'v> HighBuiltinFunctionEncoderInterfacePrivate<'tcx>
             .borrow()
             .contains(&function_kind)
         {
-            let _function = encode_builtin_function_def(function_kind.clone()); // TODO
+            let function = encode_builtin_function_def(function_kind.clone());
+            self.register_function_constructor_mir(
+                function.get_identifier(),
+                Box::new(|_| Ok(function)),
+            )?;
             self.high_builtin_function_encoder_state
                 .builtin_functions_high
                 .borrow_mut()
                 .insert(function_kind);
         }
+        Ok(())
     }
     fn encode_builtin_function_name_with_type_args_high(
         &self,
@@ -147,7 +161,7 @@ pub(crate) trait HighBuiltinFunctionEncoderInterface<'tcx> {
     fn encode_builtin_function_use_high(
         &self,
         function_kind: BuiltinFunctionHighKind,
-    ) -> (String, Vec<vir_high::Type>);
+    ) -> SpannedEncodingResult<(String, Vec<vir_high::Type>)>;
     fn encode_builtin_function_use(
         &self,
         function_kind: BuiltinFunctionKind,
@@ -165,7 +179,7 @@ impl<'v, 'tcx: 'v> HighBuiltinFunctionEncoderInterface<'tcx>
     fn encode_builtin_function_use_high(
         &self,
         function_kind: BuiltinFunctionHighKind,
-    ) -> (String, Vec<vir_high::Type>) {
+    ) -> SpannedEncodingResult<(String, Vec<vir_high::Type>)> {
         trace!("encode_builtin_function_use_high({:?})", function_kind);
         if !self
             .high_builtin_function_encoder_state
@@ -174,9 +188,9 @@ impl<'v, 'tcx: 'v> HighBuiltinFunctionEncoderInterface<'tcx>
             .contains(&function_kind)
         {
             // Trigger encoding of definition
-            self.encode_builtin_function_def_high(function_kind.clone());
+            self.encode_builtin_function_def_high(function_kind.clone())?;
         }
-        self.encode_builtin_function_name_with_type_args_high(&function_kind)
+        Ok(self.encode_builtin_function_name_with_type_args_high(&function_kind))
     }
     fn encode_builtin_function_use(
         &self,

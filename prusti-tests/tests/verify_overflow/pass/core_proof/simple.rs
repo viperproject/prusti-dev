@@ -12,8 +12,19 @@ struct T2 {
 }
 
 fn construct() {
+    let c = true;
     let a = T { val: 4 };
     let _b = T2 { f1: T { val: 5 }, f2: a };
+}
+
+fn construct2() {
+    let a = T { val: 4 };
+    let _b = (T { val: 5}, a);
+}
+
+fn copy() {
+    let a = true;
+    let b = !a;
 }
 
 fn main() {}

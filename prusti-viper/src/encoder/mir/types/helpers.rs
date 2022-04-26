@@ -4,7 +4,6 @@ use rustc_middle::{ty, ty::layout::IntegerExt};
 use rustc_target::abi::Integer;
 
 use vir_crate::{
-    common::expression::{and, equals, less_equals},
     high as vir_high,
     polymorphic::{self as vir},
 };
@@ -25,41 +24,12 @@ pub(crate) fn compute_discriminant_values<'tcx>(
 }
 
 /// Encode a disjunction that lists all possible discrimintant values.
-pub(super) fn compute_discriminant_bounds_high<'tcx>(
+pub(super) fn compute_discriminant_ranges<'tcx>(
     adt_def: ty::AdtDef<'tcx>,
     tcx: ty::TyCtxt<'tcx>,
-    discriminant: &vir_high::Expression,
-) -> vir_high::Expression {
-    /// Try to produce the minimal disjunction.
-    fn build_discr_range_expr<
-        T: Ord + PartialEq + Eq + Copy + Into<vir_high::Expression> + PlusOne,
-    >(
-        discriminant: &vir_high::Expression,
-        discr_values: Vec<T>,
-    ) -> vir_high::Expression {
-        if discr_values.is_empty() {
-            // FIXME: A `false` here is unsound. See issues #38 and #158.
-            return true.into();
-        }
-        use vir_crate::common::expression::ExpressionIterator;
-        range_extract(discr_values)
-            .into_iter()
-            .map(|(from, to)| {
-                if from == to {
-                    equals(discriminant.clone(), from.into())
-                } else {
-                    and(
-                        less_equals(from.into(), discriminant.clone()),
-                        less_equals(discriminant.clone(), to.into()),
-                    )
-                }
-            })
-            .disjoin()
-    }
-
-    // Handle *signed* discriminats
+) -> Vec<vir_high::DiscriminantRange> {
     let discr_values = compute_discriminant_values(adt_def, tcx);
-    build_discr_range_expr(discriminant, discr_values)
+    range_extract(discr_values)
 }
 
 /// Encode a disjunction that lists all possible discrimintant values.

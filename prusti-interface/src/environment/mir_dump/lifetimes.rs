@@ -1,14 +1,15 @@
 use crate::environment::{
     borrowck::facts::{AllInputFacts, AllOutputFacts, BorrowckFacts, Loan, PointIndex, Region},
-    mir_dump::graphviz::{loan_to_text, to_sorted_text},
+    mir_dump::graphviz::{loan_to_text, opaque_lifetime_string, to_sorted_text, ToText},
 };
 use rustc_borrowck::consumers::{LocationTable, RichLocation};
-
 use std::{
     cell::Ref,
     collections::{BTreeMap, BTreeSet},
     rc::Rc,
 };
+
+use rustc_middle::mir;
 
 pub struct Lifetimes {
     facts: Rc<BorrowckFacts>,
@@ -45,6 +46,40 @@ impl Lifetimes {
             output_facts,
         }
     }
+    pub fn get_loan_live_at_start(&self, location: mir::Location) -> BTreeSet<String> {
+        let info = self.get_loan_live_at(RichLocation::Start(location));
+        info.into_iter()
+            .map(|x| opaque_lifetime_string(x.index()))
+            .collect()
+    }
+    pub fn get_origin_contains_loan_at_mid(
+        &self,
+        location: mir::Location,
+    ) -> BTreeMap<String, BTreeSet<String>> {
+        let info = self.get_origin_contains_loan_at(RichLocation::Mid(location));
+        info.iter()
+            .map(|(k, v)| {
+                (
+                    k.to_text(),
+                    v.iter()
+                        .map(|x| opaque_lifetime_string(x.index()))
+                        .collect(),
+                )
+            })
+            .collect()
+    }
+    pub fn lifetime_count(&self) -> u32 {
+        let original_lifetimes_count: u32 = self.get_original_lifetimes().len().try_into().unwrap();
+        let borrowck_in_facts = self.borrowck_in_facts();
+        let subset_lifetimes: BTreeSet<Region> = borrowck_in_facts
+            .subset_base
+            .iter()
+            .flat_map(|&(r1, r2, _)| [r1, r2])
+            .collect();
+        let subset_lifetimes_count: u32 = subset_lifetimes.len().try_into().unwrap();
+        original_lifetimes_count + subset_lifetimes_count
+    }
+
     fn borrowck_in_facts(&self) -> Ref<AllInputFacts> {
         Ref::map(self.facts.input_facts.borrow(), |facts| {
             facts.as_ref().unwrap()

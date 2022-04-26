@@ -1,8 +1,11 @@
 pub(crate) use super::{
     super::{cfg::procedure::BasicBlockId, operations_internal::ty::Typed, Expression, Position},
     predicate::Predicate,
-    rvalue::Rvalue,
+    rvalue::{Operand, Rvalue},
+    ty::{LifetimeConst, Type, VariantIndex},
+    variable::VariableDecl,
 };
+use crate::common::display;
 
 #[derive_helpers]
 #[derive_visitors]
@@ -10,23 +13,41 @@ pub(crate) use super::{
 #[allow(clippy::large_enum_variant)]
 pub enum Statement {
     Comment(Comment),
+    OldLabel(OldLabel),
     Inhale(Inhale),
     Exhale(Exhale),
+    Consume(Consume),
+    Assume(Assume),
     Assert(Assert),
     FoldOwned(FoldOwned),
     UnfoldOwned(UnfoldOwned),
     JoinBlock(JoinBlock),
     SplitBlock(SplitBlock),
+    ConvertOwnedIntoMemoryBlock(ConvertOwnedIntoMemoryBlock),
+    RestoreMutBorrowed(RestoreMutBorrowed),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
     WritePlace(WritePlace),
     WriteAddress(WriteAddress),
     Assign(Assign),
+    NewLft(NewLft),
+    EndLft(EndLft),
+    GhostAssignment(GhostAssignment),
+    LifetimeTake(LifetimeTake),
+    OpenMutRef(OpenMutRef),
+    CloseMutRef(CloseMutRef),
 }
 
 #[display(fmt = "// {}", comment)]
 pub struct Comment {
     pub comment: String,
+}
+
+// A label to which it is possible to refer with `LabelledOld` expressions.
+#[display(fmt = "old-label {}", name)]
+pub struct OldLabel {
+    pub name: String,
+    pub position: Position,
 }
 
 /// Inhale the permission denoted by the place.
@@ -43,6 +64,20 @@ pub struct Exhale {
     pub position: Position,
 }
 
+#[display(fmt = "consume {}", operand)]
+/// Consume the operand.
+pub struct Consume {
+    pub operand: Operand,
+    pub position: Position,
+}
+
+#[display(fmt = "assume {}", expression)]
+/// Assume the boolean expression.
+pub struct Assume {
+    pub expression: Expression,
+    pub position: Position,
+}
+
 #[display(fmt = "assert {}", expression)]
 /// Assert the boolean expression.
 pub struct Assert {
@@ -50,7 +85,11 @@ pub struct Assert {
     pub position: Position,
 }
 
-#[display(fmt = "fold {}", place)]
+#[display(
+    fmt = "fold{} {}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    place
+)]
 /// Fold `OwnedNonAliased(place)`.
 pub struct FoldOwned {
     pub place: Expression,
@@ -58,7 +97,11 @@ pub struct FoldOwned {
     pub position: Position,
 }
 
-#[display(fmt = "unfold {}", place)]
+#[display(
+    fmt = "unfold{} {}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    place
+)]
 /// Unfold `OwnedNonAliased(place)`.
 pub struct UnfoldOwned {
     pub place: Expression,
@@ -66,17 +109,57 @@ pub struct UnfoldOwned {
     pub position: Position,
 }
 
-#[display(fmt = "join {}", place)]
+#[display(
+    fmt = "join{} {}{}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    place,
+    "display::option!(enum_variant, \"[{}]\", \"\")"
+)]
 /// Join `MemoryBlock(place)`.
 pub struct JoinBlock {
+    pub place: Expression,
+    pub condition: Option<Vec<BasicBlockId>>,
+    /// If we are joining ex-enum, then we need to know for which variant.
+    pub enum_variant: Option<VariantIndex>,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "split{} {}{}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    place,
+    "display::option!(enum_variant, \"[{}]\", \"\")"
+)]
+/// Split `MemoryBlock(place)`.
+pub struct SplitBlock {
+    pub place: Expression,
+    pub condition: Option<Vec<BasicBlockId>>,
+    /// If we are splitting for enum, then we need to know for which variant.
+    pub enum_variant: Option<VariantIndex>,
+    pub position: Position,
+}
+
+/// Convert `Owned(place)` into `MemoryBlock(place)`.
+#[display(
+    fmt = "convert-owned-memory-block{} {}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    place
+)]
+pub struct ConvertOwnedIntoMemoryBlock {
     pub place: Expression,
     pub condition: Option<Vec<BasicBlockId>>,
     pub position: Position,
 }
 
-#[display(fmt = "split {}", place)]
-/// Split `MemoryBlock(place)`.
-pub struct SplitBlock {
+/// Restore a mutably borrowed place.
+#[display(
+    fmt = "restore-mut-borrowed{} &{} {}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    lifetime,
+    place
+)]
+pub struct RestoreMutBorrowed {
+    pub lifetime: LifetimeConst,
     pub place: Expression,
     pub condition: Option<Vec<BasicBlockId>>,
     pub position: Position,
@@ -117,5 +200,48 @@ pub struct WriteAddress {
 pub struct Assign {
     pub target: Expression,
     pub value: Rvalue,
+    pub position: Position,
+}
+
+#[display(fmt = "{} = newlft()", target)]
+pub struct NewLft {
+    pub target: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "endlft({})", lifetime)]
+pub struct EndLft {
+    pub lifetime: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "ghost-assign {} := {}", target, value)]
+pub struct GhostAssignment {
+    pub target: VariableDecl,
+    pub value: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "{} := shorten_lifetime({:?}, {})", target, value, rd_perm)]
+pub struct LifetimeTake {
+    pub target: VariableDecl,
+    pub value: Vec<LifetimeConst>,
+    pub rd_perm: u32,
+    pub position: Position,
+}
+
+#[display(fmt = "open_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+pub struct OpenMutRef {
+    pub lifetime: LifetimeConst,
+    pub rd_perm: u32,
+    pub object: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "close_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+pub struct CloseMutRef {
+    pub lifetime: LifetimeConst,
+    pub rd_perm: u32,
+    pub object: Expression,
     pub position: Position,
 }

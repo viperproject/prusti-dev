@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_span::MultiSpan;
+use rustc_span::{MultiSpan};
 use log::trace;
 use prusti_interface::PrustiError;
 
@@ -16,13 +16,15 @@ use backtrace::Backtrace;
 pub struct SpannedEncodingError {
     pub(super) error: EncodingErrorKind,
     span: MultiSpan,
+    help: Option<String>,
+    notes: Vec<(String, Option<MultiSpan>)>,
 }
 
 pub type SpannedEncodingResult<T> = Result<T, SpannedEncodingError>;
 
 impl From<SpannedEncodingError> for PrustiError {
     fn from(other: SpannedEncodingError) -> Self {
-        match other.error {
+        let mut error = match other.error {
             EncodingErrorKind::Unsupported(msg) => {
                 PrustiError::unsupported(msg, other.span)
             }
@@ -32,7 +34,14 @@ impl From<SpannedEncodingError> for PrustiError {
             EncodingErrorKind::Internal(msg) => {
                 PrustiError::internal(msg, other.span)
             }
+        };
+        if let Some(help) = other.help {
+            error = error.set_help(help);
         }
+        for (message, span) in other.notes {
+            error.add_note_mut(message, span);
+        }
+        error
     }
 }
 
@@ -41,6 +50,8 @@ impl SpannedEncodingError {
         SpannedEncodingError {
             error,
             span: span.into(),
+            help: None,
+            notes: Vec::new(),
         }
     }
 
@@ -81,5 +92,13 @@ impl SpannedEncodingError {
             span: span.into(),
             ..self
         }
+    }
+
+    pub fn add_note<S: ToString>(&mut self, message: S, opt_span: Option<MultiSpan>) {
+        self.notes.push((message.to_string(), opt_span));
+    }
+
+    pub fn set_help<S: ToString>(&mut self, message: S) {
+        self.help = Some(message.to_string());
     }
 }
