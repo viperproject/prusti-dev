@@ -222,15 +222,11 @@
 <span id="217">217</span>
 <span id="218">218</span>
 <span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/struct.MultiSpan.html">errors::MultiSpan</a>,
     <span class="ident">mir::specifications</span>::{
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#18-41">constraints::ConstraintResolver</a>,
-        <span class="ident">interface</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#28-32">FunctionCallEncodingQuery</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#35-40">SpecQuery</a>},
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#15-38">constraints::ConstraintResolver</a>,
+        <span class="ident">interface</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#28-32">FunctionCallEncodingQuery</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#35-42">SpecQuery</a>},
     },
 };
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
@@ -264,9 +260,9 @@
                 ..
             })
             <span class="op">|</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#36">SpecQuery::FunctionDefEncoding</a>(<span class="ident">def_id</span>, <span class="ident">substs</span>)
-            <span class="op">|</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#38">SpecQuery::PureOrTrustedCheck</a>(<span class="ident">def_id</span>, <span class="ident">substs</span>) =&gt; {
+            <span class="op">|</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#40">SpecQuery::GetProcKind</a>(<span class="ident">def_id</span>, <span class="ident">substs</span>) =&gt; {
                 <span class="kw">let</span> (<span class="ident">trait_def_id</span>, <span class="ident">trait_substs</span>) <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#31">env</a>.<span class="ident">find_trait_method_substs</span>(<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#34">def_id</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#35">substs</a>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">trait_query</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#31">query</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#55">adapt_to</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#40">trait_def_id</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#40">trait_substs</a>);
+                <span class="kw">let</span> <span class="ident">trait_query</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#31">query</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#57">adapt_to</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#40">trait_def_id</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#40">trait_substs</a>);
                 <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#23-26">RefinementContext</a> {
                     <span class="ident">impl_query</span>: <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#31">query</a>,
                     <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#41">trait_query</a>,
@@ -297,13 +293,9 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_loop_spec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
-        <span class="ident">_env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">def_id</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../../prusti_interface/specs/typed/struct.LoopSpecification.html">LoopSpecification</a><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;Get loop specs of {:?}&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#75">def_id</a>);
-        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#73">self</a>.<span class="ident">user_typed_specs</span>.<span class="ident">get_loop_spec</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#75">def_id</a>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_loop_spec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">def_id</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../../../prusti_interface/specs/typed/struct.LoopSpecification.html">LoopSpecification</a><span class="op">&gt;</span> {
+        <span class="macro">trace!</span>(<span class="string">&quot;Get loop specs of {:?}&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#72">def_id</a>);
+        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#72">self</a>.<span class="ident">user_typed_specs</span>.<span class="ident">get_loop_spec</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#72">def_id</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_and_refine_proc_spec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
@@ -311,27 +303,27 @@
         <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
         <span class="ident">query</span>: <span class="ident">SpecQuery</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;Get procedure specs of {:?}&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#84">query</a>);
+        <span class="macro">trace!</span>(<span class="string">&quot;Get procedure specs of {:?}&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#80">query</a>);
 
-        <span class="kw">if</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#82">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#158">is_refined</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#84">query</a>) {
-            <span class="kw">return</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#82">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#146-150">get_proc_spec</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#83">env</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#84">query</a>);
+        <span class="kw">if</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#78">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#154">is_refined</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#80">query</a>) {
+            <span class="kw">return</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#78">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#142-146">get_proc_spec</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#79">env</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#80">query</a>);
         }
 
-        <span class="kw">match</span> <span class="ident">RefinementContext::try_from</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#83">env</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#84">query</a>) {
+        <span class="kw">match</span> <span class="ident">RefinementContext::try_from</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#79">env</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#80">query</a>) {
             <span class="prelude-val">Some</span>(<span class="ident">context</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">refined</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#82">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#110-115">perform_proc_spec_refinement</a>(
-                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#83">env</a>,
-                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#93">context</a>.<span class="ident">impl_query</span>,
-                    <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#93">context</a>.<span class="ident">trait_query</span>,
+                <span class="kw">let</span> <span class="ident">refined</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#78">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#106-111">perform_proc_spec_refinement</a>(
+                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#79">env</a>,
+                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#89">context</a>.<span class="ident">impl_query</span>,
+                    <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#89">context</a>.<span class="ident">trait_query</span>,
                 );
                 <span class="macro">assert!</span>(
-                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#94">refined</a>.<span class="ident">is_some</span>(),
+                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#90">refined</a>.<span class="ident">is_some</span>(),
                     <span class="string">&quot;Could not perform refinement for {:?}&quot;</span>,
-                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#84">query</a>
+                    <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#80">query</a>
                 );
-                <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#94">refined</a>
+                <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#90">refined</a>
             }
-            <span class="kw">_</span> =&gt; <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#82">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#146-150">get_proc_spec</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#83">env</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#84">query</a>),
+            <span class="kw">_</span> =&gt; <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#78">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#142-146">get_proc_spec</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#79">env</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#80">query</a>),
         }
     }
 
@@ -343,32 +335,32 @@
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a><span class="op">&gt;</span> {
         <span class="macro">debug!</span>(
             <span class="string">&quot;Refining specs of {:?} with specs of {:?}&quot;</span>,
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#113">impl_query</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#114">trait_query</a>
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#109">impl_query</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#110">trait_query</a>
         );
 
-        <span class="kw">let</span> <span class="ident">impl_spec</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#111">self</a>
-            .<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#146-150">get_proc_spec</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#112">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#113">impl_query</a>)
+        <span class="kw">let</span> <span class="ident">impl_spec</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#107">self</a>
+            .<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#142-146">get_proc_spec</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#108">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#109">impl_query</a>)
             .<span class="ident">cloned</span>()
             .<span class="ident">unwrap_or_else</span>(<span class="ident">ProcedureSpecification::empty</span>);
 
-        <span class="kw">let</span> <span class="ident">trait_spec</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#111">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#146-150">get_proc_spec</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#112">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#114">trait_query</a>);
+        <span class="kw">let</span> <span class="ident">trait_spec</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#107">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#142-146">get_proc_spec</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#108">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#110">trait_query</a>);
 
-        <span class="kw">let</span> <span class="ident">refined</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">trait_spec_set</span>) <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#126">trait_spec</a> {
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#121">impl_spec</a>.<a class="ident" href="../../../../../prusti_interface/specs/typed/trait.Refinable.html">refine</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#128">trait_spec_set</a>)
+        <span class="kw">let</span> <span class="ident">refined</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">trait_spec_set</span>) <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#122">trait_spec</a> {
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#117">impl_spec</a>.<a class="ident" href="../../../../../prusti_interface/specs/typed/trait.Refinable.html">refine</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#124">trait_spec_set</a>)
         } <span class="kw">else</span> {
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#121">impl_spec</a>
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#117">impl_spec</a>
         };
 
-        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#111">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#163-169">validate_refined_kind</a>(
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#112">env</a>,
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#113">impl_query</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#43">referred_def_id</a>(),
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#114">trait_query</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#43">referred_def_id</a>(),
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#128">refined</a>.<span class="ident">kind</span>,
+        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#107">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#159-165">validate_refined_kind</a>(
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#108">env</a>,
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#109">impl_query</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#45">referred_def_id</a>(),
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#110">trait_query</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#45">referred_def_id</a>(),
+            <span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#124">refined</a>.<span class="ident">kind</span>,
         );
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Refined: {:?}&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#128">refined</a>);
-        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#111">self</a>.<span class="ident">refined_specs</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#113">impl_query</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#128">refined</a>);
-        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#111">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#146-150">get_proc_spec</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#112">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#113">impl_query</a>)
+        <span class="macro">debug!</span>(<span class="string">&quot;Refined: {:?}&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#124">refined</a>);
+        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#107">self</a>.<span class="ident">refined_specs</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#109">impl_query</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#124">refined</a>);
+        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#107">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#142-146">get_proc_spec</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#108">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#109">impl_query</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">get_proc_spec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
@@ -376,15 +368,15 @@
         <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
         <span class="ident">query</span>: <span class="kw-2">&amp;</span><span class="ident">SpecQuery</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#147">self</a>.<span class="ident">refined_specs</span>.<span class="ident">get</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#149">query</a>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#147">self</a>.<span class="ident">user_typed_specs</span>
-                .<span class="ident">get_proc_spec</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#149">query</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#43">referred_def_id</a>())
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">spec</span><span class="op">|</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#154">spec</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#25-29">resolve_emit_err</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#148">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#149">query</a>))
+        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#143">self</a>.<span class="ident">refined_specs</span>.<span class="ident">get</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#145">query</a>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#143">self</a>.<span class="ident">user_typed_specs</span>
+                .<span class="ident">get_proc_spec</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#145">query</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#45">referred_def_id</a>())
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">spec</span><span class="op">|</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#150">spec</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/constraints.rs.html#22-26">resolve_emit_err</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#144">env</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#145">query</a>))
         })
     }
 
     <span class="kw">fn</span> <span class="ident">is_refined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">query</span>: <span class="kw-2">&amp;</span><span class="ident">SpecQuery</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#158">self</a>.<span class="ident">refined_specs</span>.<span class="ident">contains_key</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#158">query</a>)
+        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#154">self</a>.<span class="ident">refined_specs</span>.<span class="ident">contains_key</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#154">query</a>)
     }
 
     <span class="doccomment">/// Validates refinement and reports proper errors</span>
@@ -395,44 +387,44 @@
         <span class="ident">trait_proc_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
         <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">SpecificationItem</span><span class="op">&lt;</span><a class="ident" href="../../../../../prusti_interface/specs/typed/enum.ProcedureSpecificationKind.html">ProcedureSpecificationKind</a><span class="op">&gt;</span>,
     ) {
-        <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#168">kind</a>.<span class="ident">validate</span>() {
+        <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#164">kind</a>.<span class="ident">validate</span>() {
             <span class="prelude-val">Ok</span>(()) =&gt; (),
             <span class="prelude-val">Err</span>(<span class="ident">ProcedureSpecificationKindError::InvalidSpecKindRefinement</span>(
                 <span class="ident">base_kind</span>,
                 <span class="ident">refined_kind</span>,
             )) =&gt; {
-                <span class="kw">let</span> <span class="ident">impl_method_span</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#165">env</a>.<span class="ident">tcx</span>().<span class="ident">def_span</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#166">impl_proc_def_id</a>);
+                <span class="kw">let</span> <span class="ident">impl_method_span</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#161">env</a>.<span class="ident">tcx</span>().<span class="ident">def_span</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#162">impl_proc_def_id</a>);
 
-                <span class="kw">let</span> <span class="ident">trait_def_id</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#165">env</a>.<span class="ident">tcx</span>().<span class="ident">trait_of_item</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#167">trait_proc_def_id</a>).<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="ident">trait_span</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#165">env</a>.<span class="ident">tcx</span>().<span class="ident">def_span</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#178">trait_def_id</a>);
-                <span class="kw">let</span> <span class="ident">trait_name</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#165">env</a>.<span class="ident">tcx</span>().<span class="ident">def_path_str</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#178">trait_def_id</a>);
-                <span class="kw">let</span> <span class="ident">trait_method_name</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#165">env</a>.<span class="ident">tcx</span>().<span class="ident">def_path_str</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#167">trait_proc_def_id</a>);
-                <span class="kw">let</span> <span class="ident">impl_method_name</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#165">env</a>.<span class="ident">tcx</span>().<span class="ident">def_path_str</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#166">impl_proc_def_id</a>);
+                <span class="kw">let</span> <span class="ident">trait_def_id</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#161">env</a>.<span class="ident">tcx</span>().<span class="ident">trait_of_item</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#163">trait_proc_def_id</a>).<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="ident">trait_span</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#161">env</a>.<span class="ident">tcx</span>().<span class="ident">def_span</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#174">trait_def_id</a>);
+                <span class="kw">let</span> <span class="ident">trait_name</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#161">env</a>.<span class="ident">tcx</span>().<span class="ident">def_path_str</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#174">trait_def_id</a>);
+                <span class="kw">let</span> <span class="ident">trait_method_name</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#161">env</a>.<span class="ident">tcx</span>().<span class="ident">def_path_str</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#163">trait_proc_def_id</a>);
+                <span class="kw">let</span> <span class="ident">impl_method_name</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#161">env</a>.<span class="ident">tcx</span>().<span class="ident">def_path_str</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#162">impl_proc_def_id</a>);
 
                 <span class="ident">PrustiError::incorrect</span>(
                     <span class="macro">format!</span>(
                         <span class="string">&quot;Invalid specification kind for procedure &#39;{}&#39;&quot;</span>,
-                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#182">impl_method_name</a>
+                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#178">impl_method_name</a>
                     ),
-                    <span class="ident">MultiSpan::from_span</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#176">impl_method_span</a>),
+                    <span class="ident">MultiSpan::from_span</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#172">impl_method_span</a>),
                 )
                 .<span class="ident">add_note</span>(<span class="string">&quot;Procedures can be predicates, pure or impure&quot;</span>, <span class="prelude-val">None</span>)
                 .<span class="ident">add_note</span>(
-                    <span class="macro">format!</span>(<span class="string">&quot;This procedure is of kind &#39;{}&#39;&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#174">refined_kind</a>).<span class="ident">as_str</span>(),
+                    <span class="macro">format!</span>(<span class="string">&quot;This procedure is of kind &#39;{}&#39;&quot;</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#170">refined_kind</a>).<span class="ident">as_str</span>(),
                     <span class="prelude-val">None</span>,
                 )
                 .<span class="ident">add_note</span>(
                     <span class="macro">format!</span>(
                         <span class="string">&quot;This procedure refines a function declared on &#39;{}&#39;&quot;</span>,
-                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#180">trait_name</a>
+                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#176">trait_name</a>
                     )
                     .<span class="ident">as_str</span>(),
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#179">trait_span</a>),
+                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#175">trait_span</a>),
                 )
                 .<span class="ident">add_note</span>(
                     <span class="macro">format!</span>(
                         <span class="string">&quot;However, &#39;{}&#39; is of kind &#39;{}&#39;&quot;</span>,
-                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#181">trait_method_name</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#173">base_kind</a>
+                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#177">trait_method_name</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#169">base_kind</a>
                     )
                     .<span class="ident">as_str</span>(),
                     <span class="prelude-val">None</span>,
@@ -440,11 +432,11 @@
                 .<span class="ident">add_note</span>(
                     <span class="macro">format!</span>(
                         <span class="string">&quot;Try to convert &#39;{}&#39; into a procedure of kind &#39;{}&#39;&quot;</span>,
-                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#182">impl_method_name</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#173">base_kind</a>
+                        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#178">impl_method_name</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#169">base_kind</a>
                     ),
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#176">impl_method_span</a>),
+                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#172">impl_method_span</a>),
                 )
-                .<span class="ident">emit</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#165">env</a>);
+                .<span class="ident">emit</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/specifications/specs.rs.html#161">env</a>);
             }
         }
     }

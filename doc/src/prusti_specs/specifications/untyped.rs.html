@@ -71,74 +71,129 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">proc_macro2</span>::{<a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
 <span class="kw">use</span> <a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
+<span class="kw">use</span> <a class="ident" href="../../../syn/item/struct.Signature.html">syn::Signature</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/prusti_specs/common.rs.html#54-57"><span class="kw">crate</span>::common::HasSignature</a>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::common</span>::{<a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#13-22">SpecType</a>, <a class="ident" href="../../../src/prusti_specs/specifications/common.rs.html#51">SpecificationId</a>};
 <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/prusti_specs/specifications/preparser.rs.html#12-15"><span class="kw">super</span>::preparser::Arg</a>;
 
 <span class="doccomment">/// An abstraction over all kinds of function items.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AnyFnItem</span> {
     <span class="ident">Fn</span>(<a class="ident" href="../../../syn/item/struct.ItemFn.html">syn::ItemFn</a>),
     <span class="ident">TraitMethod</span>(<a class="ident" href="../../../syn/item/struct.TraitItemMethod.html">syn::TraitItemMethod</a>),
     <span class="ident">ImplMethod</span>(<a class="ident" href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../syn/parse/trait.Parse.html">syn::parse::Parse</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#8-12">AnyFnItem</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../syn/parse/trait.Parse.html">syn::parse::Parse</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#11-15">AnyFnItem</a> {
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <a class="ident" href="../../../syn/parse/type.ParseStream.html">syn::parse::ParseStream</a>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../../syn/parse/discouraged/trait.Speculative.html">syn::parse::discouraged::Speculative</a>;
-        <span class="kw">let</span> <span class="ident">fork</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#15">input</a>.<span class="ident">fork</span>();
-        <span class="kw">let</span> <span class="ident">item_fn</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#17">fork</a>.<span class="ident">parse</span>();
-        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#18">item_fn</a> {
+        <span class="kw">let</span> <span class="ident">fork</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#18">input</a>.<span class="ident">fork</span>();
+        <span class="kw">let</span> <span class="ident">item_fn</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#20">fork</a>.<span class="ident">parse</span>();
+        <span class="kw">match</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#21">item_fn</a> {
             <span class="prelude-val">Ok</span>(<span class="ident">res</span>) =&gt; {
                 <span class="comment">// We have an item Fn.</span>
-                <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#15">input</a>.<a class="ident" href="../../../syn/parse/discouraged/trait.Speculative.html">advance_to</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#17">fork</a>);
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#9">AnyFnItem::Fn</a>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#20">res</a>))
+                <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#18">input</a>.<a class="ident" href="../../../syn/parse/discouraged/trait.Speculative.html">advance_to</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#20">fork</a>);
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#12">AnyFnItem::Fn</a>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#23">res</a>))
             },
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// It is not a valid ItemFn.</span>
-                <span class="kw">let</span> <span class="ident">item_method</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#15">input</a>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#10">AnyFnItem::TraitMethod</a>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#27">item_method</a>))
+                <span class="kw">let</span> <span class="ident">item_method</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#18">input</a>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#13">AnyFnItem::TraitMethod</a>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#30">item_method</a>))
             }
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#8-12">AnyFnItem</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#11-15">AnyFnItem</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">attrs_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../syn/attr/struct.Attribute.html">syn::Attribute</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#35">self</a> {
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#9">AnyFnItem::Fn</a>(<span class="ident">item</span>) =&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#37">item</a>.<span class="ident">attrs</span>,
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#10">AnyFnItem::TraitMethod</a>(<span class="ident">item</span>) =&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#38">item</a>.<span class="ident">attrs</span>,
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#11">AnyFnItem::ImplMethod</a>(<span class="ident">item</span>) =&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#39">item</a>.<span class="ident">attrs</span>,
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sig</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/item/struct.Signature.html">syn::Signature</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#43">self</a> {
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#9">AnyFnItem::Fn</a>(<span class="ident">item</span>) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#45">item</a>.<span class="ident">sig</span>,
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#10">AnyFnItem::TraitMethod</a>(<span class="ident">item</span>) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#46">item</a>.<span class="ident">sig</span>,
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#11">AnyFnItem::ImplMethod</a>(<span class="ident">item</span>) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#47">item</a>.<span class="ident">sig</span>,
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#38">self</a> {
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#12">AnyFnItem::Fn</a>(<span class="ident">item</span>) =&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#40">item</a>.<span class="ident">attrs</span>,
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#13">AnyFnItem::TraitMethod</a>(<span class="ident">item</span>) =&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#41">item</a>.<span class="ident">attrs</span>,
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(<span class="ident">item</span>) =&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#42">item</a>.<span class="ident">attrs</span>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../syn/stmt/struct.Block.html">syn::Block</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#51">self</a> {
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#9">AnyFnItem::Fn</a>(<span class="ident">item</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#53">item</a>.<span class="ident">block</span>),
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#11">AnyFnItem::ImplMethod</a>(<span class="ident">item</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#54">item</a>.<span class="ident">block</span>),
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#10">AnyFnItem::TraitMethod</a>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#55">item</a>.<span class="ident">default</span>.<span class="ident">as_ref</span>(),
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#46">self</a> {
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#12">AnyFnItem::Fn</a>(<span class="ident">item</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#48">item</a>.<span class="ident">block</span>),
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(<span class="ident">item</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#49">item</a>.<span class="ident">block</span>),
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#13">AnyFnItem::TraitMethod</a>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#50">item</a>.<span class="ident">default</span>.<span class="ident">as_ref</span>(),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vis</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../syn/data/enum.Visibility.html">syn::Visibility</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#54">self</a> {
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#12">AnyFnItem::Fn</a>(<span class="ident">item</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#56">item</a>.<span class="ident">vis</span>),
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(<span class="ident">item</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#57">item</a>.<span class="ident">vis</span>),
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#13">AnyFnItem::TraitMethod</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_impl_item</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#62">self</a> {
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#64">i</a>,
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>()
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#8-12">AnyFnItem</a> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#61">self</a> {
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#9">AnyFnItem::Fn</a>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#63">item</a>.<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#61">tokens</a>),
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#10">AnyFnItem::TraitMethod</a>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#64">item</a>.<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#61">tokens</a>),
-            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#11">AnyFnItem::ImplMethod</a>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#65">item</a>.<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#61">tokens</a>),
+<span class="kw">impl</span> <a class="ident" href="../../../src/prusti_specs/common.rs.html#54-57">HasSignature</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#11-15">AnyFnItem</a> {
+    <span class="kw">fn</span> <span class="ident">sig</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../syn/item/struct.Signature.html">Signature</a> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#71">self</a> {
+            <span class="ident"><span class="self">Self</span>::Fn</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#73">item</a>.<a class="ident" href="../../../src/prusti_specs/common.rs.html#55">sig</a>(),
+            <span class="ident"><span class="self">Self</span>::ImplMethod</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#74">item</a>.<a class="ident" href="../../../src/prusti_specs/common.rs.html#55">sig</a>(),
+            <span class="ident"><span class="self">Self</span>::TraitMethod</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#75">item</a>.<a class="ident" href="../../../src/prusti_specs/common.rs.html#55">sig</a>(),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">sig_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../syn/item/struct.Signature.html">Signature</a> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#79">self</a> {
+            <span class="ident"><span class="self">Self</span>::Fn</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#81">item</a>.<a class="ident" href="../../../src/prusti_specs/common.rs.html#56">sig_mut</a>(),
+            <span class="ident"><span class="self">Self</span>::ImplMethod</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#82">item</a>.<a class="ident" href="../../../src/prusti_specs/common.rs.html#56">sig_mut</a>(),
+            <span class="ident"><span class="self">Self</span>::TraitMethod</span>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#83">item</a>.<a class="ident" href="../../../src/prusti_specs/common.rs.html#56">sig_mut</a>(),
         }
     }
 }
-</code></pre></div>
+
+<span class="kw">impl</span> <a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#11-15">AnyFnItem</a> {
+    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_specs/specifications/untyped.rs.html#89">self</a> {
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#12">AnyFnItem::Fn</a>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#91">item</a>.<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#89">tokens</a>),
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#13">AnyFnItem::TraitMethod</a>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#92">item</a>.<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#89">tokens</a>),
+            <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#14">AnyFnItem::ImplMethod</a>(<span class="ident">item</span>) =&gt; <a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#93">item</a>.<a class="ident" href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a class="ident" href="../../../src/prusti_specs/specifications/untyped.rs.html#89">tokens</a>),
+        }
+    }
+}</code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_specs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
 </body></html>
