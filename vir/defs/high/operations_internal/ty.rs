@@ -233,6 +233,7 @@ impl Typed for Expression {
             Expression::Quantifier(expression) => expression.get_type(),
             Expression::LetExpr(expression) => expression.get_type(),
             Expression::FuncApp(expression) => expression.get_type(),
+            Expression::BuiltinFuncApp(expression) => expression.get_type(),
             Expression::Downcast(expression) => expression.get_type(),
         }
     }
@@ -254,6 +255,7 @@ impl Typed for Expression {
             Expression::Quantifier(expression) => expression.set_type(new_type),
             Expression::LetExpr(expression) => expression.set_type(new_type),
             Expression::FuncApp(expression) => expression.set_type(new_type),
+            Expression::BuiltinFuncApp(expression) => expression.set_type(new_type),
             Expression::Downcast(expression) => expression.set_type(new_type),
         }
     }
@@ -419,6 +421,15 @@ impl Typed for LetExpr {
 }
 
 impl Typed for FuncApp {
+    fn get_type(&self) -> &Type {
+        &self.return_type
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.return_type = new_type;
+    }
+}
+
+impl Typed for BuiltinFuncApp {
     fn get_type(&self) -> &Type {
         &self.return_type
     }

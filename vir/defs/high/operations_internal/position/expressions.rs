@@ -21,6 +21,7 @@ impl Positioned for Expression {
             Self::LetExpr(expression) => expression.position(),
             Self::FuncApp(expression) => expression.position(),
             Self::Downcast(expression) => expression.position(),
+            Self::BuiltinFuncApp(expression) => expression.position(),
         }
     }
 }
@@ -116,6 +117,12 @@ impl Positioned for LetExpr {
 }
 
 impl Positioned for FuncApp {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for BuiltinFuncApp {
     fn position(&self) -> Position {
         self.position
     }

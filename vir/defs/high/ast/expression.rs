@@ -36,6 +36,7 @@ pub enum Expression {
     /// let variable == (expr) in body
     LetExpr(LetExpr),
     FuncApp(FuncApp),
+    BuiltinFuncApp(BuiltinFuncApp),
     /// Inform the fold-unfold algorithm that at this program point a enum type can be downcasted
     /// to one of its variants. This statement is a no-op for Viper.
     /// Arguments:
@@ -219,6 +220,22 @@ pub struct LetExpr {
 #[display(fmt = "{}({})", function_name, "display::cjoin(arguments)")]
 pub struct FuncApp {
     pub function_name: String,
+    pub type_arguments: Vec<Type>,
+    pub arguments: Vec<Expression>,
+    pub parameters: Vec<VariableDecl>,
+    pub return_type: Type,
+    pub position: Position,
+}
+
+#[derive(Copy)]
+pub enum BuiltinFunc {
+    EmptyMap,
+    UpdateMap
+}
+
+#[display(fmt = "__builtin__{}({})", function, "display::cjoin(arguments)")]
+pub struct BuiltinFuncApp {
+    pub function: BuiltinFunc,
     pub type_arguments: Vec<Type>,
     pub arguments: Vec<Expression>,
     pub parameters: Vec<VariableDecl>,

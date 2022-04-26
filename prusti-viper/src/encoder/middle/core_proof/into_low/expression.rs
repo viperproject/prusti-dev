@@ -29,6 +29,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ToLowLowerer for super::super::lowerer::Lowerer<'p, '
         Ok(func_app)
     }
 
+    fn to_low_expression_builtin_func_app(
+        &mut self,
+        _app: vir_mid::expression::BuiltinFuncApp,
+    ) -> SpannedEncodingResult<vir_low::expression::Expression> {
+        todo!()
+    }
+
     fn to_low_position(
         &mut self,
         position: vir_mid::Position,
