@@ -64,7 +64,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         if let Some(state) = self.state_at_entry.get(label) {
             node_builder.add_row_single(format!(
                 "<font color=\"brown\">{}</font>",
-                escape_html(state.debug_string())
+                escape_html(state.to_string())
             ));
         }
     }
@@ -72,7 +72,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         if let Some(state) = self.state_at_exit.get(label) {
             node_builder.add_row_single(format!(
                 "<font color=\"brown\">{}</font>",
-                escape_html(state.debug_string())
+                escape_html(state.to_string())
             ));
         }
     }
@@ -100,6 +100,18 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                         condition.to_string(),
                     );
                 }
+            }
+            vir_mid::Successor::NonDetChoice(first, second) => {
+                graph.add_regular_annotated_edge(
+                    label.to_string(),
+                    first.to_string(),
+                    "*".to_string(),
+                );
+                graph.add_regular_annotated_edge(
+                    label.to_string(),
+                    second.to_string(),
+                    "*".to_string(),
+                );
             }
         }
     }

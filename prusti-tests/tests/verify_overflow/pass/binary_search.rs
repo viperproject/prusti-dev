@@ -1,7 +1,7 @@
 use prusti_contracts::*;
 
 #[extern_spec]
-impl std::option::Option<usize> {
+impl<T: std::cmp::PartialEq> std::option::Option<T> {
     #[pure]
     #[ensures(matches!(*self, Some(_)) == result)]
     pub fn is_some(&self) -> bool;
@@ -9,15 +9,17 @@ impl std::option::Option<usize> {
     #[pure]
     #[ensures(self.is_some() == !result)]
     pub fn is_none(&self) -> bool;
-
-    #[pure]
-    #[requires(self.is_some())]
-    #[ensures(match self {
-        Some(value) => value == result,
-        None => unreachable!(),
-    })]
-    pub fn unwrap(self) -> usize;
 }
+
+// cloned unwrap
+#[trusted]
+#[pure]
+#[requires(opt.is_some())]
+#[ensures(match opt {
+    Some(value) => *value == result,
+    None => unreachable!(),
+})]
+fn option_peek(opt: &Option<usize>) -> usize { unimplemented!() }
 
 fn main() {}
 
@@ -28,7 +30,7 @@ predicate! {
 }
 
 #[requires(sorted(s))]
-#[ensures(result.is_some() ==> result.unwrap() < s.len() && s[result.unwrap()] == n)]
+#[ensures(result.is_some() ==> option_peek(&result) < s.len() && s[option_peek(&result)] == n)]
 #[ensures(result.is_none() ==> forall(|i: usize| (i < s.len() ==> s[i] != n)))]
 pub fn binary_search(s: &[i32], n: i32) -> Option<usize> {
     let mut base = 0;
@@ -46,7 +48,7 @@ pub fn binary_search(s: &[i32], n: i32) -> Option<usize> {
             forall(|k: usize| (base + size <= k && k < s.len()) ==> n < s[k])
         );
         body_invariant!(result.is_some() ==>
-            result.unwrap() < s.len() && s[result.unwrap()] == n);
+            option_peek(&result) < s.len() && s[option_peek(&result)] == n);
 
         let half = size / 2;
         let mid = base + half;

@@ -3,8 +3,8 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         addresses::AddressesInterface, builtin_methods::BuiltinMethodsInterface, lowerer::Lowerer,
-        places::PlacesInterface, predicates_owned::PredicatesOwnedInterface,
-        snapshots::SnapshotsInterface, utils::type_decl_encoder::TypeDeclWalker,
+        places::PlacesInterface, predicates::PredicatesOwnedInterface,
+        snapshots::SnapshotValuesInterface, utils::type_decl_encoder::TypeDeclWalker,
     },
 };
 use vir_crate::{low as vir_low, middle as vir_mid};
@@ -55,27 +55,31 @@ impl<'a> TypeDeclWalker for OwnedUnFolder<'a> {
         let (place, snapshot) = p;
         let field_place = lowerer.encode_field_place(ty, field, place.clone(), self.position)?;
         let field_snapshot =
-            lowerer.encode_field_snapshot(ty, field, snapshot.clone(), self.position)?;
+            lowerer.obtain_struct_field_snapshot(ty, field, snapshot.clone(), self.position)?;
         self.walk_type(&field.ty, (field_place, field_snapshot), lowerer)
     }
 }
 
 type PM = vir_low::Expression;
 impl<'a> TypeDeclWalker for MemoryBlockSplitJoiner<'a> {
-    const IS_ZST_PRIMITIVE: bool = true;
+    const IS_EMPTY_PRIMITIVE: bool = true;
     type Parameters = vir_low::Expression;
     fn before_composite(&mut self, ty: &Type, address: &PM, lowerer: &mut Lowerer) -> R {
-        assert!(!lowerer.encoder.is_zst_mid(ty)?);
+        assert!(!lowerer.encoder.is_type_empty(ty)?);
         if !self.is_joining {
             lowerer.encode_memory_block_split_method(ty)?;
-            self.statements.push(stmtp! {
-                self.position => call memory_block_split<ty>([address.clone()])
-            });
+            if ty.has_variants() {
+                unreachable!();
+            } else {
+                self.statements.push(stmtp! {
+                    self.position => call memory_block_split<ty>([address.clone()])
+                });
+            }
         }
         Ok(())
     }
     fn after_composite(&mut self, ty: &Type, address: PM, lowerer: &mut Lowerer) -> R {
-        assert!(!lowerer.encoder.is_zst_mid(ty)?);
+        assert!(!lowerer.encoder.is_type_empty(ty)?);
         if self.is_joining {
             lowerer.encode_memory_block_join_method(ty)?;
             self.statements.push(stmtp! {

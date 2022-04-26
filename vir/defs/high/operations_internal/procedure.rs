@@ -23,6 +23,7 @@ impl ProcedureDecl {
                         ExpressionWalker::walk_expression(walker, test);
                     }
                 }
+                Successor::NonDetChoice(_, _) => {}
                 Successor::Exit => {}
             }
         }
@@ -105,6 +106,10 @@ impl ProcedureDecl {
                     for (_, target) in targets {
                         add_target(target);
                     }
+                }
+                Successor::NonDetChoice(first, second) => {
+                    add_target(first);
+                    add_target(second);
                 }
             }
         }

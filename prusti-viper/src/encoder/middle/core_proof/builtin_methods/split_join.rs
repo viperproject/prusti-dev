@@ -4,8 +4,8 @@ use crate::encoder::{
         addresses::AddressesInterface,
         compute_address::ComputeAddressInterface,
         lowerer::Lowerer,
-        predicates_memory_block::PredicatesMemoryBlockInterface,
-        snapshots::{IntoSnapshot, SnapshotsInterface},
+        predicates::PredicatesMemoryBlockInterface,
+        snapshots::{IntoSnapshot, SnapshotBytesInterface, SnapshotValuesInterface},
         type_layouts::TypeLayoutsInterface,
         utils::type_decl_encoder::TypeDeclWalker,
     },
@@ -56,20 +56,26 @@ impl TypeDeclWalker for SplitJoinHelper {
         var_decls!(address: Address);
         let field_address =
             lowerer.encode_field_address(ty, field, address.into(), Default::default())?;
-        if self.is_joining {
+        {
             // Encode to_bytes equality.
             lowerer.encode_snapshot_to_bytes_function(&field.ty)?;
             let memory_block_field_bytes = lowerer.encode_memory_block_bytes_expression(
                 field_address.clone(),
                 field_size_of.clone(),
             )?;
-            let snapshot = var! { snapshot: {ty.create_snapshot(lowerer)?} }.into();
+            let snapshot = var! { snapshot: {ty.to_snapshot(lowerer)?} }.into();
             let field_snapshot =
-                lowerer.encode_field_snapshot(ty, field, snapshot, Default::default())?;
+                lowerer.obtain_struct_field_snapshot(ty, field, snapshot, Default::default())?;
             let to_bytes = ty! { Bytes };
-            self.field_to_bytes_equalities.push(expr! {
-                (old([memory_block_field_bytes])) == (Snap<(&field.ty)>::to_bytes([field_snapshot]))
-            });
+            if self.is_joining {
+                self.field_to_bytes_equalities.push(expr! {
+                    (old([memory_block_field_bytes])) == (Snap<(&field.ty)>::to_bytes([field_snapshot]))
+                });
+            } else {
+                self.field_to_bytes_equalities.push(expr! {
+                    (([memory_block_field_bytes])) == (Snap<(&field.ty)>::to_bytes([field_snapshot]))
+                });
+            }
         }
         let field_block = expr! {acc(MemoryBlock([field_address], [field_size_of]))};
         if self.is_joining {
