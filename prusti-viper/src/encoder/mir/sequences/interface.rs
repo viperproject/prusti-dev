@@ -37,22 +37,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSequenceTypes<'tcx> {
         ret_ty: vir::Type,
     ) -> vir::Expr {
         let (lookup_pure, type_arguments) = if let Some(len) = self.sequence_len {
-            encoder.encode_builtin_function_use(
-                BuiltinFunctionKind::ArrayLookupPure {
-                    array_pred_type: self.sequence_pred_type.clone(),
-                    elem_pred_type: self.elem_pred_type.clone(),
-                    array_len: len,
-                    return_ty: ret_ty.clone(),
-                }
-            )
+            encoder.encode_builtin_function_use(BuiltinFunctionKind::ArrayLookupPure {
+                array_pred_type: self.sequence_pred_type.clone(),
+                elem_pred_type: self.elem_pred_type.clone(),
+                array_len: len,
+                return_ty: ret_ty.clone(),
+            })
         } else {
-            encoder.encode_builtin_function_use(
-                BuiltinFunctionKind::SliceLookupPure {
-                    slice_pred_type: self.sequence_pred_type.clone(),
-                    elem_pred_type: self.elem_pred_type.clone(),
-                    return_ty: ret_ty.clone(),
-                }
-            )
+            encoder.encode_builtin_function_use(BuiltinFunctionKind::SliceLookupPure {
+                slice_pred_type: self.sequence_pred_type.clone(),
+                elem_pred_type: self.elem_pred_type.clone(),
+                return_ty: ret_ty.clone(),
+            })
         };
         vir::Expr::func_app(
             lookup_pure,
@@ -89,8 +85,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSequenceTypes<'tcx> {
 }
 
 pub(crate) trait MirSequencesEncoderInterface<'tcx> {
-    fn encode_sequence_types(&self, sequence_ty: ty::Ty<'tcx>)
-        -> EncodingResult<EncodedSequenceTypes<'tcx>>;
+    fn encode_sequence_types(
+        &self,
+        sequence_ty: ty::Ty<'tcx>,
+    ) -> EncodingResult<EncodedSequenceTypes<'tcx>>;
 }
 
 impl<'v, 'tcx: 'v> MirSequencesEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -112,8 +110,11 @@ impl<'v, 'tcx: 'v> MirSequencesEncoderInterface<'tcx> for super::super::super::E
                 .insert(sequence_ty.kind().clone(), encoded_type.clone())
                 .is_none());
         }
-        let encoded_type =
-            self.mir_sequences_encoder_state.sequence_types_cache.borrow()[sequence_ty.kind()].clone();
+        let encoded_type = self
+            .mir_sequences_encoder_state
+            .sequence_types_cache
+            .borrow()[sequence_ty.kind()]
+        .clone();
         Ok(encoded_type)
     }
 }

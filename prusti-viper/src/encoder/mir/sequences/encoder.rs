@@ -12,13 +12,20 @@ pub(super) fn encode_sequence_types<'p, 'v: 'p, 'tcx: 'v>(
 ) -> EncodingResult<EncodedSequenceTypes<'tcx>> {
     let (elem_ty_rs, sequence_len) = match sequence_ty_rs.kind() {
         ty::TyKind::Array(elem_ty, array_len) => {
-            let len = encoder.const_eval_intlike(array_len.val())?.to_u64().unwrap().try_into().unwrap();
+            let len = encoder
+                .const_eval_intlike(array_len.val())?
+                .to_u64()
+                .unwrap()
+                .try_into()
+                .unwrap();
             (*elem_ty, Some(len))
         }
         ty::TyKind::Slice(elem_ty) => (*elem_ty, None),
-        ty::TyKind::Str => return Err(
-            EncodingError::unsupported("Encoding of Str slice type".to_string()),
-        ),
+        ty::TyKind::Str => {
+            return Err(EncodingError::unsupported(
+                "Encoding of Str slice type".to_string(),
+            ))
+        }
         _ => unreachable!(),
     };
 

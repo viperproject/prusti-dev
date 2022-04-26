@@ -202,10 +202,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         Ok(())
     }
 
-    fn visit_tuple(
-        &mut self,
-        types: &'tcx ty::List<ty::Ty<'tcx>>,
-    ) -> Result<(), Self::Error> {
+    fn visit_tuple(&mut self, types: &'tcx ty::List<ty::Ty<'tcx>>) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
         for (i, ty) in types.into_iter().enumerate() {
             let field = mir::Field::new(i);
