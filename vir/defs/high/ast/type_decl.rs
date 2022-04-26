@@ -1,4 +1,8 @@
-pub(crate) use super::{expression::Expression, field::FieldDecl, ty::Type};
+pub(crate) use super::{
+    expression::Expression,
+    field::FieldDecl,
+    ty::{Type, Uniqueness},
+};
 use crate::common::display;
 
 #[derive_helpers]
@@ -49,7 +53,7 @@ pub struct Float {
 }
 
 #[display(fmt = "{}", name)]
-pub struct Lifetime {
+pub struct LifetimeConst {
     pub name: String,
 }
 
@@ -61,7 +65,7 @@ pub struct GenericType {
 #[derive_helpers]
 #[derive(derive_more::Unwrap)]
 pub enum TypeVar {
-    Lifetime(Lifetime),
+    Lifetime(LifetimeConst),
     GenericType(GenericType),
 }
 
@@ -84,12 +88,15 @@ pub struct Struct {
     pub fields: Vec<FieldDecl>,
 }
 
+pub type DiscriminantValue = i128;
+pub type DiscriminantRange = (DiscriminantValue, DiscriminantValue);
+
 #[display(fmt = "{}", name)]
 pub struct Enum {
     pub name: String,
     pub discriminant_type: Type,
-    pub discriminant_bounds: Expression,
-    pub discriminant_values: Vec<Expression>,
+    pub discriminant_bounds: Vec<DiscriminantRange>,
+    pub discriminant_values: Vec<DiscriminantValue>,
     pub variants: Vec<Struct>,
 }
 
@@ -97,8 +104,8 @@ pub struct Enum {
 pub struct Union {
     pub name: String,
     pub discriminant_type: Type,
-    pub discriminant_bounds: Expression,
-    pub discriminant_values: Vec<Expression>,
+    pub discriminant_bounds: Vec<DiscriminantRange>,
+    pub discriminant_values: Vec<DiscriminantValue>,
     pub variants: Vec<Struct>,
 }
 
@@ -119,10 +126,10 @@ pub struct Map {
     pub val_type: Type,
 }
 
-#[display(fmt = "&{}", target_type)]
+#[display(fmt = "&{} {}", uniqueness, target_type)]
 pub struct Reference {
+    pub uniqueness: Uniqueness,
     pub target_type: Type,
-    pub lifetime: Lifetime,
 }
 
 #[display(fmt = "*{}", target_type)]

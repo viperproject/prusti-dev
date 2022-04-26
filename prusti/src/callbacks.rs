@@ -70,9 +70,8 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
         compiler.session().abort_if_errors();
         queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
             let env = Environment::new(tcx);
-            let mut spec_checker = specs::checker::SpecChecker::new();
-            spec_checker.check_predicate_usages(tcx);
-            spec_checker.report_errors(&env);
+            let spec_checker = specs::checker::SpecChecker::new();
+            spec_checker.check(&env);
             compiler.session().abort_if_errors();
 
             let mut spec_collector = specs::SpecCollector::new(&env);
@@ -80,11 +79,19 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             tcx.hir().walk_attributes(&mut spec_collector);
             let def_spec = spec_collector.build_def_specs();
             if config::print_typeckd_specs() {
-                let mut values: Vec<_> = def_spec
-                    .specs
+                let loop_specs: Vec<_> = def_spec
+                    .loop_specs
                     .values()
                     .map(|spec| format!("{:?}", spec))
                     .collect();
+                let proc_specs: Vec<_> = def_spec
+                    .proc_specs
+                    .values()
+                    .map(|spec| format!("{:?}", spec.base_spec))
+                    .collect();
+                let mut values = Vec::new();
+                values.extend(loop_specs);
+                values.extend(proc_specs);
                 if config::hide_uuids() {
                     let uuid =
                         Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}")

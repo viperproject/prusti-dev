@@ -187,7 +187,7 @@ fn is_spec_closure(def_id: def_id::DefId, tcx: &TyCtxt) -> bool {
     crate::utils::has_spec_only_attr(tcx.get_attrs(def_id))
 }
 
-fn is_spec_basic_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> bool {
+pub fn is_marked_specification_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> bool {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _))) = &stmt.kind {
             if is_spec_closure(*def_id, tcx) {
@@ -224,12 +224,24 @@ fn blocks_definitely_leading_to(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, 
     blocks
 }
 
+fn blocks_dominated_by(mir: &Mir, dominator: BasicBlock) -> HashSet<BasicBlock> {
+    let dominators = mir.dominators();
+    let mut blocks = HashSet::new();
+    for bb in mir.basic_blocks().indices() {
+        if dominators.is_dominated_by(bb, dominator) {
+            blocks.insert(bb);
+        }
+    }
+    blocks
+}
+
 fn get_nonspec_basic_blocks(bb_graph: HashMap<BasicBlock, BasicBlockNode>, mir: &Mir, tcx: &TyCtxt) -> HashSet<BasicBlock>{
     let mut spec_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     for (bb, _) in bb_graph.iter() {
-        if is_spec_basic_block(&mir[*bb], tcx) {
+        if is_marked_specification_block(&mir[*bb], tcx) {
             spec_basic_blocks.insert(*bb);
             spec_basic_blocks.extend(blocks_definitely_leading_to(&bb_graph, *bb).into_iter());
+            spec_basic_blocks.extend(blocks_dominated_by(mir, *bb).into_iter());
         }
     }
     debug!("spec basic blocks: {:#?}", spec_basic_blocks);

@@ -51,7 +51,6 @@ mod private {
     /// of just Rust expressions.
     pub use prusti_contracts_impl::predicate;
 
-
     /// A sequence type
     #[non_exhaustive]
     pub struct Seq<T: Copy> {
@@ -61,6 +60,13 @@ mod private {
     /// A macro for defining ghost blocks which will be left in for verification 
     /// but omitted during compilation.
     pub use prusti_contracts_impl::ghost;
+
+    /// Macro for creating type models.
+    pub use prusti_contracts_impl::model;
+
+    /// A macro to add trait bounds on a generic type parameter and specifications
+    /// which are active only when these bounds are satisfied for a call.
+    pub use prusti_contracts_impl::ghost_constraint;
 }
 
 #[cfg(feature = "prusti")]
@@ -148,6 +154,17 @@ mod private {
     /// A macro for defining ghost blocks which will be left in for verification 
     /// but omitted during compilation.
     pub use prusti_contracts_internal::ghost;
+
+    /// Macro for creating type models.
+    pub use prusti_contracts_internal::model;
+
+    /// A macro to add trait bounds on a generic type parameter and specifications
+    /// which are active only when these bounds are satisfied for a call.
+    pub use prusti_contracts_internal::ghost_constraint;
+
+    pub fn prusti_set_union_active_field<T>(_arg: T) {
+        unreachable!();
+    }
 }
 
 /// This function is used to evaluate an expression in the context just

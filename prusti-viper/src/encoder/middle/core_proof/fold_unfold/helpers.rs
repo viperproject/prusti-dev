@@ -3,7 +3,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         addresses::AddressesInterface, builtin_methods::BuiltinMethodsInterface, lowerer::Lowerer,
-        places::PlacesInterface, predicates_owned::PredicatesOwnedInterface,
+        places::PlacesInterface, predicates::PredicatesOwnedInterface,
         snapshots::SnapshotValuesInterface, utils::type_decl_encoder::TypeDeclWalker,
     },
 };

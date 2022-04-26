@@ -59,6 +59,7 @@ fn ensure_required_permission(
     let (place, permission_kind) = match required_permission {
         Permission::MemoryBlock(place) => (place, PermissionKind::MemoryBlock),
         Permission::Owned(place) => (place, PermissionKind::Owned),
+        Permission::MutBorrowed(borrow) => unreachable!("requiring a borrow: {}", borrow),
     };
 
     let unconditional_predicate_state = state.get_unconditional_state()?;
@@ -107,11 +108,12 @@ fn ensure_required_permission(
     Ok(())
 }
 
-fn can_place_be_ensured_in(
+fn check_can_place_be_ensured_in(
     context: &mut impl Context,
     place: &vir_high::Expression,
     permission_kind: PermissionKind,
     predicate_state: &PredicateState,
+    check_conversions: bool,
 ) -> SpannedEncodingResult<bool> {
     // The requirement is already satisfied.
     let already_satisfied = predicate_state.contains(permission_kind, place);
@@ -121,10 +123,36 @@ fn can_place_be_ensured_in(
     let by_folding = predicate_state
         .contains_non_discriminant_with_prefix(permission_kind, place)
         .is_some();
+    // The requirement can be satisfied by restoring a mutable borrow.
+    let by_restoring_blocked = predicate_state.contains_blocked(place)?.is_some();
     // The requirement can be satisfied by converting into Memory Block.
-    let by_into_memory_block = permission_kind == PermissionKind::MemoryBlock
-        && can_place_be_ensured_in(context, place, PermissionKind::Owned, predicate_state)?;
-    let can = already_satisfied || by_unfolding || by_folding || by_into_memory_block;
+    // Short circuiting is used to prevent infinite recursion.
+    let by_into_memory_block = check_conversions
+        && permission_kind == PermissionKind::MemoryBlock
+        && check_can_place_be_ensured_in(
+            context,
+            place,
+            PermissionKind::Owned,
+            predicate_state,
+            false,
+        )?;
+    // The requirement can be satisfied by converting into Owned.
+    // Short circuiting is used to prevent infinite recursion.
+    let by_into_owned = check_conversions
+        && permission_kind == PermissionKind::Owned
+        && check_can_place_be_ensured_in(
+            context,
+            place,
+            PermissionKind::MemoryBlock,
+            predicate_state,
+            false,
+        )?;
+    let can = already_satisfied
+        || by_unfolding
+        || by_folding
+        || by_restoring_blocked
+        || by_into_memory_block
+        || by_into_owned;
     if !can {
         // Check whether required_permission conflicts with state (has a
         // different variant) and report an error to the user suggesting that
@@ -155,6 +183,15 @@ fn can_place_be_ensured_in(
         }
     }
     Ok(can)
+}
+
+fn can_place_be_ensured_in(
+    context: &mut impl Context,
+    place: &vir_high::Expression,
+    permission_kind: PermissionKind,
+    predicate_state: &PredicateState,
+) -> SpannedEncodingResult<bool> {
+    check_can_place_be_ensured_in(context, place, permission_kind, predicate_state, true)
 }
 
 fn ensure_permission_in_state(
@@ -223,16 +260,51 @@ fn ensure_permission_in_state(
         }
         actions.push(Action::fold(permission_kind, place.clone(), enum_variant));
         predicate_state.insert(permission_kind, place)?;
+    } else if let Some(lifetime) = predicate_state.contains_blocked(&place)? {
+        predicate_state.remove_mut_borrowed(&place)?;
+        predicate_state.insert(PermissionKind::Owned, place.clone())?;
+        actions.push(Action::restore_mut_borrowed(lifetime, place.clone()));
+        ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?;
     } else if permission_kind == PermissionKind::MemoryBlock
         && can_place_be_ensured_in(context, &place, PermissionKind::Owned, predicate_state)?
     {
-        // We have Owned and we need MemoryBlock. Fully unfold.
-        for place in predicate_state.collect_owned_with_prefix(&place)? {
+        // We have Owned and we need MemoryBlock.
+        if predicate_state.contains_prefix_of(PermissionKind::Owned, &place) {
+            // We have Owned that contains the place we need. Unfold as we need
+            // and convert into MemoryBlock.
+            ensure_permission_in_state(
+                context,
+                predicate_state,
+                place.clone(),
+                PermissionKind::Owned,
+                actions,
+            )?;
             predicate_state.remove(PermissionKind::Owned, &place)?;
             predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
             actions.push(Action::owned_into_memory_block(place));
+        } else {
+            // We have a mix of Owned and MemoryBlock. Convert all Owned into
+            // MemoryBlock and then obtain the MemoryBlock we need.
+            let places = predicate_state.collect_owned_with_prefix(&place)?;
+            assert!(!places.is_empty(), "Something went wrong.");
+            for place in places {
+                predicate_state.remove(PermissionKind::Owned, &place)?;
+                predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
+                actions.push(Action::owned_into_memory_block(place));
+            }
+            ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?;
         }
-        ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?;
+    } else if permission_kind == PermissionKind::Owned
+        && can_place_be_ensured_in(
+            context,
+            &place,
+            PermissionKind::MemoryBlock,
+            predicate_state,
+        )?
+    {
+        predicate_state.remove(PermissionKind::MemoryBlock, &place)?;
+        predicate_state.insert(PermissionKind::Owned, place.clone())?;
+        actions.push(Action::fold(PermissionKind::Owned, place, None));
     } else {
         // The requirement cannot be satisfied.
         unreachable!("{} {:?}", place, permission_kind);

@@ -71,7 +71,7 @@ pub(in super::super::super) trait SnapshotValidityInterface {
         domain_name: &str,
         variants: Vec<(String, String, vir_low::Expression)>,
         invariant: vir_low::Expression,
-        discriminant_bounds: vir_low::Expression,
+        discriminant_bounds: &[vir_mid::DiscriminantRange],
     ) -> SpannedEncodingResult<()>;
     fn encode_validity_axioms_enum_variant(
         &mut self,
@@ -216,7 +216,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         domain_name: &str,
         variants: Vec<(String, String, vir_low::Expression)>,
         invariant: vir_low::Expression,
-        discriminant_bounds: vir_low::Expression,
+        discriminant_bounds: &[vir_mid::DiscriminantRange],
     ) -> SpannedEncodingResult<()> {
         // We generate a single top-down validity axiom for all variants.
         {
@@ -245,7 +245,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                     ([ discriminant_call.clone() ] == [ discriminant.clone() ]) ==> [ valid_variant ]
                 });
             }
-            let discriminant_bounds = discriminant_bounds.replace_discriminant(&discriminant_call);
+            let discriminant_bounds =
+                discriminant_call.generate_discriminant_bounds(discriminant_bounds);
             triggers.push(vir_low::Trigger::new(vec![
                 valid_constructor.clone(),
                 discriminant_call,

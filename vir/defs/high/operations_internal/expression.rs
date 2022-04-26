@@ -8,6 +8,7 @@ use super::{
             *,
         },
         position::Position,
+        ty::{visitors::TypeFolder, LifetimeConst, Type},
     },
     ty::Typed,
 };
@@ -34,7 +35,8 @@ impl BinaryOpKind {
             | BinaryOpKind::Sub
             | BinaryOpKind::Mul
             | BinaryOpKind::Div
-            | BinaryOpKind::Mod => argument_type,
+            | BinaryOpKind::Mod
+            | BinaryOpKind::LifetimeIntersection => argument_type,
         }
     }
 }
@@ -56,6 +58,7 @@ impl Expression {
             Expression::Local(_) => None,
             Expression::Variant(Variant { box ref base, .. })
             | Expression::Field(Field { box ref base, .. })
+            | Expression::Deref(Deref { box ref base, .. })
             | Expression::AddrOf(AddrOf { box ref base, .. }) => Some(base),
             Expression::LabelledOld(_) => None,
             expr => unreachable!("{}", expr),
@@ -89,6 +92,29 @@ impl Expression {
             _ => false,
         }
     }
+    pub fn erase_lifetime(self) -> Expression {
+        struct DefaultLifetimeEraser {}
+        impl ExpressionFolder for DefaultLifetimeEraser {
+            fn fold_type(&mut self, ty: Type) -> Type {
+                TypeFolder::fold_type(self, ty)
+            }
+            fn fold_variable_decl(&mut self, variable_decl: VariableDecl) -> VariableDecl {
+                VariableDecl {
+                    name: variable_decl.name,
+                    ty: TypeFolder::fold_type(self, variable_decl.ty),
+                }
+            }
+        }
+        impl TypeFolder for DefaultLifetimeEraser {
+            fn fold_lifetime_const(&mut self, _lifetime: LifetimeConst) -> LifetimeConst {
+                LifetimeConst {
+                    name: String::from("pure_erased"),
+                }
+            }
+        }
+        DefaultLifetimeEraser {}.fold_expression(self)
+    }
+
     #[must_use]
     pub fn replace_place(self, target: &Expression, replacement: &Expression) -> Self {
         debug_assert!(target.is_place());

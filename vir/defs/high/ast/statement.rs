@@ -3,10 +3,11 @@ pub(crate) use super::{
     position::Position,
     predicate::Predicate,
     rvalue::{Operand, Rvalue},
-    ty::Type,
+    ty::{LifetimeConst, Type},
     variable::VariableDecl,
 };
 use crate::common::display;
+use std::collections::BTreeSet;
 
 #[derive_helpers]
 #[derive_visitors]
@@ -14,9 +15,11 @@ use crate::common::display;
 #[allow(clippy::large_enum_variant)]
 pub enum Statement {
     Comment(Comment),
+    OldLabel(OldLabel),
     Inhale(Inhale),
     Exhale(Exhale),
     Consume(Consume),
+    Assume(Assume),
     Assert(Assert),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
@@ -24,11 +27,25 @@ pub enum Statement {
     WriteAddress(WriteAddress),
     Assign(Assign),
     LeakAll(LeakAll),
+    SetUnionVariant(SetUnionVariant),
+    NewLft(NewLft),
+    EndLft(EndLft),
+    GhostAssignment(GhostAssignment),
+    LifetimeTake(LifetimeTake),
+    OpenMutRef(OpenMutRef),
+    CloseMutRef(CloseMutRef),
 }
 
 #[display(fmt = "// {}", comment)]
 pub struct Comment {
     pub comment: String,
+}
+
+// A label to which it is possible to refer with `LabelledOld` expressions.
+#[display(fmt = "old-label {}", name)]
+pub struct OldLabel {
+    pub name: String,
+    pub position: Position,
 }
 
 /// Inhale the permission denoted by the place.
@@ -49,6 +66,13 @@ pub struct Exhale {
 /// Consume the operand.
 pub struct Consume {
     pub operand: Operand,
+    pub position: Position,
+}
+
+#[display(fmt = "assume {}", expression)]
+/// Assume the boolean expression.
+pub struct Assume {
+    pub expression: Expression,
     pub position: Position,
 }
 
@@ -149,3 +173,52 @@ pub struct Assign {
 /// Tells fold-unfold to leak all predicates. This marks the end of the
 /// unwinding path.
 pub struct LeakAll {}
+
+#[display(fmt = "set-union-variant {}", variant_place)]
+pub struct SetUnionVariant {
+    pub variant_place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "{} = newlft()", target)]
+pub struct NewLft {
+    pub target: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "endlft({})", lifetime)]
+pub struct EndLft {
+    pub lifetime: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "ghost-assign {} := {}", target, value)]
+pub struct GhostAssignment {
+    pub target: VariableDecl,
+    pub value: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "{} := shorten_lifetime({:?}, {})", target, value, rd_perm)]
+pub struct LifetimeTake {
+    pub target: VariableDecl,
+    pub value: Vec<LifetimeConst>,
+    pub rd_perm: u32,
+    pub position: Position,
+}
+
+#[display(fmt = "open_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+pub struct OpenMutRef {
+    pub lifetime: LifetimeConst,
+    pub rd_perm: u32,
+    pub object: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "close_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+pub struct CloseMutRef {
+    pub lifetime: LifetimeConst,
+    pub rd_perm: u32,
+    pub object: Expression,
+    pub position: Position,
+}

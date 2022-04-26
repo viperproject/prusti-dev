@@ -8,22 +8,16 @@ use super::{helpers::compute_discriminant_values, interface::MirTypeEncoderInter
 use crate::encoder::{
     errors::{EncodingResult, SpannedEncodingError, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
-    mir::{
-        generics::MirGenericsEncoderInterface, types::helpers::compute_discriminant_bounds_high,
-    },
+    mir::{generics::MirGenericsEncoderInterface, types::helpers::compute_discriminant_ranges},
     Encoder,
 };
 use log::debug;
 use prusti_common::config;
-
+use prusti_interface::environment::mir_dump::graphviz::ToText;
 use rustc_hir::def_id::DefId;
-use rustc_middle::ty;
+use rustc_middle::{mir, ty};
 use rustc_span::MultiSpan;
-
-use vir_crate::{
-    common::expression::BinaryOperationHelpers,
-    high::{self as vir},
-};
+use vir_crate::high::{self as vir, operations::ty::Typed};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -106,12 +100,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Type::pointer(self.encoder.encode_type_high(*ty)?)
             }
 
-            ty::TyKind::Ref(_, ty, _) => {
-                // TODO: add real lifetime here?
-                let fake_lft = vir::ty::Lifetime {
-                    name: String::from("lft_fake"),
-                };
-                vir::Type::reference(self.encoder.encode_type_high(*ty)?, fake_lft)
+            ty::TyKind::Ref(region, ty, mutability) => {
+                let lft_name = region.to_text();
+                let lifetime = vir::ty::LifetimeConst { name: lft_name };
+                let uniqueness = self.encode_uniqueness(*mutability);
+                vir::Type::reference(lifetime, uniqueness, self.encoder.encode_type_high(*ty)?)
             }
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() => {
@@ -258,7 +251,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     pub fn get_integer_bounds(&self) -> Option<(vir::Expression, vir::Expression)> {
         match self.ty.kind() {
             ty::TyKind::Int(int_ty) => {
-                let bounds = match int_ty {
+                let (mut low, mut up): (vir::Expression, vir::Expression) = match int_ty {
                     ty::IntTy::I8 => (std::i8::MIN.into(), std::i8::MAX.into()),
                     ty::IntTy::I16 => (std::i16::MIN.into(), std::i16::MAX.into()),
                     ty::IntTy::I32 => (std::i32::MIN.into(), std::i32::MAX.into()),
@@ -266,10 +259,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     ty::IntTy::I128 => (std::i128::MIN.into(), std::i128::MAX.into()),
                     ty::IntTy::Isize => (std::isize::MIN.into(), std::isize::MAX.into()),
                 };
-                Some(bounds)
+                low.set_type(vir::Type::MInt);
+                up.set_type(vir::Type::MInt);
+                Some((low, up))
             }
             ty::TyKind::Uint(uint_ty) => {
-                let bounds = match uint_ty {
+                let (mut low, mut up): (vir::Expression, vir::Expression) = match uint_ty {
                     ty::UintTy::U8 => (0.into(), std::u8::MAX.into()),
                     ty::UintTy::U16 => (0.into(), std::u16::MAX.into()),
                     ty::UintTy::U32 => (0.into(), std::u32::MAX.into()),
@@ -277,9 +272,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     ty::UintTy::U128 => (0.into(), std::u128::MAX.into()),
                     ty::UintTy::Usize => (0.into(), std::usize::MAX.into()),
                 };
-                Some(bounds)
+                low.set_type(vir::Type::MInt);
+                up.set_type(vir::Type::MInt);
+                Some((low, up))
             }
             ty::TyKind::Char => Some((0.into(), std::char::MAX.into())),
+            ty::TyKind::Ref(_, ty, _) => Self::new(self.encoder, *ty).get_integer_bounds(),
             _ => None,
         }
     }
@@ -332,13 +330,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 let target_type = self.encoder.encode_type_high(*ty)?;
                 vir::TypeDecl::pointer(target_type)
             }
-            ty::TyKind::Ref(_, ty, _) => {
+            ty::TyKind::Ref(_, ty, mutability) => {
                 let target_type = self.encoder.encode_type_high(*ty)?;
-                // TODO: add real lifetime here?
-                let fake_lft = vir_crate::high::type_decl::Lifetime {
-                    name: String::from("lft_fake"),
-                };
-                vir::TypeDecl::reference(target_type, fake_lft)
+                vir::TypeDecl::reference(self.encode_uniqueness(*mutability), target_type)
             }
             ty::TyKind::Tuple(elems) => vir::TypeDecl::tuple(
                 elems
@@ -761,6 +755,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         debug!("Encode type tag name '{:?}'", self.ty);
         Ok(format!("{}$tag", self.encode_predicate_use()?))
     }
+
+    fn encode_uniqueness(&self, mutability: mir::Mutability) -> vir::ty::Uniqueness {
+        match mutability {
+            mir::Mutability::Mut => vir::ty::Uniqueness::Unique,
+            mir::Mutability::Not => vir::ty::Uniqueness::Shared,
+        }
+    }
 }
 
 fn encode_box_name() -> String {
@@ -822,13 +823,9 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         let name = encode_struct_name(encoder, adt_def.did());
         // We treat union fields as variants.
         let variant = adt_def.non_enum_variant();
-        let num_variants = variant.fields.len();
-        let discriminant = vir::Expression::discriminant();
-        let discriminant_bounds = vir::Expression::and(
-            vir::Expression::less_equals(0.into(), discriminant.clone()),
-            vir::Expression::less_than(discriminant, num_variants.into()),
-        );
-        let discriminant_values = (0..num_variants).map(|value| value.into()).collect();
+        let num_variants: i128 = variant.fields.len().try_into().unwrap();
+        let discriminant_bounds = (0, num_variants - 1);
+        let discriminant_values = (0..num_variants).collect();
         let mut variants = Vec::new();
         for field in &variant.fields {
             let field_name = field.ident(tcx).as_str().to_string();
@@ -840,7 +837,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         Ok(vir::TypeDecl::union_(
             name,
             vir::Type::Int(vir::ty::Int::Usize),
-            discriminant_bounds,
+            vec![discriminant_bounds],
             discriminant_values,
             variants,
         ))
@@ -859,11 +856,9 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
             // vir::TypeDecl::Struct(encode_variant(encoder, name, substs, variant)?)
             unimplemented!("FIXME: How this should be implemented?")
         } else {
-            let discriminant = vir::Expression::discriminant();
-            let discriminant_bounds = compute_discriminant_bounds_high(adt_def, tcx, &discriminant);
+            let discriminant_bounds = compute_discriminant_ranges(adt_def, tcx);
             let discriminant_values = compute_discriminant_values(adt_def, tcx)
                 .into_iter()
-                .map(|value| value.into())
                 .collect();
             let mut variants = Vec::new();
             for variant in adt_def.variants() {

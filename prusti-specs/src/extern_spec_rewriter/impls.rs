@@ -1,6 +1,7 @@
-use crate::{ExternSpecKind, span_overrider::SpanOverrider, specifications::common::generate_struct_name};
+use crate::{ExternSpecKind, is_predicate_macro, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
+use syn::parse_quote_spanned;
 use syn::spanned::Spanned;
 use super::common::*;
 
@@ -60,7 +61,7 @@ fn generate_new_struct(item_impl: &syn::ItemImpl) -> syn::Result<syn::ItemStruct
     let struct_ident = syn::Ident::new(&struct_name, item_impl.span());
 
     let mut new_struct: syn::ItemStruct = parse_quote_spanned! {item_impl.span()=>
-        #[allow(non_camel_case_types)] struct #struct_ident {}
+        #[allow(non_camel_case_types)] struct #struct_ident;
     };
     new_struct.generics = item_impl.generics.clone();
 
@@ -80,6 +81,13 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
         }
     }
 
+    let item_ty_path = if let syn::Type::Path(ref type_path) = **item_ty {
+        type_path.clone()
+    } else {
+        unreachable!("expected type path in extern spec trait impl");
+    };
+
+    let mut rewritten_items = Vec::new();
     for item in impl_item.items.iter_mut() {
         match item {
             syn::ImplItem::Type(_) => {
@@ -88,12 +96,23 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
                     "Associated types in external impl specs should not be declared",
                 ));
             }
-            syn::ImplItem::Method(method) => rewrite_method(
-                method,
-                item_ty,
-                None,
-                ExternSpecKind::InherentImpl,
-            ),
+            syn::ImplItem::Method(method) => {
+                let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
+                    method,
+                    &item_ty_path,
+                    None,
+                    ExternSpecKind::InherentImpl,
+                )?;
+
+                rewritten_items.extend(spec_items.into_iter().map(syn::ImplItem::Method));
+                rewritten_items.push(syn::ImplItem::Method(rewritten_method));
+            },
+            syn::ImplItem::Macro(makro) if is_predicate_macro(makro) => {
+                return Err(syn::Error::new(
+                    makro.span(),
+                    "Can not declare abstract predicate in external spec"
+                ));
+            }
             _ => {
                 // TODO: this case also covers methods with `pub` modifier
                 // show a more meaningful message if that is the case
@@ -105,6 +124,7 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
         }
     }
     impl_item.self_ty = new_ty;
+    impl_item.items = rewritten_items;
 
     Ok(())
 }
@@ -127,14 +147,10 @@ fn rewrite_trait_impl(
     new_impl.items.clear();
 
     let item_trait_path = impl_item.trait_.as_ref().unwrap().1.clone();
-    let item_trait_typath = parse_quote_spanned! {item_trait_path.span()=> #item_trait_path };
-    let mut rewriter = AssociatedTypeRewriter::new(
-        &item_ty_path,
-        &item_trait_typath,
-    );
+    let item_trait_typath: syn::TypePath = parse_quote_spanned! {item_trait_path.span()=> #item_trait_path };
 
     // TODO: reduce duplication with rewrite_plain_impl
-    for item in impl_item.items.iter() {
+    for item in impl_item.items.into_iter() {
         match item {
             syn::ImplItem::Type(_) => {
                 return Err(syn::Error::new(
@@ -143,19 +159,14 @@ fn rewrite_trait_impl(
                 ));
             }
             syn::ImplItem::Method(method) => {
-                let (_, trait_path, _) = &impl_item.trait_.as_ref().unwrap();
-
-                let mut rewritten_method = method.clone();
-                rewrite_method(
-                    &mut rewritten_method,
-                    &item_ty,
-                    Some(trait_path),
+                let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
+                    &method,
+                    &item_ty_path,
+                    Some(&item_trait_typath),
                     ExternSpecKind::TraitImpl,
-                );
+                )?;
 
-                // Rewrite occurences of associated types in method signature
-                rewriter.rewrite_method_sig(&mut rewritten_method.sig);
-
+                new_impl.items.extend(spec_items.into_iter().map(syn::ImplItem::Method));
                 new_impl.items.push(syn::ImplItem::Method(rewritten_method));
             }
             _ => {
@@ -170,50 +181,6 @@ fn rewrite_trait_impl(
     }
 
     Ok(new_impl)
-}
-
-fn rewrite_method(
-    method: &mut syn::ImplItemMethod,
-    original_ty: &syn::Type,
-    as_ty: Option<&syn::Path>,
-    extern_spec_kind: ExternSpecKind,
-) {
-    let span = method.span();
-
-    for attr in method.attrs.iter_mut() {
-        attr.tokens = rewrite_self(attr.tokens.clone());
-    }
-
-    let args = rewrite_method_inputs(original_ty, &mut method.sig.inputs);
-    let ident = &method.sig.ident;
-
-    let extern_spec_kind_string: String = extern_spec_kind.into();
-    method
-        .attrs
-        .push(parse_quote_spanned!(span=> #[prusti::extern_spec = #extern_spec_kind_string]));
-    method.attrs.push(parse_quote_spanned!(span=> #[trusted]));
-    method
-        .attrs
-        .push(parse_quote_spanned!(span=> #[allow(dead_code)]));
-
-    let mut method_path: syn::ExprPath = match as_ty {
-        Some(type_path) => parse_quote_spanned! {ident.span()=>
-            < #original_ty as #type_path > :: #ident
-        },
-        None => parse_quote_spanned! {ident.span()=>
-            < #original_ty > :: #ident
-        },
-    };
-
-    // Fix the span
-    syn::visit_mut::visit_expr_path_mut(&mut SpanOverrider::new(ident.span()), &mut method_path);
-
-    method.block = parse_quote_spanned! {span=>
-        {
-            #method_path (#args);
-            unimplemented!()
-        }
-    };
 }
 
 fn has_generic_arguments(path: &syn::Path) -> bool {
@@ -233,6 +200,7 @@ mod tests {
     use quote::ToTokens;
     use syn::parse_quote;
 
+    #[allow(dead_code)]
     fn assert_eq_tokenizable<T: ToTokens, U: ToTokens>(actual: T, expected: U) {
         assert_eq!(
             actual.into_token_stream().to_string(),
@@ -279,24 +247,24 @@ mod tests {
             let expected: syn::ItemImpl = parse_quote! {
                 impl #newtype_ident <> {
                     #[prusti::extern_spec = "inherent_impl"]
-                    #[trusted]
-                    #[allow(dead_code)]
+                    #[allow(unused, dead_code)]
+                    #[prusti::trusted]
                     fn foo(_self: &MyStruct) {
-                        <MyStruct> :: foo(_self,);
+                        <MyStruct> :: foo(_self);
                         unimplemented!()
                     }
                     #[prusti::extern_spec = "inherent_impl"]
-                    #[trusted]
-                    #[allow(dead_code)]
+                    #[allow(unused, dead_code)]
+                    #[prusti::trusted]
                     fn bar(_self: &mut MyStruct) {
-                        <MyStruct> :: bar(_self,);
+                        <MyStruct> :: bar(_self);
                         unimplemented!()
                     }
                     #[prusti::extern_spec = "inherent_impl"]
-                    #[trusted]
-                    #[allow(dead_code)]
+                    #[allow(unused, dead_code)]
+                    #[prusti::trusted]
                     fn baz(_self: MyStruct) {
-                        <MyStruct> :: baz(_self,);
+                        <MyStruct> :: baz(_self);
                         unimplemented!()
                     }
                 }
@@ -319,40 +287,10 @@ mod tests {
             let expected: syn::ItemImpl = parse_quote! {
                 impl<I, O> #newtype_ident<I, O> {
                     #[prusti::extern_spec = "inherent_impl"]
-                    #[trusted]
-                    #[allow(dead_code)]
+                    #[allow(unused, dead_code)]
+                    #[prusti::trusted]
                     fn foo(_self: &MyStruct::<I,O, i32>, arg1: I, arg2: i32) -> O {
-                        <MyStruct::<I,O,i32>> :: foo(_self, arg1, arg2, );
-                        unimplemented!()
-                    }
-                }
-            };
-
-            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected);
-        }
-
-        #[test]
-        fn impl_specs() {
-            let mut inp_impl: syn::ItemImpl = parse_quote!(
-                impl MyStruct {
-                    #[requires(self.foo > 42 && arg < 50)]
-                    #[ensures(self.foo > 50 && result >= 100)]
-                    fn foo(&mut self, arg: i32) -> i32;
-                }
-            );
-
-            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
-
-            let newtype_ident = &rewritten.generated_struct.ident;
-            let expected: syn::ItemImpl = parse_quote! {
-                impl #newtype_ident <> {
-                    #[requires(_self.foo > 42 && arg < 50)]
-                    #[ensures(_self.foo > 50 && result >= 100)]
-                    #[prusti::extern_spec = "inherent_impl"]
-                    #[trusted]
-                    #[allow(dead_code)]
-                    fn foo(_self: &mut MyStruct, arg: i32) -> i32 {
-                        <MyStruct> :: foo(_self, arg, );
+                        <MyStruct::<I,O,i32>> :: foo(_self, arg1, arg2);
                         unimplemented!()
                     }
                 }
@@ -364,36 +302,6 @@ mod tests {
 
     mod trait_impl {
         use super::*;
-
-        #[test]
-        fn no_generics_with_specs() {
-            let mut inp_impl: syn::ItemImpl = parse_quote!(
-                impl MyTrait for MyStruct {
-                    #[requires(self.foo > 42 && arg < 50)]
-                    #[ensures(self.foo > 50 && result >= 100)]
-                    fn foo(&mut self, arg: i32) -> i32;
-                }
-            );
-
-            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
-
-            let newtype_ident = &rewritten.generated_struct.ident;
-            let expected_impl: syn::ItemImpl = parse_quote! {
-                impl #newtype_ident <> {
-                    #[requires(_self.foo > 42 && arg < 50)]
-                    #[ensures(_self.foo > 50 && result >= 100)]
-                    #[prusti::extern_spec = "trait_impl"]
-                    #[trusted]
-                    #[allow(dead_code)]
-                    fn foo(_self: &mut MyStruct, arg: i32) -> i32 {
-                        <MyStruct as MyTrait> :: foo(_self, arg, );
-                        unimplemented!()
-                    }
-                }
-            };
-
-            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected_impl);
-        }
 
         #[test]
         fn associated_types() {
@@ -409,10 +317,10 @@ mod tests {
             let expected_impl: syn::ItemImpl = parse_quote! {
                 impl #newtype_ident <> {
                     #[prusti::extern_spec = "trait_impl"]
-                    #[trusted]
-                    #[allow(dead_code)]
+                    #[allow(unused, dead_code)]
+                    #[prusti::trusted]
                     fn foo(_self: &mut MyStruct) -> <MyStruct as MyTrait> :: Result {
-                        <MyStruct as MyTrait> :: foo(_self, );
+                        <MyStruct as MyTrait> :: foo(_self);
                         unimplemented!()
                     }
                 }

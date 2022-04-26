@@ -108,9 +108,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                     // Nothing to do.
                 }
                 // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
-                vir_mid::TypeDecl::Tuple(tuple_decl) => {
-                    if !tuple_decl.arguments.is_empty() {
-                        unimplemented!();
+                vir_mid::TypeDecl::Tuple(decl) => {
+                    for field in decl.iter_fields() {
+                        let axiom = self.encode_compute_address_axiom_for_field(ty, &field)?;
+                        self.compute_address_state.axioms.push(axiom);
+                        self.encode_compute_address(&field.ty)?;
                     }
                 }
                 vir_mid::TypeDecl::Struct(decl) => {
@@ -205,7 +207,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                     }
                 }
                 // vir_mid::TypeDecl::Array(Array) => {},
-                // vir_mid::TypeDecl::Reference(Reference) => {},
+                vir_mid::TypeDecl::Reference(_reference) => {
+                    // Do nothing
+                }
                 // vir_mid::TypeDecl::Never => {},
                 // vir_mid::TypeDecl::Closure(Closure) => {},
                 // vir_mid::TypeDecl::Unsupported(Unsupported) => {},

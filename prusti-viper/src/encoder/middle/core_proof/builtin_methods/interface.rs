@@ -7,13 +7,13 @@ use crate::encoder::{
         compute_address::ComputeAddressInterface,
         errors::ErrorsInterface,
         fold_unfold::FoldUnfoldInterface,
-        into_low::IntoLowInterface,
+        lifetimes::LifetimesInterface,
         lowerer::{Lowerer, MethodsLowererInterface, VariablesLowererInterface},
         places::PlacesInterface,
-        predicates_memory_block::PredicatesMemoryBlockInterface,
-        predicates_owned::PredicatesOwnedInterface,
+        predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
+        references::ReferencesInterface,
         snapshots::{
-            IntoSnapshot, SnapshotBytesInterface, SnapshotValidityInterface,
+            IntoProcedureSnapshot, IntoSnapshot, SnapshotBytesInterface, SnapshotValidityInterface,
             SnapshotValuesInterface, SnapshotVariablesInterface,
         },
         type_layouts::TypeLayoutsInterface,
@@ -22,8 +22,11 @@ use crate::encoder::{
 };
 use rustc_hash::FxHashSet;
 use vir_crate::{
-    common::{expression::ExpressionIterator, identifier::WithIdentifier},
-    low::{self as vir_low, operations::ToLow},
+    common::{
+        expression::{ExpressionIterator, UnaryOperationHelpers},
+        identifier::WithIdentifier,
+    },
+    low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
 };
 
@@ -38,6 +41,8 @@ pub(in super::super) struct BuiltinMethodsState {
     encoded_into_memory_block_methods: FxHashSet<vir_mid::Type>,
     encoded_assign_methods: FxHashSet<String>,
     encoded_consume_operand_methods: FxHashSet<String>,
+    encoded_newlft_method: bool,
+    encoded_endlft_method: bool,
 }
 
 trait Private {
@@ -89,6 +94,30 @@ trait Private {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
     #[allow(clippy::too_many_arguments)]
+    fn encode_assign_method_rvalue_checked_binary_op(
+        &mut self,
+        parameters: &mut Vec<vir_low::VariableDecl>,
+        pres: &mut Vec<vir_low::Expression>,
+        posts: &mut Vec<vir_low::Expression>,
+        pre_write_statements: &mut Vec<vir_low::Statement>,
+        value: &vir_mid::ast::rvalue::CheckedBinaryOp,
+        ty: &vir_mid::Type,
+        result_value: &vir_low::VariableDecl,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()>;
+    #[allow(clippy::too_many_arguments)]
+    fn encode_assign_method_rvalue_ref(
+        &mut self,
+        method_name: &str,
+        parameters: Vec<vir_low::VariableDecl>,
+        pres: Vec<vir_low::Expression>,
+        posts: Vec<vir_low::Expression>,
+        value: &vir_mid::ast::rvalue::Ref,
+        ty: &vir_mid::Type,
+        result_value: vir_low::VariableDecl,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()>;
+    #[allow(clippy::too_many_arguments)]
     fn encode_assign_operand(
         &mut self,
         parameters: &mut Vec<vir_low::VariableDecl>,
@@ -120,6 +149,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         value: &vir_mid::Rvalue,
     ) -> SpannedEncodingResult<()> {
         match value {
+            vir_mid::Rvalue::Ref(value) => {
+                self.encode_place_arguments(arguments, &value.place)?;
+                let lifetime = vir_mid::VariableDecl::new(
+                    value.lifetime.name.clone(),
+                    vir_mid::Type::Lifetime,
+                );
+                arguments.push(lifetime.to_procedure_snapshot(self)?.into());
+                let perm_amount = vir_low::Expression::fractional_permission(value.rd_perm);
+                arguments.push(perm_amount);
+            }
             vir_mid::Rvalue::AddressOf(value) => {
                 self.encode_place_arguments(arguments, &value.place)?;
             }
@@ -127,6 +166,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 self.encode_operand_arguments(arguments, &value.argument)?;
             }
             vir_mid::Rvalue::BinaryOp(value) => {
+                self.encode_operand_arguments(arguments, &value.left)?;
+                self.encode_operand_arguments(arguments, &value.right)?;
+            }
+            vir_mid::Rvalue::CheckedBinaryOp(value) => {
                 self.encode_operand_arguments(arguments, &value.left)?;
                 self.encode_operand_arguments(arguments, &value.right)?;
             }
@@ -151,7 +194,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 self.encode_place_arguments(arguments, &operand.expression)?;
             }
             vir_mid::OperandKind::Constant => {
-                arguments.push(self.lower_expression_into_snapshot(&operand.expression)?);
+                arguments.push(operand.expression.to_procedure_snapshot(self)?);
             }
         }
         Ok(())
@@ -163,7 +206,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         arguments.push(self.encode_expression_as_place(expression)?);
         arguments.push(self.extract_root_address(expression)?);
-        arguments.push(self.lower_expression_into_snapshot(expression)?);
+        arguments.push(expression.to_procedure_snapshot(self)?);
         Ok(())
     }
     fn encode_assign_method_name(
@@ -209,27 +252,58 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 target_address: Address
             };
             let mut parameters = vec![target_place.clone(), target_address.clone()];
-            var_decls! { result_value: {ty.create_snapshot(self)?} };
+            var_decls! { result_value: {ty.to_snapshot(self)?} };
             let mut pres = vec![
                 expr! { acc(MemoryBlock((ComputeAddress::compute_address(target_place, target_address)), [size_of])) },
             ];
-            let mut posts = vec![
-                expr! { acc(OwnedNonAliased<ty>(target_place, target_address, result_value)) },
-            ];
+            let mut posts = Vec::new();
             let mut pre_write_statements = Vec::new();
-            let post_write_statements = vec![stmtp! {
-                position => call write_place<ty>(target_place, target_address, result_value)
-            }];
-            self.encode_assign_method_rvalue(
-                &mut parameters,
-                &mut pres,
-                &mut posts,
-                &mut pre_write_statements,
-                value,
-                ty,
-                &result_value,
-                position,
-            )?;
+            let mut post_write_statements = Vec::new();
+            match value {
+                vir_mid::Rvalue::CheckedBinaryOp(value) => {
+                    self.encode_assign_method_rvalue_checked_binary_op(
+                        &mut parameters,
+                        &mut pres,
+                        &mut posts,
+                        &mut pre_write_statements,
+                        value,
+                        ty,
+                        &result_value,
+                        position,
+                    )?;
+                }
+                vir_mid::Rvalue::Ref(value) => {
+                    self.encode_assign_method_rvalue_ref(
+                        method_name,
+                        parameters,
+                        pres,
+                        posts,
+                        value,
+                        ty,
+                        result_value,
+                        position,
+                    )?;
+                    return Ok(());
+                }
+                _ => {
+                    post_write_statements.push(stmtp! {
+                        position => call write_place<ty>(target_place, target_address, result_value)
+                    });
+                    posts.push(
+                        expr! { acc(OwnedNonAliased<ty>(target_place, target_address, result_value)) },
+                    );
+                    self.encode_assign_method_rvalue(
+                        &mut parameters,
+                        &mut pres,
+                        &mut posts,
+                        &mut pre_write_statements,
+                        value,
+                        ty,
+                        &result_value,
+                        position,
+                    )?;
+                }
+            }
             let mut statements = pre_write_statements;
             statements.extend(post_write_statements);
             let method = vir_low::MethodDecl::new(
@@ -291,12 +365,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
         let assigned_value = match value {
+            vir_mid::Rvalue::Ref(_value) => {
+                unreachable!("Ref should be handled in the caller.");
+            }
             vir_mid::Rvalue::AddressOf(value) => {
                 let ty = value.place.get_type();
                 var_decls! {
                     operand_place: Place,
                     operand_address: Address,
-                    operand_value: { ty.create_snapshot(self)? }
+                    operand_value: { ty.to_snapshot(self)? }
                 };
                 let predicate = expr! {
                     acc(OwnedNonAliased<ty>(operand_place, operand_address, operand_value))
@@ -353,12 +430,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     position,
                 )?
             }
+            vir_mid::Rvalue::CheckedBinaryOp(_) => {
+                unreachable!("CheckedBinaryOp should be handled in the caller.");
+            }
             vir_mid::Rvalue::Discriminant(value) => {
                 let ty = value.place.get_type();
                 var_decls! {
                     operand_place: Place,
                     operand_address: Address,
-                    operand_value: { ty.create_snapshot(self)? }
+                    operand_value: { ty.to_snapshot(self)? }
                 };
                 let predicate = expr! {
                     acc(OwnedNonAliased<ty>(operand_place, operand_address, operand_value))
@@ -394,7 +474,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             self.construct_struct_snapshot(&value.ty, arguments, position)?;
                         self.construct_enum_snapshot(&value.ty, variant_constructor, position)?
                     }
-                    vir_mid::Type::Struct(_) => {
+                    vir_mid::Type::Struct(_) | vir_mid::Type::Tuple(_) => {
                         self.construct_struct_snapshot(&value.ty, arguments, position)?
                     }
                     ty => unimplemented!("{}", ty),
@@ -411,6 +491,211 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             assigned_value,
             position,
         ));
+        Ok(())
+    }
+    fn encode_assign_method_rvalue_checked_binary_op(
+        &mut self,
+        parameters: &mut Vec<vir_low::VariableDecl>,
+        pres: &mut Vec<vir_low::Expression>,
+        posts: &mut Vec<vir_low::Expression>,
+        pre_write_statements: &mut Vec<vir_low::Statement>,
+        value: &vir_mid::ast::rvalue::CheckedBinaryOp,
+        ty: &vir_mid::Type,
+        result_value: &vir_low::VariableDecl,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        // In case the operation fails, the state of the assigned value
+        // is unknown.
+        use vir_low::macros::*;
+        var_decls! {
+            target_place: Place,
+            target_address: Address
+        };
+        let compute_address = ty!(Address);
+        let type_decl = self.encoder.get_type_decl_mid(ty)?.unwrap_tuple();
+        let (operation_result_field, flag_field) = {
+            let mut iter = type_decl.iter_fields();
+            (iter.next().unwrap(), iter.next().unwrap())
+        };
+        let flag_place =
+            self.encode_field_place(ty, &flag_field, target_place.clone().into(), position)?;
+        let flag_value = self.obtain_struct_field_snapshot(
+            ty,
+            &flag_field,
+            result_value.clone().into(),
+            position,
+        )?;
+        let result_address =
+            expr! { (ComputeAddress::compute_address(target_place, target_address)) };
+        let operation_result_address = self.encode_field_address(
+            ty,
+            &operation_result_field,
+            result_address.clone(),
+            position,
+        )?;
+        let operation_result_value = self.obtain_struct_field_snapshot(
+            ty,
+            &operation_result_field,
+            result_value.clone().into(),
+            position,
+        )?;
+        let flag_type = &vir_mid::Type::Bool;
+        let operation_result_type = value.kind.get_result_type(value.left.expression.get_type());
+        let size_of_result = self.encode_type_size_expression(operation_result_type)?;
+        let post_write_statements = vec![
+            stmtp! { position =>
+                call memory_block_split<ty>([result_address])
+            },
+            stmtp! { position =>
+                call write_address<operation_result_type>([operation_result_address.clone()], [operation_result_value.clone()])
+            },
+            stmtp! { position =>
+                call write_place<flag_type>([flag_place.clone()], target_address, [flag_value.clone()])
+            },
+        ];
+        posts.push(
+            expr! { acc(MemoryBlock([operation_result_address.clone()], [size_of_result.clone()])) },
+        );
+        posts.push(
+            expr! { acc(OwnedNonAliased<flag_type>([flag_place], target_address, [flag_value.clone()])) },
+        );
+        let operand_left = self.encode_assign_operand(
+            parameters,
+            pres,
+            posts,
+            pre_write_statements,
+            1,
+            &value.left,
+        )?;
+        let operand_right = self.encode_assign_operand(
+            parameters,
+            pres,
+            posts,
+            pre_write_statements,
+            2,
+            &value.right,
+        )?;
+        let operation_result = self.construct_binary_op_snapshot(
+            value.kind,
+            operation_result_type,
+            value.left.expression.get_type(),
+            operand_left.into(),
+            operand_right.into(),
+            position,
+        )?;
+        let validity = self
+            .encode_snapshot_valid_call_for_type(operation_result.clone(), operation_result_type)?;
+        let flag_result = self.construct_constant_snapshot(
+            &vir_mid::Type::Bool,
+            vir_low::Expression::not(validity.clone()),
+            position,
+        )?;
+        pre_write_statements.push(vir_low::Statement::comment(
+            "Viper does not support ADT assignments, so we use an assume.".to_string(),
+        ));
+        let operation_result_value_condition = expr! {
+            [validity] ==> ([operation_result_value.clone()] == [operation_result])
+        };
+        pre_write_statements.push(stmtp! { position =>
+            assume ([operation_result_value_condition.clone()])
+        });
+        let flag_value_condition = expr! {
+            [flag_value] == [flag_result]
+        };
+        pre_write_statements.push(stmtp! { position =>
+            assume ([flag_value_condition.clone()])
+        });
+        pre_write_statements.extend(post_write_statements);
+        posts.push(operation_result_value_condition);
+        posts.push(flag_value_condition);
+        let bytes =
+            self.encode_memory_block_bytes_expression(operation_result_address, size_of_result)?;
+        let to_bytes = ty! { Bytes };
+        posts.push(expr! {
+            [bytes] == (Snap<operation_result_type>::to_bytes([operation_result_value]))
+        });
+        Ok(())
+    }
+    #[allow(clippy::too_many_arguments)]
+    fn encode_assign_method_rvalue_ref(
+        &mut self,
+        method_name: &str,
+        mut parameters: Vec<vir_low::VariableDecl>,
+        mut pres: Vec<vir_low::Expression>,
+        mut posts: Vec<vir_low::Expression>,
+        value: &vir_mid::ast::rvalue::Ref,
+        result_type: &vir_mid::Type,
+        result_value: vir_low::VariableDecl,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        use vir_low::macros::*;
+        let ty = value.place.get_type();
+        var_decls! {
+            target_place: Place,
+            target_address: Address,
+            operand_place: Place,
+            operand_address: Address,
+            operand_value: { ty.to_snapshot(self)? },
+            operand_lifetime: Lifetime,
+            operand_perm: Perm
+        };
+        let predicate = expr! {
+            acc(OwnedNonAliased<ty>(operand_place, operand_address, operand_value))
+        };
+        let reference_predicate = expr! {
+            acc(OwnedNonAliased<result_type>(target_place, target_address, result_value, operand_lifetime))
+        };
+        let lifetime_token = vir_low::Expression::predicate_access_predicate_no_pos(
+            "LifetimeToken".to_string(),
+            vec![operand_lifetime.clone().into()],
+            operand_perm.clone().into(),
+        );
+        let final_snapshot = self.reference_target_final_snapshot(
+            result_type,
+            result_value.clone().into(),
+            position,
+        )?;
+        let validity = self.encode_snapshot_valid_call_for_type(final_snapshot.clone(), ty)?;
+        let restoration = expr! {
+            wand(
+                (acc(DeadLifetimeToken(operand_lifetime))) --* (
+                    (acc(OwnedNonAliased<ty>(operand_place, operand_address, [final_snapshot]))) &&
+                    [validity] &&
+                    // DeadLifetimeToken is duplicable and does not get consumed.
+                    (acc(DeadLifetimeToken(operand_lifetime)))
+                )
+            )
+        };
+        let compute_address = ty!(Address);
+        let _address = expr! { ComputeAddress::compute_address(operand_place, operand_address) };
+        pres.push(expr! {
+            [vir_low::Expression::no_permission()] < operand_perm
+        });
+        pres.push(expr! {
+            operand_perm < [vir_low::Expression::full_permission()]
+        });
+        pres.push(predicate);
+        pres.push(lifetime_token.clone());
+        posts.push(lifetime_token);
+        posts.push(reference_predicate);
+        posts.push(restoration);
+        parameters.push(operand_place);
+        parameters.push(operand_address);
+        parameters.push(operand_value);
+        parameters.push(operand_lifetime);
+        parameters.push(operand_perm);
+        let method = vir_low::MethodDecl::new(
+            method_name,
+            parameters,
+            vec![result_value],
+            pres,
+            posts,
+            None,
+        );
+        self.declare_method(method)?;
+        self.builtin_methods_state
+            .encoded_assign_methods
+            .insert(method_name.to_string());
         Ok(())
     }
     fn encode_assign_operand(
@@ -475,7 +760,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         Ok(vir_low::VariableDecl::new(
             format!("operand{}_value", operand_counter),
-            operand.expression.get_type().create_snapshot(self)?,
+            operand.expression.get_type().to_snapshot(self)?,
         ))
     }
 }
@@ -502,6 +787,8 @@ pub(in super::super) trait BuiltinMethodsInterface {
         operand: vir_mid::Operand,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
+    fn encode_newlft_method(&mut self) -> SpannedEncodingResult<()>;
+    fn encode_endlft_method(&mut self) -> SpannedEncodingResult<()>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
@@ -519,7 +806,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let method = method! {
                 write_address<ty>(
                     address: Address,
-                    value: {ty.create_snapshot(self)?}
+                    value: {ty.to_snapshot(self)?}
                 ) returns ()
                     raw_code {
                         let bytes = self.encode_memory_block_bytes_expression(
@@ -562,7 +849,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     target_root_address: Address,
                     source_place: Place,
                     source_root_address: Address,
-                    source_value: {ty.create_snapshot(self)?}
+                    source_value: {ty.to_snapshot(self)?}
             };
             let source_address =
                 expr! { ComputeAddress::compute_address(source_place, source_root_address) };
@@ -659,12 +946,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         position =>
                         call memory_block_split<ty>([target_address], [discriminant_call.clone()])
                     });
-                    for (discriminant_value, variant) in
+                    for (&discriminant_value, variant) in
                         decl.discriminant_values.iter().zip(&decl.variants)
                     {
                         let variant_index = variant.name.clone().into();
                         let condition = expr! {
-                            [discriminant_call.clone()] == [discriminant_value.clone().to_low(self)?]
+                            [discriminant_call.clone()] == [discriminant_value.into()]
                         };
                         let source_variant_place = self.encode_enum_variant_place(
                             ty,
@@ -811,7 +1098,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     target_address: Address,
                     source_place: Place,
                     source_address: Address,
-                    source_value: {ty.create_snapshot(self)?}
+                    source_value: {ty.to_snapshot(self)?}
                 ) returns ()
                     raw_code {
                         self.encode_fully_unfold_owned_non_aliased(
@@ -822,13 +1109,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             source_value.clone().into(),
                             position,
                         )?;
+                        let address = expr! { ComputeAddress::compute_address(source_place, source_address) };
                         self.encode_fully_join_memory_block(
+                            &mut statements,
+                            ty,
+                            address.clone(),
+                            position,
+                        )?;
+                        statements.push(stmtp! { position =>
+                            call write_place<ty>(target_place, target_address, source_value)
+                        });
+                        let to_bytes = ty! { Bytes };
+                        let memory_block_bytes =
+                            self.encode_memory_block_bytes_expression(address, size_of.clone())?;
+                        statements.push(stmtp! { position =>
+                            assert ([memory_block_bytes] == (Snap<ty>::to_bytes(source_value)))
+                        });
+                        self.encode_fully_split_memory_block(
                             &mut statements,
                             ty,
                             expr! { ComputeAddress::compute_address(source_place, source_address) },
                             position,
                         )?;
-                        statements.push(stmtp! { position => call write_place<ty>(target_place, target_address, source_value)});
                         self.encode_fully_fold_owned_non_aliased(
                             &mut statements,
                             ty,
@@ -872,11 +1174,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             var_decls! {
                 place: Place,
                 root_address: Address,
-                value: {ty.create_snapshot(self)?}
+                value: {ty.to_snapshot(self)?}
             };
             let validity = self.encode_snapshot_valid_call_for_type(value.clone().into(), ty)?;
             let address = expr! { ComputeAddress::compute_address(place, root_address) };
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
+            self.mark_owned_non_aliased_as_unfolded(ty)?;
             match type_decl {
                 vir_mid::TypeDecl::Bool
                 | vir_mid::TypeDecl::Int(_)
@@ -898,7 +1201,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             call write_address<ty>([address.clone()], value)
                         });
                     } else {
-                        unimplemented!()
+                        self.encode_memory_block_split_method(ty)?;
+                        statements.push(stmtp! {
+                            position =>
+                            call memory_block_split<ty>([address.clone()])
+                        });
+                        for field in decl.iter_fields() {
+                            let field_place = self.encode_field_place(
+                                ty,
+                                &field,
+                                place.clone().into(),
+                                position,
+                            )?;
+                            let field_value = self.obtain_struct_field_snapshot(
+                                ty,
+                                &field,
+                                value.clone().into(),
+                                position,
+                            )?;
+                            let field_type = &field.ty;
+                            self.encode_write_place_method(field_type)?;
+                            statements.push(stmtp! { position =>
+                                call write_place<field_type>(
+                                    [field_place], root_address, [field_value]
+                                )
+                            });
+                        }
                     }
                 }
                 vir_mid::TypeDecl::Struct(decl) => {
@@ -940,12 +1268,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         position =>
                         call memory_block_split<ty>([address.clone()], [discriminant_call.clone()])
                     });
-                    for (discriminant_value, variant) in
+                    for (&discriminant_value, variant) in
                         decl.discriminant_values.iter().zip(&decl.variants)
                     {
                         let variant_index = variant.name.clone().into();
                         let condition = expr! {
-                            [discriminant_call.clone()] == [discriminant_value.clone().to_low(self)?]
+                            [discriminant_call.clone()] == [discriminant_value.into()]
                         };
                         let variant_place = self.encode_enum_variant_place(
                             ty,
@@ -995,12 +1323,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         position =>
                         call memory_block_split<ty>([address.clone()], [discriminant_call.clone()])
                     });
-                    for (discriminant_value, variant) in
+                    for (&discriminant_value, variant) in
                         decl.discriminant_values.iter().zip(&decl.variants)
                     {
                         let variant_index = variant.name.clone().into();
                         let condition = expr! {
-                            [discriminant_call.clone()] == [discriminant_value.clone().to_low(self)?]
+                            [discriminant_call.clone()] == [discriminant_value.into()]
                         };
                         let variant_place = self.encode_enum_variant_place(
                             ty,
@@ -1030,7 +1358,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     unimplemented!()
                 }
                 vir_mid::TypeDecl::Reference(_) => {
-                    unimplemented!()
+                    // References should never be written through `write_place`.
+                    return Ok(());
                 }
                 vir_mid::TypeDecl::Never => {
                     unimplemented!()
@@ -1042,7 +1371,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     unimplemented!()
                 }
             }
-            self.mark_owned_non_aliased_as_unfolded(ty)?;
             statements.push(stmtp! { position =>
                 fold OwnedNonAliased<ty>(place, root_address, value)
             });
@@ -1091,7 +1419,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         let mut postconditions = vec![
                             expr! { acc(MemoryBlock([discriminant_address], [discriminant_size_of]))},
                         ];
-                        for (discriminant_value, variant) in enum_decl
+                        for (&discriminant_value, variant) in enum_decl
                             .discriminant_values
                             .iter()
                             .zip(&enum_decl.variants)
@@ -1107,7 +1435,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             let variant_size_of =
                                 self.encode_type_size_expression(&variant_type)?;
                             postconditions.push(expr! {
-                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (discriminant == [discriminant_value.into()]) ==>
                                 (acc(MemoryBlock([variant_address], [variant_size_of])))
                             })
                         }
@@ -1125,7 +1453,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         let size_of = self.encode_type_size_expression(ty)?;
                         let whole_block = expr!(acc(MemoryBlock(address, [size_of])));
                         let mut postconditions = Vec::new();
-                        for (discriminant_value, variant) in enum_decl
+                        for (&discriminant_value, variant) in enum_decl
                             .discriminant_values
                             .iter()
                             .zip(&enum_decl.variants)
@@ -1141,7 +1469,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             let variant_size_of =
                                 self.encode_type_size_expression(&variant_type)?;
                             postconditions.push(expr! {
-                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (discriminant == [discriminant_value.into()]) ==>
                                 (acc(MemoryBlock([variant_address], [variant_size_of])))
                             })
                         }
@@ -1161,6 +1489,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             } else {
                 let mut helper = SplitJoinHelper::new(false);
                 helper.walk_type(ty, (), self)?;
+                let to_bytes = ty! { Bytes };
+                var_decls! { address: Address };
+                let size_of = self.encode_type_size_expression(ty)?;
+                let memory_block_bytes =
+                    self.encode_memory_block_bytes_expression(address.into(), size_of)?;
+                let bytes_quantifier = expr! {
+                    forall(
+                        snapshot: {ty.to_snapshot(self)?} ::
+                        [ { (Snap<ty>::to_bytes(snapshot)) } ]
+                        ((old([memory_block_bytes])) == (Snap<ty>::to_bytes(snapshot))) ==>
+                        [ helper.field_to_bytes_equalities.into_iter().conjoin() ]
+                    )
+                };
+                helper.postconditions.push(bytes_quantifier);
                 vir_low::MethodDecl::new(
                     method_name! { memory_block_split<ty> },
                     vars! { address: Address },
@@ -1202,10 +1544,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             address.clone().into(),
                             Default::default(),
                         )?;
-                        let discriminant_bounds = enum_decl.discriminant_bounds.to_low(self)?;
+                        let discriminant_expr: vir_low::Expression = discriminant.clone().into();
+                        let discriminant_bounds = discriminant_expr
+                            .generate_discriminant_bounds(&enum_decl.discriminant_bounds);
                         let mut preconditions = vec![
                             expr! { acc(MemoryBlock([discriminant_address.clone()], [discriminant_size_of.clone()]))},
-                            discriminant_bounds.replace_discriminant(&discriminant.clone().into()),
+                            discriminant_bounds,
                         ];
                         let to_bytes = ty! { Bytes };
                         let mut bytes_quantifier_conjuncts = Vec::new();
@@ -1214,8 +1558,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             size_of,
                         )?;
                         let snapshot: vir_low::Expression =
-                            var! { snapshot: {ty.create_snapshot(self)?} }.into();
-                        for (discriminant_value, variant) in enum_decl
+                            var! { snapshot: {ty.to_snapshot(self)?} }.into();
+                        for (&discriminant_value, variant) in enum_decl
                             .discriminant_values
                             .iter()
                             .zip(&enum_decl.variants)
@@ -1237,7 +1581,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             let variant_type = &ty.clone().variant(variant_index);
                             let variant_size_of = self.encode_type_size_expression(variant_type)?;
                             preconditions.push(expr! {
-                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (discriminant == [discriminant_value.into()]) ==>
                                 (acc(MemoryBlock([variant_address.clone()], [variant_size_of.clone()])))
                             });
                             let memory_block_field_bytes = self
@@ -1262,7 +1606,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                     variant_size_of,
                                 )?;
                             bytes_quantifier_conjuncts.push(expr! {
-                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (discriminant == [discriminant_value.into()]) ==>
                                 (
                                     (
                                         ((old([memory_block_field_bytes])) == (Snap<discriminant_type>::to_bytes([discriminant_snapshot]))) &&
@@ -1274,7 +1618,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         }
                         let bytes_quantifier = expr! {
                             forall(
-                                snapshot: {ty.create_snapshot(self)?} ::
+                                snapshot: {ty.to_snapshot(self)?} ::
                                 [ { (Snap<ty>::to_bytes(snapshot)) } ]
                                 [ bytes_quantifier_conjuncts.into_iter().conjoin() ]
                             )
@@ -1292,10 +1636,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         var_decls!(address: Address, discriminant: Int);
                         let size_of = self.encode_type_size_expression(ty)?;
                         let whole_block = expr!(acc(MemoryBlock(address, [size_of.clone()])));
-                        let discriminant_bounds = enum_decl.discriminant_bounds.to_low(self)?;
-                        let mut preconditions =
-                            vec![discriminant_bounds
-                                .replace_discriminant(&discriminant.clone().into())];
+                        let discriminant_expr: vir_low::Expression = discriminant.clone().into();
+                        let discriminant_bounds = discriminant_expr
+                            .generate_discriminant_bounds(&enum_decl.discriminant_bounds);
+                        let mut preconditions = vec![discriminant_bounds];
                         let to_bytes = ty! { Bytes };
                         let mut bytes_quantifier_conjuncts = Vec::new();
                         let memory_block_bytes = self.encode_memory_block_bytes_expression(
@@ -1303,8 +1647,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             size_of,
                         )?;
                         let snapshot: vir_low::Expression =
-                            var! { snapshot: {ty.create_snapshot(self)?} }.into();
-                        for (discriminant_value, variant) in enum_decl
+                            var! { snapshot: {ty.to_snapshot(self)?} }.into();
+                        for (&discriminant_value, variant) in enum_decl
                             .discriminant_values
                             .iter()
                             .zip(&enum_decl.variants)
@@ -1326,7 +1670,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             let variant_type = &ty.clone().variant(variant_index);
                             let variant_size_of = self.encode_type_size_expression(variant_type)?;
                             preconditions.push(expr! {
-                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (discriminant == [discriminant_value.into()]) ==>
                                 (acc(MemoryBlock([variant_address.clone()], [variant_size_of.clone()])))
                             });
                             let memory_block_variant_bytes = self
@@ -1335,7 +1679,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                     variant_size_of,
                                 )?;
                             bytes_quantifier_conjuncts.push(expr! {
-                                (discriminant == [discriminant_value.clone().to_low(self)?]) ==>
+                                (discriminant == [discriminant_value.into()]) ==>
                                 (
                                     (
                                         ((old([memory_block_variant_bytes])) == (Snap<variant_type>::to_bytes([variant_snapshot])))
@@ -1346,7 +1690,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         }
                         let bytes_quantifier = expr! {
                             forall(
-                                snapshot: {ty.create_snapshot(self)?} ::
+                                snapshot: {ty.to_snapshot(self)?} ::
                                 [ { (Snap<ty>::to_bytes(snapshot)) } ]
                                 [ bytes_quantifier_conjuncts.into_iter().conjoin() ]
                             )
@@ -1374,7 +1718,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     self.encode_memory_block_bytes_expression(address.into(), size_of)?;
                 let bytes_quantifier = expr! {
                     forall(
-                        snapshot: {ty.create_snapshot(self)?} ::
+                        snapshot: {ty.to_snapshot(self)?} ::
                         [ { (Snap<ty>::to_bytes(snapshot)) } ]
                         [ helper.field_to_bytes_equalities.into_iter().conjoin() ] ==>
                         ([memory_block_bytes] == (Snap<ty>::to_bytes(snapshot)))
@@ -1418,11 +1762,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 ErrorCtxt::UnexpectedBuiltinMethod(BuiltinMethodKind::IntoMemoryBlock),
             );
             let mut statements = Vec::new();
+            let mut lifetimes = Vec::new();
+            let mut lifetime_exprs = Vec::new();
             let mut method = method! {
                 into_memory_block<ty>(
                     place: Place,
                     root_address: Address,
-                    value: {ty.create_snapshot(self)?}
+                    value: {ty.to_snapshot(self)?},
+                    *lifetimes
                 ) returns ()
                     raw_code {
                         let address = expr! {
@@ -1432,10 +1779,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             address.clone(), size_of.clone()
                         )?;
                         let type_decl = self.encoder.get_type_decl_mid(ty)?;
-                        statements.push(stmtp! {
-                            position =>
-                            unfold OwnedNonAliased<ty>(place, root_address, value)
-                        });
+                        match type_decl {
+                            vir_mid::TypeDecl::Reference(_) => {
+                                // TODO: Implement TypeDecl::get_lifetimes() method and use here.
+                                var_decls!{ lifetime: Lifetime };
+                                statements.push(stmtp! {
+                                    position =>
+                                    unfold OwnedNonAliased<ty>(place, root_address, value, lifetime)
+                                });
+                            }
+                            _ => {
+                                statements.push(stmtp! {
+                                    position =>
+                                    unfold OwnedNonAliased<ty>(place, root_address, value)
+                                });
+                            }
+                        };
                         match type_decl {
                             vir_mid::TypeDecl::Bool
                             | vir_mid::TypeDecl::Int(_)
@@ -1507,7 +1866,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                     position =>
                                     call into_memory_block<discriminant_type>([discriminant_place], root_address, [discriminant_value])
                                 });
-                                for (discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants) {
+                                for (&discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants) {
                                     let variant_index = variant.name.clone().into();
                                     let variant_place = self.encode_enum_variant_place(
                                         ty, &variant_index, place.clone().into(), position,
@@ -1516,7 +1875,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                     let variant_ty = &ty.clone().variant(variant_index);
                                     self.encode_into_memory_block_method(variant_ty)?;
                                     let condition = expr! {
-                                        [discriminant_call.clone()] == [discriminant.clone().to_low(self)?]
+                                        [discriminant_call.clone()] == [discriminant.into()]
                                     };
                                     let condition1 = condition.clone();
                                     statements.push(stmtp! {
@@ -1526,14 +1885,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                     self.encode_memory_block_join_method(ty)?;
                                     statements.push(stmtp! {
                                         position =>
-                                        call<condition> memory_block_join<ty>([address.clone()], [discriminant.clone().to_low(self)?])
+                                        call<condition> memory_block_join<ty>([address.clone()], [discriminant.into()])
                                     });
                                 }
                             }
                             vir_mid::TypeDecl::Union(decl) => {
                                 let discriminant_call =
                                     self.obtain_enum_discriminant(value.clone().into(), ty, Default::default())?;
-                                for (discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants) {
+                                for (&discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants) {
                                     let variant_index = variant.name.clone().into();
                                     let variant_place = self.encode_enum_variant_place(
                                         ty, &variant_index, place.clone().into(), position,
@@ -1542,7 +1901,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                     let variant_ty = &ty.clone().variant(variant_index);
                                     self.encode_into_memory_block_method(variant_ty)?;
                                     let condition = expr! {
-                                        [discriminant_call.clone()] == [discriminant.clone().to_low(self)?]
+                                        [discriminant_call.clone()] == [discriminant.into()]
                                     };
                                     let condition1 = condition.clone();
                                     statements.push(stmtp! {
@@ -1552,19 +1911,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                     self.encode_memory_block_join_method(ty)?;
                                     statements.push(stmtp! {
                                         position =>
-                                        call<condition> memory_block_join<ty>([address.clone()], [discriminant.clone().to_low(self)?])
+                                        call<condition> memory_block_join<ty>([address.clone()], [discriminant.into()])
                                     });
                                 }
                             }
                             vir_mid::TypeDecl::Array(_) => unimplemented!("ty: {}", ty),
                             vir_mid::TypeDecl::Map(_) => unimplemented!("ty: {}", ty),
-                            vir_mid::TypeDecl::Reference(_) => unimplemented!("ty: {}", ty),
+                            vir_mid::TypeDecl::Reference(_) => {
+                                // FIXME: Get rid of the macro on hacks like this.
+                                var_decls! {lifetime: Lifetime};
+                                lifetimes.push(lifetime.clone());
+                                lifetime_exprs.push(lifetime);
+                            }
                             vir_mid::TypeDecl::Never => unimplemented!("ty: {}", ty),
                             vir_mid::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
                             vir_mid::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),
                         };
                     }
-                    requires (acc(OwnedNonAliased<ty>(place, root_address, value)));
+                    requires ([ self.acc_owned_non_aliased(ty, place, root_address, value.clone(), lifetime_exprs)? ]);
                     ensures (acc(MemoryBlock([address], [size_of])));
                     ensures (([bytes]) == (Snap<ty>::to_bytes(value)));
             };
@@ -1586,7 +1950,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         let target_address = self.extract_root_address(&target)?;
         let mut arguments = vec![target_place, target_address];
         self.encode_rvalue_arguments(&mut arguments, &value)?;
-        let target_value_type = target.get_type().create_snapshot(self)?;
+        let target_value_type = target.get_type().to_snapshot(self)?;
         let result_value = self.create_new_temporary_variable(target_value_type)?;
         statements.push(vir_low::Statement::method_call(
             method_name,
@@ -1594,7 +1958,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             vec![result_value.clone().into()],
             position,
         ));
-        self.encode_snapshot_update(statements, &target, result_value.into(), position)?;
+        self.encode_snapshot_update(statements, &target, result_value.clone().into(), position)?;
+        if let vir_mid::Rvalue::Ref(value) = value {
+            assert!(value.is_mut, "unimplemented!()");
+            let final_snapshot = self.reference_target_final_snapshot(
+                target.get_type(),
+                result_value.into(),
+                position,
+            )?;
+            self.encode_snapshot_update(statements, &value.place, final_snapshot, position)?;
+        }
         Ok(())
     }
     fn encode_consume_method_call(
@@ -1613,6 +1986,42 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             Vec::new(),
             position,
         ));
+        Ok(())
+    }
+    fn encode_newlft_method(&mut self) -> SpannedEncodingResult<()> {
+        if !self.builtin_methods_state.encoded_newlft_method {
+            self.builtin_methods_state.encoded_newlft_method = true;
+            self.encode_lifetime_token_predicate()?;
+            use vir_low::macros::*;
+            var_decls!(bw: Lifetime);
+            let method = vir_low::MethodDecl::new(
+                "newlft",
+                Vec::new(),
+                vec![bw.clone()],
+                Vec::new(),
+                vec![expr! { acc(LifetimeToken(bw)) }],
+                None,
+            );
+            self.declare_method(method)?;
+        }
+        Ok(())
+    }
+    fn encode_endlft_method(&mut self) -> SpannedEncodingResult<()> {
+        if !self.builtin_methods_state.encoded_endlft_method {
+            self.builtin_methods_state.encoded_endlft_method = true;
+            self.encode_lifetime_token_predicate()?;
+            use vir_low::macros::*;
+            var_decls!(bw: Lifetime);
+            let method = vir_low::MethodDecl::new(
+                "endlft",
+                vec![bw.clone()],
+                Vec::new(),
+                vec![expr! { acc(LifetimeToken(bw)) }],
+                vec![expr! { acc(DeadLifetimeToken(bw)) }],
+                None,
+            );
+            self.declare_method(method)?;
+        }
         Ok(())
     }
 }

@@ -40,6 +40,7 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
             vir_high::Type::FunctionDef(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
             vir_high::Type::Projection(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
             vir_high::Type::Unsupported(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
+            vir_high::Type::Lifetime => unreachable!("Lifetimes ignored"),
         })
     }
 }
@@ -61,7 +62,9 @@ impl IntoPolymorphic<vir_poly::TypeVar> for vir_high::ty::TypeVar {
         vir_poly::TypeVar {
             label: match self {
                 vir_high::ty::TypeVar::GenericType(generic_type) => generic_type.get_identifier(),
-                vir_high::ty::TypeVar::Lifetime(lifetime) => lifetime.get_identifier(),
+                vir_high::ty::TypeVar::LifetimeConst(lifetime_const) => {
+                    lifetime_const.get_identifier()
+                }
             },
         }
     }
