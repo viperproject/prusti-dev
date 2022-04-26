@@ -19,12 +19,9 @@
 | [`DUMP_PATH_CTXT_IN_DEBUG_INFO`](#dump_path_ctxt_in_debug_info) | `bool` | `false` |
 | [`DUMP_REBORROWING_DAG_IN_DEBUG_INFO`](#dump_reborrowing_dag_in_debug_info) | `bool` | `false` |
 | [`DUMP_VIPER_PROGRAM`](#dump_viper_program) | `bool` | `false` |
-<<<<<<< unify-flags
 | [`ENABLE_CACHE`](#enable_cache) | `bool` | `true` |
-| [`ENABLE_PURIFICATION_OPTIMIZATION`](#enable_purification_optimization) | `bool` | `false` |
-=======
 | [`ENABLE_GHOST_CONSTRAINTS`](#enable_ghost_constraints) | `bool` | `false` |
->>>>>>> master
+| [`ENABLE_PURIFICATION_OPTIMIZATION`](#enable_purification_optimization) | `bool` | `false` |
 | [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) | `bool` | `false` |
 | [`ENCODE_BITVECTORS`](#encode_bitvectors) | `bool` | `false` |
 | [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](#encode_unsigned_num_constraint) | `bool` | `false` |
@@ -131,23 +128,10 @@ When enabled, reborrowing DAGs will be output in debug files.
 
 When enabled, the encoded Viper program will be output.
 
-<<<<<<< unify-flags
-## `ENCODE_BITVECTORS`
-
-When enabled, bitwise integer operations are encoded using bitvectors.
-
-**Note:** This option is highly experimental.
-
 ## `ENABLE_CACHE`
 
 When enabled, verification requests (to verify individual `fn`s) are cached to improve future verification. By default the cache is only saved in memory (of the `prusti-server` if enabled). For long-running verification projects use [`CACHE_PATH`](#cache_path) to save to disk.
 
-## `ENABLE_PURIFICATION_OPTIMIZATION`
-
-When enabled, impure methods are optimized using the purification optimization, which tries to convert heap operations to pure (snapshot-based) operations.
-
-**Note:** This option is highly experimental.
-=======
 ## `ENABLE_GHOST_CONSTRAINTS`
 
 Enables ghost constraints in Prusti specifications.
@@ -156,13 +140,24 @@ Ghost constraints allow for specifications which are only active if a certain "c
 on a generic type parameter) is satisfied.
 
 **This is an experimental feature**, because it is currently possible to introduce unsound verification behavior.
->>>>>>> master
+
+## `ENABLE_PURIFICATION_OPTIMIZATION`
+
+When enabled, impure methods are optimized using the purification optimization, which tries to convert heap operations to pure (snapshot-based) operations.
+
+**Note:** This option is highly experimental.
 
 ## `ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`
 
 When enabled, only the path given in [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_only_basic_block_path) will be verified.
 
 **Note:** This flag is only for debugging Prusti.
+
+## `ENCODE_BITVECTORS`
+
+When enabled, bitwise integer operations are encoded using bitvectors.
+
+**Note:** This option is highly experimental.
 
 ## `ENCODE_UNSIGNED_NUM_CONSTRAINT`
 
