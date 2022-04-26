@@ -97,6 +97,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_function(&self) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
+
+        // encode calls to Map::* functions here
+
         debug!("Encode pure function {}", function_name);
         let mut state = run_backward_interpretation(self.mir, &self.interpreter)?
             .unwrap_or_else(|| panic!("Procedure {:?} contains a loop", self.proc_def_id));
@@ -121,6 +124,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             }
             state.substitute_value(&target_place, new_place);
         }
+        
+        //
 
         let mut body_expr = state.into_expr().unwrap();
         debug!(

@@ -810,11 +810,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Type::Float(vir::Float::F32) => BuiltinMethodKind::HavocF32,
                 vir::Type::Float(vir::Float::F64) => BuiltinMethodKind::HavocF64,
                 vir::Type::BitVector(value) => BuiltinMethodKind::HavocBV(value),
-                vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::TypeVar(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Snapshot(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Seq(_) => BuiltinMethodKind::HavocRef,
+                vir::Type::TypedRef(_) |
+                vir::Type::TypeVar(_) |
+                vir::Type::Domain(_) |
+                vir::Type::Snapshot(_) |
+                vir::Type::Seq(_) |
+                vir::Type::Map(_) => BuiltinMethodKind::HavocRef,
             };
             let stmt = vir::Stmt::MethodCall( vir::MethodCall {
                 method_name: self.encoder.encode_builtin_method_use(builtin_method),
@@ -2846,7 +2847,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         // checks if the function calls are operations on Sequences, and replaces these calls by Viper container Operations
-        if full_func_proc_name.starts_with("prusti_contracts::Seq::<T>::") {
+        if let Some(suffix) = full_func_proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {
             let (place, _) = destination.unwrap(); // return types of these sequence functions are not `never`.
             let (encoded_target, mut stmts, typ, _) = self.encode_place(&place, ArrayAccessKind::Shared, location)?;
             let position = self.register_error(call_site_span, ErrorCtxt::Unexpected);
@@ -2857,8 +2858,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|arg| vir::Expr::local(self.encode_prusti_local(arg)))
                 .collect::<Vec<_>>();
 
-            let rhs = match &full_func_proc_name[28..] {
-                "empty" | "single" => vir::Expr::Seq(vir::Seq{
+            let rhs = match suffix {
+                "empty" | "single" => vir::Expr::Seq(vir::Seq {
                     typ,
                     elements: encoded_args,
                     position,
@@ -2872,10 +2873,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 _ => unreachable!("no further sequence functions."),
             };
 
-            let ass = vir::Stmt::Assign(vir::Assign{
+            let ass = vir::Stmt::Assign(vir::Assign {
                 target: encoded_target,
                 source: rhs,
-                kind: vir::AssignKind::Copy,
+                kind: vir::AssignKind::Ghost,
+            });
+
+            stmts.push(ass);
+
+            return Ok(stmts);
+        }
+        if let Some(suffix) = full_func_proc_name.strip_prefix("prusti_contracts::Map::<K, V>::") {
+            let (place, _) = destination.unwrap(); // return types of these map functions are not `never`.
+            let (encoded_target, mut stmts, typ, _) = self.encode_place(&place, ArrayAccessKind::Shared, location)?;
+            let position = self.register_error(call_site_span, ErrorCtxt::Unexpected);
+            let typ =  self.encoder.encode_type(typ).unwrap();
+
+            let encoded_args = arguments
+                .into_iter()
+                .map(|arg| vir::Expr::local(self.encode_prusti_local(arg)))
+                .collect::<Vec<_>>();
+
+            let rhs = match suffix {
+                "empty" => vir::Expr::Map(vir::Map {
+                    typ,
+                    elements: vec![],
+                    position,
+                }),
+                //"insert" => vir::Expr::ContainerOp(vir::ContainerOp {
+                //    op_kind: vir::ContainerOpKind::MapUpdate,
+                //    left: Box::new(encoded_args[0].clone()),
+                //    right: todo!("take the key/value arguments and construct a maplet"),
+                //    position,
+                //}),
+                "delete" => todo!("is there a corresponding operation in viper ir?"),
+                _ => unreachable!("no further map functions."),
+            };
+
+            let ass = vir::Stmt::Assign(vir::Assign {
+                target: encoded_target,
+                source: rhs,
+                kind: vir::AssignKind::Ghost,
             });
 
             stmts.push(ass);

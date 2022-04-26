@@ -41,14 +41,14 @@ impl WithIdentifier for ty::Int {
 
 impl WithIdentifier for ty::Sequence {
     fn get_identifier(&self) -> String {
-        format!("seq${}", self.element_type.get_identifier())
+        format!("Seq${}", self.element_type.get_identifier())
     }
 }
 
 impl WithIdentifier for ty::Map {
     fn get_identifier(&self) -> String {
         format!(
-            "map${}${}",
+            "Map${}${}",
             self.key_type.get_identifier(),
             self.val_type.get_identifier()
         )
