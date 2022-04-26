@@ -2499,7 +2499,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // Check indexing in bounds
                 stmts.push(vir::Stmt::Assert( vir::Assert {
                     expr: vir_expr!{ [start_expr] >= [vir::Expr::from(0usize)] },
-                    position: self.register_error(error_span, ErrorCtxt::HardcodedBoundsCheckAssert("the range start value may be smaller than 0 when slicing".to_string())),
+                    position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range start value may be smaller than 0 when slicing".to_string())),
                 }));
                 start_expr
             }
@@ -2521,7 +2521,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // Check indexing in bounds
                 stmts.push(vir::Stmt::Assert( vir::Assert {
                     expr: vir_expr!{ [end_expr] <= [original_len] },
-                    position: self.register_error(error_span, ErrorCtxt::HardcodedBoundsCheckAssert("the range end value may be out of bounds when slicing".to_string())),
+                    position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end value may be out of bounds when slicing".to_string())),
                 }));
                 end_expr
             }
@@ -2534,7 +2534,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // Check indexing in bounds
                 stmts.push(vir::Stmt::Assert( vir::Assert {
                     expr: vir_expr!{ [end_expr] <= [original_len] },
-                    position: self.register_error(error_span, ErrorCtxt::HardcodedBoundsCheckAssert("the range end value may be out of bounds when slicing".to_string())),
+                    position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end value may be out of bounds when slicing".to_string())),
                 }));
                 end_expr
             }
@@ -2553,7 +2553,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // start must be leq than end
         stmts.push(vir::Stmt::Assert( vir::Assert {
             expr: vir_expr!{ [start] <= [end] },
-            position: self.register_error(error_span, ErrorCtxt::HardcodedBoundsCheckAssert("the range end may be smaller than the start when slicing".to_string())),
+            position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end may be smaller than the start when slicing".to_string())),
         }));
 
         let slice_len_call = slice_types_lhs.len(self.encoder, lhs_slice_expr.clone());

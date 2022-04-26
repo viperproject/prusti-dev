@@ -71,7 +71,7 @@ pub enum ErrorCtxt {
     BoundsCheckAssert,
     /// A Viper `assert false` in the context of a hardcoded bounds check (e.g. when we hardcode a `index`)
     /// TODO: remove this in favor of extern_spec for e.g. the stdlib `fn index(...)`
-    HardcodedBoundsCheckAssert(String),
+    SliceRangeBoundsCheckAssert(String),
     /// A Viper `assert false` that encodes an `abort` Rust terminator
     AbortTerminator,
     /// A Viper `assert false` that encodes an `unreachable` Rust terminator
@@ -568,8 +568,8 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::HardcodedBoundsCheckAssert(s)) |
-            ("application.precondition:assertion.false", ErrorCtxt::HardcodedBoundsCheckAssert(s)) => {
+            ("assert.failed:assertion.false", ErrorCtxt::SliceRangeBoundsCheckAssert(s)) |
+            ("application.precondition:assertion.false", ErrorCtxt::SliceRangeBoundsCheckAssert(s)) => {
                 PrustiError::verification(
                     s,
                     error_span,
