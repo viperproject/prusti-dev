@@ -504,19 +504,12 @@ impl<'tcx> Environment<'tcx> {
     }
 
     pub fn type_is_copy(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
-        let copy_trait = self.tcx.lang_items().copy_trait();
-        if let Some(copy_trait_def_id) = copy_trait {
-            // We need this check because `type_implements_trait`
-            // panics when called on reference types.
-            if let ty::TyKind::Ref(_, _, mutability) = ty.kind() {
-                // Shared references are copy, mutable references are not.
-                matches!(mutability, mir::Mutability::Not)
-            } else {
-                self.type_implements_trait(ty, copy_trait_def_id, param_env)
-            }
-        } else {
-            false
-        }
+        // Erase all free regions.
+        // Having weird regions in `ty` can cause ICEs in `type_is_copy_modulo_regions`
+        let ty = self.tcx.erase_regions(ty);
+        self.tcx.infer_ctxt().enter(|infcx|
+            infcx.type_is_copy_modulo_regions(param_env, ty, rustc_span::DUMMY_SP)
+        )
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
