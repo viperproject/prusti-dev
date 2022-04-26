@@ -5561,7 +5561,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // no discriminant
                 if num_variants > 1 {
                     // remember where discriminant can be found for counterexamples
-                    if config::produce_counterexample() {
+                    if config::counterexample() {
                         let enum_id = encoded_src.to_string();
                         self.encoder.add_discriminant_info(
                             enum_id,
