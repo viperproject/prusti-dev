@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 #[must_use]
 pub struct ProcedureBuilder {
     name: String,
-    alloc_statements: Vec<vir_high::Statement>,
-    dealloc_statements: Vec<vir_high::Statement>,
+    pre_statements: Vec<vir_high::Statement>,
+    post_statements: Vec<vir_high::Statement>,
     start_label: vir_high::BasicBlockId,
     entry_label: Option<vir_high::BasicBlockId>,
     return_label: vir_high::BasicBlockId,
@@ -42,17 +42,21 @@ impl ProcedureBuilder {
         name: String,
         allocate_parameters: Vec<vir_high::Statement>,
         allocate_returns: Vec<vir_high::Statement>,
+        assume_preconditions: Vec<vir_high::Statement>,
         deallocate_parameters: Vec<vir_high::Statement>,
         deallocate_returns: Vec<vir_high::Statement>,
+        assert_postconditions: Vec<vir_high::Statement>,
     ) -> Self {
-        let mut alloc_statements = allocate_parameters;
-        alloc_statements.extend(allocate_returns);
-        let mut dealloc_statements = deallocate_parameters;
-        dealloc_statements.extend(deallocate_returns);
+        let mut pre_statements = allocate_parameters;
+        pre_statements.extend(assume_preconditions);
+        pre_statements.extend(allocate_returns);
+        let mut post_statements = assert_postconditions;
+        post_statements.extend(deallocate_parameters);
+        post_statements.extend(deallocate_returns);
         Self {
             name,
-            alloc_statements,
-            dealloc_statements,
+            pre_statements,
+            post_statements,
             start_label: vir_high::BasicBlockId::new("start_label".to_string()),
             entry_label: None,
             return_label: vir_high::BasicBlockId::new("return_label".to_string()),
@@ -65,14 +69,14 @@ impl ProcedureBuilder {
     pub fn build(self) -> vir_high::ProcedureDecl {
         let mut basic_blocks = self.basic_blocks;
         let allocate = vir_high::BasicBlock {
-            statements: self.alloc_statements,
+            statements: self.pre_statements,
             successor: vir_high::Successor::Goto(self.entry_label.unwrap()),
         };
         assert!(basic_blocks
             .insert(self.start_label.clone(), allocate)
             .is_none());
         let deallocate = vir_high::BasicBlock {
-            statements: self.dealloc_statements,
+            statements: self.post_statements,
             successor: vir_high::Successor::Goto(self.end_label.clone()),
         };
         assert!(basic_blocks.insert(self.return_label, deallocate).is_none());
@@ -95,10 +99,10 @@ impl ProcedureBuilder {
         }
     }
     pub fn add_alloc_statement(&mut self, statement: vir_high::Statement) {
-        self.alloc_statements.push(statement);
+        self.pre_statements.push(statement);
     }
     pub fn add_dealloc_statement(&mut self, statement: vir_high::Statement) {
-        self.dealloc_statements.push(statement);
+        self.post_statements.push(statement);
     }
     pub fn set_entry(&mut self, entry_label: vir_high::BasicBlockId) {
         assert!(self.entry_label.is_none());
@@ -142,7 +146,13 @@ impl<'a> BasicBlockBuilder<'a> {
         self.statements.push(vir_high::Statement::comment(comment));
     }
     pub fn add_statement(&mut self, statement: vir_high::Statement) {
+        statement.check_no_default_position();
         self.statements.push(statement);
+    }
+    pub fn add_statements(&mut self, statements: Vec<vir_high::Statement>) {
+        for statement in statements {
+            self.add_statement(statement);
+        }
     }
     pub fn set_successor(&mut self, successor: SuccessorBuilder) {
         assert!(self.successor == SuccessorBuilder::Undefined);
@@ -153,6 +163,14 @@ impl<'a> BasicBlockBuilder<'a> {
     }
     pub fn set_successor_exit(&mut self, successor: SuccessorExitKind) {
         self.set_successor(SuccessorBuilder::Exit(successor));
+    }
+    pub fn create_basic_block_builder(&mut self, id: vir_high::BasicBlockId) -> BasicBlockBuilder {
+        BasicBlockBuilder {
+            procedure_builder: self.procedure_builder,
+            id,
+            statements: Vec::new(),
+            successor: SuccessorBuilder::Undefined,
+        }
     }
 }
 

@@ -21,6 +21,7 @@ impl Typed for Expression {
             Expression::Unfolding(expression) => expression.get_type(),
             Expression::UnaryOp(expression) => expression.get_type(),
             Expression::BinaryOp(expression) => expression.get_type(),
+            Expression::PermBinaryOp(expression) => expression.get_type(),
             Expression::ContainerOp(expression) => expression.get_type(),
             Expression::Seq(expression) => expression.get_type(),
             Expression::Conditional(expression) => expression.get_type(),
@@ -43,6 +44,7 @@ impl Typed for Expression {
             Expression::Unfolding(expression) => expression.set_type(new_type),
             Expression::UnaryOp(expression) => expression.set_type(new_type),
             Expression::BinaryOp(expression) => expression.set_type(new_type),
+            Expression::PermBinaryOp(expression) => expression.set_type(new_type),
             Expression::ContainerOp(expression) => expression.set_type(new_type),
             Expression::Seq(expression) => expression.set_type(new_type),
             Expression::Conditional(expression) => expression.set_type(new_type),
@@ -163,6 +165,15 @@ impl Typed for BinaryOp {
     fn set_type(&mut self, new_type: Type) {
         self.left.set_type(new_type.clone());
         self.right.set_type(new_type);
+    }
+}
+
+impl Typed for PermBinaryOp {
+    fn get_type(&self) -> &Type {
+        &Type::Perm
+    }
+    fn set_type(&mut self, new_type: Type) {
+        assert_eq!(new_type, Type::Perm);
     }
 }
 

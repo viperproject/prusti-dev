@@ -91,6 +91,7 @@ lazy_static! {
         settings.set_default("assert_timeout", 10_000).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
+        settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
         settings.set_default("no_verify", false).unwrap();
         settings.set_default("no_verify_deps", false).unwrap();
@@ -111,6 +112,7 @@ lazy_static! {
         settings.set_default("counterexample", false).unwrap();
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
+        settings.set_default("enable_ghost_constraints", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("disable_name_mangling", false).unwrap();
@@ -561,6 +563,12 @@ pub fn skip_unsupported_features() -> bool {
     read_setting("skip_unsupported_features")
 }
 
+/// When enabled, internal errors are reported as warnings instead of errors.
+/// Used for testing.
+pub fn internal_errors_as_warnings() -> bool {
+    read_setting("internal_errors_as_warnings")
+}
+
 /// When enabled, unsupported code is encoded as `assert false`. This way error
 /// messages are reported only for unsupported code that is actually reachable.
 pub fn allow_unreachable_unsupported_code() -> bool {
@@ -586,4 +594,9 @@ pub fn full_compilation() -> bool {
 /// When enabled, Viper identifiers are interned to shorten them when possible.
 pub fn intern_names() -> bool {
     read_setting("intern_names")
+}
+
+/// Enables ghost constraint parsing and resolving.
+pub fn enable_ghost_constraints() -> bool {
+    read_setting("enable_ghost_constraints")
 }

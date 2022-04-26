@@ -115,9 +115,6 @@ impl ExprFootprintGetter for vir::Expr {
                 box body,
                 ..
             }) => {
-                assert!(variables
-                    .iter()
-                    .all(|var| !var.typ.is_typed_ref_or_type_var()));
                 let vars_places: FxHashSet<Perm> = variables
                     .iter()
                     .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))

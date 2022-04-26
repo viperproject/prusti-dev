@@ -6,10 +6,18 @@ impl WithIdentifier for Rvalue {
         match self {
             Self::AddressOf(value) => value.get_identifier(),
             Self::BinaryOp(value) => value.get_identifier(),
+            Self::CheckedBinaryOp(value) => value.get_identifier(),
             Self::UnaryOp(value) => value.get_identifier(),
             Self::Aggregate(value) => value.get_identifier(),
             Self::Discriminant(value) => value.get_identifier(),
+            Self::Ref(value) => value.get_identifier(),
         }
+    }
+}
+
+impl WithIdentifier for Ref {
+    fn get_identifier(&self) -> String {
+        format!("ref_${}", self.place.get_type().get_identifier())
     }
 }
 
@@ -29,6 +37,17 @@ impl WithIdentifier for BinaryOp {
     fn get_identifier(&self) -> String {
         format!(
             "BinaryOp${}${}${}",
+            self.kind,
+            self.left.get_identifier(),
+            self.right.get_identifier()
+        )
+    }
+}
+
+impl WithIdentifier for CheckedBinaryOp {
+    fn get_identifier(&self) -> String {
+        format!(
+            "CheckedBinaryOp${}${}${}",
             self.kind,
             self.left.get_identifier(),
             self.right.get_identifier()

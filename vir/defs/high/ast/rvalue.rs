@@ -1,6 +1,6 @@
 pub(crate) use super::super::{
     expression::{BinaryOpKind, Expression, UnaryOpKind},
-    ty::Type,
+    ty::{LifetimeConst, Type},
     Position,
 };
 use crate::common::display;
@@ -12,18 +12,27 @@ use crate::common::display;
 pub enum Rvalue {
     // Use(Use),
     // Repeat(Repeat),
-    // Ref(Ref),
+    Ref(Ref),
     // ThreadLocalRef(ThreadLocalRef),
     AddressOf(AddressOf),
     // Len(Len),
     // Cast(Cast),
     BinaryOp(BinaryOp),
-    // CheckedBinaryOp(CheckedBinaryOp),
+    CheckedBinaryOp(CheckedBinaryOp),
     // NullaryOp(NullaryOp),
     UnaryOp(UnaryOp),
     Discriminant(Discriminant),
     Aggregate(Aggregate),
     // ShallowInitBox(ShallowInitBox),
+}
+
+#[display(fmt = "&{} {}", lifetime, place)]
+pub struct Ref {
+    pub place: Expression,
+    pub lifetime: LifetimeConst,
+    pub is_mut: bool,
+    pub rd_perm: u32,
+    pub target: Expression,
 }
 
 #[display(fmt = "&raw({})", place)]
@@ -33,6 +42,13 @@ pub struct AddressOf {
 
 #[display(fmt = "{}({}, {})", kind, left, right)]
 pub struct BinaryOp {
+    pub kind: BinaryOpKind,
+    pub left: Operand,
+    pub right: Operand,
+}
+
+#[display(fmt = "checked {}({}, {})", kind, left, right)]
+pub struct CheckedBinaryOp {
     pub kind: BinaryOpKind,
     pub left: Operand,
     pub right: Operand,
