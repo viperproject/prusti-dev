@@ -94,7 +94,7 @@ pub(crate) trait UserAnnotatedTypeParamParser {
 
 impl<T: HasGenerics> UserAnnotatedTypeParamParser for T {
     fn parse_user_annotated_type_params(&self) -> ParserResult<Vec<UserAnnotatedTypeParam>> {
-        self.get_generics()
+        self.generics()
             .params
             .iter()
             .filter_map(|generic_param| match generic_param {

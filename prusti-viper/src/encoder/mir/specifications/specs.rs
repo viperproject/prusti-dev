@@ -36,7 +36,7 @@ impl<'qry, 'tcx> RefinementContext<'qry, 'tcx> {
                 ..
             })
             | SpecQuery::FunctionDefEncoding(def_id, substs)
-            | SpecQuery::PureOrTrustedCheck(def_id, substs) => {
+            | SpecQuery::GetProcKind(def_id, substs) => {
                 let (trait_def_id, trait_substs) = env.find_trait_method_substs(*def_id, substs)?;
                 let trait_query = query.adapt_to(trait_def_id, trait_substs);
                 Some(RefinementContext {
@@ -69,11 +69,7 @@ impl<'tcx> Specifications<'tcx> {
         }
     }
 
-    pub(super) fn get_loop_spec<'a, 'env: 'a>(
-        &'a self,
-        _env: &'env Environment<'tcx>,
-        def_id: &DefId,
-    ) -> Option<&'a LoopSpecification> {
+    pub(super) fn get_loop_spec(&self, def_id: &DefId) -> Option<&LoopSpecification> {
         trace!("Get loop specs of {:?}", def_id);
         self.user_typed_specs.get_loop_spec(def_id)
     }
