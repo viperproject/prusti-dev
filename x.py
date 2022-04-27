@@ -212,7 +212,14 @@ def get_env():
 
 
 def run_command(args, env=None, cwd=None, on_exit=None, report_time=False):
-    """Run a command with the given arguments."""
+    """Run a command with the given arguments.
+
+    +   ``env`` – an environment in which to run.
+    +   ``cwd`` – the path at which to run.
+    +   ``on_exit`` – function to be executed on exit.
+    +   ``report_time`` – whether to report how long it took to execute
+        the command.
+    """
     if env is None:
         env = get_env()
     start_time = datetime.datetime.now()
