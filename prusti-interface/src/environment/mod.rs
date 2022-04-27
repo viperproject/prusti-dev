@@ -75,6 +75,7 @@ pub struct Environment<'tcx> {
     bodies: RefCell<HashMap<LocalDefId, CachedBody<'tcx>>>,
     external_bodies: RefCell<HashMap<DefId, CachedExternalBody<'tcx>>>,
     tcx: TyCtxt<'tcx>,
+    warn_buffer: RefCell<Vec<rustc_errors::Diagnostic>>,
 }
 
 impl<'tcx> Environment<'tcx> {
@@ -84,6 +85,7 @@ impl<'tcx> Environment<'tcx> {
             tcx,
             bodies: RefCell::new(HashMap::new()),
             external_bodies: RefCell::new(HashMap::new()),
+            warn_buffer: RefCell::new(Vec::new()),
         }
     }
 
@@ -161,10 +163,13 @@ impl<'tcx> Environment<'tcx> {
                 diagnostic.note(note_msg);
             }
         }
+        for warn in self.warn_buffer.borrow().iter() {
+            self.tcx.sess.diagnostic().emit_diagnostic(warn);
+        }
         diagnostic.emit();
     }
 
-    /// Emits an error message.
+    /// Buffers a warning message, to be emitted on error.
     pub fn span_warn_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
@@ -184,7 +189,8 @@ impl<'tcx> Environment<'tcx> {
                 diagnostic.note(note_msg);
             }
         }
-        diagnostic.emit();
+        // Possible to use `diagnostic.emit()` here to avoid buffering
+        diagnostic.buffer(&mut self.warn_buffer.borrow_mut());
     }
 
     /// Returns true if an error has been emitted

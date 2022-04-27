@@ -162,7 +162,9 @@ impl PrustiError {
         self.notes.push((message.to_string(), opt_span));
     }
 
-    /// Report the encoding error using the compiler's interface
+    /// Report the encoding error using the compiler's interface.
+    /// Warnings are not immediately emitted, but buffered and only shown
+    /// if an error is emitted (i.e. verification failure)
     pub fn emit(self, env: &Environment) {
         assert!(!self.is_disabled);
         if self.is_error {

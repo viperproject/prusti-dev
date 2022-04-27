@@ -848,8 +848,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         } else {
             // Cannot add loop guard to loop invariant
             let fn_names: Vec<_> = preconds.iter().filter_map(|(name, _)| name.as_ref()).map(|name| {
-                assert!(name.starts_with("m_"));
-                &name[2..]
+                if name.starts_with("m_") { &name[2..] } else { &name[..] }
             }).collect();
             let warning_msg = if fn_names.is_empty() {
                 "the loop guard was not automatically added as a `body_invariant!(...)`, consider doing this manually".to_string()
