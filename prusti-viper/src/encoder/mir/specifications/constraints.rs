@@ -143,10 +143,6 @@ pub mod trait_bounds {
     ) -> bool {
         debug!("Trait bound constraint resolving for {:?}", context);
 
-        let param_env_constraint = extract_param_env(env, proc_spec);
-        let param_env_constraint =
-            perform_param_env_substitutions(env, context, param_env_constraint);
-
         // There is no caller when encoding a function.
         // We still resolve obligations to account for constrained specs on a trait
         // for which we encode its implementation. The corresponding encoding will
@@ -158,18 +154,14 @@ pub mod trait_bounds {
             env.tcx().param_env(context.proc_def_id)
         };
 
+        let param_env_constraint = extract_param_env(env, proc_spec);
+        let param_env_constraint =
+            perform_param_env_substitutions(env, context, param_env_constraint, param_env_lookup);
+
         let all_bounds_satisfied = param_env_constraint
             .caller_bounds()
             .iter()
-            .all(|predicate| {
-                // Normalize any associated type projections.
-                // This needs to be done because ghost constraints might contain "deeply nested"
-                // associated types, e.g. `T: A<SomeAssocType = <Self as B>::OtherAssocType`
-                // where `<Self as B>::OtherAssocType` can be normalized to some concrete type.
-                let normalized_predicate = env.resolve_assoc_types(predicate, param_env_lookup);
-
-                env.evaluate_predicate(normalized_predicate, param_env_lookup)
-            });
+            .all(|predicate| env.evaluate_predicate(predicate, param_env_lookup));
 
         trace!("Constraint fulfilled: {all_bounds_satisfied}");
         all_bounds_satisfied
@@ -180,6 +172,7 @@ pub mod trait_bounds {
         env: &'env Environment<'tcx>,
         context: &ConstraintSolvingContext<'tcx>,
         param_env: ty::ParamEnv<'tcx>,
+        param_env_lookup: ty::ParamEnv<'tcx>,
     ) -> ty::ParamEnv<'tcx> {
         trace!("Unsubstituted constraints: {:#?}", param_env);
 
@@ -205,6 +198,17 @@ pub mod trait_bounds {
 
         trace!(
             "Constraints after substituting call substs: {:#?}",
+            param_env
+        );
+
+        // Normalize any associated type projections.
+        // This needs to be done because ghost constraints might contain "deeply nested"
+        // associated types, e.g. `T: A<SomeAssocType = <Self as B>::OtherAssocType`
+        // where `<Self as B>::OtherAssocType` can be normalized to some concrete type.
+        let param_env = env.resolve_assoc_types(param_env, param_env_lookup);
+
+        trace!(
+            "Constraints after resolving associated types: {:#?}",
             param_env
         );
 
