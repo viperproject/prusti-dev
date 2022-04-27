@@ -435,6 +435,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .collect::<Result<_, _>>()
                     .with_span(span)?;
                 match full_func_proc_name {
+                    "prusti_contracts::Map::<K, V>::empty" => {
+                        let type_arguments = self
+                            .encoder
+                            .encode_generic_arguments_high(def_id, substs)
+                            .with_span(span)?;
+                        let enc = vir_high::expression::BuiltinFuncApp {
+                            function: vir_high::expression::BuiltinFunc::EmptyMap,
+                            type_arguments,
+                            arguments: vec![],
+                            parameters: vec![],
+                            return_type: vir_high::Type::Map(vir_high::Map{key_type: box type_arguments[0].clone(), box type_arguments[1].clone()}),
+                            position: Position::default(),
+                        };
+                        let enc = vir_high::Expression::BuiltinFuncApp(enc);
+                        let mut state = states[target_block].clone();
+                        state.substitute_value(&encoded_lhs, enc);
+                        state
+                    }
                     "prusti_contracts::old" => {
                         let argument = encoded_args.pop().unwrap();
                         let position = argument.position();
