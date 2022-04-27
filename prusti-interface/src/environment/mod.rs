@@ -504,15 +504,23 @@ impl<'tcx> Environment<'tcx> {
     }
 
     pub fn type_is_copy(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
+        if ty.is_trivially_pure_clone_copy() {
+            return true;
+        }
+
         // We need this check because `type_is_copy_modulo_regions`
         // panics when called on reference types.
         if let ty::TyKind::Ref(_, _, mutability) = ty.kind() {
             // Shared references are copy, mutable references are not.
             matches!(mutability, mir::Mutability::Not)
         } else {
-            // First erase all free regions.
+            // Erase all free regions.
             // Having weird regions in `ty` can cause ICEs in `type_is_copy_modulo_regions`
             let ty = self.tcx.erase_regions(ty);
+
+            // Normalize the type to account for associated types
+            let ty = self.normalize_to(ty);
+
             self.tcx.infer_ctxt().enter(|infcx|
                 infcx.type_is_copy_modulo_regions(param_env, ty, rustc_span::DUMMY_SP)
             )
