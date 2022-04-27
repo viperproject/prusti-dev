@@ -621,6 +621,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     assert_eq!(args.len(), 2);
                     UpdateMap
                 }
+                "delete" => unimplemented!(),
+                "get" => unimplemented!(),
                 _ => unreachable!("no further Map functions"),
             };
 
@@ -638,6 +640,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             state.substitute_value(lhs, enc);
 
             Ok(Some(state))
+        } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {
+            unimplemented!();
         } else {
             Ok(None)
         }
