@@ -147,7 +147,7 @@ pub(super) struct PureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// Span of the function declaration.
     span: Span,
     /// Signature of the function to be encoded.
-    sig: ty::FnSig<'tcx>,
+    sig: ty::PolyFnSig<'tcx>,
     /// Spans of MIR locals, when encoding a local pure function.
     local_spans: Option<Vec<Span>>,
 }
@@ -177,8 +177,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
             .env()
             .tcx()
             .fn_sig(proc_def_id)
-            .subst(encoder.env().tcx(), substs)
-            .skip_binder();
+            .subst(encoder.env().tcx(), substs);
 
         Self {
             encoder,
@@ -318,7 +317,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
             ));
         }
 
-        self.encoder.encode_type_high(ty)
+        self.encoder.encode_type_high(ty.skip_binder())
     }
 
     fn encode_precondition_expr(
@@ -393,7 +392,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     }
 
     fn args_iter(&self) -> impl Iterator<Item = mir::Local> {
-        (0..self.sig.inputs().len()).map(|idx| mir::Local::from_usize(1 + idx))
+        (0..self.sig.inputs().skip_binder().len()).map(|idx| mir::Local::from_usize(1 + idx))
     }
 
     /// Encodes a VIR local with the original MIR type.
@@ -411,18 +410,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
             ));
         }
         let var_name = format!("{:?}", local);
-        let var_type = self.encoder.encode_type_high(ty)?;
+        let var_type = self.encoder.encode_type_high(ty.skip_binder())?;
         Ok(vir_high::VariableDecl {
             name: var_name,
             ty: var_type,
         })
     }
 
-    fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
+    fn get_local_ty(&self, local: mir::Local) -> ty::Binder<'tcx, ty::Ty<'tcx>> {
         if local.as_usize() == 0 {
             self.sig.output()
         } else {
-            self.sig.inputs()[local.as_usize() - 1]
+            self.sig.input(local.as_usize() - 1)
         }
     }
 

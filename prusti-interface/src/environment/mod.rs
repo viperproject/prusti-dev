@@ -492,8 +492,8 @@ impl<'tcx> Environment<'tcx> {
             .unwrap_or((called_def_id, call_substs))
     }
 
-    pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
-        match ty.kind() {
+    pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Binder<'tcx, ty::Ty<'tcx>>, param_env: ty::ParamEnv<'tcx>) -> bool {
+        match ty.skip_binder().kind() {
             ty::TyKind::Never => {
                 true
             }
@@ -503,28 +503,15 @@ impl<'tcx> Environment<'tcx> {
         }
     }
 
-    pub fn type_is_copy(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
-        if ty.is_trivially_pure_clone_copy() {
-            return true;
-        }
-
-        // We need this check because `type_is_copy_modulo_regions`
-        // panics when called on reference types.
-        if let ty::TyKind::Ref(_, _, mutability) = ty.kind() {
-            // Shared references are copy, mutable references are not.
-            matches!(mutability, mir::Mutability::Not)
-        } else {
-            // Erase all free regions.
-            // Having weird regions in `ty` can cause ICEs in `type_is_copy_modulo_regions`
-            let ty = self.tcx.erase_regions(ty);
-
-            // Normalize the type to account for associated types
-            let ty = self.normalize_to(ty);
-
-            self.tcx.infer_ctxt().enter(|infcx|
-                infcx.type_is_copy_modulo_regions(param_env, ty, rustc_span::DUMMY_SP)
-            )
-        }
+    /// Checks whether `ty` is copy.
+    /// The type is wrapped into a `Binder` to handle regions correctly.
+    pub fn type_is_copy(&self, ty: ty::Binder<'tcx, ty::Ty<'tcx>>, param_env: ty::ParamEnv<'tcx>) -> bool {
+        // Normalize the type to account for associated types
+        let ty = self.normalize_to(ty);
+        let ty = self.tcx.erase_late_bound_regions(ty);
+        self.tcx.infer_ctxt().enter(|infcx|
+            infcx.type_is_copy_modulo_regions(param_env, ty, rustc_span::DUMMY_SP)
+        )
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
