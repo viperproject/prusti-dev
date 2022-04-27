@@ -239,7 +239,6 @@ pub struct BuiltinFuncApp {
     pub function: BuiltinFunc,
     pub type_arguments: Vec<Type>,
     pub arguments: Vec<Expression>,
-    pub parameters: Vec<VariableDecl>,
     pub return_type: Type,
     pub position: Position,
 }
