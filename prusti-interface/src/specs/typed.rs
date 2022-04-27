@@ -247,7 +247,16 @@ impl SpecGraph<ProcedureSpecification> {
     ) -> &mut ProcedureSpecification {
         self.specs_with_constraints
             .entry(constraint)
-            .or_insert_with(|| self.base_spec.clone())
+            .or_insert_with(|| {
+                let mut base = self.base_spec.clone();
+
+                // Preconditions of the base spec do not appear in the constrained spec
+                // Any preconditions that exist on the base spec are thus pruned
+                // (see comment on impl block)
+                base.pres = SpecificationItem::Empty;
+
+                base
+            })
     }
 
     /// Gets the constraint of a spec function `spec`.
