@@ -265,7 +265,11 @@ impl IntoLow for vir_mid::Statement {
                 // TODO: Remove code duplication with Self::CopyPlace
                 let target_ty = statement.target.get_type();
                 let source_ty = statement.source.get_type();
-                assert_eq!(target_ty, source_ty);
+                let mut target_ty_without_lifetime = target_ty.clone();
+                target_ty_without_lifetime.erase_lifetime();
+                let mut source_ty_without_lifetime = source_ty.clone();
+                source_ty_without_lifetime.erase_lifetime();
+                assert_eq!(target_ty_without_lifetime, source_ty_without_lifetime);
                 lowerer.encode_move_place_method(target_ty)?;
                 let target_place = lowerer.encode_expression_as_place(&statement.target)?;
                 let target_address = lowerer.extract_root_address(&statement.target)?;
@@ -390,16 +394,70 @@ impl IntoLow for vir_mid::Statement {
                     statement.position,
                 )])
             }
-            Self::GhostAssignment(statement) => {
-                let statements = vec![Statement::assign(
-                    statement.target.to_procedure_snapshot(lowerer)?,
-                    statement.value.to_procedure_snapshot(lowerer)?,
-                    statement.position,
-                )];
-                Ok(statements)
+            Self::Dead(_statement) => {
+                // TODO: implement Dead statment in vir_low
+                Ok(vec![])
             }
-            Self::LifetimeTake(_statement) => {
-                unimplemented!();
+            Self::LifetimeTake(statement) => {
+                if statement.value.len() == 1 {
+                    let expr = vir_low::Expression::local_no_pos(
+                        statement
+                            .value
+                            .first()
+                            .unwrap()
+                            .to_procedure_snapshot(lowerer)?,
+                    );
+                    Ok(vec![Statement::assign(
+                        statement.target.to_procedure_snapshot(lowerer)?,
+                        expr,
+                        statement.position,
+                    )])
+                } else {
+                    lowerer.encode_lft_tok_sep_take_method(statement.value.len())?;
+                    let mut arguments: Vec<vir_low::Expression> = vec![];
+                    for lifetime in &statement.value {
+                        arguments.push(vir_low::Expression::local_no_pos(
+                            lifetime.to_procedure_snapshot(lowerer)?,
+                        ));
+                    }
+                    arguments.push(vir_low::Expression::fractional_permission(
+                        statement.rd_perm,
+                    ));
+                    let target = vec![vir_low::Expression::local_no_pos(
+                        statement.target.to_procedure_snapshot(lowerer)?,
+                    )];
+                    Ok(vec![Statement::method_call(
+                        String::from("lft_tok_sep_take"),
+                        arguments,
+                        target,
+                        statement.position,
+                    )])
+                }
+            }
+            Self::LifetimeReturn(statement) => {
+                if statement.value.len() > 1 {
+                    lowerer.encode_lft_tok_sep_return_method(statement.value.len())?;
+                    let mut arguments: Vec<vir_low::Expression> =
+                        vec![vir_low::Expression::local_no_pos(
+                            statement.target.to_procedure_snapshot(lowerer)?,
+                        )];
+                    for lifetime in &statement.value {
+                        arguments.push(vir_low::Expression::local_no_pos(
+                            lifetime.to_procedure_snapshot(lowerer)?,
+                        ));
+                    }
+                    arguments.push(vir_low::Expression::fractional_permission(
+                        statement.rd_perm,
+                    ));
+                    Ok(vec![Statement::method_call(
+                        String::from("lft_tok_sep_take"),
+                        arguments,
+                        vec![],
+                        statement.position,
+                    )])
+                } else {
+                    Ok(vec![])
+                }
             }
             Self::OpenMutRef(_statement) => {
                 unimplemented!();

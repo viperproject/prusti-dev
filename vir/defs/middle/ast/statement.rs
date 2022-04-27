@@ -32,8 +32,9 @@ pub enum Statement {
     Assign(Assign),
     NewLft(NewLft),
     EndLft(EndLft),
-    GhostAssignment(GhostAssignment),
+    Dead(Dead),
     LifetimeTake(LifetimeTake),
+    LifetimeReturn(LifetimeReturn),
     OpenMutRef(OpenMutRef),
     CloseMutRef(CloseMutRef),
 }
@@ -215,17 +216,34 @@ pub struct EndLft {
     pub position: Position,
 }
 
-#[display(fmt = "ghost-assign {} := {}", target, value)]
-pub struct GhostAssignment {
-    pub target: VariableDecl,
-    pub value: Expression,
+#[display(fmt = "dead({})", target)]
+pub struct Dead {
+    pub target: Expression,
     pub position: Position,
 }
 
-#[display(fmt = "{} := shorten_lifetime({:?}, {})", target, value, rd_perm)]
+#[display(
+    fmt = "{} := lifetime_take({}, {})",
+    target,
+    "display::cjoin(value)",
+    rd_perm
+)]
 pub struct LifetimeTake {
     pub target: VariableDecl,
-    pub value: Vec<LifetimeConst>,
+    pub value: Vec<VariableDecl>,
+    pub rd_perm: u32,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "lifetime_return({}, {}, {})",
+    target,
+    "display::cjoin(value)",
+    rd_perm
+)]
+pub struct LifetimeReturn {
+    pub target: VariableDecl,
+    pub value: Vec<VariableDecl>,
     pub rd_perm: u32,
     pub position: Position,
 }
