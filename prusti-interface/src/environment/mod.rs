@@ -561,6 +561,11 @@ impl<'tcx> Environment<'tcx> {
     /// i.e. this resolves projection types ([ty::TyKind::Projection]s)
     pub fn normalize_to<T: ty::TypeFoldable<'tcx>>(&self, normalizable: T) -> T {
         use rustc_trait_selection::traits;
+
+        if !normalizable.has_projections() {
+            return normalizable
+        }
+
         self.tcx.infer_ctxt().enter(|infcx| {
             let mut selcx = traits::SelectionContext::new(&infcx);
             // We do not really care about obligations that are constructed
