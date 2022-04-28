@@ -64,7 +64,7 @@ pub struct LifetimeConst {
     pub name: String,
 }
 
-#[display(fmt = "NoNameLifetime")]
+#[display(fmt = "Lifetime")]
 pub struct Lifetime {}
 impl Default for Lifetime {
     fn default() -> Self {

@@ -43,6 +43,8 @@ pub(in super::super) struct BuiltinMethodsState {
     encoded_consume_operand_methods: FxHashSet<String>,
     encoded_newlft_method: bool,
     encoded_endlft_method: bool,
+    encoded_lft_tok_sep_take_methods: FxHashSet<usize>,
+    encoded_lft_tok_sep_return_methods: FxHashSet<usize>,
 }
 
 trait Private {
@@ -61,6 +63,14 @@ trait Private {
         arguments: &mut Vec<vir_low::Expression>,
         expression: &vir_mid::Expression,
     ) -> SpannedEncodingResult<()>;
+    fn encode_lft_tok_sep_take_method_name(
+        &self,
+        lft_count: usize,
+    ) -> SpannedEncodingResult<String>;
+    fn encode_lft_tok_sep_return_method_name(
+        &self,
+        lft_count: usize,
+    ) -> SpannedEncodingResult<String>;
     fn encode_assign_method_name(
         &self,
         ty: &vir_mid::Type,
@@ -208,6 +218,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         arguments.push(self.extract_root_address(expression)?);
         arguments.push(expression.to_procedure_snapshot(self)?);
         Ok(())
+    }
+    fn encode_lft_tok_sep_take_method_name(
+        &self,
+        lft_count: usize,
+    ) -> SpannedEncodingResult<String> {
+        Ok(format!("lft_tok_sep_take${}", lft_count))
+    }
+    fn encode_lft_tok_sep_return_method_name(
+        &self,
+        lft_count: usize,
+    ) -> SpannedEncodingResult<String> {
+        Ok(format!("lft_tok_sep_return${}", lft_count))
     }
     fn encode_assign_method_name(
         &self,
@@ -787,6 +809,8 @@ pub(in super::super) trait BuiltinMethodsInterface {
         operand: vir_mid::Operand,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
+    fn encode_lft_tok_sep_take_method(&mut self, lft_count: usize) -> SpannedEncodingResult<()>;
+    fn encode_lft_tok_sep_return_method(&mut self, lft_count: usize) -> SpannedEncodingResult<()>;
     fn encode_newlft_method(&mut self) -> SpannedEncodingResult<()>;
     fn encode_endlft_method(&mut self) -> SpannedEncodingResult<()>;
 }
@@ -1974,6 +1998,143 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             Vec::new(),
             position,
         ));
+        Ok(())
+    }
+
+    fn encode_lft_tok_sep_take_method(&mut self, lft_count: usize) -> SpannedEncodingResult<()> {
+        if !self
+            .builtin_methods_state
+            .encoded_lft_tok_sep_take_methods
+            .contains(&lft_count)
+        {
+            self.builtin_methods_state
+                .encoded_lft_tok_sep_take_methods
+                .insert(lft_count);
+
+            self.encode_lifetime_token_predicate()?;
+            self.encode_lifetime_included()?;
+            self.encode_lifetime_intersect(lft_count)?;
+            self.encode_lifetime_included_intersect_axiom(lft_count)?;
+            use vir_low::macros::*;
+
+            let method_name = self.encode_lft_tok_sep_take_method_name(lft_count)?;
+            var_decls!(rd_perm: Perm);
+
+            // Parameters
+            let mut parameters: Vec<vir_low::VariableDecl> =
+                self.create_lifetime_var_decls(lft_count)?;
+
+            // Preconditions
+            let mut pres = vec![expr! {
+                [vir_low::Expression::no_permission()] < rd_perm
+            }];
+            for lifetime in &parameters {
+                pres.push(vir_low::Expression::predicate_access_predicate_no_pos(
+                    stringify!(LifetimeToken).to_string(),
+                    vec![lifetime.clone().into()],
+                    rd_perm.clone().into(),
+                ));
+            }
+            parameters.push(rd_perm.clone());
+
+            // Postconditions
+            var_decls!(lft: Lifetime);
+            let lifetimes_expr: Vec<vir_low::Expression> =
+                self.create_lifetime_expressions(lft_count)?;
+            let posts = vec![
+                // FIXME: use encode_lifetime_token from prusti-viper/src/encoder/middle/core_proof/lifetimes/interface.rs (to be merged)
+                vir_low::Expression::predicate_access_predicate_no_pos(
+                    stringify!(LifetimeToken).to_string(),
+                    vec![lft.clone().into()],
+                    rd_perm.into(),
+                ),
+                vir_low::Expression::binary_op_no_pos(
+                    vir_low::BinaryOpKind::EqCmp,
+                    expr! { lft },
+                    vir_low::Expression::domain_function_call(
+                        "Lifetime",
+                        format!("intersect${}", lft_count),
+                        lifetimes_expr,
+                        ty!(Lifetime),
+                    ),
+                ),
+            ];
+
+            // Create Method
+            let method =
+                vir_low::MethodDecl::new(method_name, parameters, vec![lft], pres, posts, None);
+            self.declare_method(method)?;
+        }
+        Ok(())
+    }
+    fn encode_lft_tok_sep_return_method(&mut self, lft_count: usize) -> SpannedEncodingResult<()> {
+        if !self
+            .builtin_methods_state
+            .encoded_lft_tok_sep_return_methods
+            .contains(&lft_count)
+        {
+            self.builtin_methods_state
+                .encoded_lft_tok_sep_return_methods
+                .insert(lft_count);
+
+            self.encode_lifetime_token_predicate()?;
+            self.encode_lifetime_included()?;
+            self.encode_lifetime_intersect(lft_count)?;
+            self.encode_lifetime_included_intersect_axiom(lft_count)?;
+            use vir_low::macros::*;
+
+            let method_name = self.encode_lft_tok_sep_return_method_name(lft_count)?;
+            var_decls!(lft: Lifetime); // target
+            var_decls!(rd_perm: Perm);
+            let lifetimes_var: Vec<vir_low::VariableDecl> =
+                self.create_lifetime_var_decls(lft_count)?;
+            let lifetimes_expr: Vec<vir_low::Expression> =
+                self.create_lifetime_expressions(lft_count)?;
+
+            // Parameters
+            let mut parameters = vec![lft.clone()];
+            parameters.append(lifetimes_var.clone().as_mut());
+            parameters.push(rd_perm.clone());
+
+            // Preconditions
+            let pres = vec![
+                expr! {
+                    [vir_low::Expression::no_permission()] < rd_perm
+                },
+                vir_low::Expression::predicate_access_predicate_no_pos(
+                    stringify!(LifetimeToken).to_string(),
+                    vec![lft.clone().into()],
+                    rd_perm.clone().into(),
+                ),
+                vir_low::Expression::binary_op_no_pos(
+                    vir_low::BinaryOpKind::EqCmp,
+                    expr! { lft },
+                    vir_low::Expression::domain_function_call(
+                        "Lifetime",
+                        format!("intersect${}", lft_count),
+                        lifetimes_expr,
+                        ty!(Lifetime),
+                    ),
+                ),
+            ];
+
+            // Postconditions
+            let posts: Vec<vir_low::Expression> = lifetimes_var
+                .into_iter()
+                .map(|lifetime| {
+                    vir_low::Expression::predicate_access_predicate_no_pos(
+                        stringify!(LifetimeToken).to_string(),
+                        vec![lifetime.into()],
+                        rd_perm.clone().into(),
+                    )
+                })
+                .collect();
+
+            // Create Method
+            let method =
+                vir_low::MethodDecl::new(method_name, parameters, vec![], pres, posts, None);
+            self.declare_method(method)?;
+        }
         Ok(())
     }
     fn encode_newlft_method(&mut self) -> SpannedEncodingResult<()> {
