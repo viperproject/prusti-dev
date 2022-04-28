@@ -24,9 +24,9 @@ use prusti_common::vir_local;
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
-
 use std::{convert::TryInto, mem};
 use vir_crate::polymorphic::{self as vir};
+use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 
 pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -1172,12 +1172,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     }
 
                     mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, lhs_ref_ty) => {
-                        let lhs_ty = lhs_ref_ty.peel_refs();
                         let rhs_ref_ty = self.mir_encoder.get_operand_ty(operand);
-                        let rhs_ty = rhs_ref_ty.peel_refs();
-                        if lhs_ref_ty.is_slice() && rhs_ty.is_array() {
+                        if lhs_ref_ty.is_slice_ref() && rhs_ref_ty.is_array_ref() {
+                            let lhs_ty = lhs_ref_ty.peel_refs();
+                            let rhs_ty = rhs_ref_ty.peel_refs();
                             let function_name = self.encoder.encode_unsize_function_use(rhs_ty, lhs_ty)
-                                .unwrap_or_else(|error| unreachable!("error during unsizing slice to array: {:?}", error) );
+                                .unwrap_or_else(|error| unreachable!("error during unsizing array to slice: {:?}", error) );
                             let encoded_rhs = self.encoder.encode_snapshot_type(rhs_ty).with_span(span)?;
                             let formal_args = vec![vir::LocalVar::new(
                                 String::from("array"),

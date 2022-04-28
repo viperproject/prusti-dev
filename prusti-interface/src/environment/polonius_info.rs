@@ -33,6 +33,7 @@ use super::procedure::Procedure;
 use super::Environment;
 use prusti_common::config;
 use crate::environment::mir_utils::RealEdges;
+use crate::environment::mir_utils::SliceOrArrayRef;
 
 /// This represents the assignment in which a loan was created. The `source`
 /// will contain the creation of the loan, while the `dest` will store the
@@ -573,13 +574,14 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
                         })
                         .collect())
                 }
+
                 // slice creation involves an unsize pointer cast like [i32; 3] -> &[i32]
-                &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ref ty) if ty.is_slice() && !ty.is_unsafe_ptr() => {
+                &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ref ty) if ty.is_slice_or_ref() && !ty.is_unsafe_ptr() => {
                     trace!("slice: operand={:?}, ty={:?}", operand, ty);
                     Ok(match operand {
                         mir::Operand::Copy(ref place) |
-                            mir::Operand::Move(ref place) => vec![place],
-                            mir::Operand::Constant(_) => vec![],
+                        mir::Operand::Move(ref place) => vec![place],
+                        mir::Operand::Constant(_) => vec![],
                     })
                 }
 

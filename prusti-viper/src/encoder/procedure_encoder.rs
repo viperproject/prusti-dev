@@ -67,6 +67,7 @@ use crate::encoder::mir::types::MirTypeEncoderInterface;
 use crate::encoder::mir::pure::SpecificationEncoderInterface;
 use crate::encoder::mir::specifications::{SpecificationsInterface};
 use super::high::generics::HighGenericsEncoderInterface;
+use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -2427,7 +2428,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location,
         )?;
         stmts.extend(encode_stmts);
-        if !lhs_ty.is_slice() {
+        if !lhs_ty.is_slice_or_ref() && !lhs_ty.is_array_or_ref() {
             return Err(EncodingError::unsupported(
                 format!("Non-slice LHS type '{:?}' not supported yet", lhs_ty)
             ));
@@ -2447,12 +2448,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let base_seq = self.mir_encoder.encode_operand_place(&args[0])?.unwrap();
         let base_seq_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
-        match base_seq_ty {
-            a if a.peel_refs().is_array() => (),
-            s if s.is_slice() => (),
-            _ => return Err(EncodingError::unsupported(
+        if !base_seq_ty.is_slice_or_ref() && !base_seq_ty.is_array_or_ref() {
+            return Err(EncodingError::unsupported(
                 format!("Slicing is only supported for arrays/slices currently, not '{:?}'", base_seq_ty)
-            ))
+            ));
         }
 
         // base_seq is expected to be ref$Array$.. or ref$Slice$.., but lookup_pure wants the
