@@ -795,6 +795,22 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
             let proc_kind = self.get_proc_kind(proc_def_id, None);
 
+            if matches!(proc_kind, ProcedureSpecificationKind::Pure) {
+                // Check that the pure Rust function satisfies the basic
+                // requirements by trying to encode it as a Viper function,
+                // which will automatically run the validity checks.
+
+                // TODO: Make sure that this encoded function does not end up in
+                // the Viper file because that would be unsound.
+                let identity_substs = self.env().identity_substs(proc_def_id);
+                if let Err(error) = self.encode_pure_function_def(proc_def_id, identity_substs) {
+                    self.register_encoding_error(error);
+                    debug!("Error encoding function: {:?}", proc_def_id);
+                    // Skip encoding the function as a method.
+                    continue;
+                }
+            }
+
             match proc_kind {
                 _ if self.is_trusted(proc_def_id, None) => {
                     debug!(
