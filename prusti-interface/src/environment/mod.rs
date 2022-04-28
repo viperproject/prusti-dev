@@ -508,6 +508,7 @@ impl<'tcx> Environment<'tcx> {
     pub fn type_is_copy(&self, ty: ty::Binder<'tcx, ty::Ty<'tcx>>, param_env: ty::ParamEnv<'tcx>) -> bool {
         // Normalize the type to account for associated types
         let ty = self.normalize_to(ty);
+        let ty = self.tcx.erase_regions(ty);
         let ty = self.tcx.erase_late_bound_regions(ty);
         self.tcx.infer_ctxt().enter(|infcx|
             infcx.type_is_copy_modulo_regions(param_env, ty, rustc_span::DUMMY_SP)
