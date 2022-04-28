@@ -17,7 +17,6 @@ use prusti_interface::environment::mir_dump::graphviz::ToText;
 use rustc_errors::MultiSpan;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
-use rustc_span::MultiSpan;
 use vir_crate::high::{self as vir, operations::ty::Typed};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
