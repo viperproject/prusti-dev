@@ -1,7 +1,7 @@
 use prusti_contracts::*;
 
 trait Foo {
-    type Type;
+    type Type: Copy;
 
     #[trusted]
     #[pure]
