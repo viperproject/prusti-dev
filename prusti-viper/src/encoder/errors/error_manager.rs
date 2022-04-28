@@ -116,7 +116,7 @@ pub enum ErrorCtxt {
     AssertMethodPostconditionStrengthening,
     /// A cast like `usize as u32`.
     TypeCast,
-    /// A Viper `assert false` that encodes an unsupported feature
+    /// A Viper `assert false` that encodes an unsupported feature.
     Unsupported(String),
     /// Failed to obtain capability by unfolding.
     Unfold,
@@ -124,8 +124,18 @@ pub enum ErrorCtxt {
     UnfoldUnionVariant,
     /// Failed to call a procedure.
     ProcedureCall,
+    /// Failed to call a drop handler.
+    DropCall,
     /// Failed to encode lifetimes
-    LifetimeEncoding
+    LifetimeEncoding,
+    /// Failed to encode LifetimeTake
+    LifetimeTake,
+    /// Failed to encode CloseMutRef
+    CloseMutRef,
+    /// Failed to encode OpenMutRef
+    OpenMutRef,
+    /// Failed to set an active variant of an union.
+    SetEnumVariant,
 }
 
 /// The error manager
@@ -517,6 +527,13 @@ impl<'tcx> ErrorManager<'tcx> {
             ("fold.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionTypeInvariants) => {
                 PrustiError::verification(
                     "implicit type invariants might not hold at the end of the method.".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("fold.failed:assertion.false", ErrorCtxt::CopyPlace) => {
+                PrustiError::verification(
+                    "the copied value may not be fully initialized.".to_string(),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }

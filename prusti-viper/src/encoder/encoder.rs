@@ -33,6 +33,7 @@ use std::io::Write;
 use std::rc::Rc;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
+use prusti_interface::specs::typed::ProcedureSpecificationKind;
 use crate::encoder::name_interner::NameInterner;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
@@ -790,7 +791,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 continue;
             }
 
-            if self.is_pure(proc_def_id, None) {
+            let proc_kind = self.get_proc_kind(proc_def_id, None);
+
+            if matches!(proc_kind, ProcedureSpecificationKind::Pure) {
                 // Check that the pure Rust function satisfies the basic
                 // requirements by trying to encode it as a Viper function,
                 // which will automatically run the validity checks.
@@ -805,20 +808,33 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     continue;
                 }
             }
-            if self.is_trusted(proc_def_id, None) {
-                debug!(
-                    "Trusted procedure will not be encoded or verified: {:?}",
-                    proc_def_id
-                );
-            } else if let Err(error) = self.encode_procedure(proc_def_id) {
-                self.register_encoding_error(error);
-                debug!("Error encoding function: {:?}", proc_def_id);
-            } else {
-                match self.finalize_viper_program(proc_name, proc_def_id) {
-                    Ok(program) => self.programs.push(program),
-                    Err(error) => {
+
+            match proc_kind {
+                _ if self.is_trusted(proc_def_id, None) => {
+                    debug!(
+                        "Trusted procedure will not be encoded or verified: {:?}",
+                        proc_def_id
+                    );
+                },
+                ProcedureSpecificationKind::Predicate(_) => {
+                    debug!(
+                        "Predicates will not be encoded or verified: {:?}",
+                        proc_def_id
+                    );
+                },
+                ProcedureSpecificationKind::Pure |
+                ProcedureSpecificationKind::Impure => {
+                    if let Err(error) = self.encode_procedure(proc_def_id) {
                         self.register_encoding_error(error);
-                        debug!("Error finalizing program: {:?}", proc_def_id);
+                        debug!("Error encoding function: {:?}", proc_def_id);
+                    } else {
+                        match self.finalize_viper_program(proc_name, proc_def_id) {
+                            Ok(program) => self.programs.push(program),
+                            Err(error) => {
+                                self.register_encoding_error(error);
+                                debug!("Error finalizing program: {:?}", proc_def_id);
+                            }
+                        }
                     }
                 }
             }

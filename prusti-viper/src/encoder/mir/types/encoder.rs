@@ -13,12 +13,11 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_common::config;
-
 use prusti_interface::environment::mir_dump::graphviz::ToText;
 use rustc_errors::MultiSpan;
 use rustc_hir::def_id::DefId;
-use rustc_middle::ty;
-
+use rustc_middle::{mir, ty};
+use rustc_span::MultiSpan;
 use vir_crate::high::{self as vir, operations::ty::Typed};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -97,10 +96,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Type::pointer(self.encoder.encode_type_high(*ty)?)
             }
 
-            ty::TyKind::Ref(region, ty, _) => {
+            ty::TyKind::Ref(region, ty, mutability) => {
                 let lft_name = region.to_text();
                 let lifetime = vir::ty::LifetimeConst { name: lft_name };
-                vir::Type::reference(self.encoder.encode_type_high(*ty)?, lifetime)
+                let uniqueness = self.encode_uniqueness(*mutability);
+                vir::Type::reference(lifetime, uniqueness, self.encoder.encode_type_high(*ty)?)
             }
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() => vir::Type::struct_(
@@ -304,11 +304,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 let target_type = self.encoder.encode_type_high(*ty)?;
                 vir::TypeDecl::pointer(target_type)
             }
-            ty::TyKind::Ref(region, ty, _) => {
+            ty::TyKind::Ref(_, ty, mutability) => {
                 let target_type = self.encoder.encode_type_high(*ty)?;
-                let lft_name = region.to_text();
-                let lifetime = vir_crate::high::type_decl::LifetimeConst { name: lft_name };
-                vir::TypeDecl::reference(target_type, lifetime)
+                vir::TypeDecl::reference(self.encode_uniqueness(*mutability), target_type)
             }
             ty::TyKind::Tuple(elems) => vir::TypeDecl::tuple(
                 elems
@@ -715,6 +713,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         debug!("Encode type tag name '{:?}'", self.ty);
         Ok(format!("{}$tag", self.encode_predicate_use()?))
     }
+
+    fn encode_uniqueness(&self, mutability: mir::Mutability) -> vir::ty::Uniqueness {
+        match mutability {
+            mir::Mutability::Mut => vir::ty::Uniqueness::Unique,
+            mir::Mutability::Not => vir::ty::Uniqueness::Shared,
+        }
+    }
 }
 
 fn encode_box_name() -> String {
@@ -776,11 +781,9 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         let name = encode_struct_name(encoder, adt_def.did());
         // We treat union fields as variants.
         let variant = adt_def.non_enum_variant();
-        let num_variants = variant.fields.len();
-        let discriminant_bounds = (0, num_variants.try_into().unwrap());
-        let discriminant_values = (0..num_variants)
-            .map(|value| value.try_into().unwrap())
-            .collect();
+        let num_variants: i128 = variant.fields.len().try_into().unwrap();
+        let discriminant_bounds = (0, num_variants - 1);
+        let discriminant_values = (0..num_variants).collect();
         let mut variants = Vec::new();
         for field in &variant.fields {
             let field_name = field.ident(tcx).as_str().to_string();

@@ -15,6 +15,7 @@ impl Positioned for Statement {
             Self::JoinBlock(statement) => statement.position(),
             Self::SplitBlock(statement) => statement.position(),
             Self::ConvertOwnedIntoMemoryBlock(statement) => statement.position(),
+            Self::RestoreMutBorrowed(statement) => statement.position(),
             Self::MovePlace(statement) => statement.position(),
             Self::CopyPlace(statement) => statement.position(),
             Self::WritePlace(statement) => statement.position(),
@@ -24,6 +25,9 @@ impl Positioned for Statement {
             Self::NewLft(statement) => statement.position(),
             Self::EndLft(statement) => statement.position(),
             Self::GhostAssignment(statement) => statement.position(),
+            Self::LifetimeTake(statement) => statement.position(),
+            Self::OpenMutRef(statement) => statement.position(),
+            Self::CloseMutRef(statement) => statement.position(),
         }
     }
 }
@@ -94,6 +98,12 @@ impl Positioned for ConvertOwnedIntoMemoryBlock {
     }
 }
 
+impl Positioned for RestoreMutBorrowed {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
 impl Positioned for MovePlace {
     fn position(&self) -> Position {
         self.position
@@ -143,6 +153,24 @@ impl Positioned for EndLft {
 }
 
 impl Positioned for GhostAssignment {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for LifetimeTake {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for OpenMutRef {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for CloseMutRef {
     fn position(&self) -> Position {
         self.position
     }

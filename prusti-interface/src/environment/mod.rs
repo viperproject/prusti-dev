@@ -44,7 +44,7 @@ use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
 use rustc_hir::intravisit::Visitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
-pub use self::procedure::{BasicBlockIndex, Procedure};
+pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block};
 use self::borrowck::facts::BorrowckFacts;
 // use config;
 use crate::data::ProcedureDefId;

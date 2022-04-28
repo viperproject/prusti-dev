@@ -1,4 +1,4 @@
-use super::permission::Permission;
+use super::permission::{MutBorrowed, Permission};
 use crate::encoder::{errors::SpannedEncodingResult, mir::types::MirTypeEncoderInterface, Encoder};
 use vir_crate::{
     common::position::Positioned,
@@ -76,6 +76,9 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::LeakAll(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::SetUnionVariant(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
             vir_high::Statement::NewLft(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
@@ -83,6 +86,15 @@ impl CollectPermissionChanges for vir_high::Statement {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::GhostAssignment(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::LifetimeTake(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::OpenMutRef(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::CloseMutRef(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
         }
@@ -323,7 +335,10 @@ impl CollectPermissionChanges for vir_high::ast::rvalue::Ref {
         produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
         consumed_permissions.push(Permission::Owned(self.place.clone()));
-        produced_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::MutBorrowed(MutBorrowed {
+            lifetime: self.lifetime.clone(),
+            place: self.place.clone(),
+        }));
         Ok(())
     }
 }
@@ -461,6 +476,28 @@ impl CollectPermissionChanges for vir_high::LeakAll {
     }
 }
 
+impl CollectPermissionChanges for vir_high::SetUnionVariant {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        // FIXME: The place is provided by the user. Therefore, instead of just
+        // unwrapping we should check that we got the variant of an union and
+        // report an error if that is not the case.
+        let parent = self
+            .variant_place
+            .get_parent_ref()
+            .unwrap()
+            .get_parent_ref()
+            .unwrap();
+        consumed_permissions.push(Permission::MemoryBlock(parent.clone()));
+        produced_permissions.push(Permission::MemoryBlock(self.variant_place.clone()));
+        Ok(())
+    }
+}
+
 impl CollectPermissionChanges for vir_high::NewLft {
     fn collect<'v, 'tcx>(
         &self,
@@ -484,6 +521,39 @@ impl CollectPermissionChanges for vir_high::EndLft {
 }
 
 impl CollectPermissionChanges for vir_high::GhostAssignment {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::LifetimeTake {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::OpenMutRef {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::CloseMutRef {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,

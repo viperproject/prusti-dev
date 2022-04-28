@@ -3,7 +3,7 @@ pub(crate) use super::{
     position::Position,
     predicate::Predicate,
     rvalue::{Operand, Rvalue},
-    ty::Type,
+    ty::{LifetimeConst, Type},
     variable::VariableDecl,
 };
 use crate::common::display;
@@ -27,9 +27,13 @@ pub enum Statement {
     WriteAddress(WriteAddress),
     Assign(Assign),
     LeakAll(LeakAll),
+    SetUnionVariant(SetUnionVariant),
     NewLft(NewLft),
     EndLft(EndLft),
     GhostAssignment(GhostAssignment),
+    LifetimeTake(LifetimeTake),
+    OpenMutRef(OpenMutRef),
+    CloseMutRef(CloseMutRef),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -170,6 +174,12 @@ pub struct Assign {
 /// unwinding path.
 pub struct LeakAll {}
 
+#[display(fmt = "set-union-variant {}", variant_place)]
+pub struct SetUnionVariant {
+    pub variant_place: Expression,
+    pub position: Position,
+}
+
 #[display(fmt = "{} = newlft()", target)]
 pub struct NewLft {
     pub target: VariableDecl,
@@ -182,9 +192,33 @@ pub struct EndLft {
     pub position: Position,
 }
 
-#[display(fmt = "ghost-assign {} := {:?}", target, value)]
+#[display(fmt = "ghost-assign {} := {}", target, value)]
 pub struct GhostAssignment {
     pub target: VariableDecl,
-    pub value: Vec<String>,
+    pub value: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "{} := shorten_lifetime({:?}, {})", target, value, rd_perm)]
+pub struct LifetimeTake {
+    pub target: VariableDecl,
+    pub value: Vec<LifetimeConst>,
+    pub rd_perm: u32,
+    pub position: Position,
+}
+
+#[display(fmt = "open_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+pub struct OpenMutRef {
+    pub lifetime: LifetimeConst,
+    pub rd_perm: u32,
+    pub object: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "close_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+pub struct CloseMutRef {
+    pub lifetime: LifetimeConst,
+    pub rd_perm: u32,
+    pub object: Expression,
     pub position: Position,
 }

@@ -21,6 +21,7 @@ pub enum Expression {
     Unfolding(Unfolding),
     UnaryOp(UnaryOp),
     BinaryOp(BinaryOp),
+    PermBinaryOp(PermBinaryOp),
     /// Container operation on a Viper container (e.g. Seq index).
     ContainerOp(ContainerOp),
     /// Viper sequence constructor.
@@ -80,22 +81,15 @@ pub struct MagicWand {
 pub struct PredicateAccessPredicate {
     pub name: String,
     pub arguments: Vec<Expression>,
-    pub permission: PermAmount,
+    pub permission: Box<Expression>,
     pub position: Position,
 }
 
 #[display(fmt = "acc({}, {})", base, permission)]
 pub struct FieldAccessPredicate {
     pub base: Box<Expression>,
-    pub permission: PermAmount,
+    pub permission: Box<Expression>,
     pub position: Position,
-}
-
-pub enum PermAmount {
-    Read,
-    Write,
-    /// The permission remaining after ``Read`` was subtracted from ``Write``.
-    Remaining,
 }
 
 #[display(
@@ -108,7 +102,7 @@ pub enum PermAmount {
 pub struct Unfolding {
     pub predicate: String,
     pub arguments: Vec<Expression>,
-    pub permission: PermAmount,
+    pub permission: Box<Expression>,
     pub base: Box<Expression>,
     pub position: Position,
 }
@@ -146,6 +140,22 @@ pub enum BinaryOpKind {
 #[display(fmt = "({}) {} ({})", left, op_kind, right)]
 pub struct BinaryOp {
     pub op_kind: BinaryOpKind,
+    pub left: Box<Expression>,
+    pub right: Box<Expression>,
+    pub position: Position,
+}
+
+#[derive(Copy)]
+pub enum PermBinaryOpKind {
+    Add,
+    Sub,
+    Mul,
+    Div,
+}
+
+#[display(fmt = "({}) {} ({})", left, op_kind, right)]
+pub struct PermBinaryOp {
+    pub op_kind: PermBinaryOpKind,
     pub left: Box<Expression>,
     pub right: Box<Expression>,
     pub position: Position,

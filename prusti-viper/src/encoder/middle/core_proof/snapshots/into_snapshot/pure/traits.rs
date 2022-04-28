@@ -71,33 +71,3 @@ impl IntoPureSnapshot for Vec<vir_mid::VariableDecl> {
         Ok(variables)
     }
 }
-
-impl IntoPureSnapshot for vir_mid::UnaryOpKind {
-    type Target = vir_low::expression::UnaryOpKind;
-    fn to_pure_snapshot<'p, 'v: 'p, 'tcx: 'v>(
-        &self,
-        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
-    ) -> SpannedEncodingResult<Self::Target> {
-        PureSnapshot.unary_op_kind_to_snapshot(lowerer, self)
-    }
-}
-
-impl IntoPureSnapshot for vir_mid::BinaryOpKind {
-    type Target = vir_low::expression::BinaryOpKind;
-    fn to_pure_snapshot<'p, 'v: 'p, 'tcx: 'v>(
-        &self,
-        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
-    ) -> SpannedEncodingResult<Self::Target> {
-        PureSnapshot.binary_op_kind_to_snapshot(lowerer, self)
-    }
-}
-
-impl IntoPureSnapshot for vir_mid::Type {
-    type Target = vir_low::Type;
-    fn to_pure_snapshot<'p, 'v: 'p, 'tcx: 'v>(
-        &self,
-        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
-    ) -> SpannedEncodingResult<Self::Target> {
-        PureSnapshot.type_to_snapshot(lowerer, self)
-    }
-}

@@ -244,7 +244,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 };
                 let encoded_ref = vir_high::Expression::addr_of_no_pos(
                     encoded_place,
-                    vir_high::Type::reference(ty, pure_lifetime),
+                    vir_high::Type::reference(pure_lifetime, vir_high::ty::Uniqueness::Shared, ty),
                 );
                 // Substitute the place
                 state.substitute_value(&encoded_lhs, encoded_ref);

@@ -26,6 +26,7 @@ extern crate rustc_ast;
 extern crate rustc_target;
 extern crate rustc_attr;
 extern crate rustc_data_structures;
+extern crate rustc_mir_dataflow;
 extern crate lazy_static;
 extern crate rustc_hash;
 

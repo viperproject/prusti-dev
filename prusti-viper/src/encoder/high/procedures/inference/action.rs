@@ -6,6 +6,7 @@ pub(in super::super) enum Action {
     Fold(FoldingActionState),
     /// Convert the specified `Owned(place)` into `MemoryBlock(place)`.
     OwnedIntoMemoryBlock(ConversionState),
+    RestoreMutBorrowed(RestorationState),
 }
 
 pub(in super::super) struct FoldingActionState {
@@ -17,6 +18,12 @@ pub(in super::super) struct FoldingActionState {
 }
 
 pub(in super::super) struct ConversionState {
+    pub(in super::super) place: vir_high::Expression,
+    pub(in super::super) condition: Option<Vec<vir_mid::BasicBlockId>>,
+}
+
+pub(in super::super) struct RestorationState {
+    pub(in super::super) lifetime: vir_high::ty::LifetimeConst,
     pub(in super::super) place: vir_high::Expression,
     pub(in super::super) condition: Option<Vec<vir_mid::BasicBlockId>>,
 }
@@ -33,6 +40,10 @@ impl Action {
                 ..state
             }),
             Self::OwnedIntoMemoryBlock(state) => Self::OwnedIntoMemoryBlock(ConversionState {
+                condition: Some(condition.to_vec()),
+                ..state
+            }),
+            Self::RestoreMutBorrowed(state) => Self::RestoreMutBorrowed(RestorationState {
                 condition: Some(condition.to_vec()),
                 ..state
             }),
@@ -67,6 +78,17 @@ impl Action {
 
     pub(in super::super) fn owned_into_memory_block(place: vir_high::Expression) -> Self {
         Self::OwnedIntoMemoryBlock(ConversionState {
+            place,
+            condition: None,
+        })
+    }
+
+    pub(in super::super) fn restore_mut_borrowed(
+        lifetime: vir_high::ty::LifetimeConst,
+        place: vir_high::Expression,
+    ) -> Self {
+        Self::RestoreMutBorrowed(RestorationState {
+            lifetime,
             place,
             condition: None,
         })

@@ -3,7 +3,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         lowerer::{Lowerer, VariablesLowererInterface},
-        snapshots::{IntoProcedureSnapshot, SnapshotValuesInterface},
+        snapshots::{IntoProcedureSnapshot, IntoSnapshot, SnapshotValuesInterface},
         types::TypesInterface,
     },
     mir::errors::ErrorInterface,
@@ -43,7 +43,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         let name = format!("{}$snapshot${}", name, version);
-        let ty = ty.to_procedure_snapshot(self)?;
+        let ty = ty.to_snapshot(self)?;
         self.create_variable(name, ty)
     }
     /// Copy all values of the old snapshot into the new snapshot, except the
@@ -77,8 +77,45 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     unreachable!("place: {}", place);
                 }
                 vir_mid::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", type_decl),
-                vir_mid::TypeDecl::Tuple(_) => unimplemented!("ty: {}", type_decl),
+                vir_mid::TypeDecl::Tuple(decl) => {
+                    // FIXME: Remove duplication with vir_mid::TypeDecl::Struct
+                    let place_field = place.clone().unwrap_field(); // FIXME: Implement a macro that takes a reference to avoid clonning.
+                    for field in decl.iter_fields() {
+                        if field.as_ref() != &place_field.field {
+                            let old_field_snapshot = self.obtain_struct_field_snapshot(
+                                parent_type,
+                                &field,
+                                old_snapshot.clone(),
+                                Default::default(),
+                            )?;
+                            let new_field_snapshot = self.obtain_struct_field_snapshot(
+                                parent_type,
+                                &field,
+                                new_snapshot.clone(),
+                                Default::default(),
+                            )?;
+                            statements.push(
+                                stmtp! { position => assume ([new_field_snapshot] == [old_field_snapshot])},
+                            );
+                        }
+                    }
+                    Ok((
+                        self.obtain_struct_field_snapshot(
+                            parent_type,
+                            &place_field.field,
+                            old_snapshot,
+                            Default::default(),
+                        )?,
+                        self.obtain_struct_field_snapshot(
+                            parent_type,
+                            &place_field.field,
+                            new_snapshot,
+                            Default::default(),
+                        )?,
+                    ))
+                }
                 vir_mid::TypeDecl::Struct(decl) => {
+                    // FIXME: Remove duplication with vir_mid::TypeDecl::Tuple
                     let place_field = place.clone().unwrap_field(); // FIXME: Implement a macro that takes a reference to avoid clonning.
                     for field in decl.iter_fields() {
                         if field.as_ref() != &place_field.field {

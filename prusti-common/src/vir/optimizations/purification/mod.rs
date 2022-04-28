@@ -17,6 +17,11 @@ pub fn purify_methods(
     methods
 }
 
+pub fn is_purifiable_type(ty: &Type) -> bool {
+    debug_assert!(crate::config::enable_purification_optimization());
+    SUPPORTED_TYPES.contains(&ty.name().as_str())
+}
+
 fn translate_type(typ: &Type) -> Type {
     match typ {
         Type::TypedRef(..) => match typ.name().as_str() {
@@ -203,7 +208,21 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
             && targets.len() == 1
             && self.targets.contains(&targets[0].name)
         {
-            Stmt::comment(format!("replaced havoc call for {:?}", targets))
+            let target = &targets[0];
+            let target_name = force_matches!(target.typ, Type::TypedRef(..) => target.typ.name());
+            match target_name.as_str() {
+                "bool" => Stmt::MethodCall(ast::MethodCall {
+                    method_name: "builtin$havoc_bool".to_string(),
+                    arguments,
+                    targets: vec![ast::LocalVar::new(&target.name, Type::Bool)],
+                }),
+                "i32" | "usize" | "u32" => Stmt::MethodCall(ast::MethodCall {
+                    method_name: "builtin$havoc_int".to_string(),
+                    arguments,
+                    targets: vec![ast::LocalVar::new(&target.name, Type::Int)],
+                }),
+                x => unreachable!("{}", x),
+            }
         } else {
             Stmt::MethodCall(ast::MethodCall {
                 method_name,

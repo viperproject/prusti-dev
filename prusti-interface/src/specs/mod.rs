@@ -11,7 +11,7 @@ use std::convert::TryInto;
 use std::fmt::Debug;
 use crate::environment::Environment;
 use crate::PrustiError;
-use crate::utils::{has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr};
+use crate::utils::{has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr, has_abstract_predicate_attr};
 use log::debug;
 
 pub mod external;
@@ -28,6 +28,7 @@ use crate::specs::typed::{ProcedureSpecification, SpecGraph, ProcedureSpecificat
 struct ProcedureSpecRefs {
     spec_id_refs: Vec<SpecIdRef>,
     pure: bool,
+    abstract_predicate: bool,
     trusted: bool,
 }
 
@@ -77,7 +78,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             let mut spec = SpecGraph::new(ProcedureSpecification::empty());
             spec.set_span(self.env.get_def_span(local_id.to_def_id()));
 
-            let mut kind = if refs.pure {
+            let mut kind = if refs.abstract_predicate {
+                ProcedureSpecificationKind::Predicate(None)
+            } else if refs.pure {
                 ProcedureSpecificationKind::Pure
             } else {
                 ProcedureSpecificationKind::Impure
@@ -99,7 +102,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                         });
                     }
                     SpecIdRef::Predicate(spec_id) => {
-                        kind = ProcedureSpecificationKind::Predicate(*self.spec_functions.get(spec_id).unwrap());
+                        kind = ProcedureSpecificationKind::Predicate(Some(*self.spec_functions.get(spec_id).unwrap()));
                     }
                 }
             }
@@ -204,11 +207,13 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
 
     let pure = has_prusti_attr(attrs, "pure");
     let trusted = has_prusti_attr(attrs, "trusted");
+    let abstract_predicate = has_abstract_predicate_attr(attrs);
 
-    if pure || trusted || !spec_id_refs.is_empty() {
+    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {
         Some(ProcedureSpecRefs {
             spec_id_refs,
             pure,
+            abstract_predicate,
             trusted,
         })
     } else {

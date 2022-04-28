@@ -136,10 +136,17 @@ pub struct Slice {
     pub element_type: Box<Type>,
 }
 
-#[display(fmt = "&{}", target_type)]
+#[derive(Copy, derive_more::IsVariant)]
+pub enum Uniqueness {
+    Unique,
+    Shared,
+}
+
+#[display(fmt = "&{} {} {}", lifetime, uniqueness, target_type)]
 pub struct Reference {
+    pub lifetime: LifetimeConst,
+    pub uniqueness: Uniqueness,
     pub target_type: Box<Type>,
-    pub lifetime_const: LifetimeConst,
 }
 
 #[display(fmt = "*{}", target_type)]
