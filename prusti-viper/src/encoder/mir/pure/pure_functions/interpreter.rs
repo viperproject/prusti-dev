@@ -21,12 +21,12 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_common::vir_local;
+use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, span_bug, ty};
 use std::{convert::TryInto, mem};
 use vir_crate::polymorphic::{self as vir};
-use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 
 pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
