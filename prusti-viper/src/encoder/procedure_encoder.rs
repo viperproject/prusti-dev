@@ -2551,10 +2551,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // length
         let length = vir_expr!{ [end] - [start] };
         // start must be leq than end
-        stmts.push(vir::Stmt::Assert( vir::Assert {
-            expr: vir_expr!{ [start] <= [end] },
-            position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end may be smaller than the start when slicing".to_string())),
-        }));
+        if idx_ident != "std::ops::RangeFull" && idx_ident != "core::ops::RangeFull" {
+            stmts.push(vir::Stmt::Assert( vir::Assert {
+                expr: vir_expr!{ [start] <= [end] },
+                position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end may be smaller than the start when slicing".to_string())),
+            }));
+        }
 
         let slice_len_call = slice_types_lhs.len(self.encoder, lhs_slice_expr.clone());
         stmts.push(vir_stmt!{
