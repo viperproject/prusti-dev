@@ -159,6 +159,12 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             self.mir_type_encoder_state
                 .encoded_types_inverse
                 .borrow_mut()
+                .insert(encoded_type.clone(), ty);
+            let mut encoded_type = encoded_type;
+            encoded_type.erase_lifetime();
+            self.mir_type_encoder_state
+                .encoded_types_inverse
+                .borrow_mut()
                 .insert(encoded_type, ty);
         }
         let encoded_type = self.mir_type_encoder_state.encoded_types.borrow()[ty.kind()].clone();

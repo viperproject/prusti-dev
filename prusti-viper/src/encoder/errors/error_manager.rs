@@ -130,6 +130,8 @@ pub enum ErrorCtxt {
     LifetimeEncoding,
     /// Failed to encode LifetimeTake
     LifetimeTake,
+    /// Failed to encode LifetimeReturn
+    LifetimeReturn,
     /// Failed to encode CloseMutRef
     CloseMutRef,
     /// Failed to encode OpenMutRef
