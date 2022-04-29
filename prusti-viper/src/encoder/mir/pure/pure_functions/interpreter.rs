@@ -1,10 +1,7 @@
 use super::interface::PureFunctionEncoderInterface;
 use crate::encoder::{
     builtin_encoder::BuiltinFunctionKind,
-    errors::{
-        EncodingError, EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult,
-        WithSpan,
-    },
+    errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{
         builtin_functions::HighBuiltinFunctionEncoderInterface,
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
@@ -1194,10 +1191,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             );
                             state.substitute_value(&opt_lhs_value_place.unwrap(), unsize_func);
                         } else {
-                            return Err(EncodingError::unsupported(format!(
-                                "unsizing a {} into a {} is not supported",
-                                rhs_ref_ty, lhs_ref_ty
-                            ))).with_span(span);
+                            return Err(SpannedEncodingError::unsupported(
+                                format!("unsizing a {} into a {} is not supported", rhs_ref_ty, lhs_ref_ty),
+                                span,
+                            ));
                         }
                     }
 

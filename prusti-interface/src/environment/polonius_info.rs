@@ -575,9 +575,10 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
                         .collect())
                 }
 
-                // slice creation involves an unsize pointer cast like [i32; 3] -> &[i32]
-                &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ref ty) if ty.is_slice_or_ref() && !ty.is_unsafe_ptr() => {
-                    trace!("slice: operand={:?}, ty={:?}", operand, ty);
+                // slice creation involves an unsize pointer cast like &[i32; 3] -> &[i32]
+                &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ref cast_ty)
+                if cast_ty.is_slice_ref() => {
+                    trace!("slice: operand={:?}, ty={:?}", operand, cast_ty);
                     Ok(match operand {
                         mir::Operand::Copy(ref place) |
                         mir::Operand::Move(ref place) => vec![place],

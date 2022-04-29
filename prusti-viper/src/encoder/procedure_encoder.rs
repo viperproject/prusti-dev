@@ -1199,26 +1199,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     location,
                 )?
             }
-            mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
-                let mut slice_op_ty = None;
-                if let ty::TyKind::Ref(_, ref_ty, _) = ty.kind() {
-                    if let ty::TyKind::Slice(..) = ref_ty.kind() {
-                        slice_op_ty = Some((operand, ty));
-                    }
-                }
-
-                if let Some((operand, ty)) = slice_op_ty {
-                    trace!("slice: operand={:?}, ty={:?}", operand, ty);
+            mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, cast_ty) => {
+                let rhs_ty = self.mir_encoder.get_operand_ty(operand);
+                if rhs_ty.is_array_ref() && cast_ty.is_slice_ref() {
+                    trace!("slice: operand={:?}, ty={:?}", operand, cast_ty);
                     self.encode_assign_slice(
                         encoded_lhs,
                         operand,
-                        *ty,
+                        *cast_ty,
                         location,
                     )?
                 } else {
-                    return Err(EncodingError::unsupported(
-                        "unsizing a pointer or reference value is not supported"
-                    )).with_span(span);
+                    return Err(SpannedEncodingError::unsupported(
+                        format!("unsizing a {} into a {} is not supported", rhs_ty, cast_ty),
+                        span,
+                    ));
                 }
             }
             mir::Rvalue::Cast(mir::CastKind::Pointer(_), _, _) => {
@@ -5694,6 +5689,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!("encode_assign_slice(lhs={:?}, operand={:?}, ty={:?})", encoded_lhs, operand, ty);
+        debug_assert!(ty.is_slice_ref());
         let span = self.mir_encoder.get_span_of_location(location);
         let mut stmts = Vec::new();
 
