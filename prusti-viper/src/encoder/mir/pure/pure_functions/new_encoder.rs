@@ -14,7 +14,6 @@ use crate::encoder::{
     mir_interpreter::run_backward_interpretation,
     Encoder,
 };
-
 use log::{debug, trace};
 use prusti_common::vir_high_local;
 use rustc_hir::def_id::DefId;
@@ -194,32 +193,39 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
     fn encode_function_decl(&self) -> SpannedEncodingResult<vir_high::FunctionDecl> {
         trace!("[enter] encode_function_decl({:?})", self.proc_def_id);
-        let mir = self
-            .encoder
-            .env()
-            .local_mir(self.proc_def_id.expect_local(), self.substs);
-        let interpreter = ExpressionBackwardInterpreter::new(
-            self.encoder,
-            &mir,
-            self.proc_def_id,
-            self.pure_encoding_context,
-            self.parent_def_id,
-            self.substs,
-        );
+        let is_bodyless = self.encoder.is_trusted(self.proc_def_id, Some(self.substs))
+            || !self.encoder.env().tcx().is_mir_available(self.proc_def_id)
+            || self.encoder.env().tcx().is_constructor(self.proc_def_id);
+        let body = if is_bodyless {
+            None
+        } else {
+            let mir = self
+                .encoder
+                .env()
+                .local_mir(self.proc_def_id.expect_local(), self.substs);
+            let interpreter = ExpressionBackwardInterpreter::new(
+                self.encoder,
+                &mir,
+                self.proc_def_id,
+                self.pure_encoding_context,
+                self.parent_def_id,
+                self.substs,
+            );
 
-        let state = run_backward_interpretation(&mir, &interpreter)?.ok_or_else(|| {
-            SpannedEncodingError::incorrect(
-                format!("procedure {:?} contains a loop", self.proc_def_id),
-                self.encoder.env().get_def_span(self.proc_def_id),
-            )
-        })?;
-        let body = state.into_expr().ok_or_else(|| {
-            SpannedEncodingError::internal(
-                format!("failed to encode function's body: {:?}", self.proc_def_id),
-                self.encoder.env().get_def_span(self.proc_def_id),
-            )
-        })?;
-        let function = self.encode_function_decl_given_body(Some(body));
+            let state = run_backward_interpretation(&mir, &interpreter)?.ok_or_else(|| {
+                SpannedEncodingError::incorrect(
+                    format!("procedure {:?} contains a loop", self.proc_def_id),
+                    self.encoder.env().get_def_span(self.proc_def_id),
+                )
+            })?;
+            Some(state.into_expr().ok_or_else(|| {
+                SpannedEncodingError::internal(
+                    format!("failed to encode function's body: {:?}", self.proc_def_id),
+                    self.encoder.env().get_def_span(self.proc_def_id),
+                )
+            })?)
+        };
+        let function = self.encode_function_decl_given_body(body);
         trace!("[exit] encode_function_decl({:?})", self.proc_def_id);
         function
     }

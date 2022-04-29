@@ -94,7 +94,11 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     )}
                 }
             }
-            // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
+            vir_mid::TypeDecl::TypeVar(_) => vir_low::PredicateDecl::new(
+                predicate_name! { OwnedNonAliased<ty> },
+                vars! { place: Place, root_address: Address, snapshot: {snapshot_type} },
+                None,
+            ),
             vir_mid::TypeDecl::Tuple(tuple_decl) => self.encode_owned_non_aliased_with_fields(
                 ty,
                 snapshot,
