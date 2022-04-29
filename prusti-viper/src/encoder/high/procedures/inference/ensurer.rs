@@ -282,6 +282,21 @@ fn ensure_permission_in_state(
             predicate_state.remove(PermissionKind::Owned, &place)?;
             predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
             actions.push(Action::owned_into_memory_block(place));
+        } else if place.get_type().is_reference() {
+            // We need to special case references to be no-op here because
+            // `_2.*` is both `Owned` and `MemoryBlock`.
+            let target_type = *place.get_type().clone().unwrap_reference().target_type;
+            let deref_place =
+                vir_high::Expression::deref(place.clone(), target_type, place.position());
+            ensure_permission_in_state(
+                context,
+                predicate_state,
+                deref_place.clone(),
+                PermissionKind::Owned,
+                actions,
+            )?;
+            predicate_state.remove(PermissionKind::Owned, &deref_place)?;
+            predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
         } else {
             // We have a mix of Owned and MemoryBlock. Convert all Owned into
             // MemoryBlock and then obtain the MemoryBlock we need.

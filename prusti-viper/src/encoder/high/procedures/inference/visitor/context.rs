@@ -68,10 +68,10 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
                 ]
             }
             vir_high::TypeDecl::Array(_) => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Reference(_) => {
-                // TODO: implement context visitor for Reference
-                // required e.g. for returning a reference?
-                unimplemented!("ty: {}", ty)
+            vir_high::TypeDecl::Reference(decl) => {
+                let deref_place =
+                    vir_high::Expression::deref(place.clone(), decl.target_type, place.position());
+                vec![(ExpandedPermissionKind::Same, deref_place)]
             }
             vir_high::TypeDecl::Never => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
