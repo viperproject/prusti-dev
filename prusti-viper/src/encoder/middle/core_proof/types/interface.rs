@@ -78,6 +78,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let validity = conjuncts.into_iter().conjoin();
                 self.encode_validity_axioms_primitive(&domain_name, vir_low::Type::Int, validity)?;
             }
+            vir_mid::TypeDecl::TypeVar(_decl) => {
+                // FIXME: we should make sure that the snapshot and validity
+                // function is generated, but nothing else.
+            }
             vir_mid::TypeDecl::Tuple(decl) => {
                 let mut parameters = Vec::new();
                 for field in decl.iter_fields() {
@@ -172,10 +176,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     };
                     self.register_struct_constructor(&domain_name, parameters.clone())?;
                     self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
+                    let no_alloc_parameters = vars! { target_current: {target_type} };
                     self.register_alternative_constructor(
                         &domain_name,
                         "no_alloc",
-                        vars! { target_current: {target_type} },
+                        no_alloc_parameters.clone(),
+                    )?;
+                    self.encode_validity_axioms_struct_alternative_constructor(
+                        &domain_name,
+                        "no_alloc",
+                        no_alloc_parameters,
+                        true.into(),
                     )?;
                 }
             }
@@ -247,10 +258,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             // Natively supported types, nothing to do.
             return Ok(());
         }
-        if !self.types_state.ensured_definitions.contains(ty) {
+        // FIXME: We should avoid these copies in some smarter way.
+        let mut ty_no_lifetime = ty.clone();
+        ty_no_lifetime.erase_lifetime();
+        if !self
+            .types_state
+            .ensured_definitions
+            .contains(&ty_no_lifetime)
+        {
             // We insert before doing the actual work to break infinite
             // recursion.
-            self.types_state.ensured_definitions.insert(ty.clone());
+            self.types_state.ensured_definitions.insert(ty_no_lifetime);
 
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             self.ensure_type_definition_for_decl(ty, &type_decl)?;
