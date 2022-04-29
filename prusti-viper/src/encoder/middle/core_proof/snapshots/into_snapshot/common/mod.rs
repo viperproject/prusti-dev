@@ -2,7 +2,10 @@ use super::super::super::lowerer::Lowerer;
 use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
-    middle::core_proof::snapshots::{SnapshotDomainsInterface, SnapshotValuesInterface},
+    middle::core_proof::{
+        references::ReferencesInterface,
+        snapshots::{SnapshotDomainsInterface, SnapshotValuesInterface},
+    },
 };
 use vir_crate::{
     common::position::Positioned,
@@ -46,8 +49,12 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             vir_mid::Expression::Field(expression) => {
                 self.field_to_snapshot(lowerer, expression, expect_math_bool)
             }
-            // vir_mid::Expression::Deref(expression) => self.deref_to_snapshot(lowerer, expression, expect_math_bool),
-            // vir_mid::Expression::AddrOf(expression) => self.addrof_to_snapshot(lowerer, expression, expect_math_bool),
+            vir_mid::Expression::Deref(expression) => {
+                self.deref_to_snapshot(lowerer, expression, expect_math_bool)
+            }
+            vir_mid::Expression::AddrOf(expression) => {
+                self.addr_of_to_snapshot(lowerer, expression, expect_math_bool)
+            }
             vir_mid::Expression::LabelledOld(expression) => {
                 self.labelled_old_to_snapshot(lowerer, expression, expect_math_bool)
             }
@@ -165,6 +172,42 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             )?
         };
         self.ensure_bool_expression(lowerer, field.get_type(), result, expect_math_bool)
+    }
+
+    fn deref_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        deref: &vir_mid::Deref,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let base_snapshot = self.expression_to_snapshot(lowerer, &deref.base, expect_math_bool)?;
+        let result = lowerer.reference_target_current_snapshot(
+            deref.base.get_type(),
+            base_snapshot,
+            Default::default(),
+        )?;
+        self.ensure_bool_expression(lowerer, deref.get_type(), result, expect_math_bool)
+    }
+
+    fn addr_of_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        addr_of: &vir_mid::AddrOf,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let result = match &addr_of.ty {
+            vir_mid::Type::Reference(reference) if reference.uniqueness.is_shared() => {
+                let base_snapshot =
+                    self.expression_to_snapshot(lowerer, &addr_of.base, expect_math_bool)?;
+                lowerer.shared_non_alloc_reference_snapshot_constructor(
+                    &addr_of.ty,
+                    base_snapshot,
+                    Default::default(),
+                )?
+            }
+            _ => unimplemented!("ty: {}", addr_of.ty),
+        };
+        self.ensure_bool_expression(lowerer, &addr_of.ty, result, expect_math_bool)
     }
 
     fn labelled_old_to_snapshot(

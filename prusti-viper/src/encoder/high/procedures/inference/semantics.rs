@@ -560,9 +560,11 @@ impl CollectPermissionChanges for vir_high::OpenMutRef {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
-        _consumed_permissions: &mut Vec<Permission>,
-        _produced_permissions: &mut Vec<Permission>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
         Ok(())
     }
 }
@@ -571,9 +573,11 @@ impl CollectPermissionChanges for vir_high::CloseMutRef {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
-        _consumed_permissions: &mut Vec<Permission>,
-        _produced_permissions: &mut Vec<Permission>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
         Ok(())
     }
 }

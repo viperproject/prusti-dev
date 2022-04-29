@@ -248,18 +248,18 @@ pub struct LifetimeReturn {
     pub position: Position,
 }
 
-#[display(fmt = "open_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+#[display(fmt = "open_mut_ref({}, rd({}), {})", lifetime, rd_perm, place)]
 pub struct OpenMutRef {
     pub lifetime: LifetimeConst,
     pub rd_perm: u32,
-    pub object: Expression,
+    pub place: Expression,
     pub position: Position,
 }
 
-#[display(fmt = "close_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+#[display(fmt = "close_mut_ref({}, rd({}), {})", lifetime, rd_perm, place)]
 pub struct CloseMutRef {
     pub lifetime: LifetimeConst,
     pub rd_perm: u32,
-    pub object: Expression,
+    pub place: Expression,
     pub position: Position,
 }
