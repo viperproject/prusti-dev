@@ -492,17 +492,6 @@ impl<'tcx> Environment<'tcx> {
             .unwrap_or((called_def_id, call_substs))
     }
 
-    pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Binder<'tcx, ty::Ty<'tcx>>, param_env: ty::ParamEnv<'tcx>) -> bool {
-        match ty.skip_binder().kind() {
-            ty::TyKind::Never => {
-                true
-            }
-            _ => {
-                self.type_is_copy(ty, param_env)
-            }
-        }
-    }
-
     /// Checks whether `ty` is copy.
     /// The type is wrapped into a `Binder` to handle regions correctly.
     pub fn type_is_copy(&self, ty: ty::Binder<'tcx, ty::Ty<'tcx>>, param_env: ty::ParamEnv<'tcx>) -> bool {
@@ -565,7 +554,8 @@ impl<'tcx> Environment<'tcx> {
         match norm_res {
             Ok(normalized) => {
                 debug!("Normalized {:?}: {:?}", normalizable, normalized);
-                normalized},
+                normalized
+            },
             Err(err) => {
                 debug!("Error while resolving associated types for {:?}: {:?}", normalizable, err);
                 normalizable
