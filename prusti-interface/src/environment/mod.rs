@@ -542,7 +542,7 @@ impl<'tcx> Environment<'tcx> {
         );
 
         self.tcx.infer_ctxt().enter(|infcx| {
-            infcx.predicate_must_hold_considering_regions(&obligation)
+            infcx.predicate_must_hold_modulo_regions(&obligation)
         })
     }
 
