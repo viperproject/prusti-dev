@@ -4,7 +4,8 @@ use rustc_hir::{
     intravisit,
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
+use rustc_errors::MultiSpan;
 use super::common::*;
 use crate::{
     environment::Environment,

@@ -16,7 +16,8 @@ use rustc_middle::ty::subst::{Subst, SubstsRef};
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
 
-use rustc_span::{MultiSpan, Span, symbol::Symbol};
+use rustc_errors::MultiSpan;
+use rustc_span::{Span, symbol::Symbol};
 use std::collections::HashSet;
 use log::{debug, trace};
 use std::rc::Rc;
@@ -189,7 +190,7 @@ impl<'tcx> Environment<'tcx> {
 
     /// Returns true if an error has been emitted
     pub fn has_errors(&self) -> bool {
-        self.tcx.sess.has_errors()
+        self.tcx.sess.has_errors().is_some()
     }
 
     /// Get ids of Rust procedures that are annotated with a Prusti specification

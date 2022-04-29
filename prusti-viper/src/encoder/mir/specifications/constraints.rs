@@ -5,12 +5,13 @@ use prusti_interface::{
     specs::typed::{ProcedureSpecification, SpecConstraintKind, SpecGraph},
     PrustiError,
 };
+use rustc_errors::MultiSpan;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{
     ty,
     ty::subst::{Subst, SubstsRef},
 };
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
 
 pub(super) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
     fn resolve(
