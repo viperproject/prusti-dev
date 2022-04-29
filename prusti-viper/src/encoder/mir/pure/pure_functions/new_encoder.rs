@@ -1,8 +1,8 @@
 use super::{encoder::FunctionCallInfoHigh, PureEncodingContext};
 use crate::encoder::{
-    borrows::ProcedureContractMirDef,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
+        contracts::{ContractsEncoderInterface, ProcedureContractMirDef},
         generics::MirGenericsEncoderInterface,
         pure::{
             interpreter::ExpressionBackwardInterpreter,
