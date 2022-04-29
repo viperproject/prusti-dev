@@ -3,7 +3,7 @@
 use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use proc_macro2::Ident;
-use syn::{GenericParam, parse_quote, TypeParam};
+use syn::{GenericParam, LifetimeDef, parse_quote, TypeParam};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use uuid::Uuid;
@@ -328,7 +328,7 @@ mod receiver_rewriter {
 }
 
 /// Copies the [syn::Generics] of `source` to the generics of `target`
-/// **Important**: Lifetimes and const params are currently ignored.
+/// **Important**: Const params are currently ignored.
 /// If `source` has generic params which do not appear in `target`, they are added first.
 ///
 /// # Example
@@ -347,25 +347,40 @@ pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
 
     // Merge all type params
     let mut existing_target_type_params: HashMap<Ident, &mut TypeParam> = HashMap::new();
+    let mut existing_target_lifetimes: HashMap<Ident, &mut LifetimeDef> = HashMap::new();
     let mut new_generic_params: Vec<GenericParam> = Vec::new();
     for param_target in generics_target.params.iter_mut() {
-        if let GenericParam::Type(type_param_target) = param_target {
-            existing_target_type_params.insert(type_param_target.ident.clone(), type_param_target);
+        match param_target {
+            GenericParam::Type(t) => {
+                existing_target_type_params.insert(t.ident.clone(), t);
+            },
+            GenericParam::Lifetime(lt) => {
+                existing_target_lifetimes.insert(lt.lifetime.ident.clone(), lt);
+            },
+            _ => () // not supported
         }
     }
 
     for param_source in generics_source.params.iter() {
-        // Lifetimes and consts are currently not handled
-        if let GenericParam::Type(type_param_source) = param_source {
-            // We can remove the target type param here, because the source will not have the
-            // same type param with the same identifiers
-            let maybe_type_param_source = existing_target_type_params.remove(&type_param_source.ident);
-            if let Some(type_param_target) = maybe_type_param_source {
-                type_param_target.bounds.extend(type_param_source.bounds.clone());
-            } else {
-                new_generic_params.push(GenericParam::Type(type_param_source.clone()));
-            }
+        // Consts are currently not handled
+        match param_source {
+            GenericParam::Type(type_param_source) => {
+                if let Some(type_param_target) = existing_target_type_params.remove(&type_param_source.ident) {
+                    type_param_target.bounds.extend(type_param_source.bounds.clone());
+                } else {
+                    new_generic_params.push(GenericParam::Type(type_param_source.clone()));
+                }
+            },
+            GenericParam::Lifetime(lifetime_source) => {
+                if let Some(lifetime_target) = existing_target_lifetimes.remove(&lifetime_source.lifetime.ident) {
+                    lifetime_target.bounds.extend(lifetime_source.bounds.clone());
+                } else {
+                    new_generic_params.push(GenericParam::Lifetime(lifetime_source.clone()));
+                }
+            },
+            _ => () // not supported
         }
+
     }
 
     // Merge the new parameters with the existing ones.
@@ -519,6 +534,21 @@ mod tests {
                 [impl<T> Foo for Bar where T: A {}] into
                 [impl<T> Foo for Bar {}] gives
                 [impl<T> Foo for Bar where T: A {}]
+            }
+        }
+
+        #[test]
+        fn lifetimes() {
+            test_merge! {
+                [impl<'b> Foo for Bar {}] into
+                [impl<'a> Foo for Bar {}] gives
+                [impl<'b, 'a> Foo for Bar {}]
+            }
+
+            test_merge! {
+                [impl<'a: 'c, 'd> Foo for Bar {}] into
+                [impl<'a: 'b> Foo for Bar {}] gives
+                [impl<'d, 'a: 'b + 'c> Foo for Bar {}]
             }
         }
     }
