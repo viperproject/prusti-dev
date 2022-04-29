@@ -19,8 +19,4 @@ pub mod statement;
 pub mod ty;
 pub mod variable;
 
-pub use self::{
-    expression::{Expression, PermAmount},
-    function::FunctionDecl,
-    statement::Statement,
-};
+pub use self::{expression::Expression, function::FunctionDecl, statement::Statement};

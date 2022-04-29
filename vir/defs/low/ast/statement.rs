@@ -12,6 +12,7 @@ pub enum Statement {
     Exhale(Exhale),
     Fold(Fold),
     Unfold(Unfold),
+    ApplyMagicWand(ApplyMagicWand),
     MethodCall(MethodCall),
     Assign(Assign),
     Conditional(Conditional),
@@ -56,6 +57,12 @@ pub struct Fold {
 
 #[display(fmt = "unfold {}", expression)]
 pub struct Unfold {
+    pub expression: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "apply {}", expression)]
+pub struct ApplyMagicWand {
     pub expression: Expression,
     pub position: Position,
 }

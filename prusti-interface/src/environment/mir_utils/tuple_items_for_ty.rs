@@ -8,11 +8,8 @@ pub trait TupleItemsForTy<'tcx> {
 
 impl<'tcx> TupleItemsForTy<'tcx> for ty::Ty<'tcx> {
     fn tuple_items(&self) -> Option<Vec<ty::Ty<'tcx>>> {
-        if let ty::TyKind::Tuple(items) = self.kind() {
-            let types = items.iter()
-                .map(|ga| ga.expect_ty())
-                .collect();
-            Some(types)
+        if let ty::TyKind::Tuple(types) = self.kind() {
+            Some(types.to_vec())
         } else {
             None
         }

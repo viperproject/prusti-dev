@@ -139,9 +139,7 @@ fn order_basic_blocks<'tcx>(
         IndexVec::<BasicBlockIndex, bool>::from_elem_n(false, basic_blocks.len());
     let mut temporary_mark = permanent_mark.clone();
 
-    #[allow(clippy::too_many_arguments)]
-    fn visit<'tcx>(
-        basic_blocks: &IndexVec<BasicBlockIndex, mir::BasicBlockData<'tcx>>,
+    fn visit(
         real_edges: &RealEdges,
         back_edges: &FxHashSet<(BasicBlockIndex, BasicBlockIndex)>,
         loop_depth: &dyn Fn(BasicBlockIndex) -> usize,
@@ -171,7 +169,6 @@ fn order_basic_blocks<'tcx>(
                     continue;
                 }
                 visit(
-                    basic_blocks,
                     real_edges,
                     back_edges,
                     loop_depth,
@@ -189,7 +186,6 @@ fn order_basic_blocks<'tcx>(
     while let Some(index) = permanent_mark.iter().position(|x| !*x) {
         let index = BasicBlockIndex::new(index);
         visit(
-            basic_blocks,
             real_edges,
             back_edges,
             loop_depth,

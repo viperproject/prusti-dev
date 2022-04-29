@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::{
-    encoder::SubstMap,
     errors::SpannedEncodingResult,
     mir::{
         pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
@@ -16,7 +15,7 @@ use crate::encoder::{
 };
 use prusti_common::config;
 use rustc_hir::def_id::DefId;
-use rustc_middle::ty;
+use rustc_middle::{ty, ty::subst::SubstsRef};
 use rustc_span::Span;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
@@ -29,7 +28,7 @@ fn inline_closure_high<'tcx>(
     _cl_expr: Expression,
     _args: Vec<VariableDecl>,
     _parent_def_id: DefId,
-    _substs_map: &SubstMap<'tcx>,
+    _substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Expression> {
     todo!()
 }
@@ -42,12 +41,14 @@ pub(super) fn inline_spec_item_high<'tcx>(
     target_return: Option<&Expression>,
     targets_are_values: bool,
     parent_def_id: DefId,
-    tymap: &SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Expression> {
-    let mir = encoder.env().local_mir(def_id.expect_local());
+    let mir = encoder.env().local_mir(def_id.expect_local(), substs);
     assert_eq!(
         mir.arg_count,
-        target_args.len() + if target_return.is_some() { 1 } else { 0 }
+        target_args.len() + if target_return.is_some() { 1 } else { 0 },
+        "def_id: {:?}",
+        def_id
     );
     let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
     let mut body_replacements = vec![];
@@ -73,18 +74,17 @@ pub(super) fn inline_spec_item_high<'tcx>(
         ));
     }
     Ok(encoder
-        .encode_pure_expression_high(def_id, parent_def_id, tymap)?
+        .encode_pure_expression_high(def_id, parent_def_id, substs)?
         .replace_multiple_places(&body_replacements))
 }
 
 pub(super) fn encode_quantifier_high<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
     _span: Span, // TODO: use span somehow? or remove arg
-    substs: ty::subst::SubstsRef<'tcx>,
     encoded_args: Vec<Expression>,
     is_exists: bool,
     parent_def_id: DefId,
-    tymap: &SubstMap<'tcx>,
+    substs: ty::subst::SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Expression> {
     let tcx = encoder.env().tcx();
 
@@ -101,11 +101,11 @@ pub(super) fn encode_quantifier_high<'tcx>(
     //   )
 
     let cl_type_body = substs.type_at(1);
-    let (body_def_id, _, args, _) = extract_closure_from_ty(tcx, cl_type_body);
+    let (body_def_id, body_substs, _, args, _) = extract_closure_from_ty(tcx, cl_type_body);
 
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
-    for (arg_idx, arg_ty) in args.iter().enumerate() {
+    for (arg_idx, arg_ty) in args.into_iter().enumerate() {
         let qvar_ty = encoder.encode_type_high(arg_ty).unwrap();
         let qvar_name = format!("_{}_quant_{}", arg_idx, body_def_id.index.index());
         let encoded_qvar = VariableDecl::new(qvar_name, qvar_ty);
@@ -122,10 +122,13 @@ pub(super) fn encode_quantifier_high<'tcx>(
 
     // TODO: implement trigger and trigger set checks
     let mut encoded_trigger_sets = vec![];
-    for (trigger_set_idx, ty_trigger_set) in substs.type_at(0).tuple_fields().enumerate() {
+    for (trigger_set_idx, ty_trigger_set) in
+        substs.type_at(0).tuple_fields().into_iter().enumerate()
+    {
         let mut encoded_triggers = vec![];
-        for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().enumerate() {
-            let (trigger_def_id, _, _, _) = extract_closure_from_ty(tcx, ty_trigger);
+        for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
+            let (trigger_def_id, trigger_substs, _, _, _) =
+                extract_closure_from_ty(tcx, ty_trigger);
             let set_field = FieldDecl::new(
                 format!("tuple_{}", trigger_set_idx),
                 encoder.encode_type_high(ty_trigger_set)?,
@@ -143,7 +146,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
                 ),
                 encoded_qvars.clone(),
                 parent_def_id,
-                tymap,
+                trigger_substs,
             )?);
         }
         encoded_trigger_sets.push(Trigger::new(encoded_triggers));
@@ -155,7 +158,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
         encoded_args[1].clone(),
         encoded_qvars.clone(),
         parent_def_id,
-        tymap,
+        body_substs,
     )?;
 
     // TODO: implement cache-friendly qvar renaming

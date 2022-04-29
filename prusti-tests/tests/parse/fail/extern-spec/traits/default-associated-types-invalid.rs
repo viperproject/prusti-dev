@@ -9,7 +9,7 @@ trait MyTrait {
 
 #[extern_spec]
 trait MyTrait {
-    type Item = i32; //~ ERROR: Defaults for associated types in external trait specs are invalid
+    type Item = i32; //~ ERROR: Associated types in external trait specs should not be declared
 
     #[ensures(result == 42)]
     fn foo(&self) -> Option<Self::Item>;

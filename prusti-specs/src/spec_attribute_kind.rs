@@ -11,6 +11,7 @@ pub enum SpecAttributeKind {
     Trusted,
     Predicate,
     Invariant,
+    GhostConstraint,
 }
 
 impl TryFrom<String> for SpecAttributeKind {
@@ -26,6 +27,7 @@ impl TryFrom<String> for SpecAttributeKind {
             "trusted" => Ok(SpecAttributeKind::Trusted),
             "predicate" => Ok(SpecAttributeKind::Predicate),
             "invariant" => Ok(SpecAttributeKind::Invariant),
+            "ghost_constraint" => Ok(SpecAttributeKind::GhostConstraint),
             _ => Err(name),
         }
     }

@@ -17,7 +17,7 @@ pub use self::{
         rvalue::{Operand, OperandKind, Rvalue},
         statement::Statement,
         ty::{self, Type},
-        type_decl::{self, TypeDecl},
+        type_decl::{self, DiscriminantRange, DiscriminantValue, TypeDecl},
         variable::VariableDecl,
     },
     cfg::procedure::{BasicBlock, BasicBlockId, ProcedureDecl, Successor},

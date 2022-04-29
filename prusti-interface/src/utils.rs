@@ -68,10 +68,10 @@ pub fn expand_struct_place<'tcx>(
                 }
             }
             ty::Tuple(slice) => {
-                for (index, arg) in slice.iter().enumerate() {
+                for (index, ty) in slice.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, arg.expect_ty());
+                        let field_place = tcx.mk_place_field(*place, field, ty);
                         places.push(field_place);
                     }
                 }
@@ -112,7 +112,7 @@ pub fn expand_one_level<'tcx>(
         mir::ProjectionElem::Downcast(_symbol, variant) => {
             let kind = &current_place.ty(mir, tcx).ty.kind();
             force_matches!(kind, ty::TyKind::Adt(adt, _) =>
-                (tcx.mk_place_downcast(current_place, adt, variant), Vec::new())
+                (tcx.mk_place_downcast(current_place, *adt, variant), Vec::new())
             )
         }
         mir::ProjectionElem::Deref => (tcx.mk_place_deref(current_place), Vec::new()),
@@ -306,6 +306,26 @@ pub fn has_extern_spec_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "extern_spec")
 }
 
+pub fn read_extern_spec_attr(attrs: &[ast::Attribute]) -> Option<String> {
+    read_prusti_attr("extern_spec", attrs)
+}
+
+pub fn has_to_model_fn_attr(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "type_models_to_model_fn")
+}
+
+pub fn has_to_model_impl_attr(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "type_models_to_model_impl")
+}
+
+pub fn has_trait_bounds_ghost_constraint(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "ghost_constraint_trait_bounds_in_where_clause")
+}
+
+pub fn has_abstract_predicate_attr(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "abstract_predicate")
+}
+
 /// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.
 pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<String> {
     let mut strings = vec![];
@@ -331,9 +351,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             {
                 continue;
             }
-            use rustc_ast::{
-                token::{Lit, Token, TokenKind},
-            };
+            use rustc_ast::token::{Lit, Token, TokenKind};
             fn extract_string(token: &Token) -> String {
                 force_matches!(&token.kind, TokenKind::Literal(Lit { symbol, .. }) => {
                         symbol.as_str().replace("\\\"", "\"")
