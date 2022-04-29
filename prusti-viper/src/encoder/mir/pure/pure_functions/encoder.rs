@@ -107,7 +107,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .tcx()
             .fn_sig(proc_def_id)
             .subst(encoder.env().tcx(), substs);
-        let sig = encoder.env().resolve_assoc_types(sig);
+        let sig = encoder
+            .env()
+            .resolve_assoc_types(sig, encoder.env().tcx().param_env(proc_def_id));
 
         PureFunctionEncoder {
             encoder,

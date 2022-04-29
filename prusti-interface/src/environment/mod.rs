@@ -507,12 +507,9 @@ impl<'tcx> Environment<'tcx> {
     /// The type is wrapped into a `Binder` to handle regions correctly.
     pub fn type_is_copy(&self, ty: ty::Binder<'tcx, ty::Ty<'tcx>>, param_env: ty::ParamEnv<'tcx>) -> bool {
         // Normalize the type to account for associated types
-        let ty = self.resolve_assoc_types(ty);
-        let ty = self.tcx.erase_regions(ty);
+        let ty = self.resolve_assoc_types(ty, param_env);
         let ty = self.tcx.erase_late_bound_regions(ty);
-        self.tcx.infer_ctxt().enter(|infcx|
-            infcx.type_is_copy_modulo_regions(param_env, ty, rustc_span::DUMMY_SP)
-        )
+        ty.is_copy_modulo_regions(self.tcx.at(rustc_span::DUMMY_SP), param_env)
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
@@ -556,41 +553,23 @@ impl<'tcx> Environment<'tcx> {
         })
     }
 
-    /// A facade for [rustc_trait_selection::traits::normalize_to]
     /// Normalizes associated types in foldable types,
     /// i.e. this resolves projection types ([ty::TyKind::Projection]s)
-    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + Copy>(&self, normalizable: T) -> T {
-        use rustc_trait_selection::traits;
+    /// **Important:** Regions while be erased during this process
+    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug + Copy>(&self, normalizable: T, param_env: ty::ParamEnv<'tcx>) -> T {
+        let norm_res = self.tcx.try_normalize_erasing_regions(
+            param_env,
+            normalizable
+        );
 
-        if !normalizable.has_projections() {
-            return normalizable
-        }
-
-        self.tcx.infer_ctxt().enter(|infcx| {
-            let mut selcx = traits::SelectionContext::new(&infcx);
-            // We do not really care about obligations that are constructed
-            // in the normalization process
-            let mut obligations = vec![];
-
-            let normalized = traits::normalize_to(
-                &mut selcx,
-                ty::ParamEnv::reveal_all(),
-                traits::ObligationCause::dummy(),
-                normalizable,
-                &mut obligations,
-            );
-
-            // We probably normalized a bit too much.
-            // When we normalize an "unnormalizable" associated type
-            // (e.g. an associated type on a trait whose projection can not be resolved),
-            // "normalize_to" returns a type which needs to be infered.
-            // This is not what we want for e.g. a check whether a type is `Copy` or not.
-            // We thus return the original type in this case.
-            if normalized.needs_infer() {
-                return normalizable
+        match norm_res {
+            Ok(normalized) => {
+                debug!("Normalized {:?}: {:?}", normalizable, normalized);
+                normalized},
+            Err(err) => {
+                debug!("Error while resolving associated types for {:?}: {:?}", normalizable, err);
+                normalizable
             }
-
-            normalized
-        })
+        }
     }
 }
