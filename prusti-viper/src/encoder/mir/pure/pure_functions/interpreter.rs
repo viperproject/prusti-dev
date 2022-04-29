@@ -11,6 +11,7 @@ use crate::encoder::{
     },
     mir::{
         pure::{specifications::SpecificationEncoderInterface, PureEncodingContext},
+        sequences::MirSequencesEncoderInterface,
         specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },

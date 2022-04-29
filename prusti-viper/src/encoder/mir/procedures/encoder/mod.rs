@@ -4,11 +4,11 @@ use self::{
 };
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
-    borrows::ProcedureContractMirDef,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         casts::CastsEncoderInterface,
         constants::ConstantsEncoderInterface,
+        contracts::{ContractsEncoderInterface, ProcedureContractMirDef},
         errors::ErrorInterface,
         generics::MirGenericsEncoderInterface,
         panics::MirPanicsEncoderInterface,
