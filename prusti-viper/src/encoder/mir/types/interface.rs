@@ -7,9 +7,9 @@ use crate::encoder::{
 #[rustfmt::skip]
 use ::log::trace;
 
+use rustc_errors::MultiSpan;
 use rustc_hash::FxHashMap;
 use rustc_middle::{mir, ty};
-use rustc_span::MultiSpan;
 use std::cell::RefCell;
 use vir_crate::{common::expression::less_equals, high as vir_high, polymorphic as vir};
 

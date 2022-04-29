@@ -79,7 +79,7 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
         };
         Ok(expansion)
     }
-    fn get_span(&mut self, position: vir_high::Position) -> Option<rustc_span::MultiSpan> {
+    fn get_span(&mut self, position: vir_high::Position) -> Option<rustc_errors::MultiSpan> {
         self.encoder
             .error_manager()
             .position_manager()

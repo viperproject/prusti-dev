@@ -12,7 +12,8 @@ use rustc_hir::{
     intravisit, HirId, QPath, TyKind,
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
+use rustc_errors::MultiSpan;
 
 /// Checks the usage of the `.model()` method (induced by the `#[model]` macro) in non-spec code
 pub struct IllegalModelUsagesChecker;
