@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/native-tls-0.2.8/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/native-tls-0.2.10/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../native_tls/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -711,6 +711,19 @@
 <span id="706">706</span>
 <span id="707">707</span>
 <span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
 </pre><pre class="rust"><code><span class="doccomment">//! An abstraction over platform-specific TLS implementations.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Many applications require TLS/SSL communication in one form or another as</span>
@@ -740,6 +753,7 @@
 <span class="doccomment">//! * TLS/SSL client communication</span>
 <span class="doccomment">//! * TLS/SSL server communication</span>
 <span class="doccomment">//! * PKCS#12 encoded identities</span>
+<span class="doccomment">//! * X.509/PKCS#8 encoded identities</span>
 <span class="doccomment">//! * Secure-by-default for client and server</span>
 <span class="doccomment">//!     * Includes hostname verification for clients</span>
 <span class="doccomment">//! * Supports asynchronous I/O for both the server and the client</span>
@@ -831,38 +845,38 @@
 <span class="kw">mod</span> <span class="ident">imp</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>)))]</span>
 <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;imp/openssl.rs&quot;</span>]</span>
-<span class="kw">mod</span> <a class="ident" href="../../src/native_tls/imp/openssl.rs.html#1-454">imp</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/native_tls/imp/openssl.rs.html#1-483">imp</a>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span>;
 
 <span class="doccomment">/// A typedef of the result-type returned by many methods.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a><span class="op">&gt;</span>;
 
 <span class="doccomment">/// An error returned from the TLS implementation.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Error</span>(<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#117-120">imp::Error</a>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Error</span>(<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#116-121">imp::Error</a>);
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a> {
     <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error::source</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/native_tls/lib.rs.html#133">self</a>.<span class="number">0</span>)
+        <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error::source</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/native_tls/lib.rs.html#134">self</a>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/native_tls/lib.rs.html#139">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/native_tls/lib.rs.html#139">fmt</a>)
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/native_tls/lib.rs.html#140">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/native_tls/lib.rs.html#140">fmt</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/native_tls/lib.rs.html#145">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/native_tls/lib.rs.html#145">fmt</a>)
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/native_tls/lib.rs.html#146">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/native_tls/lib.rs.html#146">fmt</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/imp/openssl.rs.html#117-120">imp::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../src/native_tls/imp/openssl.rs.html#117-120">imp::Error</a>) -&gt; <a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a> {
-        <a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#151">err</a>)
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/imp/openssl.rs.html#116-121">imp::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../src/native_tls/imp/openssl.rs.html#116-121">imp::Error</a>) -&gt; <a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a> {
+        <a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#152">err</a>)
     }
 }
 
@@ -871,9 +885,9 @@
 <span class="doccomment">/// An identity is an X509 certificate along with its corresponding private key and chain of certificates to a trusted</span>
 <span class="doccomment">/// root.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Identity</span>(<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#148-152">imp::Identity</a>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Identity</span>(<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#156-160">imp::Identity</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#161">Identity</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#162">Identity</a> {
     <span class="doccomment">/// Parses a DER-formatted PKCS #12 archive, using the specified password to decrypt the key.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The archive should contain a leaf certificate and its private key, as well any intermediate</span>
@@ -886,33 +900,45 @@
     <span class="doccomment">/// ```bash</span>
     <span class="doccomment">/// openssl pkcs12 -export -out identity.pfx -inkey key.pem -in cert.pem -certfile chain_certs.pem</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pkcs12</span>(<span class="ident">der</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">password</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#161">Identity</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">identity</span> <span class="op">=</span> <span class="ident">imp::Identity::from_pkcs12</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#176">der</a>, <a class="ident" href="../../src/native_tls/lib.rs.html#176">password</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#161">Identity</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#177">identity</a>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pkcs12</span>(<span class="ident">der</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">password</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#162">Identity</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">identity</span> <span class="op">=</span> <span class="ident">imp::Identity::from_pkcs12</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#177">der</a>, <a class="ident" href="../../src/native_tls/lib.rs.html#177">password</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#162">Identity</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#178">identity</a>))
+    }
+
+    <span class="doccomment">/// Parses a chain of PEM encoded X509 certificates, with the leaf certificate first.</span>
+    <span class="doccomment">/// `key` is a PEM encoded PKCS #8 formatted private key for the leaf certificate.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The certificate chain should contain any intermediate cerficates that should be sent to</span>
+    <span class="doccomment">/// clients to allow them to build a chain to a trusted root.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// A certificate chain here means a series of PEM encoded certificates concatenated together.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pkcs8</span>(<span class="ident">pem</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">key</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#162">Identity</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">identity</span> <span class="op">=</span> <span class="ident">imp::Identity::from_pkcs8</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#189">pem</a>, <a class="ident" href="../../src/native_tls/lib.rs.html#189">key</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#162">Identity</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#190">identity</a>))
     }
 }
 
 <span class="doccomment">/// An X509 certificate.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Certificate</span>(<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#167">imp::Certificate</a>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Certificate</span>(<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#190">imp::Certificate</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#184">Certificate</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#197">Certificate</a> {
     <span class="doccomment">/// Parses a DER-formatted X509 certificate.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_der</span>(<span class="ident">der</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#184">Certificate</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">imp::Certificate::from_der</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#188">der</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#184">Certificate</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#189">cert</a>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_der</span>(<span class="ident">der</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#197">Certificate</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">imp::Certificate::from_der</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#201">der</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#197">Certificate</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#202">cert</a>))
     }
 
     <span class="doccomment">/// Parses a PEM-formatted X509 certificate.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pem</span>(<span class="ident">pem</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#184">Certificate</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">imp::Certificate::from_pem</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#194">pem</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#184">Certificate</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#195">cert</a>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_pem</span>(<span class="ident">pem</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#197">Certificate</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">imp::Certificate::from_pem</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#207">pem</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#197">Certificate</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#208">cert</a>))
     }
 
     <span class="doccomment">/// Returns the DER-encoded representation of this certificate.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_der</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <a class="self" href="../../src/native_tls/lib.rs.html#200">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#180">to_der</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#201">der</a>)
+        <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <a class="self" href="../../src/native_tls/lib.rs.html#213">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#203">to_der</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#214">der</a>)
     }
 }
 
@@ -924,19 +950,19 @@
     <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/native_tls/lib.rs.html#213">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/native_tls/lib.rs.html#213">fmt</a>)
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/native_tls/lib.rs.html#226">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/native_tls/lib.rs.html#226">fmt</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">MidHandshakeTlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns a shared reference to the inner stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">S</span> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#220">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#198">get_ref</a>()
+        <a class="self" href="../../src/native_tls/lib.rs.html#233">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#221">get_ref</a>()
     }
 
     <span class="doccomment">/// Returns a mutable reference to the inner stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">S</span> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#225">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#202">get_mut</a>()
+        <a class="self" href="../../src/native_tls/lib.rs.html#238">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#225">get_mut</a>()
     }
 }
 
@@ -952,9 +978,9 @@
     <span class="doccomment">/// stream is an asynchronous one then `HandshakeError::WouldBlock` may</span>
     <span class="doccomment">/// just mean to wait for more I/O to happen later.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handshake</span>(<span class="self">self</span>) -&gt; <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/native_tls/lib.rs.html#241">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#211">handshake</a>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#620">TlsStream</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#243">s</a>)),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#244">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">match</span> <a class="self" href="../../src/native_tls/lib.rs.html#254">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#234">handshake</a>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#633">TlsStream</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#256">s</a>)),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#257">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 }
@@ -963,7 +989,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// A fatal error.</span>
-    <span class="ident">Failure</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a>),
+    <span class="ident">Failure</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a>),
 
     <span class="doccomment">/// A stream interrupted midway through the handshake process due to a</span>
     <span class="doccomment">/// `WouldBlock` error.</span>
@@ -979,9 +1005,9 @@
     <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
     <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/native_tls/lib.rs.html#268">self</a> {
-            <a class="ident" href="../../src/native_tls/lib.rs.html#253">HandshakeError::Failure</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#270">e</a>),
-            <a class="ident" href="../../src/native_tls/lib.rs.html#261">HandshakeError::WouldBlock</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/native_tls/lib.rs.html#281">self</a> {
+            <a class="ident" href="../../src/native_tls/lib.rs.html#266">HandshakeError::Failure</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#283">e</a>),
+            <a class="ident" href="../../src/native_tls/lib.rs.html#274">HandshakeError::WouldBlock</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
@@ -991,19 +1017,19 @@
     <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/native_tls/lib.rs.html#280">self</a> {
-            <a class="ident" href="../../src/native_tls/lib.rs.html#253">HandshakeError::Failure</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#282">e</a>, <a class="ident" href="../../src/native_tls/lib.rs.html#280">fmt</a>),
-            <a class="ident" href="../../src/native_tls/lib.rs.html#261">HandshakeError::WouldBlock</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/native_tls/lib.rs.html#280">fmt</a>.<span class="ident">write_str</span>(<span class="string">&quot;the handshake process was interrupted&quot;</span>),
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/native_tls/lib.rs.html#293">self</a> {
+            <a class="ident" href="../../src/native_tls/lib.rs.html#266">HandshakeError::Failure</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#295">e</a>, <a class="ident" href="../../src/native_tls/lib.rs.html#293">fmt</a>),
+            <a class="ident" href="../../src/native_tls/lib.rs.html#274">HandshakeError::WouldBlock</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/native_tls/lib.rs.html#293">fmt</a>.<span class="ident">write_str</span>(<span class="string">&quot;the handshake process was interrupted&quot;</span>),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">imp::HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">imp::HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">HandshakeError</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/native_tls/lib.rs.html#289">e</a> {
-            <a class="ident" href="../../src/native_tls/imp/openssl.rs.html#220">imp::HandshakeError::Failure</a>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../src/native_tls/lib.rs.html#253">HandshakeError::Failure</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#291">e</a>)),
-            <a class="ident" href="../../src/native_tls/imp/openssl.rs.html#221">imp::HandshakeError::WouldBlock</a>(<span class="ident">s</span>) =&gt; {
-                <a class="ident" href="../../src/native_tls/lib.rs.html#261">HandshakeError::WouldBlock</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#207">MidHandshakeTlsStream</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#292">s</a>))
+        <span class="kw">match</span> <a class="ident" href="../../src/native_tls/lib.rs.html#302">e</a> {
+            <a class="ident" href="../../src/native_tls/imp/openssl.rs.html#243">imp::HandshakeError::Failure</a>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../src/native_tls/lib.rs.html#266">HandshakeError::Failure</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#304">e</a>)),
+            <a class="ident" href="../../src/native_tls/imp/openssl.rs.html#244">imp::HandshakeError::WouldBlock</a>(<span class="ident">s</span>) =&gt; {
+                <a class="ident" href="../../src/native_tls/lib.rs.html#274">HandshakeError::WouldBlock</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#220">MidHandshakeTlsStream</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#305">s</a>))
             }
         }
     }
@@ -1031,10 +1057,10 @@
 
 <span class="doccomment">/// A builder for `TlsConnector`s.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsConnectorBuilder</span> {
-    <span class="ident">identity</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#161">Identity</a><span class="op">&gt;</span>,
-    <span class="ident">min_protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#301-317">Protocol</a><span class="op">&gt;</span>,
-    <span class="ident">max_protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#301-317">Protocol</a><span class="op">&gt;</span>,
-    <span class="ident">root_certificates</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#184">Certificate</a><span class="op">&gt;</span>,
+    <span class="ident">identity</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#162">Identity</a><span class="op">&gt;</span>,
+    <span class="ident">min_protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#314-330">Protocol</a><span class="op">&gt;</span>,
+    <span class="ident">max_protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#314-330">Protocol</a><span class="op">&gt;</span>,
+    <span class="ident">root_certificates</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#197">Certificate</a><span class="op">&gt;</span>,
     <span class="ident">accept_invalid_certs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">accept_invalid_hostnames</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">use_sni</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -1043,11 +1069,11 @@
     <span class="ident">alpn</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
     <span class="doccomment">/// Sets the identity to be used for client certificate authentication.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">identity</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">identity</span>: <a class="ident" href="../../src/native_tls/lib.rs.html#161">Identity</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#335">self</a>.<span class="ident">identity</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#335">identity</a>);
-        <a class="self" href="../../src/native_tls/lib.rs.html#335">self</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">identity</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">identity</span>: <a class="ident" href="../../src/native_tls/lib.rs.html#162">Identity</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
+        <a class="self" href="../../src/native_tls/lib.rs.html#348">self</a>.<span class="ident">identity</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#348">identity</a>);
+        <a class="self" href="../../src/native_tls/lib.rs.html#348">self</a>
     }
 
     <span class="doccomment">/// Sets the minimum supported protocol version.</span>
@@ -1055,9 +1081,9 @@
     <span class="doccomment">/// A value of `None` enables support for the oldest protocols supported by the implementation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to `Some(Protocol::Tlsv10)`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_protocol_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#301-317">Protocol</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#345">self</a>.<span class="ident">min_protocol</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#345">protocol</a>;
-        <a class="self" href="../../src/native_tls/lib.rs.html#345">self</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_protocol_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#314-330">Protocol</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
+        <a class="self" href="../../src/native_tls/lib.rs.html#358">self</a>.<span class="ident">min_protocol</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#358">protocol</a>;
+        <a class="self" href="../../src/native_tls/lib.rs.html#358">self</a>
     }
 
     <span class="doccomment">/// Sets the maximum supported protocol version.</span>
@@ -1065,9 +1091,9 @@
     <span class="doccomment">/// A value of `None` enables support for the newest protocols supported by the implementation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_protocol_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#301-317">Protocol</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#355">self</a>.<span class="ident">max_protocol</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#355">protocol</a>;
-        <a class="self" href="../../src/native_tls/lib.rs.html#355">self</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_protocol_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#314-330">Protocol</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
+        <a class="self" href="../../src/native_tls/lib.rs.html#368">self</a>.<span class="ident">max_protocol</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#368">protocol</a>;
+        <a class="self" href="../../src/native_tls/lib.rs.html#368">self</a>
     }
 
     <span class="doccomment">/// Adds a certificate to the set of roots that the connector will trust.</span>
@@ -1076,17 +1102,17 @@
     <span class="doccomment">/// to that set when communicating with servers not trusted by the system.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to an empty set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_root_certificate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cert</span>: <a class="ident" href="../../src/native_tls/lib.rs.html#184">Certificate</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#366">self</a>.<span class="ident">root_certificates</span>.<span class="ident">push</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#366">cert</a>);
-        <a class="self" href="../../src/native_tls/lib.rs.html#366">self</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_root_certificate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cert</span>: <a class="ident" href="../../src/native_tls/lib.rs.html#197">Certificate</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
+        <a class="self" href="../../src/native_tls/lib.rs.html#379">self</a>.<span class="ident">root_certificates</span>.<span class="ident">push</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#379">cert</a>);
+        <a class="self" href="../../src/native_tls/lib.rs.html#379">self</a>
     }
 
     <span class="doccomment">/// Controls the use of built-in system certificates during certificate validation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to `false` -- built-in system certs will be used.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_built_in_roots</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">disable</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#374">self</a>.<span class="ident">disable_built_in_roots</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#374">disable</a>;
-        <a class="self" href="../../src/native_tls/lib.rs.html#374">self</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_built_in_roots</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">disable</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
+        <a class="self" href="../../src/native_tls/lib.rs.html#387">self</a>.<span class="ident">disable_built_in_roots</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#387">disable</a>;
+        <a class="self" href="../../src/native_tls/lib.rs.html#387">self</a>
     }
 
     <span class="doccomment">/// Request specific protocols through ALPN (Application-Layer Protocol Negotiation).</span>
@@ -1111,17 +1137,17 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">danger_accept_invalid_certs</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">accept_invalid_certs</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#399">self</a>.<span class="ident">accept_invalid_certs</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#400">accept_invalid_certs</a>;
-        <a class="self" href="../../src/native_tls/lib.rs.html#399">self</a>
+    ) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
+        <a class="self" href="../../src/native_tls/lib.rs.html#412">self</a>.<span class="ident">accept_invalid_certs</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#413">accept_invalid_certs</a>;
+        <a class="self" href="../../src/native_tls/lib.rs.html#412">self</a>
     }
 
     <span class="doccomment">/// Controls the use of Server Name Indication (SNI).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to `true`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_sni</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">use_sni</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#409">self</a>.<span class="ident">use_sni</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#409">use_sni</a>;
-        <a class="self" href="../../src/native_tls/lib.rs.html#409">self</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_sni</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">use_sni</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
+        <a class="self" href="../../src/native_tls/lib.rs.html#422">self</a>.<span class="ident">use_sni</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#422">use_sni</a>;
+        <a class="self" href="../../src/native_tls/lib.rs.html#422">self</a>
     }
 
     <span class="doccomment">/// Controls the use of hostname verification.</span>
@@ -1136,15 +1162,15 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">danger_accept_invalid_hostnames</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">accept_invalid_hostnames</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#424">self</a>.<span class="ident">accept_invalid_hostnames</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#425">accept_invalid_hostnames</a>;
-        <a class="self" href="../../src/native_tls/lib.rs.html#424">self</a>
+    ) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
+        <a class="self" href="../../src/native_tls/lib.rs.html#437">self</a>.<span class="ident">accept_invalid_hostnames</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#438">accept_invalid_hostnames</a>;
+        <a class="self" href="../../src/native_tls/lib.rs.html#437">self</a>
     }
 
     <span class="doccomment">/// Creates a new `TlsConnector`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#458">TlsConnector</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">connector</span> <span class="op">=</span> <span class="ident">imp::TlsConnector::new</span>(<a class="self" href="../../src/native_tls/lib.rs.html#432">self</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#458">TlsConnector</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#433">connector</a>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#471">TlsConnector</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">connector</span> <span class="op">=</span> <span class="ident">imp::TlsConnector::new</span>(<a class="self" href="../../src/native_tls/lib.rs.html#445">self</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#471">TlsConnector</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#446">connector</a>))
     }
 }
 
@@ -1168,19 +1194,19 @@
 <span class="doccomment">/// println!(&quot;{}&quot;, String::from_utf8_lossy(&amp;res));</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsConnector</span>(<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#246-251">imp::TlsConnector</a>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsConnector</span>(<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#269-274">imp::TlsConnector</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#458">TlsConnector</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#471">TlsConnector</a> {
     <span class="doccomment">/// Returns a new connector with default settings.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#458">TlsConnector</a><span class="op">&gt;</span> {
-        <span class="ident">TlsConnector::builder</span>().<a class="ident" href="../../src/native_tls/lib.rs.html#432">build</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#471">TlsConnector</a><span class="op">&gt;</span> {
+        <span class="ident">TlsConnector::builder</span>().<a class="ident" href="../../src/native_tls/lib.rs.html#445">build</a>()
     }
 
     <span class="doccomment">/// Returns a new builder for a `TlsConnector`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
-        <a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
+        <a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a> {
             <span class="ident">identity</span>: <span class="prelude-val">None</span>,
-            <span class="ident">min_protocol</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#310">Protocol::Tlsv10</a>),
+            <span class="ident">min_protocol</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#323">Protocol::Tlsv10</a>),
             <span class="ident">max_protocol</span>: <span class="prelude-val">None</span>,
             <span class="ident">root_certificates</span>: <span class="macro">vec!</span>[],
             <span class="ident">use_sni</span>: <span class="bool-val">true</span>,
@@ -1212,27 +1238,27 @@
     <span class="kw">where</span>
         <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
     {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="self" href="../../src/native_tls/lib.rs.html#495">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#308-310">connect</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#496">domain</a>, <a class="ident" href="../../src/native_tls/lib.rs.html#497">stream</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#620">TlsStream</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#502">s</a>))
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <a class="self" href="../../src/native_tls/lib.rs.html#508">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#334-336">connect</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#509">domain</a>, <a class="ident" href="../../src/native_tls/lib.rs.html#510">stream</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#633">TlsStream</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#515">s</a>))
     }
 }
 
 <span class="doccomment">/// A builder for `TlsAcceptor`s.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsAcceptorBuilder</span> {
-    <span class="ident">identity</span>: <a class="ident" href="../../src/native_tls/lib.rs.html#161">Identity</a>,
-    <span class="ident">min_protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#301-317">Protocol</a><span class="op">&gt;</span>,
-    <span class="ident">max_protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#301-317">Protocol</a><span class="op">&gt;</span>,
+    <span class="ident">identity</span>: <a class="ident" href="../../src/native_tls/lib.rs.html#162">Identity</a>,
+    <span class="ident">min_protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#314-330">Protocol</a><span class="op">&gt;</span>,
+    <span class="ident">max_protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#314-330">Protocol</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#508-512">TlsAcceptorBuilder</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#521-525">TlsAcceptorBuilder</a> {
     <span class="doccomment">/// Sets the minimum supported protocol version.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A value of `None` enables support for the oldest protocols supported by the implementation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to `Some(Protocol::Tlsv10)`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_protocol_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#301-317">Protocol</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#508-512">TlsAcceptorBuilder</a> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#520">self</a>.<span class="ident">min_protocol</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#520">protocol</a>;
-        <a class="self" href="../../src/native_tls/lib.rs.html#520">self</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_protocol_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#314-330">Protocol</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#521-525">TlsAcceptorBuilder</a> {
+        <a class="self" href="../../src/native_tls/lib.rs.html#533">self</a>.<span class="ident">min_protocol</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#533">protocol</a>;
+        <a class="self" href="../../src/native_tls/lib.rs.html#533">self</a>
     }
 
     <span class="doccomment">/// Sets the maximum supported protocol version.</span>
@@ -1240,15 +1266,15 @@
     <span class="doccomment">/// A value of `None` enables support for the newest protocols supported by the implementation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_protocol_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#301-317">Protocol</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#508-512">TlsAcceptorBuilder</a> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#530">self</a>.<span class="ident">max_protocol</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#530">protocol</a>;
-        <a class="self" href="../../src/native_tls/lib.rs.html#530">self</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_protocol_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">protocol</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#314-330">Protocol</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/native_tls/lib.rs.html#521-525">TlsAcceptorBuilder</a> {
+        <a class="self" href="../../src/native_tls/lib.rs.html#543">self</a>.<span class="ident">max_protocol</span> <span class="op">=</span> <a class="ident" href="../../src/native_tls/lib.rs.html#543">protocol</a>;
+        <a class="self" href="../../src/native_tls/lib.rs.html#543">self</a>
     }
 
     <span class="doccomment">/// Creates a new `TlsAcceptor`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#581">TlsAcceptor</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">acceptor</span> <span class="op">=</span> <span class="ident">imp::TlsAcceptor::new</span>(<a class="self" href="../../src/native_tls/lib.rs.html#536">self</a>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#581">TlsAcceptor</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#537">acceptor</a>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#594">TlsAcceptor</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">acceptor</span> <span class="op">=</span> <span class="ident">imp::TlsAcceptor::new</span>(<a class="self" href="../../src/native_tls/lib.rs.html#549">self</a>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#594">TlsAcceptor</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#550">acceptor</a>))
     }
 }
 
@@ -1291,23 +1317,23 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsAcceptor</span>(<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#338">imp::TlsAcceptor</a>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TlsAcceptor</span>(<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#364">imp::TlsAcceptor</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#581">TlsAcceptor</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/native_tls/lib.rs.html#594">TlsAcceptor</a> {
     <span class="doccomment">/// Creates a acceptor with default settings.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The identity acts as the server&#39;s private key/certificate chain.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">identity</span>: <a class="ident" href="../../src/native_tls/lib.rs.html#161">Identity</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#581">TlsAcceptor</a><span class="op">&gt;</span> {
-        <span class="ident">TlsAcceptor::builder</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#587">identity</a>).<a class="ident" href="../../src/native_tls/lib.rs.html#536">build</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">identity</span>: <a class="ident" href="../../src/native_tls/lib.rs.html#162">Identity</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#594">TlsAcceptor</a><span class="op">&gt;</span> {
+        <span class="ident">TlsAcceptor::builder</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#600">identity</a>).<a class="ident" href="../../src/native_tls/lib.rs.html#549">build</a>()
     }
 
     <span class="doccomment">/// Returns a new builder for a `TlsAcceptor`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The identity acts as the server&#39;s private key/certificate chain.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>(<span class="ident">identity</span>: <a class="ident" href="../../src/native_tls/lib.rs.html#161">Identity</a>) -&gt; <a class="ident" href="../../src/native_tls/lib.rs.html#508-512">TlsAcceptorBuilder</a> {
-        <a class="ident" href="../../src/native_tls/lib.rs.html#508-512">TlsAcceptorBuilder</a> {
-            <a class="ident" href="../../src/native_tls/lib.rs.html#594">identity</a>,
-            <span class="ident">min_protocol</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#310">Protocol::Tlsv10</a>),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>(<span class="ident">identity</span>: <a class="ident" href="../../src/native_tls/lib.rs.html#162">Identity</a>) -&gt; <a class="ident" href="../../src/native_tls/lib.rs.html#521-525">TlsAcceptorBuilder</a> {
+        <a class="ident" href="../../src/native_tls/lib.rs.html#521-525">TlsAcceptorBuilder</a> {
+            <a class="ident" href="../../src/native_tls/lib.rs.html#607">identity</a>,
+            <span class="ident">min_protocol</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#323">Protocol::Tlsv10</a>),
             <span class="ident">max_protocol</span>: <span class="prelude-val">None</span>,
         }
     }
@@ -1322,9 +1348,9 @@
     <span class="kw">where</span>
         <span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
     {
-        <span class="kw">match</span> <a class="self" href="../../src/native_tls/lib.rs.html#608">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#353-355">accept</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#608">stream</a>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#620">TlsStream</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#613">s</a>)),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#614">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">match</span> <a class="self" href="../../src/native_tls/lib.rs.html#621">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#382-384">accept</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#621">stream</a>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#633">TlsStream</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#626">s</a>)),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#627">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 }
@@ -1334,19 +1360,19 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/native_tls/lib.rs.html#623">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/native_tls/lib.rs.html#623">fmt</a>)
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/native_tls/lib.rs.html#636">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/native_tls/lib.rs.html#636">fmt</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns a shared reference to the inner stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">S</span> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#630">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#371">get_ref</a>()
+        <a class="self" href="../../src/native_tls/lib.rs.html#643">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#400">get_ref</a>()
     }
 
     <span class="doccomment">/// Returns a mutable reference to the inner stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">S</span> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#635">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#375">get_mut</a>()
+        <a class="self" href="../../src/native_tls/lib.rs.html#648">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#404">get_mut</a>()
     }
 }
 
@@ -1354,19 +1380,19 @@
     <span class="doccomment">/// Returns the number of bytes that can be read without resulting in any</span>
     <span class="doccomment">/// network calls.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">buffered_read_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/native_tls/lib.rs.html#643">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#381">buffered_read_size</a>()<span class="question-mark">?</span>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/native_tls/lib.rs.html#656">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#410">buffered_read_size</a>()<span class="question-mark">?</span>)
     }
 
     <span class="doccomment">/// Returns the peer&#39;s leaf certificate, if available.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_certificate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#184">Certificate</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/native_tls/lib.rs.html#648">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#385">peer_certificate</a>()<span class="question-mark">?</span>.<span class="ident">map</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#184">Certificate</a>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_certificate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#197">Certificate</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/native_tls/lib.rs.html#661">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#414">peer_certificate</a>()<span class="question-mark">?</span>.<span class="ident">map</span>(<a class="ident" href="../../src/native_tls/lib.rs.html#197">Certificate</a>))
     }
 
     <span class="doccomment">/// Returns the tls-server-end-point channel binding data as defined in [RFC 5929].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [RFC 5929]: https://tools.ietf.org/html/rfc5929</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tls_server_end_point</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/native_tls/lib.rs.html#655">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#398">tls_server_end_point</a>()<span class="question-mark">?</span>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/native_tls/lib.rs.html#668">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#427">tls_server_end_point</a>()<span class="question-mark">?</span>)
     }
 
     <span class="doccomment">/// Returns the negotiated ALPN protocol.</span>
@@ -1378,24 +1404,24 @@
 
     <span class="doccomment">/// Shuts down the TLS session.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#667">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#429">shutdown</a>()<span class="question-mark">?</span>;
+        <a class="self" href="../../src/native_tls/lib.rs.html#680">self</a>.<span class="number">0</span>.<a class="ident" href="../../src/native_tls/imp/openssl.rs.html#458">shutdown</a>()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#674">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#674">buf</a>)
+        <a class="self" href="../../src/native_tls/lib.rs.html#687">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#687">buf</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for</span> <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#680">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#680">buf</a>)
+        <a class="self" href="../../src/native_tls/lib.rs.html#693">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../src/native_tls/lib.rs.html#693">buf</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../src/native_tls/lib.rs.html#684">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        <a class="self" href="../../src/native_tls/lib.rs.html#697">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
@@ -1404,21 +1430,21 @@
 
     <span class="kw">fn</span> <span class="ident">is_sync</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span>() {}
     <span class="kw">fn</span> <span class="ident">is_send</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span>() {}
-    <span class="ident">is_sync</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a><span class="op">&gt;</span>();
-    <span class="ident">is_send</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#130">Error</a><span class="op">&gt;</span>();
-    <span class="ident">is_sync</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a><span class="op">&gt;</span>();
-    <span class="ident">is_send</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#320-331">TlsConnectorBuilder</a><span class="op">&gt;</span>();
-    <span class="ident">is_sync</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#458">TlsConnector</a><span class="op">&gt;</span>();
-    <span class="ident">is_send</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#458">TlsConnector</a><span class="op">&gt;</span>();
-    <span class="ident">is_sync</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#508-512">TlsAcceptorBuilder</a><span class="op">&gt;</span>();
-    <span class="ident">is_send</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#508-512">TlsAcceptorBuilder</a><span class="op">&gt;</span>();
-    <span class="ident">is_sync</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#581">TlsAcceptor</a><span class="op">&gt;</span>();
-    <span class="ident">is_send</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#581">TlsAcceptor</a><span class="op">&gt;</span>();
+    <span class="ident">is_sync</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a><span class="op">&gt;</span>();
+    <span class="ident">is_send</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#131">Error</a><span class="op">&gt;</span>();
+    <span class="ident">is_sync</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a><span class="op">&gt;</span>();
+    <span class="ident">is_send</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#333-344">TlsConnectorBuilder</a><span class="op">&gt;</span>();
+    <span class="ident">is_sync</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#471">TlsConnector</a><span class="op">&gt;</span>();
+    <span class="ident">is_send</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#471">TlsConnector</a><span class="op">&gt;</span>();
+    <span class="ident">is_sync</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#521-525">TlsAcceptorBuilder</a><span class="op">&gt;</span>();
+    <span class="ident">is_send</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#521-525">TlsAcceptorBuilder</a><span class="op">&gt;</span>();
+    <span class="ident">is_sync</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#594">TlsAcceptor</a><span class="op">&gt;</span>();
+    <span class="ident">is_send</span>::<span class="op">&lt;</span><a class="ident" href="../../src/native_tls/lib.rs.html#594">TlsAcceptor</a><span class="op">&gt;</span>();
     <span class="ident">is_sync</span>::<span class="op">&lt;</span><span class="ident">TlsStream</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a><span class="op">&gt;</span><span class="op">&gt;</span>();
     <span class="ident">is_send</span>::<span class="op">&lt;</span><span class="ident">TlsStream</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a><span class="op">&gt;</span><span class="op">&gt;</span>();
     <span class="ident">is_sync</span>::<span class="op">&lt;</span><span class="ident">MidHandshakeTlsStream</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a><span class="op">&gt;</span><span class="op">&gt;</span>();
     <span class="ident">is_send</span>::<span class="op">&lt;</span><span class="ident">MidHandshakeTlsStream</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a><span class="op">&gt;</span><span class="op">&gt;</span>();
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="native_tls" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="native_tls" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

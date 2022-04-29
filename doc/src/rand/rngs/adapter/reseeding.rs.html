@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.8.5/src/rngs/adapter/reseeding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reseeding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/rngs/adapter/reseeding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reseeding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../rand/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -374,23 +374,6 @@
 <span id="367">367</span>
 <span id="368">368</span>
 <span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
-<span id="373">373</span>
-<span id="374">374</span>
-<span id="375">375</span>
-<span id="376">376</span>
-<span id="377">377</span>
-<span id="378">378</span>
-<span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
-<span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">// Copyright 2013 The Rust Project Developers.</span>
 <span class="comment">//</span>
@@ -415,10 +398,10 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// - On a manual call to [`reseed()`].</span>
 <span class="doccomment">/// - After `clone()`, the clone will be reseeded on first use.</span>
-<span class="doccomment">/// - When a process is forked on UNIX, the RNGs in both the parent and child</span>
-<span class="doccomment">///   processes will be reseeded just before the next call to</span>
-<span class="doccomment">///   [`BlockRngCore::generate`], i.e. &quot;soon&quot;. For ChaCha and Hc128 this is a</span>
-<span class="doccomment">///   maximum of fifteen `u32` values before reseeding.</span>
+<span class="doccomment">/// - After a process is forked, the RNG in the child process is reseeded within</span>
+<span class="doccomment">///   the next few generated values, depending on the block size of the</span>
+<span class="doccomment">///   underlying PRNG. For ChaCha and Hc128 this is a maximum of</span>
+<span class="doccomment">///   15 `u32` values before reseeding.</span>
 <span class="doccomment">/// - After the PRNG has generated a configurable number of random bytes.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # When should reseeding after a fixed number of generated bytes be used?</span>
@@ -435,12 +418,6 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Use [`ReseedingRng::new`] with a `threshold` of `0` to disable reseeding</span>
 <span class="doccomment">/// after a fixed number of generated bytes.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Limitations</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It is recommended that a `ReseedingRng` (including `ThreadRng`) not be used</span>
-<span class="doccomment">/// from a fork handler.</span>
-<span class="doccomment">/// Use `OsRng` or `getrandom`, or defer your use of the RNG until later.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Error handling</span>
 <span class="doccomment">///</span>
@@ -492,12 +469,12 @@
     <span class="doccomment">/// PRNG. Set it to zero to never reseed based on the number of generated</span>
     <span class="doccomment">/// values.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">rng</span>: <span class="ident">R</span>, <span class="ident">threshold</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">reseeder</span>: <span class="ident">Rsdr</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#85-88">ReseedingRng</a>(<span class="ident">BlockRng::new</span>(<span class="ident">ReseedingCore::new</span>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#101">rng</a>, <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#101">threshold</a>, <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#101">reseeder</a>)))
+        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#79-82">ReseedingRng</a>(<span class="ident">BlockRng::new</span>(<span class="ident">ReseedingCore::new</span>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#95">rng</a>, <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#95">threshold</a>, <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#95">reseeder</a>)))
     }
 
     <span class="doccomment">/// Reseed the internal PRNG.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reseed</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../rand/struct.Error.html">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#106">self</a>.<span class="number">0</span>.<span class="ident">core</span>.<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#219">reseed</a>()
+        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#100">self</a>.<span class="number">0</span>.<span class="ident">core</span>.<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#213">reseed</a>()
     }
 }
 
@@ -510,20 +487,20 @@
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#119">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../rand/trait.RngCore.html">next_u32</a>()
+        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#113">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../rand/trait.RngCore.html">next_u32</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#124">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../rand/trait.RngCore.html">next_u64</a>()
+        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#118">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../rand/trait.RngCore.html">next_u64</a>()
     }
 
     <span class="kw">fn</span> <span class="ident">fill_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#128">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../rand/trait.RngCore.html">fill_bytes</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#128">dest</a>)
+        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#122">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../rand/trait.RngCore.html">fill_bytes</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#122">dest</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../rand/struct.Error.html">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#132">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../rand/trait.RngCore.html">try_fill_bytes</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#132">dest</a>)
+        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#126">self</a>.<span class="number">0</span>.<a class="ident" href="../../../../rand/trait.RngCore.html">try_fill_bytes</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#126">dest</a>)
     }
 }
 
@@ -535,7 +512,7 @@
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">Rsdr</span><span class="op">&gt;</span> {
         <span class="comment">// Recreating `BlockRng` seems easier than cloning it and resetting</span>
         <span class="comment">// the index.</span>
-        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#85-88">ReseedingRng</a>(<span class="ident">BlockRng::new</span>(<a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#142">self</a>.<span class="number">0</span>.<span class="ident">core</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#79-82">ReseedingRng</a>(<span class="ident">BlockRng::new</span>(<a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#136">self</a>.<span class="number">0</span>.<span class="ident">core</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
     }
 }
 
@@ -564,16 +541,16 @@
     <span class="kw">type</span> <span class="ident">Results</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">BlockRngCore</span><span class="op">&gt;</span><span class="ident">::Results</span>;
 
     <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">results</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Results</span>) {
-        <span class="kw">let</span> <span class="ident">global_fork_counter</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#307">fork::get_fork_counter</a>();
-        <span class="kw">if</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#173">self</a>.<span class="ident">bytes_until_reseed</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#173">self</a>.<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#226">is_forked</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#174">global_fork_counter</a>) {
+        <span class="kw">let</span> <span class="ident">global_fork_counter</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#301">fork::get_fork_counter</a>();
+        <span class="kw">if</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#167">self</a>.<span class="ident">bytes_until_reseed</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#167">self</a>.<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#220">is_forked</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#168">global_fork_counter</a>) {
             <span class="comment">// We get better performance by not calling only `reseed` here</span>
             <span class="comment">// and continuing with the rest of the function, but by directly</span>
             <span class="comment">// returning from a non-inlined function.</span>
-            <span class="kw">return</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#173">self</a>.<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#241-243">reseed_and_generate</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#173">results</a>, <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#174">global_fork_counter</a>);
+            <span class="kw">return</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#167">self</a>.<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#235-237">reseed_and_generate</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#167">results</a>, <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#168">global_fork_counter</a>);
         }
-        <span class="kw">let</span> <span class="ident">num_bytes</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#173">results</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>();
-        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#173">self</a>.<span class="ident">bytes_until_reseed</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#181">num_bytes</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
-        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#173">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../rand_core/block/trait.BlockRngCore.html">generate</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#173">results</a>);
+        <span class="kw">let</span> <span class="ident">num_bytes</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#167">results</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>();
+        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#167">self</a>.<span class="ident">bytes_until_reseed</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#175">num_bytes</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
+        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#167">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../rand_core/block/trait.BlockRngCore.html">generate</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#167">results</a>);
     }
 }
 
@@ -585,34 +562,34 @@
     <span class="doccomment">/// Create a new `ReseedingCore`.</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">rng</span>: <span class="ident">R</span>, <span class="ident">threshold</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">reseeder</span>: <span class="ident">Rsdr</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">use</span> <span class="ident">::core::i64::MAX</span>;
-        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#317">fork::register_fork_handler</a>();
+        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#311">fork::register_fork_handler</a>();
 
         <span class="comment">// Because generating more values than `i64::MAX` takes centuries on</span>
         <span class="comment">// current hardware, we just clamp to that value.</span>
         <span class="comment">// Also we set a threshold of 0, which indicates no limit, to that</span>
         <span class="comment">// value.</span>
-        <span class="kw">let</span> <span class="ident">threshold</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#193">threshold</a> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">threshold</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#187">threshold</a> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">MAX</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#193">threshold</a> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-            <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#193">threshold</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#187">threshold</a> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+            <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#187">threshold</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>
         } <span class="kw">else</span> {
             <span class="ident">MAX</span>
         };
 
-        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#157-163">ReseedingCore</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#193">rng</a>,
-            <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#193">reseeder</a>,
-            <span class="ident">threshold</span>: <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#201">threshold</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>,
-            <span class="ident">bytes_until_reseed</span>: <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#201">threshold</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>,
+        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#151-157">ReseedingCore</a> {
+            <span class="ident">inner</span>: <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#187">rng</a>,
+            <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#187">reseeder</a>,
+            <span class="ident">threshold</span>: <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#195">threshold</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>,
+            <span class="ident">bytes_until_reseed</span>: <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#195">threshold</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>,
             <span class="ident">fork_counter</span>: <span class="number">0</span>,
         }
     }
 
     <span class="doccomment">/// Reseed the internal PRNG.</span>
     <span class="kw">fn</span> <span class="ident">reseed</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../rand/struct.Error.html">Error</a><span class="op">&gt;</span> {
-        <span class="ident">R::from_rng</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#219">self</a>.<span class="ident">reseeder</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#219">self</a>.<span class="ident">bytes_until_reseed</span> <span class="op">=</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#219">self</a>.<span class="ident">threshold</span>;
-            <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#219">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#220">result</a>
+        <span class="ident">R::from_rng</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#213">self</a>.<span class="ident">reseeder</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+            <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#213">self</a>.<span class="ident">bytes_until_reseed</span> <span class="op">=</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#213">self</a>.<span class="ident">threshold</span>;
+            <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#213">self</a>.<span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#214">result</a>
         })
     }
 
@@ -627,7 +604,7 @@
         <span class="comment">// It will still fail to detect a fork if there have been more than</span>
         <span class="comment">// `isize::MAX` forks, without any reseed in between. Seems unlikely</span>
         <span class="comment">// enough.</span>
-        (<a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#226">self</a>.<span class="ident">fork_counter</span>.<span class="ident">wrapping_sub</span>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#226">global_fork_counter</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>) <span class="op">&lt;</span> <span class="number">0</span>
+        (<a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#220">self</a>.<span class="ident">fork_counter</span>.<span class="ident">wrapping_sub</span>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#220">global_fork_counter</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>) <span class="op">&lt;</span> <span class="number">0</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
@@ -635,22 +612,22 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">results</span>: <span class="kw-2">&amp;mut</span> <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">BlockRngCore</span><span class="op">&gt;</span><span class="ident">::Results</span>, <span class="ident">global_fork_counter</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) {
         <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::if_same_then_else</span>)]</span> <span class="comment">// false positive</span>
-        <span class="kw">if</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#242">self</a>.<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#226">is_forked</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#242">global_fork_counter</a>) {
+        <span class="kw">if</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#236">self</a>.<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#220">is_forked</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#236">global_fork_counter</a>) {
             <span class="macro">info!</span>(<span class="string">&quot;Fork detected, reseeding RNG&quot;</span>);
         } <span class="kw">else</span> {
             <span class="macro">trace!</span>(<span class="string">&quot;Reseeding RNG (periodic reseed)&quot;</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">num_bytes</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#242">results</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">BlockRngCore</span><span class="op">&gt;</span><span class="ident">::Item</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">num_bytes</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#236">results</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">BlockRngCore</span><span class="op">&gt;</span><span class="ident">::Item</span><span class="op">&gt;</span>();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#242">self</a>.<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#219">reseed</a>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#236">self</a>.<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#213">reseed</a>() {
             <span class="macro">warn!</span>(<span class="string">&quot;Reseeding RNG failed: {}&quot;</span>, <span class="ident">e</span>);
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#253">e</a>;
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#247">e</a>;
         }
-        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#242">self</a>.<span class="ident">fork_counter</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#242">global_fork_counter</a>;
+        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#236">self</a>.<span class="ident">fork_counter</span> <span class="op">=</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#236">global_fork_counter</a>;
 
-        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#242">self</a>.<span class="ident">bytes_until_reseed</span> <span class="op">=</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#242">self</a>.<span class="ident">threshold</span> <span class="op">-</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#251">num_bytes</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
-        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#242">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../rand_core/block/trait.BlockRngCore.html">generate</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#242">results</a>);
+        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#236">self</a>.<span class="ident">bytes_until_reseed</span> <span class="op">=</span> <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#236">self</a>.<span class="ident">threshold</span> <span class="op">-</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#245">num_bytes</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>;
+        <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#236">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../rand_core/block/trait.BlockRngCore.html">generate</a>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#236">results</a>);
     }
 }
 
@@ -660,12 +637,12 @@
     <span class="ident">Rsdr</span>: <a class="ident" href="../../../../rand/trait.RngCore.html">RngCore</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ReseedingCore</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">Rsdr</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#157-163">ReseedingCore</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#269">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">reseeder</span>: <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#269">self</a>.<span class="ident">reseeder</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">threshold</span>: <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#269">self</a>.<span class="ident">threshold</span>,
+        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#151-157">ReseedingCore</a> {
+            <span class="ident">inner</span>: <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#263">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">reseeder</span>: <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#263">self</a>.<span class="ident">reseeder</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">threshold</span>: <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#263">self</a>.<span class="ident">threshold</span>,
             <span class="ident">bytes_until_reseed</span>: <span class="number">0</span>, <span class="comment">// reseed clone on first use</span>
-            <span class="ident">fork_counter</span>: <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#269">self</a>.<span class="ident">fork_counter</span>,
+            <span class="ident">fork_counter</span>: <a class="self" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#263">self</a>.<span class="ident">fork_counter</span>,
         }
     }
 }
@@ -678,7 +655,7 @@
 }
 
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">unix</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">unix</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)))]</span>
 <span class="kw">mod</span> <span class="ident">fork</span> {
     <span class="kw">use</span> <span class="ident">core::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">std::sync::Once</a>;
@@ -698,32 +675,24 @@
     <span class="kw">static</span> <span class="ident">RESEEDING_RNG_FORK_COUNTER</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>);
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_fork_counter</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#305">RESEEDING_RNG_FORK_COUNTER</a>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>)
+        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#299">RESEEDING_RNG_FORK_COUNTER</a>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>)
     }
 
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">fork_handler</span>() {
         <span class="comment">// Note: fetch_add is defined to wrap on overflow</span>
         <span class="comment">// (which is what we want).</span>
-        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#305">RESEEDING_RNG_FORK_COUNTER</a>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>);
+        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#299">RESEEDING_RNG_FORK_COUNTER</a>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>);
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_fork_handler</span>() {
         <span class="kw">static</span> <span class="ident">REGISTER</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a> <span class="op">=</span> <span class="ident">Once::new</span>();
-        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#318">REGISTER</a>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="comment">// Bump the counter before and after forking (see #1169):</span>
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::pthread_atfork</span>(
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#311">fork_handler</a>),
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#311">fork_handler</a>),
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#311">fork_handler</a>),
-            ) };
-            <span class="kw">if</span> <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#321">ret</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="macro">panic!</span>(<span class="string">&quot;libc::pthread_atfork failed with code {}&quot;</span>, <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#321">ret</a>);
-            }
+        <a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#312">REGISTER</a>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
+            <span class="ident">libc::pthread_atfork</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/rand/rngs/adapter/reseeding.rs.html#305">fork_handler</a>));
         });
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">unix</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">unix</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))))]</span>
 <span class="kw">mod</span> <span class="ident">fork</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_fork_counter</span>() -&gt; <span class="ident">usize</span> {
         <span class="number">0</span>
@@ -732,7 +701,6 @@
 }
 
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std_rng&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ReseedingRng</span>;
@@ -762,8 +730,6 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_clone_reseeding</span>() {
-        <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::redundant_clone</span>)]</span>
-
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zero</span> <span class="op">=</span> <span class="ident">StepRng::new</span>(<span class="number">0</span>, <span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">Core::from_rng</span>(<span class="kw-2">&amp;mut</span> <span class="ident">zero</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">ReseedingRng::new</span>(<span class="ident">rng</span>, <span class="number">32</span> <span class="op">*</span> <span class="number">4</span>, <span class="ident">zero</span>);
@@ -778,5 +744,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="rand" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="rand" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

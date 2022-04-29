@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.88/src/lookahead.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lookahead.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.91/src/lookahead.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lookahead.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -169,8 +169,11 @@
 <span id="164">164</span>
 <span id="165">165</span>
 <span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/syn/buffer.rs.html#151-160"><span class="kw">crate</span>::buffer::Cursor</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="self" href="../../src/syn/lib.rs.html#845">self</a>, <a class="ident" href="../../src/syn/error.rs.html#83-85">Error</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="self" href="../../src/syn/lib.rs.html#842">self</a>, <a class="ident" href="../../src/syn/error.rs.html#83-85">Error</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/syn/sealed.rs.html#3"><span class="kw">crate</span>::sealed::lookahead::Sealed</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/syn/span.rs.html#3-5"><span class="kw">crate</span>::span::IntoSpans</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/syn/token.rs.html#126-134"><span class="kw">crate</span>::token::Token</a>;
@@ -188,6 +191,9 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`ParseStream::peek`]: crate::parse::ParseBuffer::peek</span>
 <span class="doccomment">/// [`ParseStream::lookahead1`]: crate::parse::ParseBuffer::lookahead1</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Consuming tokens from the source stream after constructing a lookahead</span>
+<span class="doccomment">/// object does not also advance the lookahead object.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
@@ -233,23 +239,23 @@
     <span class="ident">comparisons</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">scope</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="../../src/syn/lookahead.rs.html#59-63">Lookahead1</a> {
-    <a class="ident" href="../../src/syn/lookahead.rs.html#59-63">Lookahead1</a> {
-        <a class="ident" href="../../src/syn/lookahead.rs.html#65">scope</a>,
-        <a class="ident" href="../../src/syn/lookahead.rs.html#65">cursor</a>,
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">scope</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="../../src/syn/lookahead.rs.html#62-66">Lookahead1</a> {
+    <a class="ident" href="../../src/syn/lookahead.rs.html#62-66">Lookahead1</a> {
+        <a class="ident" href="../../src/syn/lookahead.rs.html#68">scope</a>,
+        <a class="ident" href="../../src/syn/lookahead.rs.html#68">cursor</a>,
         <span class="ident">comparisons</span>: <span class="ident">RefCell::new</span>(<span class="ident">Vec::new</span>()),
     }
 }
 
 <span class="kw">fn</span> <span class="ident">peek_impl</span>(
-    <span class="ident">lookahead</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/lookahead.rs.html#59-63">Lookahead1</a>,
+    <span class="ident">lookahead</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/lookahead.rs.html#62-66">Lookahead1</a>,
     <span class="ident">peek</span>: <span class="kw">fn</span>(<a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">display</span>: <span class="kw">fn</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
 ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">if</span> <a class="ident" href="../../src/syn/lookahead.rs.html#75">peek</a>(<a class="ident" href="../../src/syn/lookahead.rs.html#74">lookahead</a>.<span class="ident">cursor</span>) {
+    <span class="kw">if</span> <a class="ident" href="../../src/syn/lookahead.rs.html#78">peek</a>(<a class="ident" href="../../src/syn/lookahead.rs.html#77">lookahead</a>.<span class="ident">cursor</span>) {
         <span class="kw">return</span> <span class="bool-val">true</span>;
     }
-    <a class="ident" href="../../src/syn/lookahead.rs.html#74">lookahead</a>.<span class="ident">comparisons</span>.<span class="ident">borrow_mut</span>().<span class="ident">push</span>(<a class="ident" href="../../src/syn/lookahead.rs.html#76">display</a>());
+    <a class="ident" href="../../src/syn/lookahead.rs.html#77">lookahead</a>.<span class="ident">comparisons</span>.<span class="ident">borrow_mut</span>().<span class="ident">push</span>(<a class="ident" href="../../src/syn/lookahead.rs.html#79">display</a>());
     <span class="bool-val">false</span>
 }
 
@@ -268,9 +274,9 @@
     <span class="doccomment">/// - `input.peek(Ident::peek_any)`</span>
     <span class="doccomment">/// - `input.peek(Lifetime)`</span>
     <span class="doccomment">/// - `input.peek(token::Brace)`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/syn/lookahead.rs.html#144-148">Peek</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../src/syn/lookahead.rs.html#100">token</a>;
-        <a class="ident" href="../../src/syn/lookahead.rs.html#73-77">peek_impl</a>(<a class="self" href="../../src/syn/lookahead.rs.html#100">self</a>, <span class="ident">T::Token::peek</span>, <span class="ident">T::Token::display</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/syn/lookahead.rs.html#147-151">Peek</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../src/syn/lookahead.rs.html#103">token</a>;
+        <a class="ident" href="../../src/syn/lookahead.rs.html#76-80">peek_impl</a>(<a class="self" href="../../src/syn/lookahead.rs.html#103">self</a>, <span class="ident">T::Token::peek</span>, <span class="ident">T::Token::display</span>)
     }
 
     <span class="doccomment">/// Triggers an error at the current position of the parse stream.</span>
@@ -278,27 +284,27 @@
     <span class="doccomment">/// The error message will identify all of the expected token types that</span>
     <span class="doccomment">/// have been peeked against this lookahead instance.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/syn/error.rs.html#83-85">Error</a> {
-        <span class="kw">let</span> <span class="ident">comparisons</span> <span class="op">=</span> <a class="self" href="../../src/syn/lookahead.rs.html#109">self</a>.<span class="ident">comparisons</span>.<span class="ident">borrow</span>();
-        <span class="kw">match</span> <a class="ident" href="../../src/syn/lookahead.rs.html#110">comparisons</a>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">comparisons</span> <span class="op">=</span> <a class="self" href="../../src/syn/lookahead.rs.html#112">self</a>.<span class="ident">comparisons</span>.<span class="ident">borrow</span>();
+        <span class="kw">match</span> <a class="ident" href="../../src/syn/lookahead.rs.html#113">comparisons</a>.<span class="ident">len</span>() {
             <span class="number">0</span> =&gt; {
-                <span class="kw">if</span> <a class="self" href="../../src/syn/lookahead.rs.html#109">self</a>.<span class="ident">cursor</span>.<a class="ident" href="../../src/syn/buffer.rs.html#239">eof</a>() {
-                    <span class="ident">Error::new</span>(<a class="self" href="../../src/syn/lookahead.rs.html#109">self</a>.<span class="ident">scope</span>, <span class="string">&quot;unexpected end of input&quot;</span>)
+                <span class="kw">if</span> <a class="self" href="../../src/syn/lookahead.rs.html#112">self</a>.<span class="ident">cursor</span>.<a class="ident" href="../../src/syn/buffer.rs.html#239">eof</a>() {
+                    <span class="ident">Error::new</span>(<a class="self" href="../../src/syn/lookahead.rs.html#112">self</a>.<span class="ident">scope</span>, <span class="string">&quot;unexpected end of input&quot;</span>)
                 } <span class="kw">else</span> {
-                    <span class="ident">Error::new</span>(<a class="self" href="../../src/syn/lookahead.rs.html#109">self</a>.<span class="ident">cursor</span>.<a class="ident" href="../../src/syn/buffer.rs.html#348">span</a>(), <span class="string">&quot;unexpected token&quot;</span>)
+                    <span class="ident">Error::new</span>(<a class="self" href="../../src/syn/lookahead.rs.html#112">self</a>.<span class="ident">cursor</span>.<a class="ident" href="../../src/syn/buffer.rs.html#348">span</a>(), <span class="string">&quot;unexpected token&quot;</span>)
                 }
             }
             <span class="number">1</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;expected {}&quot;</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#110">comparisons</a>[<span class="number">0</span>]);
-                <a class="ident" href="../../src/syn/error.rs.html#277">error::new_at</a>(<a class="self" href="../../src/syn/lookahead.rs.html#109">self</a>.<span class="ident">scope</span>, <a class="self" href="../../src/syn/lookahead.rs.html#109">self</a>.<span class="ident">cursor</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#120">message</a>)
+                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;expected {}&quot;</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#113">comparisons</a>[<span class="number">0</span>]);
+                <a class="ident" href="../../src/syn/error.rs.html#277">error::new_at</a>(<a class="self" href="../../src/syn/lookahead.rs.html#112">self</a>.<span class="ident">scope</span>, <a class="self" href="../../src/syn/lookahead.rs.html#112">self</a>.<span class="ident">cursor</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#123">message</a>)
             }
             <span class="number">2</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;expected {} or {}&quot;</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#110">comparisons</a>[<span class="number">0</span>], <a class="ident" href="../../src/syn/lookahead.rs.html#110">comparisons</a>[<span class="number">1</span>]);
-                <a class="ident" href="../../src/syn/error.rs.html#277">error::new_at</a>(<a class="self" href="../../src/syn/lookahead.rs.html#109">self</a>.<span class="ident">scope</span>, <a class="self" href="../../src/syn/lookahead.rs.html#109">self</a>.<span class="ident">cursor</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#124">message</a>)
+                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;expected {} or {}&quot;</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#113">comparisons</a>[<span class="number">0</span>], <a class="ident" href="../../src/syn/lookahead.rs.html#113">comparisons</a>[<span class="number">1</span>]);
+                <a class="ident" href="../../src/syn/error.rs.html#277">error::new_at</a>(<a class="self" href="../../src/syn/lookahead.rs.html#112">self</a>.<span class="ident">scope</span>, <a class="self" href="../../src/syn/lookahead.rs.html#112">self</a>.<span class="ident">cursor</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#127">message</a>)
             }
             <span class="kw">_</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">join</span> <span class="op">=</span> <a class="ident" href="../../src/syn/lookahead.rs.html#110">comparisons</a>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;expected one of: {}&quot;</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#128">join</a>);
-                <a class="ident" href="../../src/syn/error.rs.html#277">error::new_at</a>(<a class="self" href="../../src/syn/lookahead.rs.html#109">self</a>.<span class="ident">scope</span>, <a class="self" href="../../src/syn/lookahead.rs.html#109">self</a>.<span class="ident">cursor</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#129">message</a>)
+                <span class="kw">let</span> <span class="ident">join</span> <span class="op">=</span> <a class="ident" href="../../src/syn/lookahead.rs.html#113">comparisons</a>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
+                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;expected one of: {}&quot;</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#131">join</a>);
+                <a class="ident" href="../../src/syn/error.rs.html#277">error::new_at</a>(<a class="self" href="../../src/syn/lookahead.rs.html#112">self</a>.<span class="ident">scope</span>, <a class="self" href="../../src/syn/lookahead.rs.html#112">self</a>.<span class="ident">cursor</span>, <a class="ident" href="../../src/syn/lookahead.rs.html#132">message</a>)
             }
         }
     }
@@ -318,23 +324,23 @@
     <span class="kw">type</span> <span class="ident">Token</span>: <a class="ident" href="../../src/syn/token.rs.html#126-134">Token</a>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> <span class="op">+</span> <span class="ident">FnOnce</span>(<span class="ident">TokenMarker</span>) -&gt; <span class="ident">T</span>, <span class="ident">T</span>: <a class="ident" href="../../src/syn/token.rs.html#126-134">Token</a><span class="op">&gt;</span> <a class="ident" href="../../src/syn/lookahead.rs.html#144-148">Peek</a> <span class="kw">for</span> <span class="ident">F</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> <span class="op">+</span> <span class="ident">FnOnce</span>(<span class="ident">TokenMarker</span>) -&gt; <span class="ident">T</span>, <span class="ident">T</span>: <a class="ident" href="../../src/syn/token.rs.html#126-134">Token</a><span class="op">&gt;</span> <a class="ident" href="../../src/syn/lookahead.rs.html#147-151">Peek</a> <span class="kw">for</span> <span class="ident">F</span> {
     <span class="kw">type</span> <span class="ident">Token</span> <span class="op">=</span> <span class="ident">T</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TokenMarker</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">IntoSpans</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/syn/lookahead.rs.html#154">TokenMarker</a> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">IntoSpans</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/syn/lookahead.rs.html#157">TokenMarker</a> {
     <span class="kw">fn</span> <span class="ident">into_spans</span>(<span class="self">self</span>) -&gt; <span class="ident">S</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/syn/lookahead.rs.html#157">self</a> {}
+        <span class="kw">match</span> <a class="self" href="../../src/syn/lookahead.rs.html#160">self</a> {}
     }
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_delimiter</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151-160">Cursor</a>, <span class="ident">delimiter</span>: <a class="ident" href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/syn/lookahead.rs.html#162">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#246">group</a>(<a class="ident" href="../../src/syn/lookahead.rs.html#162">delimiter</a>).<span class="ident">is_some</span>()
+    <a class="ident" href="../../src/syn/lookahead.rs.html#165">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#246">group</a>(<a class="ident" href="../../src/syn/lookahead.rs.html#165">delimiter</a>).<span class="ident">is_some</span>()
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> <span class="op">+</span> <span class="ident">FnOnce</span>(<span class="ident">TokenMarker</span>) -&gt; <span class="ident">T</span>, <span class="ident">T</span>: <a class="ident" href="../../src/syn/token.rs.html#126-134">Token</a><span class="op">&gt;</span> <a class="ident" href="../../src/syn/sealed.rs.html#3">Sealed</a> <span class="kw">for</span> <span class="ident">F</span> {}
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

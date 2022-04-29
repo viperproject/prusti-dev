@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-0.1.32/src/span.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>span.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-0.1.34/src/span.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>span.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1622,24 +1622,6 @@
 <span id="1615">1615</span>
 <span id="1616">1616</span>
 <span id="1617">1617</span>
-<span id="1618">1618</span>
-<span id="1619">1619</span>
-<span id="1620">1620</span>
-<span id="1621">1621</span>
-<span id="1622">1622</span>
-<span id="1623">1623</span>
-<span id="1624">1624</span>
-<span id="1625">1625</span>
-<span id="1626">1626</span>
-<span id="1627">1627</span>
-<span id="1628">1628</span>
-<span id="1629">1629</span>
-<span id="1630">1630</span>
-<span id="1631">1631</span>
-<span id="1632">1632</span>
-<span id="1633">1633</span>
-<span id="1634">1634</span>
-<span id="1635">1635</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Spans represent periods of time in which a program was executing in a</span>
 <span class="doccomment">//! particular context.</span>
 <span class="doccomment">//!</span>
@@ -1666,7 +1648,7 @@
 <span class="doccomment">//! - A string literal providing the span&#39;s name.</span>
 <span class="doccomment">//! - Finally, between zero and 32 arbitrary key/value fields.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [`target`]: ../struct.Metadata.html#method.target</span>
+<span class="doccomment">//! [`target`]: super::Metadata::target</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! For example:</span>
 <span class="doccomment">//! ```rust</span>
@@ -1840,26 +1822,27 @@
 <span class="doccomment">//! _closed_. Consider, for example, a future which has an associated</span>
 <span class="doccomment">//! span and enters that span every time it is polled:</span>
 <span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # use futures::{Future, Poll, Async};</span>
+<span class="doccomment">//! # use std::future::Future;</span>
+<span class="doccomment">//! # use std::task::{Context, Poll};</span>
+<span class="doccomment">//! # use std::pin::Pin;</span>
 <span class="doccomment">//! struct MyFuture {</span>
 <span class="doccomment">//!    // data</span>
 <span class="doccomment">//!    span: tracing::Span,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! impl Future for MyFuture {</span>
-<span class="doccomment">//!     type Item = ();</span>
-<span class="doccomment">//!     type Error = ();</span>
+<span class="doccomment">//!     type Output = ();</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//!     fn poll(&amp;mut self) -&gt; Poll&lt;Self::Item, Self::Error&gt; {</span>
+<span class="doccomment">//!     fn poll(self: Pin&lt;&amp;mut Self&gt;, _cx: &amp;mut Context&lt;&#39;_&gt;) -&gt; Poll&lt;Self::Output&gt; {</span>
 <span class="doccomment">//!         let _enter = self.span.enter();</span>
 <span class="doccomment">//!         // Do actual future work...</span>
-<span class="doccomment">//! # Ok(Async::Ready(()))</span>
+<span class="doccomment">//! # Poll::Ready(())</span>
 <span class="doccomment">//!     }</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! If this future was spawned on an executor, it might yield one or more times</span>
-<span class="doccomment">//! before `poll` returns `Ok(Async::Ready)`. If the future were to yield, then</span>
+<span class="doccomment">//! before `poll` returns [`Poll::Ready`]. If the future were to yield, then</span>
 <span class="doccomment">//! the executor would move on to poll the next future, which may _also_ enter</span>
 <span class="doccomment">//! an associated span or series of spans. Therefore, it is valid for a span to</span>
 <span class="doccomment">//! be entered repeatedly before it completes. Only the time when that span or</span>
@@ -1938,26 +1921,25 @@
 <span class="doccomment">//! much time was spent in each individual iteration, we would enter a new span</span>
 <span class="doccomment">//! on every iteration.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [fields]: ../field/index.html</span>
-<span class="doccomment">//! [Metadata]: ../struct.Metadata.html</span>
-<span class="doccomment">//! [`Id`]: struct.Id.html</span>
-<span class="doccomment">//! [verbosity level]: ../struct.Level.html</span>
-<span class="doccomment">//! [`span!`]: ../macro.span.html</span>
-<span class="doccomment">//! [`trace_span!`]: ../macro.trace_span.html</span>
-<span class="doccomment">//! [`debug_span!`]: ../macro.debug_span.html</span>
-<span class="doccomment">//! [`info_span!`]: ../macro.info_span.html</span>
-<span class="doccomment">//! [`warn_span!`]: ../macro.warn_span.html</span>
-<span class="doccomment">//! [`error_span!`]: ../macro.error_span.html</span>
-<span class="doccomment">//! [`clone_span`]: ../subscriber/trait.Subscriber.html#method.clone_span</span>
-<span class="doccomment">//! [`drop_span`]: ../subscriber/trait.Subscriber.html#method.drop_span</span>
-<span class="doccomment">//! [`exit`]: ../subscriber/trait.Subscriber.html#tymethod.exit</span>
-<span class="doccomment">//! [`Subscriber`]: ../subscriber/trait.Subscriber.html</span>
-<span class="doccomment">//! [`Attributes`]: struct.Attributes.html</span>
-<span class="doccomment">//! [`enter`]: struct.Span.html#method.enter</span>
-<span class="doccomment">//! [`entered`]: struct.Span.html#method.entered</span>
-<span class="doccomment">//! [`in_scope`]: struct.Span.html#method.in_scope</span>
-<span class="doccomment">//! [`follows_from`]: struct.Span.html#method.follows_from</span>
-<span class="doccomment">//! [guard]: struct.Entered.html</span>
+<span class="doccomment">//! [fields]: super::field</span>
+<span class="doccomment">//! [Metadata]: super::Metadata</span>
+<span class="doccomment">//! [verbosity level]: super::Level</span>
+<span class="doccomment">//! [`Poll::Ready`]: std::task::Poll::Ready</span>
+<span class="doccomment">//! [`span!`]: super::span!</span>
+<span class="doccomment">//! [`trace_span!`]: super::trace_span!</span>
+<span class="doccomment">//! [`debug_span!`]: super::debug_span!</span>
+<span class="doccomment">//! [`info_span!`]: super::info_span!</span>
+<span class="doccomment">//! [`warn_span!`]: super::warn_span!</span>
+<span class="doccomment">//! [`error_span!`]: super::error_span!</span>
+<span class="doccomment">//! [`clone_span`]: super::subscriber::Subscriber::clone_span()</span>
+<span class="doccomment">//! [`drop_span`]: super::subscriber::Subscriber::drop_span()</span>
+<span class="doccomment">//! [`exit`]: super::subscriber::Subscriber::exit</span>
+<span class="doccomment">//! [`Subscriber`]: super::subscriber::Subscriber</span>
+<span class="doccomment">//! [`enter`]: Span::enter()</span>
+<span class="doccomment">//! [`entered`]: Span::entered()</span>
+<span class="doccomment">//! [`in_scope`]: Span::in_scope()</span>
+<span class="doccomment">//! [`follows_from`]: Span::follows_from()</span>
+<span class="doccomment">//! [guard]: Entered</span>
 <span class="doccomment">//! [parent]: #span-relationships</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tracing_core::span</span>::{<a class="ident" href="../../tracing/span/struct.Attributes.html">Attributes</a>, <a class="ident" href="../../tracing/span/struct.Id.html">Id</a>, <a class="ident" href="../../tracing/span/struct.Record.html">Record</a>};
 
@@ -1969,12 +1951,12 @@
     <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a>,
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">dispatcher</span>::{<a class="self" href="../../src/tracing/lib.rs.html#960">self</a>, <a class="ident" href="../../tracing/struct.Dispatch.html">Dispatch</a>},
-    <a class="ident" href="../../src/tracing/lib.rs.html#961">field</a>, <a class="ident" href="../../tracing/struct.Metadata.html">Metadata</a>,
+    <span class="ident">dispatcher</span>::{<a class="self" href="../../src/tracing/lib.rs.html#959">self</a>, <a class="ident" href="../../tracing/struct.Dispatch.html">Dispatch</a>},
+    <a class="ident" href="../../src/tracing/lib.rs.html#960">field</a>, <a class="ident" href="../../tracing/struct.Metadata.html">Metadata</a>,
 };
 
 <span class="doccomment">/// Trait implemented by types which have a span `Id`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsId</span>: <a class="ident" href="../../src/tracing/lib.rs.html#1161"><span class="kw">crate</span>::sealed::Sealed</a> {
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsId</span>: <a class="ident" href="../../src/tracing/lib.rs.html#1182"><span class="kw">crate</span>::sealed::Sealed</a> {
     <span class="doccomment">/// Returns the `Id` of the span that `self` corresponds to, or `None` if</span>
     <span class="doccomment">/// this corresponds to a disabled span.</span>
     <span class="kw">fn</span> <span class="ident">as_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../tracing/span/struct.Id.html">Id</a><span class="op">&gt;</span>;
@@ -2023,7 +2005,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This is returned by the [`Span::enter`] function.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Span::enter`]: ../struct.Span.html#method.enter</span>
+<span class="doccomment">/// [`Span::enter`]: super::Span::enter</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;once a span has been entered, it should be exited&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Entered</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -2049,7 +2031,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// impl AssertSend for EnteredSpan {}</span>
     <span class="doccomment">/// ```</span>
-    <span class="ident">_not_send</span>: <a class="ident" href="../../src/tracing/span.rs.html#1580-1582">PhantomNotSend</a>,
+    <span class="ident">_not_send</span>: <a class="ident" href="../../src/tracing/span.rs.html#1594-1596">PhantomNotSend</a>,
 }
 
 <span class="doccomment">/// `log` target for all span lifecycle (creation/enter/exit/close) records.</span>
@@ -2071,10 +2053,10 @@
     <span class="doccomment">/// After the span is constructed, [field values] and/or [`follows_from`]</span>
     <span class="doccomment">/// annotations may be added to it.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [metadata]: ../metadata</span>
-    <span class="doccomment">/// [`Subscriber`]: ../subscriber/trait.Subscriber.html</span>
-    <span class="doccomment">/// [field values]: ../field/struct.ValueSet.html</span>
-    <span class="doccomment">/// [`follows_from`]: ../struct.Span.html#method.follows_from</span>
+    <span class="doccomment">/// [metadata]: super::Metadata</span>
+    <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
+    <span class="doccomment">/// [field values]: super::field::ValueSet</span>
+    <span class="doccomment">/// [`follows_from`]: super::Span::follows_from</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">meta</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a> {
         <a class="ident" href="../../tracing/dispatcher/fn.get_default.html">dispatcher::get_default</a>(<span class="op">|</span><span class="ident">dispatch</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::new_with</span>(<a class="ident" href="../../src/tracing/span.rs.html#436">meta</a>, <a class="ident" href="../../src/tracing/span.rs.html#436">values</a>, <a class="ident" href="../../src/tracing/span.rs.html#437">dispatch</a>))
     }
@@ -2096,9 +2078,9 @@
     <span class="doccomment">/// After the span is constructed, [field values] and/or [`follows_from`]</span>
     <span class="doccomment">/// annotations may be added to it.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [metadata]: ../metadata</span>
-    <span class="doccomment">/// [field values]: ../field/struct.ValueSet.html</span>
-    <span class="doccomment">/// [`follows_from`]: ../struct.Span.html#method.follows_from</span>
+    <span class="doccomment">/// [metadata]: super::Metadata</span>
+    <span class="doccomment">/// [field values]: super::field::ValueSet</span>
+    <span class="doccomment">/// [`follows_from`]: super::Span::follows_from</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_root</span>(<span class="ident">meta</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a> {
         <a class="ident" href="../../tracing/dispatcher/fn.get_default.html">dispatcher::get_default</a>(<span class="op">|</span><span class="ident">dispatch</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::new_root_with</span>(<a class="ident" href="../../src/tracing/span.rs.html#460">meta</a>, <a class="ident" href="../../src/tracing/span.rs.html#460">values</a>, <a class="ident" href="../../src/tracing/span.rs.html#461">dispatch</a>))
     }
@@ -2120,9 +2102,9 @@
     <span class="doccomment">/// After the span is constructed, [field values] and/or [`follows_from`]</span>
     <span class="doccomment">/// annotations may be added to it.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [metadata]: ../metadata</span>
-    <span class="doccomment">/// [field values]: ../field/struct.ValueSet.html</span>
-    <span class="doccomment">/// [`follows_from`]: ../struct.Span.html#method.follows_from</span>
+    <span class="doccomment">/// [metadata]: super::Metadata</span>
+    <span class="doccomment">/// [field values]: super::field::ValueSet</span>
+    <span class="doccomment">/// [`follows_from`]: super::Span::follows_from</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">child_of</span>(
         <span class="ident">parent</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Id</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">meta</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
@@ -2186,14 +2168,15 @@
     <span class="doccomment">/// that the thread from which this function is called is not currently</span>
     <span class="doccomment">/// inside a span, the returned span will be disabled.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [considered by the `Subscriber`]: ../subscriber/trait.Subscriber.html#method.current</span>
+    <span class="doccomment">/// [considered by the `Subscriber`]:</span>
+    <span class="doccomment">///     super::subscriber::Subscriber::current_span</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current</span>() -&gt; <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a> {
         <a class="ident" href="../../tracing/dispatcher/fn.get_default.html">dispatcher::get_default</a>(<span class="op">|</span><span class="ident">dispatch</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">meta</span>)) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#549">dispatch</a>.<span class="ident">current_span</span>().<span class="ident">into_inner</span>() {
-                <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#549">dispatch</a>.<span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#550">id</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">meta</span>)) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#550">dispatch</a>.<span class="ident">current_span</span>().<span class="ident">into_inner</span>() {
+                <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#550">dispatch</a>.<span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#551">id</a>);
                 <span class="self">Self</span> {
-                    <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<span class="ident">Inner::new</span>(<a class="ident" href="../../src/tracing/span.rs.html#551">id</a>, <a class="ident" href="../../src/tracing/span.rs.html#549">dispatch</a>)),
-                    <span class="ident">meta</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing/span.rs.html#550">meta</a>),
+                    <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<span class="ident">Inner::new</span>(<a class="ident" href="../../src/tracing/span.rs.html#552">id</a>, <a class="ident" href="../../src/tracing/span.rs.html#550">dispatch</a>)),
+                    <span class="ident">meta</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing/span.rs.html#551">meta</a>),
                 }
             } <span class="kw">else</span> {
                 <span class="ident"><span class="self">Self</span>::none</span>()
@@ -2206,25 +2189,30 @@
         <span class="ident">new_span</span>: <span class="ident">Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">dispatch</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../tracing/struct.Dispatch.html">Dispatch</a>,
     ) -&gt; <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a> {
-        <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#564">new_span</a>;
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#565">dispatch</a>.<span class="ident">new_span</span>(<a class="ident" href="../../src/tracing/span.rs.html#567">attrs</a>);
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Inner::new</span>(<a class="ident" href="../../src/tracing/span.rs.html#568">id</a>, <a class="ident" href="../../src/tracing/span.rs.html#565">dispatch</a>));
+        <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#565">new_span</a>;
+        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#566">dispatch</a>.<span class="ident">new_span</span>(<a class="ident" href="../../src/tracing/span.rs.html#568">attrs</a>);
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Inner::new</span>(<a class="ident" href="../../src/tracing/span.rs.html#569">id</a>, <a class="ident" href="../../src/tracing/span.rs.html#566">dispatch</a>));
 
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">Self</span> {
-            <a class="ident" href="../../src/tracing/span.rs.html#569">inner</a>,
-            <span class="ident">meta</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing/span.rs.html#563">meta</a>),
+            <a class="ident" href="../../src/tracing/span.rs.html#570">inner</a>,
+            <span class="ident">meta</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing/span.rs.html#564">meta</a>),
         };
 
-        <span class="macro">if_log_enabled!</span> { <span class="kw-2">*</span><a class="ident" href="../../src/tracing/span.rs.html#563">meta</a>.<span class="ident">level</span>(), {
-            <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/tracing/span.rs.html#567">attrs</a>.<span class="ident">is_empty</span>() {
+        <span class="macro">if_log_enabled!</span> { <span class="kw-2">*</span><a class="ident" href="../../src/tracing/span.rs.html#564">meta</a>.<span class="ident">level</span>(), {
+            <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/tracing/span.rs.html#568">attrs</a>.<span class="ident">is_empty</span>() {
                 <a class="ident" href="../../src/tracing/span.rs.html#415">LIFECYCLE_LOG_TARGET</a>
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/tracing/span.rs.html#563">meta</a>.<span class="ident">target</span>()
+                <a class="ident" href="../../src/tracing/span.rs.html#564">meta</a>.<span class="ident">target</span>()
             };
-            <a class="ident" href="../../src/tracing/span.rs.html#571">span</a>.<a class="ident" href="../../src/tracing/span.rs.html#1317">log</a>(<a class="ident" href="../../src/tracing/span.rs.html#577">target</a>, <span class="macro">level_to_log!</span>(<span class="kw-2">*</span><a class="ident" href="../../src/tracing/span.rs.html#563">meta</a>.<span class="ident">level</span>()), <span class="macro">format_args!</span>(<span class="string">&quot;++ {}{}&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#563">meta</a>.<span class="ident">name</span>(), <a class="ident" href="../../src/tracing/span.rs.html#1609">FmtAttrs</a>(<a class="ident" href="../../src/tracing/span.rs.html#567">attrs</a>)));
+            <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#568">attrs</a>.<span class="ident">values</span>();
+            <a class="ident" href="../../src/tracing/span.rs.html#572">span</a>.<a class="ident" href="../../src/tracing/span.rs.html#1331">log</a>(
+                <a class="ident" href="../../src/tracing/span.rs.html#578">target</a>,
+                <span class="macro">level_to_log!</span>(<span class="kw-2">*</span><a class="ident" href="../../src/tracing/span.rs.html#564">meta</a>.<span class="ident">level</span>()),
+                <span class="macro">format_args!</span>(<span class="string">&quot;++ {};{}&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#564">meta</a>.<span class="ident">name</span>(), <a class="ident" href="../../src/tracing/lib.rs.html#1130-1133"><span class="kw">crate</span>::log::LogValueSet</a> { <a class="ident" href="../../src/tracing/span.rs.html#583">values</a>, <span class="ident">is_first</span>: <span class="bool-val">false</span> }),
+            );
         }}
 
-        <a class="ident" href="../../src/tracing/span.rs.html#571">span</a>
+        <a class="ident" href="../../src/tracing/span.rs.html#572">span</a>
     }
 
     <span class="doccomment">/// Enters this span, returning a guard that will exit the span when dropped.</span>
@@ -2247,9 +2235,13 @@
     <span class="doccomment">/// async fn my_async_function() {</span>
     <span class="doccomment">///     let span = info_span!(&quot;my_async_function&quot;);</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">///     // THIS WILL RESULT IN INCORRECT TRACES</span>
+    <span class="doccomment">///     // WARNING: This span will remain entered until this</span>
+    <span class="doccomment">///     // guard is dropped...</span>
     <span class="doccomment">///     let _enter = span.enter();</span>
-    <span class="doccomment">///     some_other_async_function().await;</span>
+    <span class="doccomment">///     // ...but the `await` keyword may yield, causing the</span>
+    <span class="doccomment">///     // runtime to switch to another task, while remaining in</span>
+    <span class="doccomment">///     // this span!</span>
+    <span class="doccomment">///     some_other_async_function().await</span>
     <span class="doccomment">///</span>
     <span class="doccomment">///     // ...</span>
     <span class="doccomment">/// }</span>
@@ -2352,7 +2344,7 @@
     <span class="doccomment">/// [syntax]: https://rust-lang.github.io/async-book/01_getting_started/04_async_await_primer.html</span>
     <span class="doccomment">/// [`Span::in_scope`]: #method.in_scope</span>
     <span class="doccomment">/// [instrument]: https://docs.rs/tracing/latest/tracing/trait.Instrument.html</span>
-    <span class="doccomment">/// [attr]: ../../attr.instrument.html</span>
+    <span class="doccomment">/// [attr]: macro@crate::instrument</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -2415,8 +2407,8 @@
     <span class="doccomment">/// [`Id`]: super::Id</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Entered</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing/span.rs.html#775">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1025">do_enter</a>();
-        <a class="ident" href="../../src/tracing/span.rs.html#387-389">Entered</a> { <span class="ident">span</span>: <a class="self" href="../../src/tracing/span.rs.html#775">self</a> }
+        <a class="self" href="../../src/tracing/span.rs.html#785">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1035">do_enter</a>();
+        <a class="ident" href="../../src/tracing/span.rs.html#387-389">Entered</a> { <span class="ident">span</span>: <a class="self" href="../../src/tracing/span.rs.html#785">self</a> }
     }
 
     <span class="doccomment">/// Enters this span, consuming it and returning a [guard][`EnteredSpan`]</span>
@@ -2526,10 +2518,10 @@
     <span class="doccomment">/// [`Id`]: super::Id</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">entered</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing/span.rs.html#401-411">EnteredSpan</a> {
-        <a class="self" href="../../src/tracing/span.rs.html#886">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1025">do_enter</a>();
+        <a class="self" href="../../src/tracing/span.rs.html#896">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1035">do_enter</a>();
         <a class="ident" href="../../src/tracing/span.rs.html#401-411">EnteredSpan</a> {
-            <span class="ident">span</span>: <a class="self" href="../../src/tracing/span.rs.html#886">self</a>,
-            <span class="ident">_not_send</span>: <a class="ident" href="../../src/tracing/span.rs.html#1585">PhantomNotSend</a>,
+            <span class="ident">span</span>: <a class="self" href="../../src/tracing/span.rs.html#896">self</a>,
+            <span class="ident">_not_send</span>: <a class="ident" href="../../src/tracing/span.rs.html#1599">PhantomNotSend</a>,
         }
     }
 
@@ -2657,21 +2649,21 @@
     <span class="doccomment">/// [`instrument`]: crate::instrument::Instrument::instrument</span>
     <span class="doccomment">/// [`in_current_span`]: crate::instrument::Instrument::in_current_span</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">or_current</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <a class="self" href="../../src/tracing/span.rs.html#1017">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1230">is_disabled</a>() {
+        <span class="kw">if</span> <a class="self" href="../../src/tracing/span.rs.html#1027">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1244">is_disabled</a>() {
             <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::current</span>();
         }
-        <a class="self" href="../../src/tracing/span.rs.html#1017">self</a>
+        <a class="self" href="../../src/tracing/span.rs.html#1027">self</a>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">do_enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1025">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
-            <a class="ident" href="../../src/tracing/span.rs.html#1026">inner</a>.<span class="ident">subscriber</span>.<span class="ident">enter</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1026">inner</a>.<span class="ident">id</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1035">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
+            <a class="ident" href="../../src/tracing/span.rs.html#1036">inner</a>.<span class="ident">subscriber</span>.<span class="ident">enter</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1036">inner</a>.<span class="ident">id</span>);
         }
 
         <span class="macro">if_log_enabled!</span> { <span class="ident"><span class="kw">crate</span>::Level::TRACE</span>, {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1025">self</a>.<span class="ident">meta</span> {
-                <a class="self" href="../../src/tracing/span.rs.html#1025">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1317">log</a>(<a class="ident" href="../../src/tracing/span.rs.html#418">ACTIVITY_LOG_TARGET</a>, <span class="ident">log::Level::Trace</span>, <span class="macro">format_args!</span>(<span class="string">&quot;-&gt; {}&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#1031">_meta</a>.<span class="ident">name</span>()));
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1035">self</a>.<span class="ident">meta</span> {
+                <a class="self" href="../../src/tracing/span.rs.html#1035">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1331">log</a>(<a class="ident" href="../../src/tracing/span.rs.html#418">ACTIVITY_LOG_TARGET</a>, <span class="ident">log::Level::Trace</span>, <span class="macro">format_args!</span>(<span class="string">&quot;-&gt; {};&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#1041">_meta</a>.<span class="ident">name</span>()));
             }
         }}
     }
@@ -2682,13 +2674,13 @@
     <span class="comment">// call means that spans may still be exited when unwinding.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">do_exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1042">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
-            <a class="ident" href="../../src/tracing/span.rs.html#1043">inner</a>.<span class="ident">subscriber</span>.<span class="ident">exit</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1043">inner</a>.<span class="ident">id</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1052">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() {
+            <a class="ident" href="../../src/tracing/span.rs.html#1053">inner</a>.<span class="ident">subscriber</span>.<span class="ident">exit</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1053">inner</a>.<span class="ident">id</span>);
         }
 
         <span class="macro">if_log_enabled!</span> { <span class="ident"><span class="kw">crate</span>::Level::TRACE</span>, {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1042">self</a>.<span class="ident">meta</span> {
-                <a class="self" href="../../src/tracing/span.rs.html#1042">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1317">log</a>(<a class="ident" href="../../src/tracing/span.rs.html#418">ACTIVITY_LOG_TARGET</a>, <span class="ident">log::Level::Trace</span>, <span class="macro">format_args!</span>(<span class="string">&quot;&lt;- {}&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#1048">_meta</a>.<span class="ident">name</span>()));
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1052">self</a>.<span class="ident">meta</span> {
+                <a class="self" href="../../src/tracing/span.rs.html#1052">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1331">log</a>(<a class="ident" href="../../src/tracing/span.rs.html#418">ACTIVITY_LOG_TARGET</a>, <span class="ident">log::Level::Trace</span>, <span class="macro">format_args!</span>(<span class="string">&quot;&lt;- {};&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#1058">_meta</a>.<span class="ident">name</span>()));
             }
         }}
     }
@@ -2730,27 +2722,27 @@
     <span class="doccomment">/// let a_string = span.in_scope(hello_world);</span>
     <span class="doccomment">///</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">in_scope</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">T</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">T</span> {
-        <span class="kw">let</span> <span class="ident">_enter</span> <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1090">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#775">enter</a>();
-        <a class="ident" href="../../src/tracing/span.rs.html#1090">f</a>()
+        <span class="kw">let</span> <span class="ident">_enter</span> <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1100">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#785">enter</a>();
+        <a class="ident" href="../../src/tracing/span.rs.html#1100">f</a>()
     }
 
-    <span class="doccomment">/// Returns a [`Field`](../field/struct.Field.html) for the field with the</span>
+    <span class="doccomment">/// Returns a [`Field`][super::field::Field] for the field with the</span>
     <span class="doccomment">/// given `name`, if one exists,</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">field</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../tracing/field/struct.Field.html">field::Field</a><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Q</span>: <a class="ident" href="../../src/tracing/field.rs.html#129-135">field::AsField</a>,
     {
-        <a class="self" href="../../src/tracing/span.rs.html#1097">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1311">metadata</a>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">meta</span><span class="op">|</span> <a class="ident" href="../../src/tracing/span.rs.html#1097">field</a>.<a class="ident" href="../../src/tracing/field.rs.html#134">as_field</a>(<a class="ident" href="../../src/tracing/span.rs.html#1101">meta</a>))
+        <a class="self" href="../../src/tracing/span.rs.html#1107">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1325">metadata</a>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">meta</span><span class="op">|</span> <a class="ident" href="../../src/tracing/span.rs.html#1107">field</a>.<a class="ident" href="../../src/tracing/field.rs.html#134">as_field</a>(<a class="ident" href="../../src/tracing/span.rs.html#1111">meta</a>))
     }
 
     <span class="doccomment">/// Returns true if this `Span` has a field for the given</span>
-    <span class="doccomment">/// [`Field`](../field/struct.Field.html) or field name.</span>
+    <span class="doccomment">/// [`Field`][super::field::Field] or field name.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_field</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
     <span class="kw">where</span>
         <span class="ident">Q</span>: <a class="ident" href="../../src/tracing/field.rs.html#129-135">field::AsField</a>,
     {
-        <a class="self" href="../../src/tracing/span.rs.html#1107">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1097-1099">field</a>(<a class="ident" href="../../src/tracing/span.rs.html#1107">field</a>).<span class="ident">is_some</span>()
+        <a class="self" href="../../src/tracing/span.rs.html#1117">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1107-1109">field</a>(<a class="ident" href="../../src/tracing/span.rs.html#1117">field</a>).<span class="ident">is_some</span>()
     }
 
     <span class="doccomment">/// Records that the field described by `field` has the value `value`.</span>
@@ -2821,45 +2813,49 @@
     <span class="doccomment">/// span.record(&quot;parting&quot;, &amp;&quot;you will be remembered&quot;);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`field::Empty`]: ../field/struct.Empty.html</span>
-    <span class="doccomment">/// [`Metadata`]: ../struct.Metadata.html</span>
+    <span class="doccomment">/// [`field::Empty`]: super::field::Empty</span>
+    <span class="doccomment">/// [`Metadata`]: super::Metadata</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">Q</span>: <a class="ident" href="../../src/tracing/field.rs.html#129-135">field::AsField</a>,
         <span class="ident">V</span>: <a class="ident" href="../../tracing/trait.Value.html">field::Value</a>,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1184">self</a>.<span class="ident">meta</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">field</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1184">field</a>.<a class="ident" href="../../src/tracing/field.rs.html#134">as_field</a>(<a class="ident" href="../../src/tracing/span.rs.html#1189">meta</a>) {
-                <a class="self" href="../../src/tracing/span.rs.html#1184">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1203">record_all</a>(
-                    <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1189">meta</a>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1194">self</a>.<span class="ident">meta</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">field</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1194">field</a>.<a class="ident" href="../../src/tracing/field.rs.html#134">as_field</a>(<a class="ident" href="../../src/tracing/span.rs.html#1199">meta</a>) {
+                <a class="self" href="../../src/tracing/span.rs.html#1194">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1213">record_all</a>(
+                    <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1199">meta</a>
                         .<span class="ident">fields</span>()
-                        .<span class="ident">value_set</span>(<span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1190">field</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing/span.rs.html#1184">value</a> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="../../tracing/trait.Value.html">field::Value</a>))]),
+                        .<span class="ident">value_set</span>(<span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1200">field</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing/span.rs.html#1194">value</a> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="../../tracing/trait.Value.html">field::Value</a>))]),
                 );
             }
         }
 
-        <a class="self" href="../../src/tracing/span.rs.html#1184">self</a>
+        <a class="self" href="../../src/tracing/span.rs.html#1194">self</a>
     }
 
     <span class="doccomment">/// Records all the fields in the provided `ValueSet`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">field::ValueSet</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">Record::new</span>(<a class="ident" href="../../src/tracing/span.rs.html#1203">values</a>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1203">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../src/tracing/span.rs.html#1205">inner</a>.<a class="ident" href="../../src/tracing/span.rs.html#1491">record</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1204">record</a>);
+        <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">Record::new</span>(<a class="ident" href="../../src/tracing/span.rs.html#1213">values</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1213">self</a>.<span class="ident">inner</span> {
+            <a class="ident" href="../../src/tracing/span.rs.html#1215">inner</a>.<a class="ident" href="../../src/tracing/span.rs.html#1505">record</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1214">record</a>);
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1203">self</a>.<span class="ident">meta</span> {
-            <span class="macro">if_log_enabled!</span> { <span class="kw-2">*</span><a class="ident" href="../../src/tracing/span.rs.html#1209">_meta</a>.<span class="ident">level</span>(), {
-                <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/tracing/span.rs.html#1204">record</a>.<span class="ident">is_empty</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1213">self</a>.<span class="ident">meta</span> {
+            <span class="macro">if_log_enabled!</span> { <span class="kw-2">*</span><a class="ident" href="../../src/tracing/span.rs.html#1219">_meta</a>.<span class="ident">level</span>(), {
+                <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/tracing/span.rs.html#1214">record</a>.<span class="ident">is_empty</span>() {
                     <a class="ident" href="../../src/tracing/span.rs.html#415">LIFECYCLE_LOG_TARGET</a>
                 } <span class="kw">else</span> {
-                    <a class="ident" href="../../src/tracing/span.rs.html#1209">_meta</a>.<span class="ident">target</span>()
+                    <a class="ident" href="../../src/tracing/span.rs.html#1219">_meta</a>.<span class="ident">target</span>()
                 };
-                <a class="self" href="../../src/tracing/span.rs.html#1203">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1317">log</a>(<a class="ident" href="../../src/tracing/span.rs.html#1211">target</a>, <span class="macro">level_to_log!</span>(<span class="kw-2">*</span><a class="ident" href="../../src/tracing/span.rs.html#1209">_meta</a>.<span class="ident">level</span>()), <span class="macro">format_args!</span>(<span class="string">&quot;{}{}&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#1209">_meta</a>.<span class="ident">name</span>(), <a class="ident" href="../../src/tracing/span.rs.html#1593">FmtValues</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1204">record</a>)));
+                <a class="self" href="../../src/tracing/span.rs.html#1213">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1331">log</a>(
+                    <a class="ident" href="../../src/tracing/span.rs.html#1221">target</a>,
+                    <span class="macro">level_to_log!</span>(<span class="kw-2">*</span><a class="ident" href="../../src/tracing/span.rs.html#1219">_meta</a>.<span class="ident">level</span>()),
+                    <span class="macro">format_args!</span>(<span class="string">&quot;{};{}&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#1219">_meta</a>.<span class="ident">name</span>(), <a class="ident" href="../../src/tracing/lib.rs.html#1130-1133"><span class="kw">crate</span>::log::LogValueSet</a> { <a class="ident" href="../../src/tracing/span.rs.html#1213">values</a>, <span class="ident">is_first</span>: <span class="bool-val">false</span> }),
+                );
             }}
         }
 
-        <a class="self" href="../../src/tracing/span.rs.html#1203">self</a>
+        <a class="self" href="../../src/tracing/span.rs.html#1213">self</a>
     }
 
     <span class="doccomment">/// Returns `true` if this span was disabled by the subscriber and does not</span>
@@ -2870,7 +2866,7 @@
     <span class="doccomment">/// [`is_none`]: #method.is_none</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_disabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing/span.rs.html#1230">self</a>.<span class="ident">inner</span>.<span class="ident">is_none</span>()
+        <a class="self" href="../../src/tracing/span.rs.html#1244">self</a>.<span class="ident">inner</span>.<span class="ident">is_none</span>()
     }
 
     <span class="doccomment">/// Returns `true` if this span was constructed by [`Span::none`] and is</span>
@@ -2885,7 +2881,7 @@
     <span class="doccomment">/// [`is_disabled`]: #method.is_disabled</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing/span.rs.html#1245">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1230">is_disabled</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../src/tracing/span.rs.html#1245">self</a>.<span class="ident">meta</span>.<span class="ident">is_none</span>()
+        <a class="self" href="../../src/tracing/span.rs.html#1259">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1244">is_disabled</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../src/tracing/span.rs.html#1259">self</a>.<span class="ident">meta</span>.<span class="ident">is_none</span>()
     }
 
     <span class="doccomment">/// Indicates that the span with the given ID has an indirect causal</span>
@@ -2936,50 +2932,50 @@
     <span class="doccomment">/// span.follows_from(id);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Id</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1296">self</a>.<span class="ident">inner</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">from</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1296">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
-                <a class="ident" href="../../src/tracing/span.rs.html#1297">inner</a>.<a class="ident" href="../../src/tracing/span.rs.html#1482">follows_from</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1298">from</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1310">self</a>.<span class="ident">inner</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">from</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1310">from</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
+                <a class="ident" href="../../src/tracing/span.rs.html#1311">inner</a>.<a class="ident" href="../../src/tracing/span.rs.html#1496">follows_from</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1312">from</a>);
             }
         }
-        <a class="self" href="../../src/tracing/span.rs.html#1296">self</a>
+        <a class="self" href="../../src/tracing/span.rs.html#1310">self</a>
     }
 
     <span class="doccomment">/// Returns this span&#39;s `Id`, if it is enabled.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../tracing/span/struct.Id.html">Id</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing/span.rs.html#1306">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Inner::id</span>)
+        <a class="self" href="../../src/tracing/span.rs.html#1320">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Inner::id</span>)
     }
 
     <span class="doccomment">/// Returns this span&#39;s `Metadata`, if it is enabled.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing/span.rs.html#1311">self</a>.<span class="ident">meta</span>
+        <a class="self" href="../../src/tracing/span.rs.html#1325">self</a>.<span class="ident">meta</span>
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;log&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">log</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">level</span>: <a class="ident" href="../../log/enum.Level.html">log::Level</a>, <span class="ident">message</span>: <span class="ident">fmt::Arguments</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1317">self</a>.<span class="ident">meta</span> {
-            <span class="kw">if</span> <span class="macro">level_to_log!</span>(<span class="kw-2">*</span><a class="ident" href="../../src/tracing/span.rs.html#1318">meta</a>.<span class="ident">level</span>()) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">log::max_level</span>() {
-                <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">log::logger</span>();
-                <span class="kw">let</span> <span class="ident">log_meta</span> <span class="op">=</span> <span class="ident">log::Metadata::builder</span>().<span class="ident">level</span>(<a class="ident" href="../../src/tracing/span.rs.html#1317">level</a>).<span class="ident">target</span>(<a class="ident" href="../../src/tracing/span.rs.html#1317">target</a>).<span class="ident">build</span>();
-                <span class="kw">if</span> <a class="ident" href="../../src/tracing/span.rs.html#1320">logger</a>.<a class="ident" href="../../log/trait.Log.html">enabled</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1321">log_meta</a>) {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1317">self</a>.<span class="ident">inner</span> {
-                        <a class="ident" href="../../src/tracing/span.rs.html#1320">logger</a>.<a class="ident" href="../../log/trait.Log.html">log</a>(
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1331">self</a>.<span class="ident">meta</span> {
+            <span class="kw">if</span> <span class="macro">level_to_log!</span>(<span class="kw-2">*</span><a class="ident" href="../../src/tracing/span.rs.html#1332">meta</a>.<span class="ident">level</span>()) <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../log/fn.max_level.html">log::max_level</a>() {
+                <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <a class="ident" href="../../log/fn.logger.html">log::logger</a>();
+                <span class="kw">let</span> <span class="ident">log_meta</span> <span class="op">=</span> <span class="ident">log::Metadata::builder</span>().<span class="ident">level</span>(<a class="ident" href="../../src/tracing/span.rs.html#1331">level</a>).<span class="ident">target</span>(<a class="ident" href="../../src/tracing/span.rs.html#1331">target</a>).<span class="ident">build</span>();
+                <span class="kw">if</span> <a class="ident" href="../../src/tracing/span.rs.html#1334">logger</a>.<a class="ident" href="../../log/trait.Log.html">enabled</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1335">log_meta</a>) {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1331">self</a>.<span class="ident">inner</span> {
+                        <a class="ident" href="../../src/tracing/span.rs.html#1334">logger</a>.<a class="ident" href="../../log/trait.Log.html">log</a>(
                             <span class="kw-2">&amp;</span><span class="ident">log::Record::builder</span>()
-                                .<span class="ident">metadata</span>(<a class="ident" href="../../src/tracing/span.rs.html#1321">log_meta</a>)
-                                .<span class="ident">module_path</span>(<a class="ident" href="../../src/tracing/span.rs.html#1318">meta</a>.<span class="ident">module_path</span>())
-                                .<span class="ident">file</span>(<a class="ident" href="../../src/tracing/span.rs.html#1318">meta</a>.<span class="ident">file</span>())
-                                .<span class="ident">line</span>(<a class="ident" href="../../src/tracing/span.rs.html#1318">meta</a>.<span class="ident">line</span>())
-                                .<span class="ident">args</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{}; span={}&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#1317">message</a>, <a class="ident" href="../../src/tracing/span.rs.html#1323">inner</a>.<span class="ident">id</span>.<span class="ident">into_u64</span>()))
+                                .<span class="ident">metadata</span>(<a class="ident" href="../../src/tracing/span.rs.html#1335">log_meta</a>)
+                                .<span class="ident">module_path</span>(<a class="ident" href="../../src/tracing/span.rs.html#1332">meta</a>.<span class="ident">module_path</span>())
+                                .<span class="ident">file</span>(<a class="ident" href="../../src/tracing/span.rs.html#1332">meta</a>.<span class="ident">file</span>())
+                                .<span class="ident">line</span>(<a class="ident" href="../../src/tracing/span.rs.html#1332">meta</a>.<span class="ident">line</span>())
+                                .<span class="ident">args</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{} span={}&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#1331">message</a>, <a class="ident" href="../../src/tracing/span.rs.html#1337">inner</a>.<span class="ident">id</span>.<span class="ident">into_u64</span>()))
                                 .<span class="ident">build</span>(),
                         );
                     } <span class="kw">else</span> {
-                        <a class="ident" href="../../src/tracing/span.rs.html#1320">logger</a>.<a class="ident" href="../../log/trait.Log.html">log</a>(
+                        <a class="ident" href="../../src/tracing/span.rs.html#1334">logger</a>.<a class="ident" href="../../log/trait.Log.html">log</a>(
                             <span class="kw-2">&amp;</span><span class="ident">log::Record::builder</span>()
-                                .<span class="ident">metadata</span>(<a class="ident" href="../../src/tracing/span.rs.html#1321">log_meta</a>)
-                                .<span class="ident">module_path</span>(<a class="ident" href="../../src/tracing/span.rs.html#1318">meta</a>.<span class="ident">module_path</span>())
-                                .<span class="ident">file</span>(<a class="ident" href="../../src/tracing/span.rs.html#1318">meta</a>.<span class="ident">file</span>())
-                                .<span class="ident">line</span>(<a class="ident" href="../../src/tracing/span.rs.html#1318">meta</a>.<span class="ident">line</span>())
-                                .<span class="ident">args</span>(<a class="ident" href="../../src/tracing/span.rs.html#1317">message</a>)
+                                .<span class="ident">metadata</span>(<a class="ident" href="../../src/tracing/span.rs.html#1335">log_meta</a>)
+                                .<span class="ident">module_path</span>(<a class="ident" href="../../src/tracing/span.rs.html#1332">meta</a>.<span class="ident">module_path</span>())
+                                .<span class="ident">file</span>(<a class="ident" href="../../src/tracing/span.rs.html#1332">meta</a>.<span class="ident">file</span>())
+                                .<span class="ident">line</span>(<a class="ident" href="../../src/tracing/span.rs.html#1332">meta</a>.<span class="ident">line</span>())
+                                .<span class="ident">args</span>(<a class="ident" href="../../src/tracing/span.rs.html#1331">message</a>)
                                 .<span class="ident">build</span>(),
                         );
                     }
@@ -2994,17 +2990,17 @@
     <span class="doccomment">/// If the span is disabled, the function is not called, and this method returns `None`</span>
     <span class="doccomment">/// instead.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_subscriber</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>((<span class="kw-2">&amp;</span><span class="ident">Id</span>, <span class="kw-2">&amp;</span><span class="ident">Dispatch</span>)) -&gt; <span class="ident">T</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing/span.rs.html#1354">self</a>.<span class="ident">inner</span>
+        <a class="self" href="../../src/tracing/span.rs.html#1368">self</a>.<span class="ident">inner</span>
             .<span class="ident">as_ref</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../src/tracing/span.rs.html#1354">f</a>((<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1357">inner</a>.<span class="ident">id</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1357">inner</a>.<span class="ident">subscriber</span>)))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../src/tracing/span.rs.html#1368">f</a>((<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1371">inner</a>.<span class="ident">id</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1371">inner</a>.<span class="ident">subscriber</span>)))
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">cmp::PartialEq</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/span.rs.html#1362">self</a>.<span class="ident">meta</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1362">other</a>.<span class="ident">meta</span>) {
+        <span class="kw">match</span> (<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/span.rs.html#1376">self</a>.<span class="ident">meta</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1376">other</a>.<span class="ident">meta</span>) {
             (<span class="prelude-val">Some</span>(<span class="ident">this</span>), <span class="prelude-val">Some</span>(<span class="ident">that</span>)) =&gt; {
-                <a class="ident" href="../../src/tracing/span.rs.html#1364">this</a>.<span class="ident">callsite</span>() <span class="op">==</span> <a class="ident" href="../../src/tracing/span.rs.html#1364">that</a>.<span class="ident">callsite</span>() <span class="op">&amp;&amp;</span> <a class="self" href="../../src/tracing/span.rs.html#1362">self</a>.<span class="ident">inner</span> <span class="op">==</span> <a class="ident" href="../../src/tracing/span.rs.html#1362">other</a>.<span class="ident">inner</span>
+                <a class="ident" href="../../src/tracing/span.rs.html#1378">this</a>.<span class="ident">callsite</span>() <span class="op">==</span> <a class="ident" href="../../src/tracing/span.rs.html#1378">that</a>.<span class="ident">callsite</span>() <span class="op">&amp;&amp;</span> <a class="self" href="../../src/tracing/span.rs.html#1376">self</a>.<span class="ident">inner</span> <span class="op">==</span> <a class="ident" href="../../src/tracing/span.rs.html#1376">other</a>.<span class="ident">inner</span>
             }
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
@@ -3013,70 +3009,70 @@
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hasher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <a class="self" href="../../src/tracing/span.rs.html#1373">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a class="ident" href="../../src/tracing/span.rs.html#1373">hasher</a>);
+        <a class="self" href="../../src/tracing/span.rs.html#1387">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a class="ident" href="../../src/tracing/span.rs.html#1387">hasher</a>);
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1379">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Span&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1379">self</a>.<span class="ident">meta</span> {
-            <a class="ident" href="../../src/tracing/span.rs.html#1380">span</a>.<span class="ident">field</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1381">meta</a>.<span class="ident">name</span>())
-                .<span class="ident">field</span>(<span class="string">&quot;level&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1381">meta</a>.<span class="ident">level</span>())
-                .<span class="ident">field</span>(<span class="string">&quot;target&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1381">meta</a>.<span class="ident">target</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1393">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Span&quot;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1393">self</a>.<span class="ident">meta</span> {
+            <a class="ident" href="../../src/tracing/span.rs.html#1394">span</a>.<span class="ident">field</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1395">meta</a>.<span class="ident">name</span>())
+                .<span class="ident">field</span>(<span class="string">&quot;level&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1395">meta</a>.<span class="ident">level</span>())
+                .<span class="ident">field</span>(<span class="string">&quot;target&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1395">meta</a>.<span class="ident">target</span>());
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1379">self</a>.<span class="ident">inner</span> {
-                <a class="ident" href="../../src/tracing/span.rs.html#1380">span</a>.<span class="ident">field</span>(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1386">inner</a>.<a class="ident" href="../../src/tracing/span.rs.html#1487">id</a>());
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1393">self</a>.<span class="ident">inner</span> {
+                <a class="ident" href="../../src/tracing/span.rs.html#1394">span</a>.<span class="ident">field</span>(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1400">inner</a>.<a class="ident" href="../../src/tracing/span.rs.html#1501">id</a>());
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/tracing/span.rs.html#1380">span</a>.<span class="ident">field</span>(<span class="string">&quot;disabled&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+                <a class="ident" href="../../src/tracing/span.rs.html#1394">span</a>.<span class="ident">field</span>(<span class="string">&quot;disabled&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">path</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1381">meta</a>.<span class="ident">module_path</span>() {
-                <a class="ident" href="../../src/tracing/span.rs.html#1380">span</a>.<span class="ident">field</span>(<span class="string">&quot;module_path&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1392">path</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">path</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1395">meta</a>.<span class="ident">module_path</span>() {
+                <a class="ident" href="../../src/tracing/span.rs.html#1394">span</a>.<span class="ident">field</span>(<span class="string">&quot;module_path&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1406">path</a>);
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">line</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1381">meta</a>.<span class="ident">line</span>() {
-                <a class="ident" href="../../src/tracing/span.rs.html#1380">span</a>.<span class="ident">field</span>(<span class="string">&quot;line&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1396">line</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">line</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1395">meta</a>.<span class="ident">line</span>() {
+                <a class="ident" href="../../src/tracing/span.rs.html#1394">span</a>.<span class="ident">field</span>(<span class="string">&quot;line&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1410">line</a>);
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">file</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1381">meta</a>.<span class="ident">file</span>() {
-                <a class="ident" href="../../src/tracing/span.rs.html#1380">span</a>.<span class="ident">field</span>(<span class="string">&quot;file&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1400">file</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">file</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1395">meta</a>.<span class="ident">file</span>() {
+                <a class="ident" href="../../src/tracing/span.rs.html#1394">span</a>.<span class="ident">field</span>(<span class="string">&quot;file&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1414">file</a>);
             }
         } <span class="kw">else</span> {
-            <a class="ident" href="../../src/tracing/span.rs.html#1380">span</a>.<span class="ident">field</span>(<span class="string">&quot;none&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+            <a class="ident" href="../../src/tracing/span.rs.html#1394">span</a>.<span class="ident">field</span>(<span class="string">&quot;none&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
-        <a class="ident" href="../../src/tracing/span.rs.html#1380">span</a>.<span class="ident">finish</span>()
+        <a class="ident" href="../../src/tracing/span.rs.html#1394">span</a>.<span class="ident">finish</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../tracing/span/struct.Id.html">Id</a><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing/span.rs.html#1412">span</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1413">inner</a>.<span class="ident">id</span>)
+        <a class="ident" href="../../src/tracing/span.rs.html#1426">span</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1427">inner</a>.<span class="ident">id</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../tracing/span/struct.Id.html">Id</a><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing/span.rs.html#1418">span</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Inner::id</span>)
+        <a class="ident" href="../../src/tracing/span.rs.html#1432">span</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Inner::id</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../tracing/span/struct.Id.html">Id</a><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">span</span>: <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing/span.rs.html#1424">span</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Inner::id</span>)
+        <a class="ident" href="../../src/tracing/span.rs.html#1438">span</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Inner::id</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing/span.rs.html#401-411">EnteredSpan</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../tracing/span/struct.Id.html">Id</a><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing/span.rs.html#401-411">EnteredSpan</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing/span.rs.html#1430">span</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1431">inner</a>.<span class="ident">id</span>)
+        <a class="ident" href="../../src/tracing/span.rs.html#1444">span</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#1445">inner</a>.<span class="ident">id</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing/span.rs.html#401-411">EnteredSpan</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../tracing/span/struct.Id.html">Id</a><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/tracing/span.rs.html#401-411">EnteredSpan</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing/span.rs.html#1436">span</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Inner::id</span>)
+        <a class="ident" href="../../src/tracing/span.rs.html#1450">span</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Inner::id</span>)
     }
 }
 
@@ -3086,17 +3082,17 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing/span.rs.html#366-375">Inner</a> {
             <span class="kw-2">ref</span> <span class="ident">id</span>,
             <span class="kw-2">ref</span> <span class="ident">subscriber</span>,
-        }) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1443">self</a>.<span class="ident">inner</span>
+        }) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1457">self</a>.<span class="ident">inner</span>
         {
-            <a class="ident" href="../../src/tracing/span.rs.html#1446">subscriber</a>.<span class="ident">try_close</span>(<a class="ident" href="../../src/tracing/span.rs.html#1445">id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="ident" href="../../src/tracing/span.rs.html#1460">subscriber</a>.<span class="ident">try_close</span>(<a class="ident" href="../../src/tracing/span.rs.html#1459">id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         }
 
         <span class="macro">if_log_enabled!</span> { <span class="ident"><span class="kw">crate</span>::Level::TRACE</span>, {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1443">self</a>.<span class="ident">meta</span> {
-                <a class="self" href="../../src/tracing/span.rs.html#1443">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1317">log</a>(
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <a class="self" href="../../src/tracing/span.rs.html#1457">self</a>.<span class="ident">meta</span> {
+                <a class="self" href="../../src/tracing/span.rs.html#1457">self</a>.<a class="ident" href="../../src/tracing/span.rs.html#1331">log</a>(
                     <a class="ident" href="../../src/tracing/span.rs.html#415">LIFECYCLE_LOG_TARGET</a>,
                     <span class="ident">log::Level::Trace</span>,
-                    <span class="macro">format_args!</span>(<span class="string">&quot;-- {}&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#1453">meta</a>.<span class="ident">name</span>()),
+                    <span class="macro">format_args!</span>(<span class="string">&quot;-- {};&quot;</span>, <a class="ident" href="../../src/tracing/span.rs.html#1467">meta</a>.<span class="ident">name</span>()),
                 );
             }
         }}
@@ -3122,43 +3118,43 @@
     <span class="doccomment">/// returns `Ok(())` if the other span was added as a precedent of this</span>
     <span class="doccomment">/// span, or an error if this was not possible.</span>
     <span class="kw">fn</span> <span class="ident">follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../tracing/span/struct.Id.html">Id</a>) {
-        <a class="self" href="../../src/tracing/span.rs.html#1482">self</a>.<span class="ident">subscriber</span>.<span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/span.rs.html#1482">self</a>.<span class="ident">id</span>, <a class="ident" href="../../src/tracing/span.rs.html#1482">from</a>)
+        <a class="self" href="../../src/tracing/span.rs.html#1496">self</a>.<span class="ident">subscriber</span>.<span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/span.rs.html#1496">self</a>.<span class="ident">id</span>, <a class="ident" href="../../src/tracing/span.rs.html#1496">from</a>)
     }
 
     <span class="doccomment">/// Returns the span&#39;s ID.</span>
     <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../tracing/span/struct.Id.html">Id</a> {
-        <a class="self" href="../../src/tracing/span.rs.html#1487">self</a>.<span class="ident">id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="../../src/tracing/span.rs.html#1501">self</a>.<span class="ident">id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
     <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing/span.rs.html#1491">self</a>.<span class="ident">subscriber</span>.<span class="ident">record</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/span.rs.html#1491">self</a>.<span class="ident">id</span>, <a class="ident" href="../../src/tracing/span.rs.html#1491">values</a>)
+        <a class="self" href="../../src/tracing/span.rs.html#1505">self</a>.<span class="ident">subscriber</span>.<span class="ident">record</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/span.rs.html#1505">self</a>.<span class="ident">id</span>, <a class="ident" href="../../src/tracing/span.rs.html#1505">values</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <a class="ident" href="../../tracing/span/struct.Id.html">Id</a>, <span class="ident">subscriber</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../tracing/struct.Dispatch.html">Dispatch</a>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/tracing/span.rs.html#366-375">Inner</a> {
-            <a class="ident" href="../../src/tracing/span.rs.html#1495">id</a>,
-            <span class="ident">subscriber</span>: <a class="ident" href="../../src/tracing/span.rs.html#1495">subscriber</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a class="ident" href="../../src/tracing/span.rs.html#1509">id</a>,
+            <span class="ident">subscriber</span>: <a class="ident" href="../../src/tracing/span.rs.html#1509">subscriber</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">cmp::PartialEq</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/span.rs.html#366-375">Inner</a> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing/span.rs.html#1504">self</a>.<span class="ident">id</span> <span class="op">==</span> <a class="ident" href="../../src/tracing/span.rs.html#1504">other</a>.<span class="ident">id</span>
+        <a class="self" href="../../src/tracing/span.rs.html#1518">self</a>.<span class="ident">id</span> <span class="op">==</span> <a class="ident" href="../../src/tracing/span.rs.html#1518">other</a>.<span class="ident">id</span>
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/span.rs.html#366-375">Inner</a> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <a class="self" href="../../src/tracing/span.rs.html#1510">self</a>.<span class="ident">id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a class="ident" href="../../src/tracing/span.rs.html#1510">state</a>);
+        <a class="self" href="../../src/tracing/span.rs.html#1524">self</a>.<span class="ident">id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a class="ident" href="../../src/tracing/span.rs.html#1524">state</a>);
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/span.rs.html#366-375">Inner</a> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/tracing/span.rs.html#366-375">Inner</a> {
-            <span class="ident">id</span>: <a class="self" href="../../src/tracing/span.rs.html#1516">self</a>.<span class="ident">subscriber</span>.<span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/span.rs.html#1516">self</a>.<span class="ident">id</span>),
-            <span class="ident">subscriber</span>: <a class="self" href="../../src/tracing/span.rs.html#1516">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">id</span>: <a class="self" href="../../src/tracing/span.rs.html#1530">self</a>.<span class="ident">subscriber</span>.<span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/span.rs.html#1530">self</a>.<span class="ident">id</span>),
+            <span class="ident">subscriber</span>: <a class="self" href="../../src/tracing/span.rs.html#1530">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
@@ -3168,16 +3164,16 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/tracing/span.rs.html#401-411">EnteredSpan</a> {
     <span class="doccomment">/// Returns this span&#39;s `Id`, if it is enabled.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../tracing/span/struct.Id.html">Id</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing/span.rs.html#1528">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Inner::id</span>)
+        <a class="self" href="../../src/tracing/span.rs.html#1542">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Inner::id</span>)
     }
 
     <span class="doccomment">/// Exits this span, returning the underlying [`Span`].</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a> {
         <span class="comment">// One does not simply move out of a struct with `Drop`.</span>
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/tracing/span.rs.html#1534">self</a>.<span class="ident">span</span>, <span class="ident">Span::none</span>());
-        <a class="ident" href="../../src/tracing/span.rs.html#1536">span</a>.<a class="ident" href="../../src/tracing/span.rs.html#1042">do_exit</a>();
-        <a class="ident" href="../../src/tracing/span.rs.html#1536">span</a>
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/tracing/span.rs.html#1548">self</a>.<span class="ident">span</span>, <span class="ident">Span::none</span>());
+        <a class="ident" href="../../src/tracing/span.rs.html#1550">span</a>.<a class="ident" href="../../src/tracing/span.rs.html#1052">do_exit</a>();
+        <a class="ident" href="../../src/tracing/span.rs.html#1550">span</a>
     }
 }
 
@@ -3186,21 +3182,21 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing/span.rs.html#348-358">Span</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/span.rs.html#1546">self</a>.<span class="ident">span</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/tracing/span.rs.html#1560">self</a>.<span class="ident">span</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Entered</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/tracing/span.rs.html#1553">self</a>.<span class="ident">span</span>.<a class="ident" href="../../src/tracing/span.rs.html#1042">do_exit</a>()
+        <a class="self" href="../../src/tracing/span.rs.html#1567">self</a>.<span class="ident">span</span>.<a class="ident" href="../../src/tracing/span.rs.html#1052">do_exit</a>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/span.rs.html#401-411">EnteredSpan</a> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/tracing/span.rs.html#1560">self</a>.<span class="ident">span</span>.<a class="ident" href="../../src/tracing/span.rs.html#1042">do_exit</a>()
+        <a class="self" href="../../src/tracing/span.rs.html#1574">self</a>.<span class="ident">span</span>.<a class="ident" href="../../src/tracing/span.rs.html#1052">do_exit</a>()
     }
 }
 
@@ -3224,44 +3220,12 @@
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>)]</span>
-<span class="kw">const</span> <span class="ident">PhantomNotSend</span>: <a class="ident" href="../../src/tracing/span.rs.html#1580-1582">PhantomNotSend</a> <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1580-1582">PhantomNotSend</a> { <span class="ident">ghost</span>: <span class="ident">PhantomData</span> };
+<span class="kw">const</span> <span class="ident">PhantomNotSend</span>: <a class="ident" href="../../src/tracing/span.rs.html#1594-1596">PhantomNotSend</a> <span class="op">=</span> <a class="ident" href="../../src/tracing/span.rs.html#1594-1596">PhantomNotSend</a> { <span class="ident">ghost</span>: <span class="ident">PhantomData</span> };
 
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Trivially safe, as `PhantomNotSend` doesn&#39;t have any API.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/span.rs.html#1580-1582">PhantomNotSend</a> {}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;log&quot;</span>)]</span>
-<span class="kw">struct</span> <span class="ident">FmtValues</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Record</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>);
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;log&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">FmtValues</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../src/tracing/span.rs.html#1597">self</a>.<span class="number">0</span>.<span class="ident">record</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">k</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../tracing/field/struct.Field.html">field::Field</a>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">|</span> {
-            <a class="ident" href="../../src/tracing/span.rs.html#1598">res</a> <span class="op">=</span> <span class="macro">write!</span>(<a class="ident" href="../../src/tracing/span.rs.html#1597">f</a>, <span class="string">&quot;{} {}={:?}&quot;</span>, <span class="kw">if</span> <a class="ident" href="../../src/tracing/span.rs.html#1599">is_first</a> { <span class="string">&quot;;&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> }, <a class="ident" href="../../src/tracing/span.rs.html#1600">k</a>, <a class="ident" href="../../src/tracing/span.rs.html#1600">v</a>);
-            <a class="ident" href="../../src/tracing/span.rs.html#1599">is_first</a> <span class="op">=</span> <span class="bool-val">false</span>;
-        });
-        <a class="ident" href="../../src/tracing/span.rs.html#1598">res</a>
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;log&quot;</span>)]</span>
-<span class="kw">struct</span> <span class="ident">FmtAttrs</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>);
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;log&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">FmtAttrs</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../src/tracing/span.rs.html#1613">self</a>.<span class="number">0</span>.<span class="ident">record</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">k</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../tracing/field/struct.Field.html">field::Field</a>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a><span class="op">|</span> {
-            <a class="ident" href="../../src/tracing/span.rs.html#1614">res</a> <span class="op">=</span> <span class="macro">write!</span>(<a class="ident" href="../../src/tracing/span.rs.html#1613">f</a>, <span class="string">&quot;{} {}={:?}&quot;</span>, <span class="kw">if</span> <a class="ident" href="../../src/tracing/span.rs.html#1615">is_first</a> { <span class="string">&quot;;&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> }, <a class="ident" href="../../src/tracing/span.rs.html#1616">k</a>, <a class="ident" href="../../src/tracing/span.rs.html#1616">v</a>);
-            <a class="ident" href="../../src/tracing/span.rs.html#1615">is_first</a> <span class="op">=</span> <span class="bool-val">false</span>;
-        });
-        <a class="ident" href="../../src/tracing/span.rs.html#1614">res</a>
-    }
-}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing/span.rs.html#1594-1596">PhantomNotSend</a> {}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
@@ -3276,5 +3240,5 @@
     <span class="kw">impl</span> <span class="ident">AssertSync</span> <span class="kw">for</span> <span class="ident">EnteredSpan</span> {}
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

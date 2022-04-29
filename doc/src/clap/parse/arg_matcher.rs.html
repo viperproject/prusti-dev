@@ -1,0 +1,442 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.1.8/src/parse/arg_matcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg_matcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+</pre><pre class="rust"><code><span class="comment">// Std</span>
+<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">ffi::OsString</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a>};
+
+<span class="comment">// Internal</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">build</span>::{<a class="ident" href="../../../src/clap/build/arg.rs.html#60-98">Arg</a>, <a class="ident" href="../../../src/clap/build/arg_predicate.rs.html#2-5">ArgPredicate</a>, <a class="ident" href="../../../src/clap/build/command.rs.html#70">Command</a>},
+    <span class="ident">parse</span>::{<a class="ident" href="../../../src/clap/parse/matches/arg_matches.rs.html#70-79">ArgMatches</a>, <a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#14-21">MatchedArg</a>, <a class="ident" href="../../../src/clap/parse/matches/arg_matches.rs.html#1186-1190">SubCommand</a>, <a class="ident" href="../../../src/clap/parse/matches/value_source.rs.html#4-11">ValueSource</a>},
+    <a class="ident" href="../../../src/clap/util/id.rs.html#11-15">util::Id</a>,
+};
+
+<span class="comment">// Third party</span>
+<span class="kw">use</span> <a class="ident" href="../../../indexmap/map/core/enum.Entry.html">indexmap::map::Entry</a>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">ArgMatcher</span>(<a class="ident" href="../../../src/clap/parse/matches/arg_matches.rs.html#70-79">ArgMatches</a>);
+
+<span class="kw">impl</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#15">ArgMatcher</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_cmd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/build/command.rs.html#70">Command</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#15">ArgMatcher</a>(<a class="ident" href="../../../src/clap/parse/matches/arg_matches.rs.html#70-79">ArgMatches</a> {
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+            <span class="ident">valid_args</span>: {
+                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#18">_cmd</a>.<a class="ident" href="../../../src/clap/build/command.rs.html#3418">get_arguments</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#22">a</a>.<span class="ident">id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#18">_cmd</a>.<a class="ident" href="../../../src/clap/build/command.rs.html#3412">get_groups</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#23">g</a>.<span class="ident">id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#22">args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#23">groups</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+            },
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+            <span class="ident">valid_subcommands</span>: <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#18">_cmd</a>.<a class="ident" href="../../../src/clap/build/command.rs.html#3325">get_subcommands</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">sc</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#27">sc</a>.<a class="ident" href="../../../src/clap/build/command.rs.html#3914">get_id</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <span class="comment">// HACK: Allow an external subcommand&#39;s ArgMatches be a stand-in for any ArgMatches</span>
+            <span class="comment">// since users can&#39;t detect it and avoid the asserts.</span>
+            <span class="comment">//</span>
+            <span class="comment">// See clap-rs/clap#3263</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+            <span class="ident">disable_asserts</span>: <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#18">_cmd</a>.<a class="ident" href="../../../src/clap/build/command.rs.html#3617">is_allow_external_subcommands_set</a>(),
+            ..<a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()
+        })
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/clap/parse/matches/arg_matches.rs.html#70-79">ArgMatches</a> {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#38">self</a>.<span class="number">0</span>
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">propagate_globals</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">global_arg_vec</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>]) {
+        <span class="macro">debug!</span>(
+            <span class="string">&quot;ArgMatcher::get_global_values: global_arg_vec={:?}&quot;</span>,
+            <span class="ident">global_arg_vec</span>
+        );
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vals_map</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#42">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#51-55">fill_in_global_values</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#42">global_arg_vec</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#47">vals_map</a>);
+    }
+
+    <span class="kw">fn</span> <span class="ident">fill_in_global_values</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">global_arg_vec</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>],
+        <span class="ident">vals_map</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>, <a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#14-21">MatchedArg</a><span class="op">&gt;</span>,
+    ) {
+        <span class="kw">for</span> <span class="ident">global_arg</span> <span class="kw">in</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#53">global_arg_vec</a> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ma</span>) <span class="op">=</span> <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#52">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#92">get</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#56">global_arg</a>) {
+                <span class="comment">// We have to check if the parent&#39;s global arg wasn&#39;t used but still exists</span>
+                <span class="comment">// such as from a default value.</span>
+                <span class="comment">//</span>
+                <span class="comment">// For example, `myprog subcommand --global-arg=value` where --global-arg defines</span>
+                <span class="comment">// a default value of `other` myprog would have an existing MatchedArg for</span>
+                <span class="comment">// --global-arg where the value is `other`, however the occurs will be 0.</span>
+                <span class="kw">let</span> <span class="ident">to_update</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent_ma</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#54">vals_map</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#56">global_arg</a>) {
+                    <span class="kw">if</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#64">parent_ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#39">get_occurrences</a>() <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#57">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#39">get_occurrences</a>() <span class="op">==</span> <span class="number">0</span> {
+                        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#64">parent_ma</a>
+                    } <span class="kw">else</span> {
+                        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#57">ma</a>
+                    }
+                } <span class="kw">else</span> {
+                    <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#57">ma</a>
+                }
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#54">vals_map</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#56">global_arg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#64">to_update</a>);
+            }
+        }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">sc</span>) <span class="op">=</span> <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#52">self</a>.<span class="number">0</span>.<span class="ident">subcommand</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">am</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#15">ArgMatcher</a>(<span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#77">sc</a>.<span class="ident">matches</span>));
+            <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#78">am</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#51-55">fill_in_global_values</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#53">global_arg_vec</a>, <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#54">vals_map</a>);
+            <span class="ident">mem::swap</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#78">am</a>.<span class="number">0</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#77">sc</a>.<span class="ident">matches</span>);
+        }
+
+        <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">matched_arg</span>) <span class="kw">in</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#54">vals_map</a>.<span class="ident">iter_mut</span>() {
+            <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#52">self</a>.<span class="number">0</span>.<span class="ident">args</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#83">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#83">matched_arg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#14-21">MatchedArg</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#88">self</a>.<span class="number">0</span>.<span class="ident">args</span>.<span class="ident">get_mut</span>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#88">arg</a>)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#14-21">MatchedArg</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#92">self</a>.<span class="number">0</span>.<span class="ident">args</span>.<span class="ident">get</span>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#92">arg</a>)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>) {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#96">self</a>.<span class="number">0</span>.<span class="ident">args</span>.<span class="ident">swap_remove</span>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#96">arg</a>);
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#100">self</a>.<span class="number">0</span>.<span class="ident">args</span>.<span class="ident">contains_key</span>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#100">arg</a>)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">arg_names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">indexmap::map::Keys</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>, <a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#14-21">MatchedArg</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#104">self</a>.<span class="number">0</span>.<span class="ident">args</span>.<span class="ident">keys</span>()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">entry</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>) -&gt; <span class="ident">indexmap::map::Entry</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>, <a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#14-21">MatchedArg</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#108">self</a>.<span class="number">0</span>.<span class="ident">args</span>.<span class="ident">entry</span>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#108">arg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">subcommand</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">sc</span>: <a class="ident" href="../../../src/clap/parse/matches/arg_matches.rs.html#1186-1190">SubCommand</a>) {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#112">self</a>.<span class="number">0</span>.<span class="ident">subcommand</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#112">sc</a>));
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">subcommand_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#116">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/clap/parse/matches/arg_matches.rs.html#1087">subcommand_name</a>()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">indexmap::map::Iter</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>, <a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#14-21">MatchedArg</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#120">self</a>.<span class="number">0</span>.<span class="ident">args</span>.<span class="ident">iter</span>()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check_explicit</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>, <span class="ident">predicate</span>: <span class="ident">ArgPredicate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#124">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#92">get</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#124">arg</a>).<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">a</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#125">a</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#121">check_explicit</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#124">predicate</a>))
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inc_occurrence_of_arg</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/build/arg.rs.html#60-98">Arg</a>) {
+        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#128">arg</a>.<span class="ident">id</span>;
+        <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::inc_occurrence_of_arg: id={:?}&quot;</span>, <span class="ident">id</span>);
+        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#128">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#108">entry</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#129">id</a>).<span class="ident">or_insert</span>(<span class="ident">MatchedArg::new</span>());
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#131">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#143">update_ty</a>(<a class="ident" href="../../../src/clap/parse/matches/value_source.rs.html#10">ValueSource::CommandLine</a>);
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#131">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#151">set_ignore_case</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#128">arg</a>.<a class="ident" href="../../../src/clap/build/arg.rs.html#4811">is_ignore_case_set</a>());
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#131">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#155">invalid_utf8_allowed</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#128">arg</a>.<a class="ident" href="../../../src/clap/build/arg.rs.html#4734">is_allow_invalid_utf8_set</a>());
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#131">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#35">inc_occurrences</a>();
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inc_occurrence_of_group</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>) {
+        <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::inc_occurrence_of_group: id={:?}&quot;</span>, <span class="ident">id</span>);
+        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#138">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#108">entry</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#138">id</a>).<span class="ident">or_insert</span>(<span class="ident">MatchedArg::new</span>());
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#140">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#143">update_ty</a>(<a class="ident" href="../../../src/clap/parse/matches/value_source.rs.html#10">ValueSource::CommandLine</a>);
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#140">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#35">inc_occurrences</a>();
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_val_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>, <span class="ident">ty</span>: <a class="ident" href="../../../src/clap/parse/matches/value_source.rs.html#4-11">ValueSource</a>, <span class="ident">append</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
+        <span class="kw">if</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#145">append</a> {
+            <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#145">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#162">append_val_to</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#145">arg</a>, <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#145">val</a>, <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#145">ty</a>);
+        } <span class="kw">else</span> {
+            <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#145">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#153">push_val_to</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#145">arg</a>, <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#145">val</a>, <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#145">ty</a>);
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">push_val_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>, <span class="ident">ty</span>: <a class="ident" href="../../../src/clap/parse/matches/value_source.rs.html#4-11">ValueSource</a>) {
+        <span class="comment">// We will manually inc occurrences later(for flexibility under</span>
+        <span class="comment">// specific circumstances, like only add one occurrence for flag</span>
+        <span class="comment">// when we met: `--flag=one,two`).</span>
+        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#153">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#108">entry</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#153">arg</a>).<span class="ident">or_default</span>();
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#157">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#143">update_ty</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#153">ty</a>);
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#157">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#67">push_val</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#153">val</a>);
+    }
+
+    <span class="kw">fn</span> <span class="ident">append_val_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>, <span class="ident">ty</span>: <a class="ident" href="../../../src/clap/parse/matches/value_source.rs.html#4-11">ValueSource</a>) {
+        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#162">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#108">entry</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#162">arg</a>).<span class="ident">or_default</span>();
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#163">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#143">update_ty</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#162">ty</a>);
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#163">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#75">append_val</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#162">val</a>);
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_val_group</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>) {
+        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#168">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#108">entry</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#168">arg</a>).<span class="ident">or_default</span>();
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#169">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#71">new_val_group</a>();
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_index_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>, <span class="ident">idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">ty</span>: <a class="ident" href="../../../src/clap/parse/matches/value_source.rs.html#4-11">ValueSource</a>) {
+        <span class="kw">let</span> <span class="ident">ma</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#173">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#108">entry</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#173">arg</a>).<span class="ident">or_default</span>();
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#174">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#143">update_ty</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#173">ty</a>);
+        <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#174">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#51">push_index</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#173">idx</a>);
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_val_groups</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">match</span> <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#179">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#108">entry</a>(<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#179">arg</a>) {
+            <span class="ident">Entry::Occupied</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#181">e</a>.<span class="ident">get</span>().<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#94">has_val_groups</a>(),
+            <span class="ident">Entry::Vacant</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">needs_more_vals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/build/arg.rs.html#60-98">Arg</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::needs_more_vals: o={}&quot;</span>, <span class="ident">o</span>.<span class="ident">name</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ma</span>) <span class="op">=</span> <a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#186">self</a>.<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#92">get</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#186">o</a>.<span class="ident">id</span>) {
+            <span class="kw">let</span> <span class="ident">current_num</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#188">ma</a>.<a class="ident" href="../../../src/clap/parse/matches/matched_arg.rs.html#80">num_vals</a>();
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">num</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#186">o</a>.<span class="ident">num_vals</span> {
+                <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::needs_more_vals: num_vals...{}&quot;</span>, <span class="ident">num</span>);
+                <span class="kw">return</span> <span class="kw">if</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#186">o</a>.<a class="ident" href="../../../src/clap/build/arg.rs.html#4714">is_multiple_occurrences_set</a>() {
+                    (<a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#189">current_num</a> <span class="op">%</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#190">num</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+                } <span class="kw">else</span> {
+                    <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#190">num</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#189">current_num</a>
+                };
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">num</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#186">o</a>.<span class="ident">max_vals</span> {
+                <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::needs_more_vals: max_vals...{}&quot;</span>, <span class="ident">num</span>);
+                <span class="kw">return</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#189">current_num</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#197">num</a>;
+            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#186">o</a>.<span class="ident">min_vals</span>.<span class="ident">is_some</span>() {
+                <span class="macro">debug!</span>(<span class="string">&quot;ArgMatcher::needs_more_vals: min_vals...true&quot;</span>);
+                <span class="kw">return</span> <span class="bool-val">true</span>;
+            }
+            <span class="kw">return</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#186">o</a>.<a class="ident" href="../../../src/clap/build/arg.rs.html#4709">is_multiple_values_set</a>();
+        }
+        <span class="bool-val">true</span>
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <a class="ident" href="../../../src/clap/parse/arg_matcher.rs.html#15">ArgMatcher</a> {
+    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parse/matches/arg_matches.rs.html#70-79">ArgMatches</a>;
+
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/clap/parse/arg_matcher.rs.html#213">self</a>.<span class="number">0</span>
+    }
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</body></html>

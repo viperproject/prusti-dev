@@ -28,43 +28,31 @@
 <span id="23">23</span>
 <span id="24">24</span>
 <span id="25">25</span>
-<span id="26">26</span>
-<span id="27">27</span>
-<span id="28">28</span>
-<span id="29">29</span>
-<span id="30">30</span>
-<span id="31">31</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="kw">use</span> <span class="ident">clap</span>::{<a class="ident" href="../../clap/app/struct.App.html">App</a>, <a class="ident" href="../../clap/args/arg/struct.Arg.html">Arg</a>};
+<span class="kw">use</span> <a class="ident" href="../../clap/derive/trait.Parser.html">clap::Parser</a>;
+
+<span class="doccomment">/// A verification server to handle Prusti verification requests.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Parser</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">version</span>, <span class="ident">about</span>, <span class="ident">long_about</span> <span class="op">=</span> <span class="prelude-val">None</span>)]</span>
+<span class="kw">struct</span> <a class="ident" href="../../src/prusti_server_driver/driver.rs.html#12-17">Args</a> {
+    <span class="doccomment">/// Sets the port on which to listen for incoming verification requests.</span>
+    <span class="doccomment">/// Pass 0 to get a free one assigned by the OS.</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;PORT&quot;</span>, <a class="ident" href="../../src/prusti_server_driver/driver.rs.html#15">default_value_t</a> <span class="op">=</span> <span class="number">0</span>)]</span>
+    <a class="ident" href="../../src/prusti_server_driver/driver.rs.html#16">port</a>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
+}
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
     <span class="ident">env_logger::init_from_env</span>(<span class="ident">env_logger::Env::new</span>().<span class="ident">filter_or</span>(<span class="string">&quot;PRUSTI_LOG&quot;</span>, <span class="string">&quot;info&quot;</span>));
 
-    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">App::new</span>(<span class="string">&quot;Prusti Server&quot;</span>)
-        .<span class="ident">arg</span>(
-            <span class="ident">Arg::with_name</span>(<span class="string">&quot;port&quot;</span>)
-                .<span class="ident">short</span>(<span class="string">&quot;p&quot;</span>)
-                .<span class="ident">long</span>(<span class="string">&quot;port&quot;</span>)
-                .<span class="ident">help</span>(<span class="string">&quot;Sets the port on which to listen for incoming verification requests. Pass 0 to get a free one assigned by the OS.&quot;</span>)
-                .<span class="ident">default_value</span>(<span class="string">&quot;0&quot;</span>)
-                .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)
-                .<span class="ident">value_name</span>(<span class="string">&quot;PORT&quot;</span>),
-        )
-        .<span class="ident">get_matches</span>();
+    <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Args::parse</span>();
 
-    <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server_driver/driver.rs.html#12">matches</a>
-        .<span class="ident">value_of</span>(<span class="string">&quot;port&quot;</span>)
-        .<span class="ident">unwrap</span>()
-        .<span class="ident">parse</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Invalid port provided&quot;</span>);
-
-    <span class="ident">prusti_server::start_server_on_port</span>(<a class="ident" href="../../src/prusti_server_driver/driver.rs.html#24">port</a>);
+    <span class="ident">prusti_server::start_server_on_port</span>(<a class="ident" href="../../src/prusti_server_driver/driver.rs.html#22">args</a>.<span class="ident">port</span>);
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_server_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_server_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

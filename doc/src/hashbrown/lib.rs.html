@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.11.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.12.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../hashbrown/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -151,19 +151,6 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This crate is a Rust port of Google&#39;s high-performance [SwissTable] hash</span>
 <span class="doccomment">//! map, adapted to make it a drop-in replacement for Rust&#39;s standard `HashMap`</span>
 <span class="doccomment">//! and `HashSet` types.</span>
@@ -187,7 +174,8 @@
         <span class="ident">allocator_api</span>,
         <span class="ident">slice_ptr_get</span>,
         <span class="ident">nonnull_slice_from_raw_parts</span>,
-        <span class="ident">maybe_uninit_array_assume_init</span>
+        <span class="ident">maybe_uninit_array_assume_init</span>,
+        <span class="ident">build_hasher_simple_hash_one</span>
     )
 )]</span>
 <span class="attribute">#![<span class="ident">allow</span>(
@@ -222,8 +210,8 @@
     <span class="comment">// The RawTable API is still experimental and is not properly documented yet.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
     <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;mod.rs&quot;</span>]</span>
-    <span class="kw">mod</span> <a class="ident" href="../../src/hashbrown/raw/mod.rs.html#1-2262">inner</a>;
-    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/hashbrown/lib.rs.html#59">inner</a>::<span class="kw-2">*</span>;
+    <span class="kw">mod</span> <span class="ident">inner</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">inner</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rayon&quot;</span>)]</span>
     <span class="doccomment">/// [rayon]-based parallel iterator types for hash maps.</span>
@@ -236,18 +224,18 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;raw&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">raw</span>;
+<span class="kw">mod</span> <a class="ident" href="../../src/hashbrown/raw/mod.rs.html#1-2436">raw</a>;
 
 <span class="kw">mod</span> <a class="ident" href="../../src/hashbrown/external_trait_impls/mod.rs.html#1-4">external_trait_impls</a>;
-<span class="kw">mod</span> <a class="ident" href="../../src/hashbrown/map.rs.html#1-4922">map</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/hashbrown/map.rs.html#1-6403">map</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-internal-api&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">rustc_entry</span>;
 <span class="kw">mod</span> <a class="ident" href="../../src/hashbrown/scopeguard.rs.html#2-49">scopeguard</a>;
-<span class="kw">mod</span> <a class="ident" href="../../src/hashbrown/set.rs.html#1-2299">set</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/hashbrown/set.rs.html#1-2349">set</a>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">hash_map</span> {
     <span class="doccomment">//! A hash map implemented with quadratic probing and SIMD lookup.</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/hashbrown/lib.rs.html#76"><span class="kw">crate</span>::map</a>::<span class="kw-2">*</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/hashbrown/lib.rs.html#77"><span class="kw">crate</span>::map</a>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-internal-api&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::rustc_entry</span>::<span class="kw-2">*</span>;
@@ -264,7 +252,7 @@
 }
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">hash_set</span> {
     <span class="doccomment">//! A hash set implemented as a `HashMap` where the value is `()`.</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/hashbrown/lib.rs.html#80"><span class="kw">crate</span>::set</a>::<span class="kw-2">*</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/hashbrown/lib.rs.html#81"><span class="kw">crate</span>::set</a>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rayon&quot;</span>)]</span>
     <span class="doccomment">/// [rayon]-based parallel iterator types for hash sets.</span>
@@ -277,7 +265,7 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/hashbrown/map.rs.html#192-195"><span class="kw">crate</span>::map::HashMap</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/hashbrown/map.rs.html#188-191"><span class="kw">crate</span>::map::HashMap</a>;
 <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/hashbrown/set.rs.html#115-117"><span class="kw">crate</span>::set::HashSet</a>;
 
 <span class="doccomment">/// The error type for `try_reserve` methods.</span>
@@ -292,20 +280,6 @@
         <span class="doccomment">/// The layout of the allocation request that failed.</span>
         <span class="ident">layout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/alloc/layout/struct.Layout.html">alloc::alloc::Layout</a>,
     },
-}
-
-<span class="doccomment">/// The error type for [`RawTable::get_each_mut`](crate::raw::RawTable::get_each_mut),</span>
-<span class="doccomment">/// [`HashMap::get_each_mut`], and [`HashMap::get_each_key_value_mut`].</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UnavailableMutError</span> {
-    <span class="doccomment">/// The requested entry is not present in the table.</span>
-    <span class="ident">Absent</span>,
-    <span class="doccomment">/// The requested entry is present, but a mutable reference to it was already created and</span>
-    <span class="doccomment">/// returned from this call to `get_each_mut` or `get_each_key_value_mut`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Includes the index of the existing mutable reference in the returned array.</span>
-    <span class="ident">Duplicate</span>(<span class="ident">usize</span>),
 }
 
 <span class="doccomment">/// Wrapper around `Bump` which allows it to be used as an allocator for</span>
@@ -326,5 +300,5 @@
     <span class="ident">map</span>.<span class="ident">insert</span>(<span class="number">0</span>, <span class="number">1</span>);
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hashbrown" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hashbrown" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

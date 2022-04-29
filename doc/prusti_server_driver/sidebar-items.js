@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["main",""]]});
+initSidebarItems({"fn":[["main",""]],"struct":[["Args","A verification server to handle Prusti verification requests."]]});

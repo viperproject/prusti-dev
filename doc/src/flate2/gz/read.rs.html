@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.22/src/gz/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.23/src/gz/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flate2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -281,43 +281,13 @@
 <span id="276">276</span>
 <span id="277">277</span>
 <span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">futures::Poll</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
 
 <span class="kw">use</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#13"><span class="kw">super</span>::bufread</a>;
 <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/flate2/gz/mod.rs.html#112-118">GzBuilder</a>, <a class="ident" href="../../../src/flate2/gz/mod.rs.html#22-28">GzHeader</a>};
 <span class="kw">use</span> <a class="ident" href="../../../src/flate2/bufreader.rs.html#16-21"><span class="kw">crate</span>::bufreader::BufReader</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/flate2/lib.rs.html#187"><span class="kw">crate</span>::Compression</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/flate2/lib.rs.html#163"><span class="kw">crate</span>::Compression</a>;
 
 <span class="doccomment">/// A gzip streaming encoder</span>
 <span class="doccomment">///</span>
@@ -351,7 +321,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gz_encoder</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span>(<span class="ident">inner</span>: <span class="ident">bufread::GzEncoder</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/flate2/gz/read.rs.html#41-43">GzEncoder</a> { <span class="ident">inner</span>: <a class="ident" href="../../../src/flate2/gz/read.rs.html#45">inner</a> }
+    <a class="ident" href="../../../src/flate2/gz/read.rs.html#36-38">GzEncoder</a> { <a class="ident" href="../../../src/flate2/gz/read.rs.html#40">inner</a> }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
@@ -362,15 +332,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The data read from the stream `r` will be compressed and available</span>
     <span class="doccomment">/// through the returned reader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>, <span class="ident">level</span>: <a class="ident" href="../../../src/flate2/lib.rs.html#187">Compression</a>) -&gt; <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="ident">GzBuilder::new</span>().<a class="ident" href="../../../src/flate2/gz/mod.rs.html#182">read</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#57">r</a>, <a class="ident" href="../../../src/flate2/gz/read.rs.html#57">level</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>, <span class="ident">level</span>: <a class="ident" href="../../../src/flate2/lib.rs.html#163">Compression</a>) -&gt; <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+        <span class="ident">GzBuilder::new</span>().<a class="ident" href="../../../src/flate2/gz/mod.rs.html#188">read</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#52">r</a>, <a class="ident" href="../../../src/flate2/gz/read.rs.html#52">level</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Acquires a reference to the underlying reader.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#64">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#221">get_ref</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#54">get_ref</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#59">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#208">get_ref</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#54">get_ref</a>()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying reader.</span>
@@ -378,28 +348,28 @@
     <span class="doccomment">/// Note that mutation of the reader may result in surprising results if</span>
     <span class="doccomment">/// this encoder is continued to be used.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#72">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#229">get_mut</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#58">get_mut</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#67">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#216">get_mut</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#58">get_mut</a>()
     }
 
     <span class="doccomment">/// Returns the underlying stream, consuming this encoder</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#77">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#234">into_inner</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#62">into_inner</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#72">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#221">into_inner</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#62">into_inner</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#83">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#83">into</a>)
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#78">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#78">into</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#89">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#72">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#89">buf</a>)
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#84">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#67">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#84">buf</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#93">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#72">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#88">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#67">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
@@ -446,8 +416,8 @@
     <span class="doccomment">/// Creates a new decoder from the given reader, immediately parsing the</span>
     <span class="doccomment">/// gzip header.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>) -&gt; <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/flate2/gz/read.rs.html#133-135">GzDecoder</a> {
-            <span class="ident">inner</span>: <span class="ident">bufread::GzDecoder::new</span>(<span class="ident">BufReader::new</span>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#140">r</a>)),
+        <a class="ident" href="../../../src/flate2/gz/read.rs.html#128-130">GzDecoder</a> {
+            <span class="ident">inner</span>: <span class="ident">bufread::GzDecoder::new</span>(<span class="ident">BufReader::new</span>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#135">r</a>)),
         }
     }
 }
@@ -455,12 +425,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns the header associated with this stream, if it was valid.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/mod.rs.html#22-28">GzHeader</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#149">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#487">header</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#144">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#474">header</a>()
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying reader.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#154">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#492">get_ref</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#54">get_ref</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#149">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#479">get_ref</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#54">get_ref</a>()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying stream.</span>
@@ -468,38 +438,28 @@
     <span class="doccomment">/// Note that mutation of the stream may result in surprising results if</span>
     <span class="doccomment">/// this encoder is continued to be used.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#162">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">get_mut</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#58">get_mut</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#157">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#487">get_mut</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#58">get_mut</a>()
     }
 
     <span class="doccomment">/// Consumes this decoder, returning the underlying reader.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#167">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#505">into_inner</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#62">into_inner</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#162">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#492">into_inner</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#62">into_inner</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#173">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#173">into</a>)
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#168">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#168">into</a>)
     }
 }
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncRead</span><span class="op">&gt;</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#182">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#162">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#182">buf</a>)
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#174">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#157">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#174">buf</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#186">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#162">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">AsyncRead</span><span class="op">&gt;</span> <span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">shutdown</span>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#178">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#157">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
@@ -553,8 +513,8 @@
     <span class="doccomment">/// (first) gzip header. If the gzip stream contains multiple members all will</span>
     <span class="doccomment">/// be decoded.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>) -&gt; <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/flate2/gz/read.rs.html#239-241">MultiGzDecoder</a> {
-            <span class="ident">inner</span>: <span class="ident">bufread::MultiGzDecoder::new</span>(<span class="ident">BufReader::new</span>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#247">r</a>)),
+        <a class="ident" href="../../../src/flate2/gz/read.rs.html#224-226">MultiGzDecoder</a> {
+            <span class="ident">inner</span>: <span class="ident">bufread::MultiGzDecoder::new</span>(<span class="ident">BufReader::new</span>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#232">r</a>)),
         }
     }
 }
@@ -562,12 +522,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns the current header associated with this stream, if it&#39;s valid.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/mod.rs.html#22-28">GzHeader</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#256">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#696">header</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#241">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#672">header</a>()
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying reader.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#261">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#701">get_ref</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#54">get_ref</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#246">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#677">get_ref</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#54">get_ref</a>()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying stream.</span>
@@ -575,40 +535,30 @@
     <span class="doccomment">/// Note that mutation of the stream may result in surprising results if</span>
     <span class="doccomment">/// this encoder is continued to be used.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#269">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#709">get_mut</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#58">get_mut</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#254">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#685">get_mut</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#58">get_mut</a>()
     }
 
     <span class="doccomment">/// Consumes this decoder, returning the underlying reader.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#274">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#714">into_inner</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#62">into_inner</a>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#259">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#690">into_inner</a>().<a class="ident" href="../../../src/flate2/bufreader.rs.html#62">into_inner</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#280">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#280">into</a>)
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#265">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#265">into</a>)
     }
 }
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncRead</span><span class="op">&gt;</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#289">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#269">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#289">buf</a>)
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#271">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#254">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/read.rs.html#271">buf</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/read.rs.html#293">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#269">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">AsyncRead</span><span class="op">&gt;</span> <span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">shutdown</span>()
+        <a class="self" href="../../../src/flate2/gz/read.rs.html#275">self</a>.<a class="ident" href="../../../src/flate2/gz/read.rs.html#254">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

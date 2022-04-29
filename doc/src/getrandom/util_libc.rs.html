@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.5/src/util_libc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>util_libc.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.6/src/util_libc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>util_libc.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../getrandom/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -120,6 +120,18 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019 Developers of the Rand project.</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
@@ -142,6 +154,12 @@
         <span class="kw">use</span> <span class="ident">libc::__error</span> <span class="kw">as</span> <span class="ident">errno_location</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>)]</span> {
         <span class="kw">use</span> <span class="ident">libc::_errnop</span> <span class="kw">as</span> <span class="ident">errno_location</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;horizon&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>))]</span> {
+        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+            <span class="comment">// Not provided by libc: https://github.com/rust-lang/libc/issues/1995</span>
+            <span class="kw">fn</span> <span class="ident">__errno</span>() -&gt; <span class="kw-2">*mut</span> <span class="ident">libc::c_int</span>;
+        }
+        <span class="kw">use</span> <span class="ident">__errno</span> <span class="kw">as</span> <span class="ident">errno_location</span>;
     }
 }
 
@@ -158,9 +176,9 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_os_error</span>() -&gt; <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a> {
-    <span class="kw">let</span> <span class="ident">errno</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/getrandom/util_libc.rs.html#34">get_errno</a>() };
-    <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#39">errno</a> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="ident">Error::from</span>(<span class="ident">NonZeroU32::new</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#39">errno</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).<span class="ident">unwrap</span>())
+    <span class="kw">let</span> <span class="ident">errno</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/getrandom/util_libc.rs.html#40">get_errno</a>() };
+    <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#45">errno</a> <span class="op">&gt;</span> <span class="number">0</span> {
+        <span class="ident">Error::from</span>(<span class="ident">NonZeroU32::new</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#45">errno</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).<span class="ident">unwrap</span>())
     } <span class="kw">else</span> {
         <span class="ident">Error::ERRNO_NOT_POSITIVE</span>
     }
@@ -173,18 +191,18 @@
     <span class="kw-2">mut</span> <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     <span class="ident">sys_fill</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">libc::ssize_t</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a><span class="op">&gt;</span> {
-    <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../src/getrandom/util_libc.rs.html#51">buf</a>.<span class="ident">is_empty</span>() {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#52">sys_fill</a>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#51">buf</a>);
-        <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#55">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#38">last_os_error</a>();
+    <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../src/getrandom/util_libc.rs.html#57">buf</a>.<span class="ident">is_empty</span>() {
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#58">sys_fill</a>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#57">buf</a>);
+        <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#61">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
+            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#44">last_os_error</a>();
             <span class="comment">// We should try again if the call was interrupted.</span>
-            <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#57">err</a>.<a class="ident" href="../../src/getrandom/error.rs.html#74">raw_os_error</a>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">libc::EINTR</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#57">err</a>);
+            <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#63">err</a>.<a class="ident" href="../../src/getrandom/error.rs.html#74">raw_os_error</a>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">libc::EINTR</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#63">err</a>);
             }
         } <span class="kw">else</span> {
             <span class="comment">// We don&#39;t check for EOF (ret = 0) as the data we are reading</span>
             <span class="comment">// should be an infinite stream of random bytes.</span>
-            <a class="ident" href="../../src/getrandom/util_libc.rs.html#51">buf</a> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#51">buf</a>[(<a class="ident" href="../../src/getrandom/util_libc.rs.html#55">res</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)..];
+            <a class="ident" href="../../src/getrandom/util_libc.rs.html#57">buf</a> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#57">buf</a>[(<a class="ident" href="../../src/getrandom/util_libc.rs.html#61">res</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)..];
         }
     }
     <span class="prelude-val">Ok</span>(())
@@ -199,22 +217,22 @@
     <span class="ident">addr</span>: <a class="ident" href="../../src/getrandom/util.rs.html#29">LazyUsize</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#75-78">Weak</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#81-84">Weak</a> {
     <span class="comment">// Construct a binding to a C function with a given name. This function is</span>
     <span class="comment">// unsafe because `name` _must_ be null terminated.</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <a class="ident" href="../../src/getrandom/util_libc.rs.html#83">name</a>,
+            <a class="ident" href="../../src/getrandom/util_libc.rs.html#89">name</a>,
             <span class="ident">addr</span>: <span class="ident">LazyUsize::new</span>(),
         }
     }
 
     <span class="comment">// Return a function pointer if present at runtime. Otherwise, return null.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <a class="self" href="../../src/getrandom/util_libc.rs.html#91">self</a>.<span class="ident">addr</span>.<a class="ident" href="../../src/getrandom/util.rs.html#42">unsync_init</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-            <span class="ident">libc::dlsym</span>(<span class="ident">libc::RTLD_DEFAULT</span>, <a class="self" href="../../src/getrandom/util_libc.rs.html#91">self</a>.<span class="ident">name</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <a class="self" href="../../src/getrandom/util_libc.rs.html#97">self</a>.<span class="ident">addr</span>.<a class="ident" href="../../src/getrandom/util.rs.html#42">unsync_init</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
+            <span class="ident">libc::dlsym</span>(<span class="ident">libc::RTLD_DEFAULT</span>, <a class="self" href="../../src/getrandom/util_libc.rs.html#97">self</a>.<span class="ident">name</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
         });
-        <span class="ident">NonNull::new</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#92">addr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
+        <span class="ident">NonNull::new</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#98">addr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
     }
 }
 
@@ -228,13 +246,19 @@
 
 <span class="comment">// SAFETY: path must be null terminated, FD must be manually closed.</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">open_readonly</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>, <a class="ident" href="../../src/getrandom/error.rs.html#25">Error</a><span class="op">&gt;</span> {
-    <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#108">path</a>.<span class="ident">as_bytes</span>().<span class="ident">last</span>(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
-    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <a class="ident" href="../../libc/unix/linux_like/fn.open64.html">open</a>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#108">path</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>, <span class="ident">libc::O_RDONLY</span> <span class="op">|</span> <span class="ident">libc::O_CLOEXEC</span>);
-    <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#110">fd</a> <span class="op">&lt;</span> <span class="number">0</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#38">last_os_error</a>());
+    <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#114">path</a>.<span class="ident">as_bytes</span>().<span class="ident">last</span>(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
+    <span class="kw">loop</span> {
+        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <a class="ident" href="../../libc/unix/linux_like/fn.open64.html">open</a>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#114">path</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>, <span class="ident">libc::O_RDONLY</span> <span class="op">|</span> <span class="ident">libc::O_CLOEXEC</span>);
+        <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#117">fd</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#117">fd</a>);
+        }
+        <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#44">last_os_error</a>();
+        <span class="comment">// We should try again if open() was interrupted.</span>
+        <span class="kw">if</span> <a class="ident" href="../../src/getrandom/util_libc.rs.html#121">err</a>.<a class="ident" href="../../src/getrandom/error.rs.html#74">raw_os_error</a>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">libc::EINTR</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#121">err</a>);
+        }
     }
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/getrandom/util_libc.rs.html#110">fd</a>)
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="getrandom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="getrandom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

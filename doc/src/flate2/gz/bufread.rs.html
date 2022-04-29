@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.22/src/gz/bufread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bufread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.23/src/gz/bufread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bufread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flate2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -855,73 +855,24 @@
 <span id="850">850</span>
 <span id="851">851</span>
 <span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
-<span id="856">856</span>
-<span id="857">857</span>
-<span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
-<span id="862">862</span>
-<span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
-<span id="871">871</span>
-<span id="872">872</span>
-<span id="873">873</span>
-<span id="874">874</span>
-<span id="875">875</span>
-<span id="876">876</span>
-<span id="877">877</span>
-<span id="878">878</span>
-<span id="879">879</span>
-<span id="880">880</span>
-<span id="881">881</span>
-<span id="882">882</span>
-<span id="883">883</span>
-<span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">futures::Poll</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
-
 <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/flate2/gz/mod.rs.html#112-118">GzBuilder</a>, <a class="ident" href="../../../src/flate2/gz/mod.rs.html#22-28">GzHeader</a>};
 <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/flate2/gz/mod.rs.html#11">FCOMMENT</a>, <a class="ident" href="../../../src/flate2/gz/mod.rs.html#9">FEXTRA</a>, <a class="ident" href="../../../src/flate2/gz/mod.rs.html#8">FHCRC</a>, <a class="ident" href="../../../src/flate2/gz/mod.rs.html#10">FNAME</a>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::crc</span>::{<a class="ident" href="../../../src/flate2/crc.rs.html#12-15">Crc</a>, <a class="ident" href="../../../src/flate2/crc.rs.html#21-24">CrcReader</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/flate2/lib.rs.html#118"><span class="kw">crate</span>::deflate</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/flate2/lib.rs.html#187"><span class="kw">crate</span>::Compression</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/flate2/lib.rs.html#94"><span class="kw">crate</span>::deflate</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/flate2/lib.rs.html#163"><span class="kw">crate</span>::Compression</a>;
 
 <span class="kw">fn</span> <span class="ident">copy</span>(<span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">from</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">pos</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#17">into</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#17">from</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#17">pos</a>);
-    <span class="kw">for</span> (<span class="ident">slot</span>, <span class="ident">val</span>) <span class="kw">in</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#17">into</a>.<span class="ident">iter_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#17">from</a>[<span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#17">pos</a>..<span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#17">pos</a> <span class="op">+</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#18">min</a>].<span class="ident">iter</span>()) {
-        <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#19">slot</a> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#19">val</a>;
+    <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#12">into</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#12">from</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#12">pos</a>);
+    <span class="kw">for</span> (<span class="ident">slot</span>, <span class="ident">val</span>) <span class="kw">in</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#12">into</a>.<span class="ident">iter_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#12">from</a>[<span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#12">pos</a>..<span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#12">pos</a> <span class="op">+</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#13">min</a>].<span class="ident">iter</span>()) {
+        <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#14">slot</a> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#14">val</a>;
     }
-    <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#17">pos</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#18">min</a>;
-    <span class="kw">return</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#18">min</a>;
+    <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#12">pos</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#13">min</a>;
+    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#13">min</a>
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">corrupt</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
@@ -937,81 +888,81 @@
 
 <span class="kw">fn</span> <span class="ident">read_le_u16</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
-    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#37">r</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#438">read_and_forget</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">b</a>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">b</a>[<span class="number">0</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">b</a>[<span class="number">1</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>))
+    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#32">r</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#425">read_and_forget</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#33">b</a>)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#33">b</a>[<span class="number">0</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#33">b</a>[<span class="number">1</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>))
 }
 
 <span class="kw">fn</span> <span class="ident">read_gz_header_part</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">loop</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">state</span> {
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#329">GzHeaderParsingState::Start</a> =&gt; {
+        <span class="kw">match</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">state</span> {
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#316">GzHeaderParsingState::Start</a> =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">header</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">10</span>];
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#438">read_and_forget</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>)<span class="question-mark">?</span>;
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#425">read_and_forget</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>)<span class="question-mark">?</span>;
 
-                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>[<span class="number">0</span>] <span class="op">!</span><span class="op">=</span> <span class="number">0x1f</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>[<span class="number">1</span>] <span class="op">!</span><span class="op">=</span> <span class="number">0x8b</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#33">bad_header</a>());
+                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>[<span class="number">0</span>] <span class="op">!</span><span class="op">=</span> <span class="number">0x1f</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>[<span class="number">1</span>] <span class="op">!</span><span class="op">=</span> <span class="number">0x8b</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#28">bad_header</a>());
                 }
-                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>[<span class="number">2</span>] <span class="op">!</span><span class="op">=</span> <span class="number">8</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#33">bad_header</a>());
+                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>[<span class="number">2</span>] <span class="op">!</span><span class="op">=</span> <span class="number">8</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#28">bad_header</a>());
                 }
 
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>[<span class="number">3</span>];
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">mtime</span> <span class="op">=</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>[<span class="number">4</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>)
-                    <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>[<span class="number">5</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
-                    <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>[<span class="number">6</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>)
-                    <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>[<span class="number">7</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>);
-                <span class="kw">let</span> <span class="ident">_xfl</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>[<span class="number">8</span>];
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">operating_system</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#47">header</a>[<span class="number">9</span>];
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#330">GzHeaderParsingState::Xlen</a>;
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>[<span class="number">3</span>];
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">mtime</span> <span class="op">=</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>[<span class="number">4</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>)
+                    <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>[<span class="number">5</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
+                    <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>[<span class="number">6</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>)
+                    <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>[<span class="number">7</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>);
+                <span class="kw">let</span> <span class="ident">_xfl</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>[<span class="number">8</span>];
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">operating_system</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#42">header</a>[<span class="number">9</span>];
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#317">GzHeaderParsingState::Xlen</a>;
             }
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#330">GzHeaderParsingState::Xlen</a> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#9">FEXTRA</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">xlen</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#37">read_le_u16</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>)<span class="question-mark">?</span>;
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#317">GzHeaderParsingState::Xlen</a> =&gt; {
+                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#9">FEXTRA</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">xlen</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#32">read_le_u16</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>)<span class="question-mark">?</span>;
                 }
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#331">GzHeaderParsingState::Extra</a>;
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#318">GzHeaderParsingState::Extra</a>;
             }
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#331">GzHeaderParsingState::Extra</a> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#9">FEXTRA</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">extra</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">xlen</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
-                    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#438">read_and_forget</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#74">extra</a>)<span class="question-mark">?</span>;
-                    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">extra</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#74">extra</a>);
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#318">GzHeaderParsingState::Extra</a> =&gt; {
+                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#9">FEXTRA</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">extra</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">xlen</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+                    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#425">read_and_forget</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#69">extra</a>)<span class="question-mark">?</span>;
+                    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">extra</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#69">extra</a>);
                 }
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#332">GzHeaderParsingState::Filename</a>;
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#319">GzHeaderParsingState::Filename</a>;
             }
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#332">GzHeaderParsingState::Filename</a> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#10">FNAME</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="kw">if</span> <span class="prelude-val">None</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">filename</span> {
-                        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">filename</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Vec::new</span>());
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#319">GzHeaderParsingState::Filename</a> =&gt; {
+                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#10">FNAME</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="prelude-val">None</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">filename</span> {
+                        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">filename</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Vec::new</span>());
                     };
-                    <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">bytes</a>() {
-                        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#85">byte</a><span class="question-mark">?</span>;
-                        <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#86">byte</a> <span class="op">==</span> <span class="number">0</span> {
+                    <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">bytes</a>() {
+                        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#80">byte</a><span class="question-mark">?</span>;
+                        <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#81">byte</a> <span class="op">==</span> <span class="number">0</span> {
                             <span class="kw">break</span>;
                         }
                     }
                 }
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#333">GzHeaderParsingState::Comment</a>;
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#320">GzHeaderParsingState::Comment</a>;
             }
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#333">GzHeaderParsingState::Comment</a> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#11">FCOMMENT</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="kw">if</span> <span class="prelude-val">None</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">comment</span> {
-                        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">comment</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Vec::new</span>());
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#320">GzHeaderParsingState::Comment</a> =&gt; {
+                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#11">FCOMMENT</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="prelude-val">None</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">comment</span> {
+                        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">comment</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Vec::new</span>());
                     };
-                    <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">bytes</a>() {
-                        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#99">byte</a><span class="question-mark">?</span>;
-                        <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#100">byte</a> <span class="op">==</span> <span class="number">0</span> {
+                    <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">bytes</a>() {
+                        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#94">byte</a><span class="question-mark">?</span>;
+                        <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#95">byte</a> <span class="op">==</span> <span class="number">0</span> {
                             <span class="kw">break</span>;
                         }
                     }
                 }
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#334">GzHeaderParsingState::Crc</a>;
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#321">GzHeaderParsingState::Crc</a>;
             }
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#334">GzHeaderParsingState::Crc</a> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#8">FHCRC</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="kw">let</span> <span class="ident">stored_crc</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#37">read_le_u16</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">calced_crc</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">r</a>.<span class="ident">part</span>.<span class="ident">crc</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#36">sum</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
-                    <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#110">stored_crc</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#111">calced_crc</a> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#26">corrupt</a>());
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#321">GzHeaderParsingState::Crc</a> =&gt; {
+                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">flg</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/flate2/gz/mod.rs.html#8">FHCRC</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="kw">let</span> <span class="ident">stored_crc</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#32">read_le_u16</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">calced_crc</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">r</a>.<span class="ident">part</span>.<span class="ident">crc</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#42">sum</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>;
+                    <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#105">stored_crc</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#106">calced_crc</a> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#21">corrupt</a>());
                     }
                 }
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
@@ -1024,18 +975,10 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">GzHeaderPartial::new</span>();
 
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">Buffer::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#123">part</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#122">r</a>);
-        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">read_gz_header_part</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#126">reader</a>)
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">Buffer::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#118">part</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#117">r</a>);
+        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">read_gz_header_part</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#121">reader</a>)
     };
-
-    <span class="kw">match</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#125">result</a> {
-        <span class="prelude-val">Ok</span>(()) =&gt; {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#123">part</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#365">take_header</a>());
-        }
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#134">err</a>);
-        }
-    };
+    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#120">result</a>.<span class="ident">map</span>(<span class="op">|</span>()<span class="op">|</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#118">part</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#352">take_header</a>())
 }
 
 <span class="doccomment">/// A gzip streaming encoder</span>
@@ -1076,11 +1019,11 @@
     <span class="ident">eof</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gz_encoder</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a><span class="op">&gt;</span>(<span class="ident">header</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <span class="ident">r</span>: <span class="ident">R</span>, <span class="ident">lvl</span>: <a class="ident" href="../../../src/flate2/lib.rs.html#187">Compression</a>) -&gt; <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">crc</span> <span class="op">=</span> <span class="ident">CrcReader::new</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#178">r</a>);
-    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#171-176">GzEncoder</a> {
-        <span class="ident">inner</span>: <span class="ident">deflate::bufread::DeflateEncoder::new</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#179">crc</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#178">lvl</a>),
-        <span class="ident">header</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#178">header</a>,
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gz_encoder</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a><span class="op">&gt;</span>(<span class="ident">header</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <span class="ident">r</span>: <span class="ident">R</span>, <span class="ident">lvl</span>: <a class="ident" href="../../../src/flate2/lib.rs.html#163">Compression</a>) -&gt; <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">crc</span> <span class="op">=</span> <span class="ident">CrcReader::new</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#165">r</a>);
+    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#158-163">GzEncoder</a> {
+        <span class="ident">inner</span>: <span class="ident">deflate::bufread::DeflateEncoder::new</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#166">crc</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#165">lvl</a>),
+        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#165">header</a>,
         <span class="ident">pos</span>: <span class="number">0</span>,
         <span class="ident">eof</span>: <span class="bool-val">false</span>,
     }
@@ -1094,33 +1037,33 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The data read from the stream `r` will be compressed and available</span>
     <span class="doccomment">/// through the returned reader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>, <span class="ident">level</span>: <a class="ident" href="../../../src/flate2/lib.rs.html#187">Compression</a>) -&gt; <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="ident">GzBuilder::new</span>().<a class="ident" href="../../../src/flate2/gz/mod.rs.html#190-192">buf_read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#196">r</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#196">level</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>, <span class="ident">level</span>: <a class="ident" href="../../../src/flate2/lib.rs.html#163">Compression</a>) -&gt; <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+        <span class="ident">GzBuilder::new</span>().<a class="ident" href="../../../src/flate2/gz/mod.rs.html#196-198">buf_read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#183">r</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#183">level</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">read_footer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#200">self</a>.<span class="ident">pos</span> <span class="op">==</span> <span class="number">8</span> {
+        <span class="kw">if</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#187">self</a>.<span class="ident">pos</span> <span class="op">==</span> <span class="number">8</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
-        <span class="kw">let</span> <span class="ident">crc</span> <span class="op">=</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#200">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#79">get_ref</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#77">crc</a>();
+        <span class="kw">let</span> <span class="ident">crc</span> <span class="op">=</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#187">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#74">get_ref</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#83">crc</a>();
         <span class="kw">let</span> <span class="kw-2">ref</span> <span class="ident">arr</span> <span class="op">=</span> [
-            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#204">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#36">sum</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">0</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#204">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#36">sum</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#204">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#36">sum</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#204">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#36">sum</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#204">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#42">amount</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">0</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#204">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#42">amount</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#204">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#42">amount</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#204">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#42">amount</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#191">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#42">sum</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">0</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#191">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#42">sum</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#191">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#42">sum</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#191">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#42">sum</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#191">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#48">amount</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">0</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#191">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#48">amount</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#191">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#48">amount</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
+            (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#191">crc</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#48">amount</a>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
         ];
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#17">copy</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#200">into</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#205">arr</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#200">self</a>.<span class="ident">pos</span>))
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#12">copy</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#187">into</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#192">arr</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#187">self</a>.<span class="ident">pos</span>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Acquires a reference to the underlying reader.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#221">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#79">get_ref</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#87">get_ref</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#208">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#74">get_ref</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#93">get_ref</a>()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying reader.</span>
@@ -1128,59 +1071,59 @@
     <span class="doccomment">/// Note that mutation of the reader may result in surprising results if</span>
     <span class="doccomment">/// this encoder is continued to be used.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#229">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#87">get_mut</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#92">get_mut</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#216">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#82">get_mut</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#98">get_mut</a>()
     }
 
     <span class="doccomment">/// Returns the underlying stream, consuming this encoder</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#234">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#92">into_inner</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#82">into_inner</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#221">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#87">into_inner</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#88">into_inner</a>()
     }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">finish</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-    <span class="kw">let</span> <span class="ident">crc</span> <span class="op">=</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">buf</a>[<span class="number">0</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>)
-        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">buf</a>[<span class="number">1</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
-        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">buf</a>[<span class="number">2</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>)
-        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">buf</a>[<span class="number">3</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>);
-    <span class="kw">let</span> <span class="ident">amt</span> <span class="op">=</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">buf</a>[<span class="number">4</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>)
-        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">buf</a>[<span class="number">5</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
-        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">buf</a>[<span class="number">6</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>)
-        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">buf</a>[<span class="number">7</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>);
-    (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#241">crc</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#245">amt</a>)
+    <span class="kw">let</span> <span class="ident">crc</span> <span class="op">=</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#227">buf</a>[<span class="number">0</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>)
+        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#227">buf</a>[<span class="number">1</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
+        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#227">buf</a>[<span class="number">2</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>)
+        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#227">buf</a>[<span class="number">3</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>);
+    <span class="kw">let</span> <span class="ident">amt</span> <span class="op">=</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#227">buf</a>[<span class="number">4</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>)
+        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#227">buf</a>[<span class="number">5</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
+        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#227">buf</a>[<span class="number">6</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>)
+        <span class="op">|</span> ((<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#227">buf</a>[<span class="number">7</span>] <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>);
+    (<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#228">crc</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#232">amt</a>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">amt</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">if</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#253">self</a>.<span class="ident">eof</span> {
-            <span class="kw">return</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#253">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#200">read_footer</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#253">into</a>);
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#253">self</a>.<span class="ident">pos</span> <span class="op">&lt;</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#253">self</a>.<span class="ident">header</span>.<span class="ident">len</span>() {
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#254">amt</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#17">copy</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#253">into</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/flate2/gz/bufread.rs.html#253">self</a>.<span class="ident">header</span>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#253">self</a>.<span class="ident">pos</span>);
-            <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#254">amt</a> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#253">into</a>.<span class="ident">len</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#254">amt</a>);
+        <span class="kw">if</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#240">self</a>.<span class="ident">eof</span> {
+            <span class="kw">return</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#240">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#187">read_footer</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">into</a>);
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#240">self</a>.<span class="ident">pos</span> <span class="op">&lt;</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#240">self</a>.<span class="ident">header</span>.<span class="ident">len</span>() {
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#241">amt</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#12">copy</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">into</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/flate2/gz/bufread.rs.html#240">self</a>.<span class="ident">header</span>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#240">self</a>.<span class="ident">pos</span>);
+            <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#241">amt</a> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">into</a>.<span class="ident">len</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#241">amt</a>);
             }
-            <span class="kw">let</span> <span class="ident">tmp</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#253">into</a>;
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#253">into</a> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#262">tmp</a>[<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#254">amt</a>..];
+            <span class="kw">let</span> <span class="ident">tmp</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">into</a>;
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">into</a> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#249">tmp</a>[<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#241">amt</a>..];
         }
-        <span class="kw">match</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#253">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#253">into</a>)<span class="question-mark">?</span> {
+        <span class="kw">match</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#240">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">into</a>)<span class="question-mark">?</span> {
             <span class="number">0</span> =&gt; {
-                <a class="self" href="../../../src/flate2/gz/bufread.rs.html#253">self</a>.<span class="ident">eof</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                <a class="self" href="../../../src/flate2/gz/bufread.rs.html#253">self</a>.<span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
-                <a class="self" href="../../../src/flate2/gz/bufread.rs.html#253">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#200">read_footer</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#253">into</a>)
+                <a class="self" href="../../../src/flate2/gz/bufread.rs.html#240">self</a>.<span class="ident">eof</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                <a class="self" href="../../../src/flate2/gz/bufread.rs.html#240">self</a>.<span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
+                <a class="self" href="../../../src/flate2/gz/bufread.rs.html#240">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#187">read_footer</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">into</a>)
             }
-            <span class="ident">n</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#254">amt</a> <span class="op">+</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#271">n</a>),
+            <span class="ident">n</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#241">amt</a> <span class="op">+</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#258">n</a>),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">GzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#277">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#229">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#277">buf</a>)
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#264">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#216">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#264">buf</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#281">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#229">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#268">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#216">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
@@ -1219,7 +1162,7 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#371-377">GzState</a>,
+    <span class="ident">inner</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#358-364">GzState</a>,
     <span class="ident">header</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/flate2/gz/mod.rs.html#22-28">GzHeader</a><span class="op">&gt;</span>,
     <span class="ident">reader</span>: <span class="ident">CrcReader</span><span class="op">&lt;</span><span class="ident">deflate::bufread::DeflateDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">multi</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -1238,18 +1181,18 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GzHeaderPartial</span> {
     <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
-    <span class="ident">state</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#328-335">GzHeaderParsingState</a>,
+    <span class="ident">state</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#315-322">GzHeaderParsingState</a>,
     <span class="ident">flg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
     <span class="ident">xlen</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
     <span class="ident">crc</span>: <a class="ident" href="../../../src/flate2/crc.rs.html#12-15">Crc</a>,
     <span class="ident">header</span>: <a class="ident" href="../../../src/flate2/gz/mod.rs.html#22-28">GzHeader</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#338-345">GzHeaderPartial</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#338-345">GzHeaderPartial</a> {
-        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#338-345">GzHeaderPartial</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#325-332">GzHeaderPartial</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#325-332">GzHeaderPartial</a> {
+        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#325-332">GzHeaderPartial</a> {
             <span class="ident">buf</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">10</span>), <span class="comment">// minimum header length</span>
-            <span class="ident">state</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#329">GzHeaderParsingState::Start</a>,
+            <span class="ident">state</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#316">GzHeaderParsingState::Start</a>,
             <span class="ident">flg</span>: <span class="number">0</span>,
             <span class="ident">xlen</span>: <span class="number">0</span>,
             <span class="ident">crc</span>: <span class="ident">Crc::new</span>(),
@@ -1264,13 +1207,13 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_header</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/flate2/gz/mod.rs.html#22-28">GzHeader</a> {
-        <span class="kw">return</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#365">self</a>.<span class="ident">header</span>;
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#352">self</a>.<span class="ident">header</span>
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">GzState</span> {
-    <span class="ident">Header</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#338-345">GzHeaderPartial</a>),
+    <span class="ident">Header</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#325-332">GzHeaderPartial</a>),
     <span class="ident">Body</span>,
     <span class="ident">Finished</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>]),
     <span class="prelude-val">Err</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>),
@@ -1281,52 +1224,52 @@
 <span class="doccomment">/// further data from `reader`. This will also buffer all data read from</span>
 <span class="doccomment">/// `reader` into `buf` for reuse on a further call.</span>
 <span class="kw">struct</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">part</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#338-345">GzHeaderPartial</a>,
+    <span class="ident">part</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#325-332">GzHeaderPartial</a>,
     <span class="ident">buf_cur</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="ident">buf_max</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">part</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#338-345">GzHeaderPartial</a>, <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span>) -&gt; <span class="ident">Buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#382-387">Buffer</a> {
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#390">reader</a>,
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">part</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#325-332">GzHeaderPartial</a>, <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span>) -&gt; <span class="ident">Buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#369-374">Buffer</a> {
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#377">reader</a>,
             <span class="ident">buf_cur</span>: <span class="number">0</span>,
-            <span class="ident">buf_max</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#390">part</a>.<span class="ident">buf</span>.<span class="ident">len</span>(),
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#390">part</a>,
+            <span class="ident">buf_max</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#377">part</a>.<span class="ident">buf</span>.<span class="ident">len</span>(),
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#377">part</a>,
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bufref</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">part</span>.<span class="ident">state</span> {
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#332">GzHeaderParsingState::Filename</a> =&gt; <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">filename</span>.<span class="ident">as_mut</span>(),
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#333">GzHeaderParsingState::Comment</a> =&gt; <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">comment</span>.<span class="ident">as_mut</span>(),
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bufref</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">part</span>.<span class="ident">state</span> {
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#319">GzHeaderParsingState::Filename</a> =&gt; <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">filename</span>.<span class="ident">as_mut</span>(),
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#320">GzHeaderParsingState::Comment</a> =&gt; <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">part</span>.<span class="ident">header</span>.<span class="ident">comment</span>.<span class="ident">as_mut</span>(),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         };
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#402">bufref</a> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#389">bufref</a> {
             <span class="comment">// we have a direct reference to a buffer where to write</span>
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">reader</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#401">buf</a>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#409">len</a> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#401">buf</a>[<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#409">len</a> <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">reader</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#388">buf</a>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#396">len</a> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#388">buf</a>[<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#396">len</a> <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="number">0</span> {
                 <span class="comment">// we do not append the final 0</span>
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#407">b</a>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#401">buf</a>[..<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#409">len</a> <span class="op">-</span> <span class="number">1</span>]);
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#394">b</a>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#388">buf</a>[..<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#396">len</a> <span class="op">-</span> <span class="number">1</span>]);
             } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#407">b</a>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#401">buf</a>[..<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#409">len</a>]);
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#394">b</a>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#388">buf</a>[..<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#396">len</a>]);
             }
-            <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">part</span>.<span class="ident">crc</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#47">update</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#401">buf</a>[..<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#409">len</a>]);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#409">len</a>)
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">buf_cur</span> <span class="op">==</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">buf_max</span> {
+            <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">part</span>.<span class="ident">crc</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#388">buf</a>[..<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#396">len</a>]);
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#396">len</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">buf_cur</span> <span class="op">==</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">buf_max</span> {
             <span class="comment">// we read new bytes and also save them in self.part.buf</span>
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">reader</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#401">buf</a>)<span class="question-mark">?</span>;
-            <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">part</span>.<span class="ident">buf</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#401">buf</a>[..<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#420">len</a>]);
-            <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">part</span>.<span class="ident">crc</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#47">update</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#401">buf</a>[..<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#420">len</a>]);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#420">len</a>)
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">reader</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#388">buf</a>)<span class="question-mark">?</span>;
+            <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">part</span>.<span class="ident">buf</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#388">buf</a>[..<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#407">len</a>]);
+            <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">part</span>.<span class="ident">crc</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#53">update</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#388">buf</a>[..<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#407">len</a>]);
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#407">len</a>)
         } <span class="kw">else</span> {
             <span class="comment">// we first read the previously saved bytes</span>
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">part</span>.<span class="ident">buf</span>[<a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">buf_cur</span>..<a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">buf_max</span>]).<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#401">buf</a>)<span class="question-mark">?</span>;
-            <a class="self" href="../../../src/flate2/gz/bufread.rs.html#401">self</a>.<span class="ident">buf_cur</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#426">len</a>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#426">len</a>)
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">part</span>.<span class="ident">buf</span>[<a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">buf_cur</span>..<a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">buf_max</span>]).<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#388">buf</a>)<span class="question-mark">?</span>;
+            <a class="self" href="../../../src/flate2/gz/bufread.rs.html#388">self</a>.<span class="ident">buf_cur</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#413">len</a>;
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#413">len</a>)
         }
     }
 }
@@ -1337,14 +1280,14 @@
 {
     <span class="comment">// If we manage to read all the bytes, we reset the buffer</span>
     <span class="kw">fn</span> <span class="ident">read_and_forget</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#438">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_exact</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#438">buf</a>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#425">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_exact</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#425">buf</a>)<span class="question-mark">?</span>;
         <span class="comment">// we managed to read the whole buf</span>
         <span class="comment">// we will no longer need the previously saved bytes in self.part.buf</span>
-        <span class="kw">let</span> <span class="ident">rlen</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#438">buf</a>.<span class="ident">len</span>();
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#438">self</a>.<span class="ident">part</span>.<span class="ident">buf</span>.<span class="ident">truncate</span>(<span class="number">0</span>);
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#438">self</a>.<span class="ident">buf_cur</span> <span class="op">=</span> <span class="number">0</span>;
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#438">self</a>.<span class="ident">buf_max</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#442">rlen</a>);
+        <span class="kw">let</span> <span class="ident">rlen</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#425">buf</a>.<span class="ident">len</span>();
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#425">self</a>.<span class="ident">part</span>.<span class="ident">buf</span>.<span class="ident">truncate</span>(<span class="number">0</span>);
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#425">self</a>.<span class="ident">buf_cur</span> <span class="op">=</span> <span class="number">0</span>;
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#425">self</a>.<span class="ident">buf_max</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#429">rlen</a>)
     }
 }
 
@@ -1356,42 +1299,42 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">header</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">Buffer::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#454">part</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#453">r</a>);
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">read_gz_header_part</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#458">reader</a>)
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">Buffer::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#441">part</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#440">r</a>);
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">read_gz_header_part</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#445">reader</a>)
         };
 
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#457">result</a> {
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#444">result</a> {
             <span class="prelude-val">Ok</span>(()) =&gt; {
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#455">header</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#454">part</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#365">take_header</a>());
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#373">GzState::Body</a>
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#442">header</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#441">part</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#352">take_header</a>());
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#360">GzState::Body</a>
             }
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) <span class="kw">if</span> <span class="ident">io::ErrorKind::WouldBlock</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#467">err</a>.<span class="ident">kind</span>() =&gt; <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#372">GzState::Header</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#454">part</a>),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#375">GzState::Err</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#468">err</a>),
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) <span class="kw">if</span> <span class="ident">io::ErrorKind::WouldBlock</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#454">err</a>.<span class="ident">kind</span>() =&gt; <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#359">GzState::Header</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#441">part</a>),
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#362">GzState::Err</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#455">err</a>),
         };
 
-        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#320-325">GzDecoder</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#462">state</a>,
-            <span class="ident">reader</span>: <span class="ident">CrcReader::new</span>(<span class="ident">deflate::bufread::DeflateDecoder::new</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#453">r</a>)),
+        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#307-312">GzDecoder</a> {
+            <span class="ident">inner</span>: <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#449">state</a>,
+            <span class="ident">reader</span>: <span class="ident">CrcReader::new</span>(<span class="ident">deflate::bufread::DeflateDecoder::new</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#440">r</a>)),
             <span class="ident">multi</span>: <span class="bool-val">false</span>,
-            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#455">header</a>,
+            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#442">header</a>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">multi</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">flag</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#479">self</a>.<span class="ident">multi</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#479">flag</a>;
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#479">self</a>
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#466">self</a>.<span class="ident">multi</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#466">flag</a>;
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#466">self</a>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns the header associated with this stream, if it was valid</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/mod.rs.html#22-28">GzHeader</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#487">self</a>.<span class="ident">header</span>.<span class="ident">as_ref</span>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#474">self</a>.<span class="ident">header</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying reader.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#492">self</a>.<span class="ident">reader</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#87">get_ref</a>().<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#213">get_ref</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#479">self</a>.<span class="ident">reader</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#93">get_ref</a>().<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#198">get_ref</a>()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying stream.</span>
@@ -1399,144 +1342,133 @@
     <span class="doccomment">/// Note that mutation of the stream may result in surprising results if</span>
     <span class="doccomment">/// this encoder is continued to be used.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#500">self</a>.<span class="ident">reader</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#92">get_mut</a>().<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#221">get_mut</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#487">self</a>.<span class="ident">reader</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#98">get_mut</a>().<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#206">get_mut</a>()
     }
 
     <span class="doccomment">/// Consumes this decoder, returning the underlying reader.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#505">self</a>.<span class="ident">reader</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#82">into_inner</a>().<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#226">into_inner</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#492">self</a>.<span class="ident">reader</span>.<a class="ident" href="../../../src/flate2/crc.rs.html#88">into_inner</a>().<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#211">into_inner</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#320-325">GzDecoder</a> {
+        <span class="kw">let</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#307-312">GzDecoder</a> {
             <span class="ident">inner</span>,
             <span class="ident">header</span>,
             <span class="ident">reader</span>,
             <span class="ident">multi</span>,
-        } <span class="op">=</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#511">self</a>;
+        } <span class="op">=</span> <a class="self" href="../../../src/flate2/gz/bufread.rs.html#498">self</a>;
 
         <span class="kw">loop</span> {
-            <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#513">inner</a> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#513">inner</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#376">GzState::End</a>) {
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#372">GzState::Header</a>(<span class="kw-2">mut</span> <span class="ident">part</span>) =&gt; {
+            <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">inner</a> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">inner</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#363">GzState::End</a>) {
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#359">GzState::Header</a>(<span class="kw-2">mut</span> <span class="ident">part</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">Buffer::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#521">part</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#515">reader</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#92">get_mut</a>().<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#221">get_mut</a>());
-                        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#43">read_gz_header_part</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#523">reader</a>)
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">Buffer::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#508">part</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#502">reader</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#98">get_mut</a>().<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#206">get_mut</a>());
+                        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#38">read_gz_header_part</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#510">reader</a>)
                     };
-                    <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#522">result</a> {
+                    <span class="kw">match</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#509">result</a> {
                         <span class="prelude-val">Ok</span>(()) =&gt; {
-                            <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#514">header</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#521">part</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#365">take_header</a>());
-                            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#373">GzState::Body</a>
+                            <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#501">header</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#508">part</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#352">take_header</a>());
+                            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#360">GzState::Body</a>
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">io::ErrorKind::WouldBlock</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#531">err</a>.<span class="ident">kind</span>() =&gt; {
-                            <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#513">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#372">GzState::Header</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#521">part</a>);
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#531">err</a>);
+                        <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">io::ErrorKind::WouldBlock</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#518">err</a>.<span class="ident">kind</span>() =&gt; {
+                            <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#359">GzState::Header</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#508">part</a>);
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#518">err</a>);
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#535">err</a>),
-                    };
-                    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#526">state</a>
+                        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#522">err</a>),
+                    }
                 }
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#373">GzState::Body</a> =&gt; {
-                    <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#511">into</a>.<span class="ident">is_empty</span>() {
-                        <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#513">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#373">GzState::Body</a>;
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#360">GzState::Body</a> =&gt; {
+                    <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#498">into</a>.<span class="ident">is_empty</span>() {
+                        <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#360">GzState::Body</a>;
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
                     }
 
-                    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#515">reader</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#511">into</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                        <span class="kw">if</span> <span class="ident">io::ErrorKind::WouldBlock</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#545">err</a>.<span class="ident">kind</span>() {
-                            <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#513">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#373">GzState::Body</a>;
+                    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#502">reader</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#498">into</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                        <span class="kw">if</span> <span class="ident">io::ErrorKind::WouldBlock</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#531">err</a>.<span class="ident">kind</span>() {
+                            <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#360">GzState::Body</a>;
                         }
 
-                        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#545">err</a>
+                        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#531">err</a>
                     })<span class="question-mark">?</span>;
 
-                    <span class="kw">match</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#545">n</a> {
-                        <span class="number">0</span> =&gt; <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#374">GzState::Finished</a>(<span class="number">0</span>, [<span class="number">0</span>; <span class="number">8</span>]),
+                    <span class="kw">match</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#531">n</a> {
+                        <span class="number">0</span> =&gt; <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#361">GzState::Finished</a>(<span class="number">0</span>, [<span class="number">0</span>; <span class="number">8</span>]),
                         <span class="ident">n</span> =&gt; {
-                            <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#513">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#373">GzState::Body</a>;
-                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#555">n</a>);
+                            <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#360">GzState::Body</a>;
+                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#541">n</a>);
                         }
                     }
                 }
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#374">GzState::Finished</a>(<span class="ident">pos</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) =&gt; {
-                    <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">pos</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">buf</a>.<span class="ident">len</span>() {
-                        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#515">reader</a>
-                            .<a class="ident" href="../../../src/flate2/crc.rs.html#92">get_mut</a>()
-                            .<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#221">get_mut</a>()
-                            .<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">buf</a>[<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">pos</a>..])
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#361">GzState::Finished</a>(<span class="ident">pos</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) =&gt; {
+                    <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">pos</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">buf</a>.<span class="ident">len</span>() {
+                        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#502">reader</a>
+                            .<a class="ident" href="../../../src/flate2/crc.rs.html#98">get_mut</a>()
+                            .<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#206">get_mut</a>()
+                            .<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">buf</a>[<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">pos</a>..])
                             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> {
-                                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#567">n</a> <span class="op">==</span> <span class="number">0</span> {
+                                <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#553">n</a> <span class="op">==</span> <span class="number">0</span> {
                                     <span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::UnexpectedEof</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
                                 } <span class="kw">else</span> {
-                                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#567">n</a>)
+                                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#553">n</a>)
                                 }
                             })
                             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                                <span class="kw">if</span> <span class="ident">io::ErrorKind::WouldBlock</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#574">err</a>.<span class="ident">kind</span>() {
-                                    <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#513">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#374">GzState::Finished</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">pos</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">buf</a>);
+                                <span class="kw">if</span> <span class="ident">io::ErrorKind::WouldBlock</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#560">err</a>.<span class="ident">kind</span>() {
+                                    <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#361">GzState::Finished</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">pos</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">buf</a>);
                                 }
 
-                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#574">err</a>
+                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#560">err</a>
                             })<span class="question-mark">?</span>;
 
-                        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#374">GzState::Finished</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">pos</a> <span class="op">+</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#563">n</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">buf</a>)
+                        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#361">GzState::Finished</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">pos</a> <span class="op">+</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#549">n</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">buf</a>)
                     } <span class="kw">else</span> {
-                        <span class="kw">let</span> (<span class="ident">crc</span>, <span class="ident">amt</span>) <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#240">finish</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">buf</a>);
+                        <span class="kw">let</span> (<span class="ident">crc</span>, <span class="ident">amt</span>) <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#227">finish</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">buf</a>);
 
-                        <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#584">crc</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#515">reader</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#77">crc</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#36">sum</a>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#584">amt</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#515">reader</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#77">crc</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#42">amount</a>() {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#26">corrupt</a>());
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#516">multi</a> {
-                            <span class="kw">let</span> <span class="ident">is_eof</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#515">reader</a>
-                                .<a class="ident" href="../../../src/flate2/crc.rs.html#92">get_mut</a>()
-                                .<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#221">get_mut</a>()
+                        <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#570">crc</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#502">reader</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#83">crc</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#42">sum</a>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#570">amt</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#502">reader</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#83">crc</a>().<a class="ident" href="../../../src/flate2/crc.rs.html#48">amount</a>() {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#21">corrupt</a>());
+                        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#503">multi</a> {
+                            <span class="kw">let</span> <span class="ident">is_eof</span> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#502">reader</a>
+                                .<a class="ident" href="../../../src/flate2/crc.rs.html#98">get_mut</a>()
+                                .<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#206">get_mut</a>()
                                 .<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">fill_buf</a>()
-                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#593">buf</a>.<span class="ident">is_empty</span>())
+                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#579">buf</a>.<span class="ident">is_empty</span>())
                                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                                    <span class="kw">if</span> <span class="ident">io::ErrorKind::WouldBlock</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#594">err</a>.<span class="ident">kind</span>() {
-                                        <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#513">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#374">GzState::Finished</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">pos</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#561">buf</a>);
+                                    <span class="kw">if</span> <span class="ident">io::ErrorKind::WouldBlock</span> <span class="op">==</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#580">err</a>.<span class="ident">kind</span>() {
+                                        <span class="kw-2">*</span><a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">inner</a> <span class="op">=</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#361">GzState::Finished</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">pos</a>, <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#547">buf</a>);
                                     }
 
-                                    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#594">err</a>
+                                    <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#580">err</a>
                                 })<span class="question-mark">?</span>;
 
-                            <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#589">is_eof</a> {
-                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#376">GzState::End</a>
+                            <span class="kw">if</span> <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#575">is_eof</a> {
+                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#363">GzState::End</a>
                             } <span class="kw">else</span> {
-                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#515">reader</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#97">reset</a>();
-                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#515">reader</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#92">get_mut</a>().<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#208">reset_data</a>();
-                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#514">header</a>.<span class="ident">take</span>();
-                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#372">GzState::Header</a>(<span class="ident">GzHeaderPartial::new</span>())
+                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#502">reader</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#103">reset</a>();
+                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#502">reader</a>.<a class="ident" href="../../../src/flate2/crc.rs.html#98">get_mut</a>().<a class="ident" href="../../../src/flate2/deflate/bufread.rs.html#193">reset_data</a>();
+                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#501">header</a>.<span class="ident">take</span>();
+                                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#359">GzState::Header</a>(<span class="ident">GzHeaderPartial::new</span>())
                             }
                         } <span class="kw">else</span> {
-                            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#376">GzState::End</a>
+                            <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#363">GzState::End</a>
                         }
                     }
                 }
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#375">GzState::Err</a>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#615">err</a>),
-                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#376">GzState::End</a> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#362">GzState::Err</a>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#601">err</a>),
+                <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#363">GzState::End</a> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>),
             };
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">BufRead</span><span class="op">&gt;</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {}
-
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#626">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#626">buf</a>)
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#609">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#487">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#609">buf</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#630">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">BufRead</span><span class="op">&gt;</span> <span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">GzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">shutdown</span>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#613">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#487">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
@@ -1588,19 +1520,19 @@
     <span class="doccomment">/// (first) gzip header. If the gzip stream contains multiple members all will</span>
     <span class="doccomment">/// be decoded.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>) -&gt; <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#683">MultiGzDecoder</a>(<span class="ident">GzDecoder::new</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#689">r</a>).<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#479">multi</a>(<span class="bool-val">true</span>))
+        <a class="ident" href="../../../src/flate2/gz/bufread.rs.html#659">MultiGzDecoder</a>(<span class="ident">GzDecoder::new</span>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#665">r</a>).<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#466">multi</a>(<span class="bool-val">true</span>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns the current header associated with this stream, if it&#39;s valid</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/flate2/gz/mod.rs.html#22-28">GzHeader</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#696">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#487">header</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#672">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#474">header</a>()
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying reader.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#701">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#492">get_ref</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#677">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#479">get_ref</a>()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying stream.</span>
@@ -1608,38 +1540,18 @@
     <span class="doccomment">/// Note that mutation of the stream may result in surprising results if</span>
     <span class="doccomment">/// this encoder is continued to be used.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#709">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#500">get_mut</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#685">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#487">get_mut</a>()
     }
 
     <span class="doccomment">/// Consumes this decoder, returning the underlying reader.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#714">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#505">into_inner</a>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#690">self</a>.<span class="number">0</span>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#492">into_inner</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#720">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#720">into</a>)
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">BufRead</span><span class="op">&gt;</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#729">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#709">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#729">buf</a>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#733">self</a>.<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#709">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">BufRead</span><span class="op">&gt;</span> <span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">MultiGzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">shutdown</span>()
+        <a class="self" href="../../../src/flate2/gz/bufread.rs.html#696">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/gz/bufread.rs.html#696">into</a>)
     }
 }
 
@@ -1771,7 +1683,7 @@
         }
         <span class="ident">r</span>.<span class="ident">set_position</span>(<span class="ident">pos2</span>);
 
-        <span class="comment">// Fourth read : now succesful for 7 bytes</span>
+        <span class="comment">// Fourth read : now successful for 7 bytes</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader3</span> <span class="op">=</span> <span class="ident">Buffer::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">part</span>, <span class="kw-2">&amp;mut</span> <span class="ident">r</span>);
         <span class="kw">match</span> <span class="ident">reader3</span>.<span class="ident">read_and_forget</span>(<span class="kw-2">&amp;mut</span> <span class="ident">out</span>) {
             <span class="prelude-val">Ok</span>(<span class="number">7</span>) =&gt; {
@@ -1783,7 +1695,7 @@
             }
         }
 
-        <span class="comment">// Fifth read : succesful for one more byte</span>
+        <span class="comment">// Fifth read : successful for one more byte</span>
         <span class="ident">out</span>.<span class="ident">resize</span>(<span class="number">1</span>, <span class="number">0</span>);
         <span class="kw">match</span> <span class="ident">reader3</span>.<span class="ident">read_and_forget</span>(<span class="kw-2">&amp;mut</span> <span class="ident">out</span>) {
             <span class="prelude-val">Ok</span>(<span class="number">1</span>) =&gt; {
@@ -1796,5 +1708,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

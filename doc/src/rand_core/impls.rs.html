@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_core-0.6.3/src/impls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>impls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_core-0.5.1/src/impls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>impls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../rand_core/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -163,32 +163,6 @@
 <span id="156">156</span>
 <span id="157">157</span>
 <span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
@@ -208,15 +182,19 @@
 <span class="doccomment">//! to/from byte sequences, and since its purpose is reproducibility,</span>
 <span class="doccomment">//! non-reproducible sources (e.g. `OsRng`) need not bother with it.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../src/rand_core/lib.rs.html#142-185"><span class="kw">crate</span>::RngCore</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/intrinsics/fn.copy_nonoverlapping.html">core::ptr::copy_nonoverlapping</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/fn.min.html">core::cmp::min</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.size_of.html">core::mem::size_of</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/rand_core/lib.rs.html#137-184"><span class="kw">crate</span>::RngCore</a>;
+
 
 <span class="doccomment">/// Implement `next_u64` via `next_u32`, little-endian order.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_u64_via_u32</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/rand_core/lib.rs.html#142-185">RngCore</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_u64_via_u32</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/rand_core/lib.rs.html#137-184">RngCore</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
     <span class="comment">// Use LE; we explicitly generate one value before the next.</span>
-    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#24">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#148">next_u32</a>());
-    <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#24">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#148">next_u32</a>());
-    (<a class="ident" href="../../src/rand_core/impls.rs.html#27">y</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">|</span> <a class="ident" href="../../src/rand_core/impls.rs.html#26">x</a>
+    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#28">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#144">next_u32</a>());
+    <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#28">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#144">next_u32</a>());
+    (<a class="ident" href="../../src/rand_core/impls.rs.html#31">y</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">|</span> <a class="ident" href="../../src/rand_core/impls.rs.html#30">x</a>
 }
 
 <span class="doccomment">/// Implement `fill_bytes` via `next_u64` and `next_u32`, little-endian order.</span>
@@ -225,54 +203,63 @@
 <span class="doccomment">/// integers. That is why this method mostly uses `next_u64`, and only when</span>
 <span class="doccomment">/// there are 4 or less bytes remaining at the end of the slice it uses</span>
 <span class="doccomment">/// `next_u32` once.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill_bytes_via_next</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/rand_core/lib.rs.html#142-185">RngCore</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">left</span> <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#37">dest</a>;
-    <span class="kw">while</span> <a class="ident" href="../../src/rand_core/impls.rs.html#38">left</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">8</span> {
-        <span class="kw">let</span> (<span class="ident">l</span>, <span class="ident">r</span>) <span class="op">=</span> { <a class="ident" href="../../src/rand_core/impls.rs.html#38">left</a> }.<span class="ident">split_at_mut</span>(<span class="number">8</span>);
-        <a class="ident" href="../../src/rand_core/impls.rs.html#38">left</a> <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#40">r</a>;
-        <span class="kw">let</span> <span class="ident">chunk</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#37">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#155">next_u64</a>().<span class="ident">to_le_bytes</span>();
-        <a class="ident" href="../../src/rand_core/impls.rs.html#40">l</a>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/rand_core/impls.rs.html#42">chunk</a>);
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill_bytes_via_next</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/rand_core/lib.rs.html#137-184">RngCore</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">left</span> <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#41">dest</a>;
+    <span class="kw">while</span> <a class="ident" href="../../src/rand_core/impls.rs.html#42">left</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">8</span> {
+        <span class="kw">let</span> (<span class="ident">l</span>, <span class="ident">r</span>) <span class="op">=</span> {<a class="ident" href="../../src/rand_core/impls.rs.html#42">left</a>}.<span class="ident">split_at_mut</span>(<span class="number">8</span>);
+        <a class="ident" href="../../src/rand_core/impls.rs.html#42">left</a> <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#44">r</a>;
+        <span class="kw">let</span> <span class="ident">chunk</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#41">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#152">next_u64</a>().<span class="ident">to_le_bytes</span>();
+        <a class="ident" href="../../src/rand_core/impls.rs.html#44">l</a>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/rand_core/impls.rs.html#46">chunk</a>);
     }
-    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#38">left</a>.<span class="ident">len</span>();
-    <span class="kw">if</span> <a class="ident" href="../../src/rand_core/impls.rs.html#45">n</a> <span class="op">&gt;</span> <span class="number">4</span> {
-        <span class="kw">let</span> <span class="ident">chunk</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#37">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#155">next_u64</a>().<span class="ident">to_le_bytes</span>();
-        <a class="ident" href="../../src/rand_core/impls.rs.html#38">left</a>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/rand_core/impls.rs.html#47">chunk</a>[..<a class="ident" href="../../src/rand_core/impls.rs.html#45">n</a>]);
-    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/rand_core/impls.rs.html#45">n</a> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="kw">let</span> <span class="ident">chunk</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>] <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#37">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#148">next_u32</a>().<span class="ident">to_le_bytes</span>();
-        <a class="ident" href="../../src/rand_core/impls.rs.html#38">left</a>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/rand_core/impls.rs.html#50">chunk</a>[..<a class="ident" href="../../src/rand_core/impls.rs.html#45">n</a>]);
+    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#42">left</a>.<span class="ident">len</span>();
+    <span class="kw">if</span> <a class="ident" href="../../src/rand_core/impls.rs.html#49">n</a> <span class="op">&gt;</span> <span class="number">4</span> {
+        <span class="kw">let</span> <span class="ident">chunk</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#41">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#152">next_u64</a>().<span class="ident">to_le_bytes</span>();
+        <a class="ident" href="../../src/rand_core/impls.rs.html#42">left</a>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/rand_core/impls.rs.html#51">chunk</a>[..<a class="ident" href="../../src/rand_core/impls.rs.html#49">n</a>]);
+    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/rand_core/impls.rs.html#49">n</a> <span class="op">&gt;</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">chunk</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">4</span>] <span class="op">=</span> <a class="ident" href="../../src/rand_core/impls.rs.html#41">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#144">next_u32</a>().<span class="ident">to_le_bytes</span>();
+        <a class="ident" href="../../src/rand_core/impls.rs.html#42">left</a>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/rand_core/impls.rs.html#54">chunk</a>[..<a class="ident" href="../../src/rand_core/impls.rs.html#49">n</a>]);
     }
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">fill_via_chunks</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) =&gt; {{
-        <span class="kw">const</span> <span class="ident">SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">chunk_size_u8</span> <span class="op">=</span> <span class="ident">min</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">SIZE</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">len</span>());
-        <span class="kw">let</span> <span class="ident">chunk_size</span> <span class="op">=</span> (<span class="ident">chunk_size_u8</span> <span class="op">+</span> <span class="ident">SIZE</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <span class="ident">SIZE</span>;
+<span class="macro">macro_rules!</span> <span class="ident">impl_uint_from_fill</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rng</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">N</span>:<span class="ident">expr</span>) =&gt; ({
+        <span class="macro">debug_assert!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">N</span> <span class="op">==</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>());
 
-        <span class="comment">// The following can be replaced with safe code, but unfortunately it&#39;s</span>
-        <span class="comment">// ca. 8% slower.</span>
-        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">int</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">int</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>;
+            <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">ptr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">N</span>);
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rng</span>.<span class="ident">fill_bytes</span>(<span class="ident">slice</span>);
+        }
+        <span class="ident">int</span>
+    });
+}
+
+<span class="macro">macro_rules!</span> <span class="ident">fill_via_chunks</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>:<span class="ident">expr</span>) =&gt; ({
+        <span class="kw">let</span> <span class="ident">chunk_size_u8</span> <span class="op">=</span> <span class="ident">min</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="ident">chunk_size</span> <span class="op">=</span> (<span class="ident">chunk_size_u8</span> <span class="op">+</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>;
+        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span><span class="op">=</span><span class="string">&quot;little&quot;</span>) {
             <span class="kw">unsafe</span> {
-                <span class="ident">core::ptr::copy_nonoverlapping</span>(
+                <span class="ident">copy_nonoverlapping</span>(
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>,
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">as_mut_ptr</span>(),
                     <span class="ident">chunk_size_u8</span>);
             }
         } <span class="kw">else</span> {
-            <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">n</span>, <span class="ident">chunk</span>) <span class="kw">in</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">chunks_mut</span>(<span class="ident">SIZE</span>)) {
+            <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">n</span>, <span class="ident">chunk</span>) <span class="kw">in</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">chunks_mut</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>)) {
                 <span class="kw">let</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_le</span>();
                 <span class="kw">let</span> <span class="ident">src_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tmp</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>;
                 <span class="kw">unsafe</span> {
-                    <span class="ident">core::ptr::copy_nonoverlapping</span>(
-                        <span class="ident">src_ptr</span>,
-                        <span class="ident">chunk</span>.<span class="ident">as_mut_ptr</span>(),
-                        <span class="ident">chunk</span>.<span class="ident">len</span>());
+                    <span class="ident">copy_nonoverlapping</span>(<span class="ident">src_ptr</span>,
+                                        <span class="ident">chunk</span>.<span class="ident">as_mut_ptr</span>(),
+                                        <span class="ident">chunk</span>.<span class="ident">len</span>());
                 }
             }
         }
 
         (<span class="ident">chunk_size</span>, <span class="ident">chunk_size_u8</span>)
-    }};
+    });
 }
 
 <span class="doccomment">/// Implement `fill_bytes` by reading chunks from the output buffer of a block</span>
@@ -306,7 +293,7 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill_via_u32_chunks</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>], <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="macro">fill_via_chunks!</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#117">src</a>, <a class="ident" href="../../src/rand_core/impls.rs.html#117">dest</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    <span class="macro">fill_via_chunks!</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#130">src</a>, <a class="ident" href="../../src/rand_core/impls.rs.html#130">dest</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">4</span>)
 }
 
 <span class="doccomment">/// Implement `fill_bytes` by reading chunks from the output buffer of a block</span>
@@ -320,59 +307,20 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// See `fill_via_u32_chunks` for an example.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill_via_u64_chunks</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>], <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="macro">fill_via_chunks!</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#131">src</a>, <a class="ident" href="../../src/rand_core/impls.rs.html#131">dest</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)
+    <span class="macro">fill_via_chunks!</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#144">src</a>, <a class="ident" href="../../src/rand_core/impls.rs.html#144">dest</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="number">8</span>)
 }
 
 <span class="doccomment">/// Implement `next_u32` via `fill_bytes`, little-endian order.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_u32_via_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/rand_core/lib.rs.html#142-185">RngCore</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">4</span>];
-    <a class="ident" href="../../src/rand_core/impls.rs.html#136">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#171">fill_bytes</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/rand_core/impls.rs.html#137">buf</a>);
-    <span class="ident">u32::from_le_bytes</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#137">buf</a>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_u32_via_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/rand_core/lib.rs.html#137-184">RngCore</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+    <span class="macro">impl_uint_from_fill!</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#149">rng</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="number">4</span>)
 }
 
 <span class="doccomment">/// Implement `next_u64` via `fill_bytes`, little-endian order.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_u64_via_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/rand_core/lib.rs.html#142-185">RngCore</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">8</span>];
-    <a class="ident" href="../../src/rand_core/impls.rs.html#143">rng</a>.<a class="ident" href="../../src/rand_core/lib.rs.html#171">fill_bytes</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/rand_core/impls.rs.html#144">buf</a>);
-    <span class="ident">u64::from_le_bytes</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#144">buf</a>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_u64_via_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/rand_core/lib.rs.html#137-184">RngCore</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
+    <span class="macro">impl_uint_from_fill!</span>(<a class="ident" href="../../src/rand_core/impls.rs.html#154">rng</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="number">8</span>)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_fill_via_u32_chunks</span>() {
-        <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">11</span>];
-        <span class="macro">assert_eq!</span>(<span class="ident">fill_via_u32_chunks</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>), (<span class="number">3</span>, <span class="number">11</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, [<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>]);
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">13</span>];
-        <span class="macro">assert_eq!</span>(<span class="ident">fill_via_u32_chunks</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>), (<span class="number">3</span>, <span class="number">12</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, [<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]);
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">5</span>];
-        <span class="macro">assert_eq!</span>(<span class="ident">fill_via_u32_chunks</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>), (<span class="number">2</span>, <span class="number">5</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, [<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>]);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_fill_via_u64_chunks</span>() {
-        <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">2</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">11</span>];
-        <span class="macro">assert_eq!</span>(<span class="ident">fill_via_u64_chunks</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>), (<span class="number">2</span>, <span class="number">11</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, [<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>]);
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">17</span>];
-        <span class="macro">assert_eq!</span>(<span class="ident">fill_via_u64_chunks</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>), (<span class="number">2</span>, <span class="number">16</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, [<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]);
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">5</span>];
-        <span class="macro">assert_eq!</span>(<span class="ident">fill_via_u64_chunks</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>), (<span class="number">1</span>, <span class="number">5</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">dst</span>, [<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]);
-    }
-}
+<span class="comment">// TODO: implement tests for the above</span>
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rand_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rand_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

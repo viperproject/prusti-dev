@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.22/src/zlib/write.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.23/src/zlib/write.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flate2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -324,42 +324,10 @@
 <span id="319">319</span>
 <span id="320">320</span>
 <span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">futures::Poll</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
-
-<span class="kw">use</span> <a class="ident" href="../../../src/flate2/lib.rs.html#122"><span class="kw">crate</span>::zio</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/flate2/lib.rs.html#98"><span class="kw">crate</span>::zio</a>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/flate2/mem.rs.html#22-24">Compress</a>, <a class="ident" href="../../../src/flate2/mem.rs.html#39-41">Decompress</a>};
 
 <span class="doccomment">/// A ZLIB encoder, or compressor.</span>
@@ -396,15 +364,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// When this encoder is dropped or unwrapped the final pieces of data will</span>
     <span class="doccomment">/// be flushed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">w</span>: <span class="ident">W</span>, <span class="ident">level</span>: <a class="ident" href="../../../src/flate2/lib.rs.html#187"><span class="kw">crate</span>::Compression</a>) -&gt; <span class="ident">ZlibEncoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/flate2/zlib/write.rs.html#36-38">ZlibEncoder</a> {
-            <span class="ident">inner</span>: <span class="ident">zio::Writer::new</span>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#46">w</a>, <span class="ident">Compress::new</span>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#46">level</a>, <span class="bool-val">true</span>)),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">w</span>: <span class="ident">W</span>, <span class="ident">level</span>: <a class="ident" href="../../../src/flate2/lib.rs.html#163"><span class="kw">crate</span>::Compression</a>) -&gt; <span class="ident">ZlibEncoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/flate2/zlib/write.rs.html#31-33">ZlibEncoder</a> {
+            <span class="ident">inner</span>: <span class="ident">zio::Writer::new</span>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#41">w</a>, <span class="ident">Compress::new</span>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#41">level</a>, <span class="bool-val">true</span>)),
         }
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying writer.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">W</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#53">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#185">get_ref</a>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#48">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#187">get_ref</a>()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying writer.</span>
@@ -412,7 +380,7 @@
     <span class="doccomment">/// Note that mutating the output/input state of the stream may corrupt this</span>
     <span class="doccomment">/// object, so care must be taken when using this method.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">W</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#61">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#189">get_mut</a>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#56">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#191">get_mut</a>()
     }
 
     <span class="doccomment">/// Resets the state of this encoder entirely, swapping out the output</span>
@@ -431,9 +399,9 @@
     <span class="doccomment">/// This function will perform I/O to complete this stream, and any I/O</span>
     <span class="doccomment">/// errors which occur will be returned from this function.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">w</span>: <span class="ident">W</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#80">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#168">finish</a>()<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#80">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../../src/flate2/mem.rs.html#300">reset</a>();
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/zlib/write.rs.html#80">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#180">replace</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#80">w</a>))
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#75">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#170">finish</a>()<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#75">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../../src/flate2/mem.rs.html#300">reset</a>();
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/zlib/write.rs.html#75">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#182">replace</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#75">w</a>))
     }
 
     <span class="doccomment">/// Attempt to finish this output stream, writing out final chunks of data.</span>
@@ -452,7 +420,7 @@
     <span class="doccomment">/// This function will perform I/O to complete this stream, and any I/O</span>
     <span class="doccomment">/// errors which occur will be returned from this function.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_finish</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#101">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#168">finish</a>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#96">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#170">finish</a>()
     }
 
     <span class="doccomment">/// Consumes this encoder, flushing the output stream.</span>
@@ -471,8 +439,8 @@
     <span class="doccomment">/// This function will perform I/O to complete this stream, and any I/O</span>
     <span class="doccomment">/// errors which occur will be returned from this function.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#120">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#168">finish</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/zlib/write.rs.html#120">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#197">take_inner</a>())
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#115">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#170">finish</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/zlib/write.rs.html#115">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#199">take_inner</a>())
     }
 
     <span class="doccomment">/// Consumes this encoder, flushing the output stream.</span>
@@ -488,16 +456,16 @@
     <span class="doccomment">/// This function will perform I/O to complete this stream, and any I/O</span>
     <span class="doccomment">/// errors which occur will be returned from this function.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flush_finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#137">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/zlib/write.rs.html#137">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#197">take_inner</a>())
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#132">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/zlib/write.rs.html#132">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#199">take_inner</a>())
     }
 
-    <span class="doccomment">/// Returns the number of bytes that have been written to this compresor.</span>
+    <span class="doccomment">/// Returns the number of bytes that have been written to this compressor.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that not all bytes written to this object may be accounted for,</span>
     <span class="doccomment">/// there may still be some active buffering.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#146">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../../src/flate2/mem.rs.html#268">total_in</a>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#141">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../../src/flate2/mem.rs.html#268">total_in</a>()
     }
 
     <span class="doccomment">/// Returns the number of bytes that the compressor has produced.</span>
@@ -505,36 +473,25 @@
     <span class="doccomment">/// Note that not all bytes may have been written yet, some may still be</span>
     <span class="doccomment">/// buffered.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_out</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#154">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../../src/flate2/mem.rs.html#274">total_out</a>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#149">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../../src/flate2/mem.rs.html#274">total_out</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">ZlibEncoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#160">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#160">buf</a>)
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#155">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#155">buf</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#164">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">AsyncWrite</span><span class="op">&gt;</span> <span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">ZlibEncoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">try_finish</span>()<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">shutdown</span>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#159">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">ZlibEncoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#178">self</a>.<a class="ident" href="../../../src/flate2/zlib/write.rs.html#61">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#178">buf</a>)
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#165">self</a>.<a class="ident" href="../../../src/flate2/zlib/write.rs.html#56">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#165">buf</a>)
     }
 }
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span><span class="op">&gt;</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">ZlibEncoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {}
 
 <span class="doccomment">/// A ZLIB decoder, or decompressor.</span>
 <span class="doccomment">///</span>
@@ -582,14 +539,14 @@
     <span class="doccomment">/// When this decoder is dropped or unwrapped the final pieces of data will</span>
     <span class="doccomment">/// be flushed.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">w</span>: <span class="ident">W</span>) -&gt; <span class="ident">ZlibDecoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/flate2/zlib/write.rs.html#222-224">ZlibDecoder</a> {
-            <span class="ident">inner</span>: <span class="ident">zio::Writer::new</span>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#231">w</a>, <span class="ident">Decompress::new</span>(<span class="bool-val">true</span>)),
+        <a class="ident" href="../../../src/flate2/zlib/write.rs.html#206-208">ZlibDecoder</a> {
+            <span class="ident">inner</span>: <span class="ident">zio::Writer::new</span>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#215">w</a>, <span class="ident">Decompress::new</span>(<span class="bool-val">true</span>)),
         }
     }
 
     <span class="doccomment">/// Acquires a reference to the underlying writer.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">W</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#238">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#185">get_ref</a>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#222">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#187">get_ref</a>()
     }
 
     <span class="doccomment">/// Acquires a mutable reference to the underlying writer.</span>
@@ -597,7 +554,7 @@
     <span class="doccomment">/// Note that mutating the output/input state of the stream may corrupt this</span>
     <span class="doccomment">/// object, so care must be taken when using this method.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">W</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#246">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#189">get_mut</a>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#230">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#191">get_mut</a>()
     }
 
     <span class="doccomment">/// Resets the state of this decoder entirely, swapping out the output</span>
@@ -613,9 +570,9 @@
     <span class="doccomment">/// This function will perform I/O to complete this stream, and any I/O</span>
     <span class="doccomment">/// errors which occur will be returned from this function.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">w</span>: <span class="ident">W</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#262">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#168">finish</a>()<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#262">self</a>.<span class="ident">inner</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">Decompress::new</span>(<span class="bool-val">true</span>);
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/zlib/write.rs.html#262">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#180">replace</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#262">w</a>))
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#246">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#170">finish</a>()<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#246">self</a>.<span class="ident">inner</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">Decompress::new</span>(<span class="bool-val">true</span>);
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/zlib/write.rs.html#246">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#182">replace</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#246">w</a>))
     }
 
     <span class="doccomment">/// Attempt to finish this output stream, writing out final chunks of data.</span>
@@ -634,7 +591,7 @@
     <span class="doccomment">/// This function will perform I/O to complete this stream, and any I/O</span>
     <span class="doccomment">/// errors which occur will be returned from this function.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_finish</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#283">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#168">finish</a>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#267">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#170">finish</a>()
     }
 
     <span class="doccomment">/// Consumes this encoder, flushing the output stream.</span>
@@ -653,8 +610,8 @@
     <span class="doccomment">/// This function will perform I/O to complete this stream, and any I/O</span>
     <span class="doccomment">/// errors which occur will be returned from this function.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#302">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#168">finish</a>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/zlib/write.rs.html#302">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#197">take_inner</a>())
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#286">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#170">finish</a>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/flate2/zlib/write.rs.html#286">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#199">take_inner</a>())
     }
 
     <span class="doccomment">/// Returns the number of bytes that the decompressor has consumed for</span>
@@ -663,42 +620,31 @@
     <span class="doccomment">/// Note that this will likely be smaller than the number of bytes</span>
     <span class="doccomment">/// successfully written to this stream due to internal buffering.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#312">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../../src/flate2/mem.rs.html#439">total_in</a>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#296">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../../src/flate2/mem.rs.html#439">total_in</a>()
     }
 
     <span class="doccomment">/// Returns the number of bytes that the decompressor has written to its</span>
     <span class="doccomment">/// output stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_out</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#318">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../../src/flate2/mem.rs.html#445">total_out</a>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#302">self</a>.<span class="ident">inner</span>.<span class="ident">data</span>.<a class="ident" href="../../../src/flate2/mem.rs.html#445">total_out</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">ZlibDecoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#324">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#324">buf</a>)
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#308">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#308">buf</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#328">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">AsyncWrite</span><span class="op">&gt;</span> <span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">ZlibDecoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">finish</span>()<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_mut</span>().<span class="ident">shutdown</span>()
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#312">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for</span> <span class="ident">ZlibDecoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/flate2/zlib/write.rs.html#342">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#189">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#342">buf</a>)
+        <a class="self" href="../../../src/flate2/zlib/write.rs.html#318">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/flate2/zio.rs.html#191">get_mut</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a class="ident" href="../../../src/flate2/zlib/write.rs.html#318">buf</a>)
     }
 }
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span><span class="op">&gt;</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">ZlibDecoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {}
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.1/src/sys/unix/uds/listener.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>listener.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><script defer src="../../../../../main.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.2/src/sys/unix/uds/listener.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>listener.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><script defer src="../../../../../main.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -97,6 +97,8 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/mod.rs.html#27"><span class="kw">super</span>::socket_addr</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::net</span>::{<a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15-18">SocketAddr</a>, <a class="ident" href="../../../../../src/mio/net/uds/stream.rs.html#12-14">UnixStream</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../../src/mio/sys/unix/net.rs.html#15"><span class="kw">crate</span>::sys::unix::net::new_socket</a>;
@@ -141,6 +143,7 @@
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,
         <span class="comment">// Android x86&#39;s seccomp profile forbids calls to `accept4(2)`</span>
         <span class="comment">// See https://github.com/tokio-rs/mio/issues/1445 for details</span>
         <span class="ident">all</span>(
@@ -154,15 +157,16 @@
             <a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#25">listener</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(),
             <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#36">sockaddr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../../../libc/unix/linux_like/struct.sockaddr_un.html">libc::sockaddr_un</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../../../libc/unix/linux_like/struct.sockaddr.html">libc::sockaddr</a>,
             <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#39">socklen</a>,
-            <a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#53">flags</a>
+            <a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#54">flags</a>
         ))
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">socket</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">net::UnixStream::from_raw_fd</span>(<a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#60">socket</a>) })
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">socket</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">net::UnixStream::from_raw_fd</span>(<a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#61">socket</a>) })
     };
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,
         <span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>)
     ))]</span>
     <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">accept</span>(
@@ -183,14 +187,14 @@
         <span class="prelude-val">Ok</span>(<span class="ident">s</span>)
     });
 
-    <a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#52">socket</a>
+    <a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#53">socket</a>
         .<span class="ident">map</span>(<span class="ident">UnixStream::from_std</span>)
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">stream</span><span class="op">|</span> (<a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#89">stream</a>, <span class="ident">SocketAddr::from_parts</span>(<a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#36">sockaddr</a>, <a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#39">socklen</a>)))
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">stream</span><span class="op">|</span> (<a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#91">stream</a>, <span class="ident">SocketAddr::from_parts</span>(<a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#36">sockaddr</a>, <a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#39">socklen</a>)))
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="ident">listener</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/net/listener/struct.UnixListener.html">net::UnixListener</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15-18">SocketAddr</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../../../../src/mio/sys/unix/uds/mod.rs.html#106"><span class="kw">super</span>::local_addr</a>(<a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#92">listener</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>())
+    <a class="ident" href="../../../../../src/mio/sys/unix/uds/mod.rs.html#106"><span class="kw">super</span>::local_addr</a>(<a class="ident" href="../../../../../src/mio/sys/unix/uds/listener.rs.html#94">listener</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>())
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (285fa7ecd 2022-03-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
 </body></html>
