@@ -14,16 +14,23 @@ pub(in super::super) trait PlaceExpressionDomainEncoder {
         local: &vir_mid::expression::Local,
         lowerer: &mut Lowerer,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_deref(
+        &mut self,
+        deref: &vir_mid::expression::Deref,
+        lowerer: &mut Lowerer,
+        arg: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn encode_expression(
         &mut self,
         place: &vir_mid::Expression,
         lowerer: &mut Lowerer,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        // FIXME: Use ADT domains instead.
         assert!(place.is_place(), "{} is not a place", place);
         let result = match place {
             vir_mid::Expression::Local(local) => self.encode_local(local, lowerer)?,
             vir_mid::Expression::Field(field) => {
-                let arg = self.encode_expression(&*field.base, lowerer)?;
+                let arg = self.encode_expression(&field.base, lowerer)?;
                 let domain_name = self.domain_name(lowerer);
                 lowerer.encode_field_access_function_app(
                     domain_name,
@@ -32,6 +39,21 @@ pub(in super::super) trait PlaceExpressionDomainEncoder {
                     &field.field,
                     field.position,
                 )?
+            }
+            vir_mid::Expression::Variant(variant) => {
+                let arg = self.encode_expression(&variant.base, lowerer)?;
+                let domain_name = self.domain_name(lowerer);
+                lowerer.encode_variant_access_function_app(
+                    domain_name,
+                    arg,
+                    variant.base.get_type(),
+                    &variant.variant_index,
+                    variant.position,
+                )?
+            }
+            vir_mid::Expression::Deref(deref) => {
+                let arg = self.encode_expression(&deref.base, lowerer)?;
+                self.encode_deref(deref, lowerer, arg)?
             }
             x => unimplemented!("{}", x),
         };

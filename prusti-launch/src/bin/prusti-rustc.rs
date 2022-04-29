@@ -9,6 +9,7 @@ use nix::unistd::{setpgid, Pid};
 use prusti_launch::{add_to_loader_path, find_viper_home, find_z3_exe, sigint_handler};
 use std::{
     env,
+    io::Write,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -146,6 +147,25 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     let _ = setpgid(Pid::this(), Pid::this());
     // Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
     ctrlc::set_handler(sigint_handler).expect("Error setting Ctrl-C handler");
+
+    if let Ok(path) = env::var("PRUSTI_RUSTC_LOG_ARGS") {
+        let mut file = std::fs::File::create(path).unwrap();
+        for arg in cmd.get_args() {
+            writeln!(file, "{}", arg.to_str().unwrap()).unwrap();
+        }
+    }
+    if let Ok(path) = env::var("PRUSTI_RUSTC_LOG_ENV") {
+        let mut file = std::fs::File::create(path).unwrap();
+        for (key, value) in cmd.get_envs() {
+            writeln!(
+                file,
+                "{}={}",
+                key.to_str().unwrap(),
+                value.unwrap().to_str().unwrap()
+            )
+            .unwrap();
+        }
+    }
 
     let exit_status = cmd
         .status()

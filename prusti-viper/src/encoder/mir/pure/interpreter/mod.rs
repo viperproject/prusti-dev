@@ -4,7 +4,6 @@ pub(super) mod state;
 
 use self::state::ExprBackwardInterpreterState;
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{
         builtin_functions::{BuiltinFunctionHighKind, HighBuiltinFunctionEncoderInterface},
@@ -18,7 +17,7 @@ use crate::encoder::{
         specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
-    mir_encoder::MirEncoder,
+    mir_encoder::{MirEncoder, PRECONDITION_LABEL},
     mir_interpreter::BackwardMirInterpreter,
     Encoder,
 };
@@ -28,11 +27,15 @@ use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty, ty::subst::SubstsRef};
 use rustc_span::Span;
-
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
-    high::{self as vir_high},
+    common::{
+        expression::{BinaryOperationHelpers, UnaryOperationHelpers},
+        position::Positioned,
+    },
+    high::{self as vir_high, operations::ty::Typed},
 };
+
+use super::PureEncodingContext;
 
 // FIXME: Make this explicitly accessible only to spec_encoder and pure
 // expression encoder.
@@ -42,14 +45,11 @@ pub(super) struct ExpressionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     mir: &'p mir::Body<'tcx>,
     /// MirEncoder of the pure function being encoded.
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
-    /// True if a panic should be encoded to a `false` boolean value.
-    /// This flag is used to distinguish whether an assert terminators generated e.g. for an
-    /// integer overflow should be translated into `false` and when to an "unreachable" function
-    /// call with a `false` precondition.
-    encode_panic_to_false: bool,
+    /// How panics are handled depending on the encoding context.
+    pure_encoding_context: PureEncodingContext,
     /// DefId of the caller. Used for error reporting.
     caller_def_id: DefId,
-    tymap: SubstMap<'tcx>,
+    substs: SubstsRef<'tcx>,
 }
 
 /// This encoding works backward, so there is the risk of generating expressions whose length
@@ -62,22 +62,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         encoder: &'p Encoder<'v, 'tcx>,
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
-        encode_panic_to_false: bool,
+        pure_encoding_context: PureEncodingContext,
         caller_def_id: DefId,
-        tymap: SubstMap<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> Self {
         Self {
             encoder,
             mir,
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
-            encode_panic_to_false,
+            pure_encoding_context,
             caller_def_id,
-            tymap,
+            substs,
         }
-    }
-
-    pub(super) fn mir_encoder(&self) -> &MirEncoder<'p, 'v, 'tcx> {
-        &self.mir_encoder
     }
 
     fn encode_place(&self, place: mir::Place<'tcx>) -> SpannedEncodingResult<vir_high::Expression> {
@@ -128,10 +124,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             mir::AggregateKind::Adt(adt_did, variant_index, _, _, _) => {
                 let tcx = self.encoder.env().tcx();
                 let adt_def = tcx.adt_def(*adt_did);
-                let ty_with_variant = if adt_def.variants.len() > 1 {
+                let ty_with_variant = if adt_def.variants().len() > 1 {
                     // FIXME: Shouls use adt_def.is_enum() as a check.
                     // FIXME: Most likely need to substitute the discriminant here.
-                    let variant_def = &adt_def.variants[*variant_index];
+                    let variant_def = &adt_def.variants()[*variant_index];
                     let variant_name = variant_def.ident(tcx).to_string();
                     ty.variant(variant_name.into())
                 } else {
@@ -157,7 +153,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         rhs: &mir::Rvalue<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<()> {
-        let encoded_lhs = self.encode_place(lhs)?;
+        let encoded_lhs = self.encode_place(lhs)?.erase_lifetime();
         let ty = self
             .encoder
             .encode_type_of_place_high(self.mir, lhs)
@@ -229,7 +225,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Discriminant(src) => {
                 let arg = self.encoder.encode_place_high(self.mir, *src)?;
-                let expr = self.encoder.encode_discriminant_call(arg).with_span(span)?;
+                let expr = self
+                    .encoder
+                    .encode_discriminant_call(arg, encoded_lhs.get_type().clone())
+                    .with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
             mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
@@ -240,9 +239,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .encoder
                     .encode_type_of_place_high(self.mir, *place)
                     .with_span(span)?;
+                let pure_lifetime = vir_high::ty::LifetimeConst {
+                    name: String::from("pure_erased"),
+                };
                 let encoded_ref = vir_high::Expression::addr_of_no_pos(
                     encoded_place,
-                    vir_high::Type::reference(ty),
+                    vir_high::Type::reference(pure_lifetime, vir_high::ty::Uniqueness::Shared, ty),
                 );
                 // Substitute the place
                 state.substitute_value(&encoded_lhs, encoded_ref);
@@ -258,8 +260,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     self.mir,
                     self.caller_def_id,
                     operand,
-                    dst_ty,
-                    &self.tymap,
+                    *dst_ty,
                     span,
                 )?;
                 state.substitute_value(&encoded_lhs, encoded_rhs);
@@ -298,7 +299,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let encoded_operand = self.encode_operand(operand, span)?;
                 let len: usize = self
                     .encoder
-                    .const_eval_intlike(&times.val)
+                    .const_eval_intlike(times.val())
                     .with_span(span)?
                     .to_u64()
                     .unwrap()
@@ -416,14 +417,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         span: Span,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
-        if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
+        if let ty::TyKind::FnDef(def_id, call_substs) = ty.kind() {
             let def_id = *def_id;
             let full_func_proc_name: &str = &self.encoder.env().tcx().def_path_str(def_id);
             let func_proc_name = &self.encoder.env().get_item_name(def_id);
-            let tymap = self
-                .encoder
-                .update_substitution_map(self.tymap.clone(), def_id, substs)
-                .with_span(span)?;
+
+            // compose substitutions
+            // TODO(tymap): do we need this?
+            use crate::rustc_middle::ty::subst::Subst;
+            let substs = call_substs.subst(self.encoder.env().tcx(), self.substs);
 
             let state = if let Some((lhs_place, target_block)) = destination {
                 let encoded_lhs = self.encode_place(*lhs_place).with_span(span)?;
@@ -434,8 +436,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .with_span(span)?;
                 match full_func_proc_name {
                     "prusti_contracts::old" => {
-                        unimplemented!();
-                        // self.encode_call_old()?
+                        let argument = encoded_args.pop().unwrap();
+                        let position = argument.position();
+                        let encoded_rhs = vir_high::Expression::labelled_old(
+                            PRECONDITION_LABEL.to_string(),
+                            argument,
+                            position,
+                        );
+                        let mut state = states[target_block].clone();
+                        state.substitute_value(&encoded_lhs, encoded_rhs);
+                        state
                     }
                     "prusti_contracts::before_expiry" => {
                         // self.encode_call_before_expiry()?
@@ -475,7 +485,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                             span,
                         )?
                     }
-                    "std::ops::Index::index" | "core::ops::Index::index" => {
+                    "std::ops::IndexMut::index_mut"
+                    | "core::ops::IndexMut::index_mut"
+                    | "std::ops::Index::index"
+                    | "core::ops::Index::index" => {
                         assert_eq!(args.len(), 2);
                         self.encode_call_index(
                             *target_block,
@@ -496,10 +509,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                         let expr = self.encoder.encode_prusti_operation_high(
                             full_func_proc_name,
                             span,
-                            substs,
                             encoded_args,
                             self.caller_def_id,
-                            &self.tymap,
+                            substs,
                         )?;
                         let mut state = states[target_block].clone();
                         state.substitute_value(&encoded_lhs, expr);
@@ -507,7 +519,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     }
 
                     _ => {
-                        if self.encoder.is_pure(def_id) {
+                        if self.encoder.is_pure(def_id, Some(substs)) {
                             self.encode_call_generic(
                                 *target_block,
                                 states,
@@ -515,7 +527,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                                 def_id,
                                 encoded_args,
                                 span,
-                                &tymap,
                                 substs,
                             )?
                         } else {
@@ -609,12 +620,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         def_id: DefId,
         args: Vec<vir_high::Expression>,
         span: Span,
-        tymap: &SubstMap<'tcx>,
-        substs: &SubstsRef<'tcx>,
+        substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
         let (function_name, return_type) = self
             .encoder
-            .encode_pure_function_use_high(def_id, self.caller_def_id, tymap, substs)
+            .encode_pure_function_use_high(def_id, self.caller_def_id, substs)
             .with_span(span)?;
         trace!("Encoding pure function call '{}'", function_name);
         let pos = self.encoder.error_manager().register_error(
@@ -624,7 +634,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         );
         let type_arguments = self
             .encoder
-            .encode_generic_arguments_high(def_id, tymap)
+            .encode_generic_arguments_high(def_id, substs)
             .with_span(span)?;
         let encoded_rhs =
             vir_high::Expression::function_call(function_name, type_arguments, args, return_type)
@@ -642,7 +652,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         let encoded_type = self.encoder.encode_type_high(self.mir.return_ty())?;
         let (function_name, type_arguments) = self
             .encoder
-            .encode_builtin_function_use_high(BuiltinFunctionHighKind::Unreachable(encoded_type));
+            .encode_builtin_function_use_high(BuiltinFunctionHighKind::Unreachable(encoded_type))?;
         Ok(vir_high::Expression::func_app(
             function_name,
             type_arguments,
@@ -658,7 +668,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         let encoded_type = self.encoder.encode_type_high(self.mir.return_ty())?;
         let (function_name, type_arguments) = self
             .encoder
-            .encode_builtin_function_use_high(BuiltinFunctionHighKind::Undefined(encoded_type));
+            .encode_builtin_function_use_high(BuiltinFunctionHighKind::Undefined(encoded_type))?;
         Ok(vir_high::Expression::func_app(
             function_name,
             type_arguments,
@@ -751,20 +761,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 switch_ty,
                 discr,
                 targets,
-            } => self.apply_switch_int_terminator(switch_ty, discr, targets, states, span)?,
+            } => self.apply_switch_int_terminator(*switch_ty, discr, targets, states, span)?,
 
             TerminatorKind::DropAndReplace { .. } => unimplemented!(),
 
             TerminatorKind::Call {
                 args,
                 destination,
-                func:
-                    mir::Operand::Constant(box mir::Constant {
-                        literal: mir::ConstantKind::Ty(ty::Const { ty, val: _ }),
-                        ..
-                    }),
+                func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 ..
-            } => self.apply_call_terminator(args, destination, ty, states, span)?,
+            } => self.apply_call_terminator(args, destination, literal.ty(), states, span)?,
 
             TerminatorKind::Call { .. } => {
                 return Err(SpannedEncodingError::unsupported(
@@ -800,22 +806,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     self.caller_def_id,
                 );
 
-                let failure_encoding = if self.encode_panic_to_false {
-                    // We are encoding an assertion, so all failures should be equivalent to false.
-                    debug_assert!(matches!(self.mir.return_ty().kind(), ty::TyKind::Bool));
-                    false.into()
-                } else {
-                    // We are encoding a pure function, so all failures should be unreachable.
-                    self.unreachable_expr(pos.into()).with_span(span)?
-                };
-
-                ExprBackwardInterpreterState::new(states[target].expr().map(|target_expr| {
-                    vir_high::Expression::conditional_no_pos(
-                        guard.clone(),
-                        target_expr.clone(),
-                        failure_encoding,
-                    )
-                }))
+                match self.pure_encoding_context {
+                    PureEncodingContext::Trigger => {
+                        // We are encoding a trigger, so all panic branches must be stripped.
+                        states[target].clone()
+                    }
+                    PureEncodingContext::Assertion => {
+                        // We are encoding an assertion, so all failures should be equivalent to false.
+                        debug_assert!(matches!(self.mir.return_ty().kind(), ty::TyKind::Bool));
+                        ExprBackwardInterpreterState::new(states[target].expr().map(
+                            |target_expr| {
+                                vir_high::Expression::conditional_no_pos(
+                                    guard.clone(),
+                                    target_expr.clone(),
+                                    false.into(),
+                                )
+                            },
+                        ))
+                    }
+                    PureEncodingContext::Code => {
+                        // We are encoding a pure function, so all failures should be unreachable.
+                        let failure_encoding = self.unreachable_expr(pos.into()).with_span(span)?;
+                        ExprBackwardInterpreterState::new(states[target].expr().map(
+                            |target_expr| {
+                                vir_high::Expression::conditional_no_pos(
+                                    guard.clone(),
+                                    target_expr.clone(),
+                                    failure_encoding,
+                                )
+                            },
+                        ))
+                    }
+                }
             }
 
             TerminatorKind::Yield { .. }

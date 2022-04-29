@@ -72,6 +72,7 @@ impl<'tcx> PositionManager<'tcx>
     }
 
     pub fn duplicate(&mut self, pos: Position) -> Position {
+        assert!(!pos.is_default());
         self.register_span(
             self.get_def_id(pos).unwrap(),
             self.get_span(pos).cloned().unwrap(),

@@ -2,7 +2,7 @@ use crate::common::display;
 
 #[derive_helpers]
 #[derive_visitors]
-#[derive(derive_more::IsVariant)]
+#[derive(derive_more::IsVariant, derive_more::Unwrap)]
 pub enum Type {
     /// Mathematical boolean that corresponds to Viper's Bool.
     MBool,
@@ -11,6 +11,7 @@ pub enum Type {
     /// Mathematical floats that corresponds to Viper's Float.
     MFloat32,
     MFloat64,
+    Lifetime,
     /// Rust's Bool allocated on the Viper heap.
     Bool,
     /// Rust's Int allocated on the Viper heap.
@@ -58,8 +59,29 @@ pub enum Float {
     F64,
 }
 
-pub struct TypeVar {
+#[display(fmt = "{}", name)]
+pub struct LifetimeConst {
     pub name: String,
+}
+
+#[display(fmt = "Lifetime")]
+pub struct Lifetime {}
+impl Default for Lifetime {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[display(fmt = "{}", name)]
+pub struct GenericType {
+    pub name: String,
+}
+
+#[derive_helpers]
+#[derive(derive_more::Unwrap)]
+pub enum TypeVar {
+    LifetimeConst(LifetimeConst),
+    GenericType(GenericType),
 }
 
 #[display(fmt = "({})", "display::cjoin(arguments)")]
@@ -99,6 +121,8 @@ pub struct Union {
     pub name: String,
     /// Type arguments.
     pub arguments: Vec<Type>,
+    /// A specific field of the union that this type represents.
+    pub variant: Option<VariantIndex>,
 }
 
 #[display(fmt = "Array({}, {})", length, element_type)]
@@ -112,8 +136,16 @@ pub struct Slice {
     pub element_type: Box<Type>,
 }
 
-#[display(fmt = "&{}", target_type)]
+#[derive(Copy, derive_more::IsVariant)]
+pub enum Uniqueness {
+    Unique,
+    Shared,
+}
+
+#[display(fmt = "&{} {} {}", lifetime, uniqueness, target_type)]
 pub struct Reference {
+    pub lifetime: LifetimeConst,
+    pub uniqueness: Uniqueness,
     pub target_type: Box<Type>,
 }
 

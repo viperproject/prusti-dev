@@ -3,14 +3,21 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(if_let_guard)]
+// This Clippy chcek seems to be always wrong.
+#![allow(clippy::iter_with_drain)]
 
 #[macro_use]
+mod common;
 mod parse_quote_spanned;
 mod span_overrider;
 mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
+mod predicate;
 mod spec_attribute_kind;
+mod ghost_constraints;
+mod type_model;
+mod user_provided_type_params;
 pub mod specifications;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
@@ -24,6 +31,9 @@ use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
 use prusti_utils::force_matches;
 pub use extern_spec_rewriter::ExternSpecKind;
+use crate::common::{merge_generics, RewritableReceiver, SelfTypeRewriter};
+use crate::specifications::preparser::{NestedSpec, parse_ghost_constraint};
+use crate::predicate::{is_predicate_macro, ParsedPredicate};
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
@@ -46,7 +56,8 @@ fn extract_prusti_attributes(
                     SpecAttributeKind::Requires
                     | SpecAttributeKind::Ensures
                     | SpecAttributeKind::AfterExpiry
-                    | SpecAttributeKind::AssertOnExpiry => {
+                    | SpecAttributeKind::AssertOnExpiry
+                    | SpecAttributeKind::GhostConstraint => {
                         // We need to drop the surrounding parenthesis to make the
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
@@ -140,6 +151,7 @@ fn generate_spec_and_assertions(
             // `check_incompatible_attrs`; so we'll never reach here.
             SpecAttributeKind::Predicate => unreachable!(),
             SpecAttributeKind::Invariant => unreachable!(),
+            SpecAttributeKind::GhostConstraint => ghost_constraints::generate(attr_tokens, item),
         };
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
@@ -367,6 +379,18 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
 pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let mut impl_block: syn::ItemImpl = handle_result!(syn::parse2(tokens));
+    let impl_generics = &impl_block.generics;
+
+    let trait_path: syn::TypePath = match &impl_block.trait_ {
+        Some((_, trait_path, _)) => parse_quote_spanned!(trait_path.span()=>#trait_path),
+        None => handle_result!(Err(syn::Error::new(impl_block.span(), "Can refine trait specifications only on trait implementation blocks"))),
+    };
+
+    let self_type_path: &syn::TypePath = match &*impl_block.self_ty {
+        syn::Type::Path(type_path) => type_path,
+        _ => unimplemented!("Currently not supported: {:?}", impl_block.self_ty),
+    };
+
     let mut new_items = Vec::new();
     let mut generated_spec_items = Vec::new();
     for item in impl_block.items {
@@ -374,46 +398,60 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
             syn::ImplItem::Method(method) => {
                 let mut method_item = untyped::AnyFnItem::ImplMethod(method);
                 let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item);
+
+                let illegal_attribute_span = prusti_attributes.iter()
+                    .filter(|(kind, _)| kind == &SpecAttributeKind::GhostConstraint)
+                    .map(|(_, tokens)| tokens.span())
+                    .next();
+                if let Some(span) = illegal_attribute_span {
+                    let err = Err(syn::Error::new(span, "Ghost constraints in trait spec refinements not supported"));
+                    handle_result!(err);
+                }
+
                 let (spec_items, generated_attributes) = handle_result!(
                     generate_spec_and_assertions(prusti_attributes, &method_item)
                 );
-                generated_spec_items.extend(spec_items.into_iter().map(|spec_item| {
-                    match spec_item {
-                        syn::Item::Fn(spec_item_fn) => {
-                            syn::ImplItem::Method(syn::ImplItemMethod {
-                                attrs: spec_item_fn.attrs,
-                                vis: spec_item_fn.vis,
-                                defaultness: None,
-                                sig: spec_item_fn.sig,
-                                block: *spec_item_fn.block,
-                            })
-                        }
+
+                spec_items.into_iter()
+                    .map(|spec_item| match spec_item {
+                        syn::Item::Fn(spec_item_fn) => spec_item_fn,
                         x => unimplemented!("Unexpected variant: {:?}", x),
-                    }
-                }));
+                    })
+                    .for_each(|spec_item_fn| generated_spec_items.push(spec_item_fn));
+
                 let new_item = parse_quote_spanned! {method_item.span()=>
                     #(#generated_attributes)*
                     #method_item
                 };
                 new_items.push(new_item);
             },
+            syn::ImplItem::Macro(makro) if is_predicate_macro(&makro) => {
+                let parsed_predicate = handle_result!(predicate::parse_predicate_in_impl(makro.mac.tokens.clone()));
+
+                let predicate = force_matches!(parsed_predicate, ParsedPredicate::Impl(p) => p);
+
+                // Patch spec function: Rewrite self with _self: <SpecStruct>
+                let spec_function = force_matches!(predicate.spec_function,
+                    syn::Item::Fn(item_fn) => item_fn);
+                generated_spec_items.push(spec_function);
+
+                // Add patched predicate function to new items
+                new_items.push(syn::ImplItem::Method(predicate.patched_function));
+            },
             _ => new_items.push(item),
         }
     }
+
+    // Patch the spec items (merge generics, handle associated types, rewrite receiver)
+    for generated_spec_item in generated_spec_items.iter_mut() {
+        merge_generics(&mut generated_spec_item.sig.generics, impl_generics);
+        generated_spec_item.rewrite_self_type(self_type_path, Some(&trait_path));
+        generated_spec_item.rewrite_receiver(self_type_path);
+    }
+
     impl_block.items = new_items;
-    let spec_impl_block = syn::ItemImpl {
-        attrs: Vec::new(),
-        defaultness: impl_block.defaultness,
-        unsafety: impl_block.unsafety,
-        impl_token: impl_block.impl_token,
-        generics: impl_block.generics.clone(),
-        trait_: None,
-        self_ty: impl_block.self_ty.clone(),
-        brace_token: impl_block.brace_token,
-        items: generated_spec_items,
-    };
     quote_spanned! {impl_block.span()=>
-        #spec_impl_block
+        #(#generated_spec_items)*
         #impl_block
     }
 }
@@ -472,71 +510,20 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     }
 }
 
-#[derive(Debug)]
-struct PredicateFn {
-    visibility: Option<syn::Visibility>,
-    fn_sig: syn::Signature,
-    body: TokenStream,
-}
-
-impl syn::parse::Parse for PredicateFn {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let visibility = input.parse().ok();
-        let fn_sig = input.parse()?;
-        let brace_content;
-        let _brace_token = syn::braced!(brace_content in input);
-        let body = brace_content.parse()?;
-
-        Ok(PredicateFn {
-            visibility,
-            fn_sig,
-            body,
-        })
-    }
-}
-
 pub fn predicate(tokens: TokenStream) -> TokenStream {
-    let tokens_span = tokens.span();
-    // emit a custom error to the user instead of a parse error
-    let pred_fn: PredicateFn = handle_result!(
-        syn::parse2(tokens)
-            .map_err(|e| syn::Error::new(
-                e.span(),
-                "`predicate!` can only be used on function definitions. it supports no attributes."
-            ))
-    );
+    let parsed = handle_result!(predicate::parse_predicate(tokens));
+    parsed.into_token_stream()
+}
 
-    let mut rewriter = rewriter::AstRewriter::new();
-    let spec_id = rewriter.generate_spec_id();
+pub fn type_model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let item: syn::Item = handle_result!(syn::parse2(tokens));
 
-    let vis = match pred_fn.visibility {
-        Some(vis) => vis.to_token_stream(),
-        None => TokenStream::new(),
-    };
-    let sig = pred_fn.fn_sig.to_token_stream();
-    let cleaned_fn: untyped::AnyFnItem = parse_quote_spanned! {tokens_span =>
-        #vis #sig {
-            unimplemented!("predicate")
+    match item {
+        syn::Item::Struct(item_struct) => {
+            handle_result!(type_model::rewrite(item_struct))
         }
-    };
-
-    let spec_fn = handle_result!(rewriter.process_assertion(
-        rewriter::SpecItemType::Predicate,
-        spec_id,
-        pred_fn.body,
-        &cleaned_fn,
-    ));
-
-    let spec_id_str = spec_id.to_string();
-    parse_quote_spanned! {cleaned_fn.span() =>
-        // this is to typecheck the assertion
-        #spec_fn
-
-        // this is the assertion's remaining, empty fn
-        #[allow(unused_must_use, unused_variables, dead_code)]
-        #[prusti::pure]
-        #[prusti::trusted]
-        #[prusti::pred_spec_id_ref = #spec_id_str]
-        #cleaned_fn
+        _ => {
+            unimplemented!("Only structs can be attributed with 'model'")
+        }
     }
 }

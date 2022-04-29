@@ -29,4 +29,28 @@ impl<'v, 'tcx> ToMiddleTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> {
     ) -> Result<vir_mid::Expression, Self::Error> {
         expression.to_middle_expression(self)
     }
+
+    fn to_middle_type_decl_discriminant_value(
+        &self,
+        value: vir_high::DiscriminantValue,
+    ) -> Result<vir_mid::DiscriminantValue, Self::Error> {
+        Ok(value)
+    }
+
+    fn to_middle_type_decl_discriminant_range(
+        &self,
+        range: vir_high::DiscriminantRange,
+    ) -> Result<vir_mid::DiscriminantRange, Self::Error> {
+        Ok(range)
+    }
+
+    fn to_middle_type_decl_uniqueness(
+        &self,
+        uniqueness: vir_high::ty::Uniqueness,
+    ) -> Result<vir_mid::ty::Uniqueness, Self::Error> {
+        Ok(match uniqueness {
+            vir_high::ty::Uniqueness::Unique => vir_mid::ty::Uniqueness::Unique,
+            vir_high::ty::Uniqueness::Shared => vir_mid::ty::Uniqueness::Shared,
+        })
+    }
 }

@@ -1,9 +1,7 @@
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
     high::lower::{predicates::IntoPredicates, IntoPolymorphic},
     mir::types::MirTypeEncoderInterface,
-    utils::transpose,
 };
 #[rustfmt::skip]
 use ::log::trace;
@@ -138,10 +136,6 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
     fn encode_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type>;
     fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Field>;
     fn decode_type_predicate_type(&self, typ: &vir_poly::Type) -> EncodingResult<ty::Ty<'tcx>>;
-    fn type_substitution_polymorphic_type_map(
-        &self,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<FxHashMap<vir_poly::TypeVar, vir_poly::Type>>;
     fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String>;
     fn encode_type_invariant_def(
         &self,
@@ -154,7 +148,9 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
     ) -> EncodingResult<vir_poly::FunctionIdentifier>;
     fn encode_type_bounds(&self, var: &vir_poly::Expr, ty: ty::Ty<'tcx>) -> Vec<vir_poly::Expr>;
     fn decode_type_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<ty::Ty<'tcx>>;
-    fn is_zst_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<bool>;
+    /// An empty type is similar to the compiler's ZSTs, just it also includes
+    /// enum variants with no fields (such as `Option::None`).
+    fn is_type_empty(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<bool>;
     /// If the type is user defined, returns its span. Otherwise, returns the
     /// default span.
     fn get_type_definition_span_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<MultiSpan>;
@@ -254,21 +250,6 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             ))),
         }
     }
-    fn type_substitution_polymorphic_type_map(
-        &self,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<FxHashMap<vir_poly::TypeVar, vir_poly::Type>> {
-        tymap
-            .iter()
-            .map(|(typ, subst)| {
-                let type_var = self.encode_type(typ)?.get_type_var().unwrap();
-                let substitution = self.encode_type(subst);
-
-                transpose((Ok(type_var), substitution))
-                // FIXME: unwrap
-            })
-            .collect::<Result<_, _>>()
-    }
     fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String> {
         trace!("encode_type_invariant_use: {:?}", ty.kind());
         let encoded_type = self.encode_type_high(ty)?;
@@ -339,9 +320,24 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
         let high_type = self.decode_type_mid_into_high(ty.clone())?;
         Ok(self.decode_type_high(&high_type))
     }
-    fn is_zst_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<bool> {
-        let high_type = self.decode_type_mid_into_high(ty.clone())?;
-        self.is_zst(&high_type)
+    fn is_type_empty(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<bool> {
+        let type_decl = self.get_type_decl_mid(ty)?;
+        Ok(match type_decl {
+            vir_mid::TypeDecl::Bool
+            | vir_mid::TypeDecl::Int(_)
+            | vir_mid::TypeDecl::Float(_)
+            | vir_mid::TypeDecl::TypeVar(_)
+            | vir_mid::TypeDecl::Reference(_)
+            | vir_mid::TypeDecl::Pointer(_) => false,
+            vir_mid::TypeDecl::Tuple(decl) => decl.arguments.is_empty(),
+            vir_mid::TypeDecl::Struct(decl) => decl.fields.is_empty(),
+            vir_mid::TypeDecl::Enum(decl) => decl.variants.is_empty(),
+            vir_mid::TypeDecl::Union(decl) => decl.variants.is_empty(),
+            vir_mid::TypeDecl::Array(decl) => decl.length == 0,
+            vir_mid::TypeDecl::Never => true,
+            vir_mid::TypeDecl::Closure(_) => unimplemented!(),
+            vir_mid::TypeDecl::Unsupported(_) => unimplemented!(),
+        })
     }
     fn get_type_definition_span_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<MultiSpan> {
         let high_type = self.decode_type_mid_into_high(ty.clone())?;

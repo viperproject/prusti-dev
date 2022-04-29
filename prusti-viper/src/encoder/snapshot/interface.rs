@@ -1,5 +1,5 @@
 use super::encoder::SnapshotEncoder;
-use crate::encoder::{encoder::SubstMap, errors::EncodingResult};
+use crate::encoder::errors::EncodingResult;
 use rustc_middle::{mir, ty};
 use std::{cell::RefCell, rc::Rc};
 use vir_crate::polymorphic as vir_poly;
@@ -20,7 +20,6 @@ pub(crate) trait SnapshotEncoderInterface<'tcx> {
         &self,
         expr_self: vir_poly::Expr,
         expr_result: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr>;
     fn patch_snapshots_method(
         &self,
@@ -29,18 +28,9 @@ pub(crate) trait SnapshotEncoderInterface<'tcx> {
     fn patch_snapshots_function(
         &self,
         function: vir_poly::Function,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Function>;
-    fn patch_snapshots(
-        &self,
-        expr: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<vir_poly::Expr>;
-    fn encode_snapshot_type(
-        &self,
-        ty: ty::Ty<'tcx>,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<vir_poly::Type>;
+    fn patch_snapshots(&self, expr: vir_poly::Expr) -> EncodingResult<vir_poly::Expr>;
+    fn encode_snapshot_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type>;
     fn encode_snapshot_constant(
         &self,
         expr: &mir::Constant<'tcx>,
@@ -50,33 +40,28 @@ pub(crate) trait SnapshotEncoderInterface<'tcx> {
         ty: ty::Ty<'tcx>,
         variant: Option<usize>,
         args: Vec<vir_poly::Expr>,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr>;
     fn encode_snapshot_destructor(
         &self,
         ty: ty::Ty<'tcx>,
         args: Vec<vir_poly::Expr>,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr>;
     fn encode_snapshot_array_idx(
         &self,
         ty: ty::Ty<'tcx>,
         array: vir_poly::Expr,
         idx: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr>;
     fn encode_snapshot_slice_idx(
         &self,
         ty: ty::Ty<'tcx>,
         slice: vir_poly::Expr,
         idx: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr>;
     fn encode_snapshot_slice_len(
         &self,
         ty: ty::Ty<'tcx>,
         slice: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr>;
     fn encode_snapshot_slicing(
         &self,
@@ -85,14 +70,9 @@ pub(crate) trait SnapshotEncoderInterface<'tcx> {
         slice_ty: ty::Ty<'tcx>,
         lo: vir_poly::Expr,
         hi: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr>;
-    fn supports_snapshot_equality(
-        &self,
-        ty: ty::Ty<'tcx>,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<bool>;
-    fn is_quantifiable(&self, ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>) -> EncodingResult<bool>;
+    fn supports_snapshot_equality(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool>;
+    fn is_quantifiable(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool>;
 }
 
 impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 'tcx> {
@@ -125,12 +105,11 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
         &self,
         expr_self: vir_poly::Expr,
         expr_result: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .encode_discriminant_post(self, expr_self, expr_result, tymap)
+            .encode_discriminant_post(self, expr_self, expr_result)
     }
     fn patch_snapshots_method(
         &self,
@@ -144,32 +123,23 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
     fn patch_snapshots_function(
         &self,
         function: vir_poly::Function,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Function> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .patch_snapshots_function(self, function, tymap)
+            .patch_snapshots_function(self, function)
     }
-    fn patch_snapshots(
-        &self,
-        expr: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<vir_poly::Expr> {
+    fn patch_snapshots(&self, expr: vir_poly::Expr) -> EncodingResult<vir_poly::Expr> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .patch_snapshots_expr(self, expr, tymap)
+            .patch_snapshots_expr(self, expr)
     }
-    fn encode_snapshot_type(
-        &self,
-        ty: ty::Ty<'tcx>,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<vir_poly::Type> {
+    fn encode_snapshot_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .encode_type(self, ty, tymap)
+            .encode_type(self, ty)
     }
 
     /// Constructs a snapshot of a constant.
@@ -182,13 +152,13 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
             ty::TyKind::Tuple(substs) if substs.is_empty() => vec![],
             _ => {
                 let const_val = match expr.literal {
-                    mir::ConstantKind::Ty(ty::Const { val, .. }) => *val,
+                    mir::ConstantKind::Ty(ty::Const(ty_val)) => ty_val.val,
                     mir::ConstantKind::Val(val, _) => ty::ConstKind::Value(val),
                 };
-                vec![self.encode_const_expr(expr.ty(), &const_val)?]
+                vec![self.encode_const_expr(expr.ty(), const_val)?]
             }
         };
-        self.encode_snapshot(expr.ty(), None, args, &SubstMap::default())
+        self.encode_snapshot(expr.ty(), None, args)
     }
 
     /// Constructs a snapshot. The `variant` is needed only if `ty` is an enum.
@@ -198,24 +168,22 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
         ty: ty::Ty<'tcx>,
         variant: Option<usize>,
         args: Vec<vir_poly::Expr>,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .encode_constructor(self, ty, variant, args, tymap)
+            .encode_constructor(self, ty, variant, args)
     }
 
     fn encode_snapshot_destructor(
         &self,
         ty: ty::Ty<'tcx>,
         args: Vec<vir_poly::Expr>,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .encode_destructor(self, ty, args, tymap)
+            .encode_destructor(self, ty, args)
     }
 
     fn encode_snapshot_array_idx(
@@ -223,12 +191,11 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
         ty: ty::Ty<'tcx>,
         array: vir_poly::Expr,
         idx: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .encode_array_idx(self, ty, array, idx, tymap)
+            .encode_array_idx(self, ty, array, idx)
     }
 
     fn encode_snapshot_slice_idx(
@@ -236,24 +203,22 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
         ty: ty::Ty<'tcx>,
         slice: vir_poly::Expr,
         idx: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .encode_slice_idx(self, ty, slice, idx, tymap)
+            .encode_slice_idx(self, ty, slice, idx)
     }
 
     fn encode_snapshot_slice_len(
         &self,
         ty: ty::Ty<'tcx>,
         slice: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .encode_slice_len(self, ty, slice, tymap)
+            .encode_slice_len(self, ty, slice)
     }
 
     fn encode_snapshot_slicing(
@@ -263,29 +228,24 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
         slice_ty: ty::Ty<'tcx>,
         lo: vir_poly::Expr,
         hi: vir_poly::Expr,
-        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir_poly::Expr> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .encode_slicing(self, base_ty, base, slice_ty, lo, hi, tymap)
+            .encode_slicing(self, base_ty, base, slice_ty, lo, hi)
     }
 
-    fn supports_snapshot_equality(
-        &self,
-        ty: ty::Ty<'tcx>,
-        tymap: &SubstMap<'tcx>,
-    ) -> EncodingResult<bool> {
+    fn supports_snapshot_equality(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .supports_equality(self, ty, tymap)
+            .supports_equality(self, ty)
     }
 
-    fn is_quantifiable(&self, ty: ty::Ty<'tcx>, tymap: &SubstMap<'tcx>) -> EncodingResult<bool> {
+    fn is_quantifiable(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
         self.snapshot_encoder_state
             .encoder
             .borrow_mut()
-            .is_quantifiable(self, ty, tymap)
+            .is_quantifiable(self, ty)
     }
 }

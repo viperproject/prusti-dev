@@ -37,6 +37,7 @@ pub enum PanicCause {
 pub enum BuiltinMethodKind {
     WritePlace,
     MovePlace,
+    IntoMemoryBlock,
 }
 
 /// In case of verification error, this enum will contain additional information
@@ -47,6 +48,10 @@ pub enum ErrorCtxt {
     Panic(PanicCause),
     /// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`
     ExhaleMethodPrecondition,
+    /// An error when assuming method's functional specification.
+    UnexpectedAssumeMethodPrecondition,
+    /// An error when assuming method's functional specification.
+    UnexpectedAssumeMethodPostcondition,
     /// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`
     AssertMethodPostcondition,
     /// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`
@@ -67,7 +72,6 @@ pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes an `abort` Rust terminator
     AbortTerminator,
     /// A Viper `assert false` that encodes an `unreachable` Rust terminator
-    #[allow(dead_code)]
     UnreachableTerminator,
     /// An error that should never happen
     Unexpected,
@@ -106,14 +110,34 @@ pub enum ErrorCtxt {
     PanicInPureFunction(PanicCause),
     /// A Viper `assert e1 ==> e2` that encodes a weakening of the precondition
     /// of a method implementation of a trait
-    AssertMethodPreconditionWeakening(MultiSpan),
+    AssertMethodPreconditionWeakening,
     /// A Viper `assert e1 ==> e2` that encodes a strengthening of the precondition
     /// of a method implementation of a trait.
-    AssertMethodPostconditionStrengthening(MultiSpan),
+    AssertMethodPostconditionStrengthening,
     /// A cast like `usize as u32`.
     TypeCast,
-    /// A Viper `assert false` that encodes an unsupported feature
+    /// A Viper `assert false` that encodes an unsupported feature.
     Unsupported(String),
+    /// Failed to obtain capability by unfolding.
+    Unfold,
+    /// Failed to obtain capability by unfolding an union variant.
+    UnfoldUnionVariant,
+    /// Failed to call a procedure.
+    ProcedureCall,
+    /// Failed to call a drop handler.
+    DropCall,
+    /// Failed to encode lifetimes
+    LifetimeEncoding,
+    /// Failed to encode LifetimeTake
+    LifetimeTake,
+    /// Failed to encode LifetimeReturn
+    LifetimeReturn,
+    /// Failed to encode CloseMutRef
+    CloseMutRef,
+    /// Failed to encode OpenMutRef
+    OpenMutRef,
+    /// Failed to set an active variant of an union.
+    SetEnumVariant,
 }
 
 /// The error manager
@@ -121,6 +145,7 @@ pub enum ErrorCtxt {
 pub struct ErrorManager<'tcx> {
     position_manager: PositionManager<'tcx>,
     error_contexts: FxHashMap<u64, ErrorCtxt>,
+    inner_positions: FxHashMap<u64, Position>,
 }
 
 impl<'tcx> ErrorManager<'tcx> {
@@ -128,7 +153,12 @@ impl<'tcx> ErrorManager<'tcx> {
         ErrorManager {
             position_manager: PositionManager::new(codemap),
             error_contexts: FxHashMap::default(),
+            inner_positions: FxHashMap::default(),
         }
+    }
+
+    pub fn position_manager(&self) -> &PositionManager {
+        &self.position_manager
     }
 
     /// Register a new VIR position.
@@ -158,6 +188,16 @@ impl<'tcx> ErrorManager<'tcx> {
             );
         }
         self.error_contexts.insert(pos.id(), error_ctxt);
+    }
+
+    /// Creates a new position with `error_ctxt` that is linked to `pos`. This
+    /// method is used for setting the surrounding context position of an
+    /// expression's position.
+    pub fn set_surrounding_error_context(&mut self, pos: Position, error_ctxt: ErrorCtxt) -> Position {
+        let surrounding_position = self.duplicate_position(pos);
+        self.set_error(surrounding_position, error_ctxt);
+        self.inner_positions.insert(surrounding_position.id(), pos);
+        surrounding_position
     }
 
     /// Register a new VIR position with the given ErrorCtxt.
@@ -493,17 +533,29 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening(impl_span)) => {
+            ("fold.failed:assertion.false", ErrorCtxt::CopyPlace) => {
+                PrustiError::verification(
+                    "the copied value may not be fully initialized.".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("unfold.failed:insufficient.permission", ErrorCtxt::UnfoldUnionVariant) => {
+                PrustiError::verification(
+                    "failed to unpack the capability of union's field.".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+                .set_help("check that the field was initialized.")
+                .add_note("Prusti does not support yet reinterpreting memory of Rust unions' fields and allow reading only the field that was previously initialized.", None)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening) => {
                 PrustiError::verification("the method's precondition may not be a valid weakening of the trait's precondition.".to_string(), error_span)
-                    //.push_primary_span(opt_cause_span)
-                    .push_primary_span(Some(impl_span))
                     .set_help("The trait's precondition should imply the implemented method's precondition.")
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening(impl_span)) => {
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening) => {
                 PrustiError::verification("the method's postcondition may not be a valid strengthening of the trait's postcondition.".to_string(), error_span)
-                    //.push_primary_span(opt_cause_span)
-                    .push_primary_span(Some(impl_span))
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 

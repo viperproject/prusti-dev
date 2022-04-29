@@ -84,7 +84,12 @@ impl<'a> PathCtxt<'a> {
         perm_amount: PermAmount,
         variant: vir::MaybeEnumVariantIndex,
     ) -> Result<Action, FoldUnfoldError> {
-        trace!("We want to unfold {} with {}", pred_place, perm_amount);
+        trace!(
+            "We want to unfold {} (variant {:?}) with {}",
+            pred_place,
+            variant,
+            perm_amount
+        );
         //assert!(self.state.contains_acc(pred_place), "missing acc({}) in {}", pred_place, self.state);
         assert!(
             self.state.contains_pred(pred_place),
