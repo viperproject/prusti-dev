@@ -30,6 +30,7 @@ impl Typed for Expression {
             Expression::FuncApp(expression) => expression.get_type(),
             Expression::DomainFuncApp(expression) => expression.get_type(),
             Expression::InhaleExhale(expression) => expression.get_type(),
+            Expression::MapOp(expression) => expression.get_type(),
         }
     }
     fn set_type(&mut self, new_type: Type) {
@@ -53,6 +54,7 @@ impl Typed for Expression {
             Expression::FuncApp(expression) => expression.set_type(new_type),
             Expression::DomainFuncApp(expression) => expression.set_type(new_type),
             Expression::InhaleExhale(expression) => expression.set_type(new_type),
+            Expression::MapOp(expression) => expression.set_type(new_type),
         }
     }
 }
@@ -178,6 +180,15 @@ impl Typed for PermBinaryOp {
 }
 
 impl Typed for ContainerOp {
+    fn get_type(&self) -> &Type {
+        unimplemented!()
+    }
+    fn set_type(&mut self, _new_type: Type) {
+        unimplemented!();
+    }
+}
+
+impl Typed for MapOp {
     fn get_type(&self) -> &Type {
         unimplemented!()
     }

@@ -77,6 +77,9 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             vir_mid::Expression::FuncApp(expression) => {
                 self.func_app_to_snapshot(lowerer, expression, expect_math_bool)
             }
+            vir_mid::Expression::BuiltinFuncApp(expression) => {
+                self.builtin_func_app_to_snapshot(lowerer, expression, expect_math_bool)
+            }
             // vir_mid::Expression::Downcast(expression) => self.downcast_to_snapshot(lowerer, expression, expect_math_bool),
             x => unimplemented!("{:?}", x),
         }
@@ -391,6 +394,26 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         app: &vir_mid::FuncApp,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    fn builtin_func_app_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        app: &vir_crate::middle::expression::BuiltinFuncApp,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        use vir_mid::expression::BuiltinFunc::*;
+        let kind = match app.function {
+            EmptyMap => vir_low::expression::MapOpKind::Empty,
+            UpdateMap => vir_low::expression::MapOpKind::Update,
+        };
+        Ok(vir_low::Expression::map_op(
+            self.type_to_snapshot(lowerer, &app.type_arguments[0])?,
+            self.type_to_snapshot(lowerer, &app.type_arguments[1])?,
+            kind,
+            self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?,
+            app.position,
+        ))
+    }
 
     fn type_to_snapshot(
         &mut self,
