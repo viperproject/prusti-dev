@@ -76,10 +76,17 @@ impl Type {
     }
     pub fn erase_lifetime(&mut self) {
         if let Type::Reference(reference) = self {
-            reference.lifetime = LifetimeConst {
-                name: String::from("pure_erased"),
-            };
+            reference.lifetime = LifetimeConst::erased();
         }
+    }
+    pub fn erase_lifetimes(self) -> Self {
+        struct DefaultLifetimeEraser {}
+        impl TypeFolder for DefaultLifetimeEraser {
+            fn fold_lifetime_const(&mut self, _lifetime: LifetimeConst) -> LifetimeConst {
+                LifetimeConst::erased()
+            }
+        }
+        DefaultLifetimeEraser {}.fold_type(self)
     }
     pub fn get_lifetimes(&self) -> Vec<LifetimeConst> {
         if let Type::Reference(reference) = self {
@@ -136,6 +143,14 @@ impl super::super::ast::type_decl::Union {
         &self,
     ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
         self.discriminant_values.iter().cloned().zip(&self.variants)
+    }
+}
+
+impl LifetimeConst {
+    pub fn erased() -> Self {
+        LifetimeConst {
+            name: String::from("pure_erased"),
+        }
     }
 }
 

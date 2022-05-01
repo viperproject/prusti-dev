@@ -1,9 +1,13 @@
-use crate::encoder::{errors::SpannedEncodingResult, mir::spans::SpanInterface};
+use crate::encoder::{
+    errors::SpannedEncodingResult,
+    mir::{procedures::passes, spans::SpanInterface},
+};
+use prusti_common::config;
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use rustc_span::Span;
-use vir_crate::high::cfg;
+use vir_crate::{common::graphviz::ToGraphviz, high::cfg};
 
 #[derive(Default)]
 pub(crate) struct MirProcedureEncoderState {
@@ -26,6 +30,25 @@ impl<'v, 'tcx: 'v> MirProcedureEncoderInterface<'tcx> for super::super::super::E
         proc_def_id: DefId,
     ) -> SpannedEncodingResult<cfg::ProcedureDecl> {
         let procedure = super::encoder::encode_procedure(self, proc_def_id)?;
+        if config::dump_debug_info() {
+            // FIXME: Clean-up.
+            let source_filename = self.env().source_file_name();
+            prusti_common::report::log::report_with_writer(
+                "graphviz_method_pass_desugar_loops_before",
+                format!("{}.{}.dot", source_filename, procedure.name),
+                |writer| procedure.to_graphviz(writer).unwrap(),
+            );
+        }
+        let procedure = passes::desugar_loops(self, procedure)?;
+        if config::dump_debug_info() {
+            // FIXME: Clean-up.
+            let source_filename = self.env().source_file_name();
+            prusti_common::report::log::report_with_writer(
+                "graphviz_method_pass_desugar_loops_after",
+                format!("{}.{}.dot", source_filename, procedure.name),
+                |writer| procedure.to_graphviz(writer).unwrap(),
+            );
+        }
         assert!(
             self.mir_procedure_encoder_state
                 .encoded_procedure_def_ids

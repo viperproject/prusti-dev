@@ -7,6 +7,7 @@
 use crate::encoder::{
     errors::SpannedEncodingResult,
     mir::{
+        places::PlacesEncoderInterface,
         pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
         types::MirTypeEncoderInterface,
     },
@@ -22,15 +23,30 @@ use vir_crate::{
     high::{Expression, FieldDecl, Trigger, VariableDecl},
 };
 
-fn inline_closure_high<'tcx>(
-    _encoder: &Encoder<'_, 'tcx>,
-    _def_id: DefId,
-    _cl_expr: Expression,
-    _args: Vec<VariableDecl>,
-    _parent_def_id: DefId,
-    _substs: SubstsRef<'tcx>,
+pub(super) fn inline_closure_high<'tcx>(
+    encoder: &Encoder<'_, 'tcx>,
+    def_id: DefId,
+    cl_expr: Expression,
+    args: Vec<VariableDecl>,
+    parent_def_id: DefId,
+    substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Expression> {
-    todo!()
+    let mir = encoder.env().local_mir(def_id.expect_local(), substs);
+    assert_eq!(mir.arg_count, args.len() + 1);
+    let mut body_replacements = vec![];
+    for (arg_idx, arg_local) in mir.args_iter().enumerate() {
+        let local: Expression = encoder.encode_local_high(&mir, arg_local).unwrap().into();
+        let argument = if arg_idx == 0 {
+            cl_expr.clone()
+        } else {
+            args[arg_idx - 1].clone().into()
+        };
+        body_replacements.push((local.erase_lifetime(), argument.erase_lifetime()));
+    }
+    Ok(encoder
+        .encode_pure_expression_high(def_id, parent_def_id, substs)?
+        .erase_lifetime()
+        .replace_multiple_places(&body_replacements))
 }
 
 #[allow(clippy::unnecessary_unwrap)]
@@ -131,15 +147,19 @@ pub(super) fn encode_quantifier_high<'tcx>(
                 extract_closure_from_ty(tcx, ty_trigger);
             let set_field = FieldDecl::new(
                 format!("tuple_{}", trigger_set_idx),
+                trigger_set_idx,
                 encoder.encode_type_high(ty_trigger_set)?,
             );
             let trigger_field = FieldDecl::new(
                 format!("tuple_{}", trigger_idx),
+                trigger_idx,
                 encoder.encode_type_high(ty_trigger)?,
             );
             encoded_triggers.push(inline_closure_high(
                 encoder,
                 trigger_def_id,
+                // FIXME: check whether the closure expression does not need to
+                // be wrapped in `addr_of` like in `encode_invariant_high`.
                 Expression::field_no_pos(
                     Expression::field_no_pos(encoded_args[0].clone(), set_field),
                     trigger_field,

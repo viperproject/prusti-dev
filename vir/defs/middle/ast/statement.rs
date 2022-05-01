@@ -17,6 +17,7 @@ pub enum Statement {
     Inhale(Inhale),
     Exhale(Exhale),
     Consume(Consume),
+    Havoc(Havoc),
     Assume(Assume),
     Assert(Assert),
     FoldOwned(FoldOwned),
@@ -71,6 +72,13 @@ pub struct Exhale {
 /// Consume the operand.
 pub struct Consume {
     pub operand: Operand,
+    pub position: Position,
+}
+
+#[display(fmt = "havoc {}", predicate)]
+/// Havoc the permission denoted by the place.
+pub struct Havoc {
+    pub predicate: Predicate,
     pub position: Position,
 }
 

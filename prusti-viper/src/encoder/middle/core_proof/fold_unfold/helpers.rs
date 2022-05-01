@@ -69,7 +69,7 @@ impl<'a> TypeDeclWalker for MemoryBlockSplitJoiner<'a> {
         if !self.is_joining {
             lowerer.encode_memory_block_split_method(ty)?;
             if ty.has_variants() {
-                unreachable!();
+                unreachable!("ty: {}", ty);
             } else {
                 self.statements.push(stmtp! {
                     self.position => call memory_block_split<ty>([address.clone()])

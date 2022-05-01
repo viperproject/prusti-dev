@@ -58,12 +58,16 @@ pub enum ErrorCtxt {
     AssertMethodPostconditionTypeInvariants,
     /// A Viper `exhale expr` that encodes the end of a Rust procedure with postcondition `expr`
     ExhaleMethodPostcondition,
+    /// A generic loop invariant error.
+    LoopInvariant,
     /// A Viper `exhale expr` that exhales the permissions of a loop invariant `expr`
     ExhaleLoopInvariantOnEntry,
     ExhaleLoopInvariantAfterIteration,
     /// A Viper `assert expr` that asserts the functional specification of a loop invariant `expr`
     AssertLoopInvariantOnEntry,
     AssertLoopInvariantAfterIteration,
+    /// An error when assuming the loop invariant on entry.
+    UnexpectedAssumeLoopInvariantOnEntry,
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
     /// Arguments: the message of the Rust assertion
     AssertTerminator(String),
