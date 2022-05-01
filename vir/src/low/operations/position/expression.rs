@@ -23,6 +23,7 @@ impl Positioned for Expression {
             Self::FuncApp(expression) => expression.position(),
             Self::DomainFuncApp(expression) => expression.position(),
             Self::InhaleExhale(expression) => expression.position(),
+            Self::MapOp(expression) => expression.position(),
         }
     }
 }
@@ -136,6 +137,12 @@ impl Positioned for DomainFuncApp {
 }
 
 impl Positioned for InhaleExhale {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for MapOp {
     fn position(&self) -> Position {
         self.position
     }
