@@ -14,4 +14,17 @@ fn test2() {
     assert!(a == 1);    //~ ERROR: the asserted expression might not hold
 }
 
+fn test3() {
+    let mut a = 1;
+    let b = &mut a;
+    *b = 2;
+}
+
+fn test4() {
+    let mut a = 1;
+    let b = &mut a;
+    *b = 2;
+    assert!(a == 2);    //~ ERROR: the asserted expression might not hold
+}
+
 fn main() {}

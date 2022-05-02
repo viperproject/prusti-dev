@@ -270,7 +270,7 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     let invariant = handle_result!(rewriter.process_loop_invariant(spec_id, tokens));
     let callsite_span = Span::call_site();
     quote_spanned! {callsite_span=>
-        #[allow(unused_must_use, unused_variables)]
+        #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
         if false {
             #invariant
         }
@@ -352,19 +352,19 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
     quote_spanned! {callsite_span=>
         {
-            #[allow(unused_variables)]
+            #[allow(unused_variables, unused_braces, unused_parens)]
             #[prusti::closure]
             #cl_annotations #attrs_ts
             let _prusti_closure =
                 #asyncness #movability #capture
                 #or1_token #inputs #or2_token #output
                 {
-                    #[allow(unused_must_use)]
+                    #[allow(unused_must_use, unused_braces, unused_parens)]
                     if false {
                         #spec_toks_pre
                     }
                     let result = #body ;
-                    #[allow(unused_must_use)]
+                    #[allow(unused_must_use, unused_braces, unused_parens)]
                     if false {
                         #spec_toks_post
                     }

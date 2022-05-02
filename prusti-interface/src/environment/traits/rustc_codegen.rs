@@ -1,13 +1,14 @@
 // This file was taken from the compiler:
-// https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/compiler/rustc_trait_selection/src/traits/codegen.rs
+// https://raw.githubusercontent.com/rust-lang/rust/949b98cab8a186b98bf87e64374b8d0848c55271/compiler/rustc_trait_selection/src/traits/codegen.rs
 // This file is licensed under Apache 2.0
-// (https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/LICENSE-APACHE)
+// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-APACHE)
 // and MIT
-// (https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/LICENSE-MIT).
+// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-MIT).
 
 // Changes:
 // + Fix compilation errors.
 // + Remove all diagnostics (this is the main motivation for duplication).
+// + `ErrorGuaranteed` changed to `()` (private constructor).
 
 
 // This file contains various trait resolution methods used by codegen.
@@ -21,7 +22,6 @@ use rustc_trait_selection::traits::{
     FulfillmentContext, ImplSource, Obligation, ObligationCause, SelectionContext, TraitEngine,
     Unimplemented,
 };
-use rustc_errors::ErrorGuaranteed;
 use rustc_middle::ty::fold::TypeFoldable;
 use rustc_middle::ty::{self, TyCtxt};
 
@@ -35,7 +35,7 @@ use rustc_middle::ty::{self, TyCtxt};
 pub fn codegen_fulfill_obligation<'tcx>(
     tcx: TyCtxt<'tcx>,
     (param_env, trait_ref): (ty::ParamEnv<'tcx>, ty::PolyTraitRef<'tcx>),
-) -> Result<ImplSource<'tcx, ()>, ErrorGuaranteed> {
+) -> Result<&'tcx ImplSource<'tcx, ()>, ()> {
     // Remove any references to regions; this helps improve caching.
     let trait_ref = tcx.erase_regions(trait_ref);
     // We expect the input to be fully normalized.
@@ -64,7 +64,7 @@ pub fn codegen_fulfill_obligation<'tcx>(
                 // // leading to an ambiguous result. So report this as an
                 // // overflow bug, since I believe this is the only case
                 // // where ambiguity can result.
-                // infcx.tcx.sess.delay_span_bug(
+                // let reported = infcx.tcx.sess.delay_span_bug(
                 //     rustc_span::DUMMY_SP,
                 //     &format!(
                 //         "encountered ambiguity selecting `{:?}` during codegen, presuming due to \
@@ -72,21 +72,21 @@ pub fn codegen_fulfill_obligation<'tcx>(
                 //         trait_ref
                 //     ),
                 // );
-                return Err(ErrorGuaranteed);
+                return Err(());
             }
             Err(Unimplemented) => {
                 // // This can trigger when we probe for the source of a `'static` lifetime requirement
                 // // on a trait object: `impl Foo for dyn Trait {}` has an implicit `'static` bound.
                 // // This can also trigger when we have a global bound that is not actually satisfied,
                 // // but was included during typeck due to the trivial_bounds feature.
-                // infcx.tcx.sess.delay_span_bug(
+                // let guar = infcx.tcx.sess.delay_span_bug(
                 //     rustc_span::DUMMY_SP,
                 //     &format!(
                 //         "Encountered error `Unimplemented` selecting `{:?}` during codegen",
                 //         trait_ref
                 //     ),
                 // );
-                return Err(ErrorGuaranteed);
+                return Err(());
             }
             Err(e) => {
                 panic!("Encountered error `{:?}` selecting `{:?}` during codegen", e, trait_ref)
@@ -105,8 +105,12 @@ pub fn codegen_fulfill_obligation<'tcx>(
         });
         let impl_source = drain_fulfillment_cx_or_panic(&infcx, &mut fulfill_cx, impl_source);
 
+        // Opaque types may have gotten their hidden types constrained, but we can ignore them safely
+        // as they will get constrained elsewhere, too.
+        let _opaque_types = infcx.inner.borrow_mut().opaque_type_storage.take_opaque_types();
+
         debug!("Cache miss: {:?} => {:?}", trait_ref, impl_source);
-        Ok(impl_source)
+        Ok(&*tcx.arena.alloc(impl_source))
     })
 }
 
@@ -126,8 +130,8 @@ fn drain_fulfillment_cx_or_panic<'tcx, T>(
     fulfill_cx: &mut FulfillmentContext<'tcx>,
     result: T,
 ) -> T
-where
-    T: TypeFoldable<'tcx>,
+    where
+        T: TypeFoldable<'tcx>,
 {
     debug!("drain_fulfillment_cx_or_panic()");
 

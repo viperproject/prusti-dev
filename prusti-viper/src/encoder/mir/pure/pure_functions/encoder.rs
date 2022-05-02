@@ -6,10 +6,10 @@
 
 use super::interpreter::PureFunctionBackwardInterpreter;
 use crate::encoder::{
-    borrows::ProcedureContract,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
     mir::{
+        contracts::{ContractsEncoderInterface, ProcedureContract},
         pure::{PureEncodingContext, SpecificationEncoderInterface},
         specifications::SpecificationsInterface,
     },

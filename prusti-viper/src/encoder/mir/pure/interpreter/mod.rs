@@ -3,6 +3,7 @@
 pub(super) mod state;
 
 use self::state::ExprBackwardInterpreterState;
+use super::PureEncodingContext;
 use crate::encoder::{
     errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{
@@ -23,6 +24,7 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_common::vir_high_local;
+use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty, ty::subst::SubstsRef};
@@ -34,8 +36,6 @@ use vir_crate::{
     },
     high::{self as vir_high, operations::ty::Typed},
 };
-
-use super::PureEncodingContext;
 
 // FIXME: Make this explicitly accessible only to spec_encoder and pure
 // expression encoder.
@@ -153,7 +153,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         rhs: &mir::Rvalue<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<()> {
-        let encoded_lhs = self.encode_place(lhs)?;
+        let encoded_lhs = self.encode_place(lhs)?.erase_lifetime();
         let ty = self
             .encoder
             .encode_type_of_place_high(self.mir, lhs)
@@ -270,19 +270,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 operand,
                 cast_ty,
             ) => {
-                if !cast_ty.is_slice() {
+                let rhs_ty = self.mir_encoder.get_operand_ty(operand);
+                if rhs_ty.is_array_ref() && cast_ty.is_slice_ref() {
+                    // We have a cast of a slice or array into a slice.
+                    let arg = self.encode_operand(operand, span)?;
+                    let expr = self
+                        .encoder
+                        .encode_cast_into_slice(arg, ty)
+                        .with_span(span)?;
+                    state.substitute_value(&encoded_lhs, expr);
+                } else {
                     return Err(SpannedEncodingError::unsupported(
-                        "unsizing a pointer or reference value is not supported",
+                        format!("unsizing a {} into a {} is not supported", rhs_ty, cast_ty),
                         span,
                     ));
                 }
-                // We have a cast of a slice or array into a slice.
-                let arg = self.encode_operand(operand, span)?;
-                let expr = self
-                    .encoder
-                    .encode_cast_into_slice(arg, ty)
-                    .with_span(span)?;
-                state.substitute_value(&encoded_lhs, expr);
             }
             mir::Rvalue::Cast(kind, _, _) => {
                 return Err(SpannedEncodingError::unsupported(
