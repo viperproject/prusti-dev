@@ -23,8 +23,9 @@ use crate::{
 };
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
-use syn::{parse_quote, punctuated::Punctuated, spanned::Spanned};
+use syn::{parse_quote, spanned::Spanned};
 use uuid::Uuid;
+use crate::common::{HasGenerics, HasIdent};
 
 /// See module level documentation
 pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<TokenStream> {
@@ -76,6 +77,14 @@ impl ModelStruct {
             struct #model_struct_ident {}
         };
 
+        // Attach lifetimes
+        for gp in item_struct.generics.params.iter() {
+            if let syn::GenericParam::Lifetime(lt) = gp {
+                model_struct.generics.params.push(syn::GenericParam::Lifetime(lt.clone()));
+            }
+        }
+
+        // Attach type params
         let params = item_struct
             .parse_user_annotated_type_params()
             .map_err(TypeModelGenerationError::NonParsableTypeParam)?;
@@ -90,22 +99,9 @@ impl ModelStruct {
         model_struct.fields = item_struct.fields.clone();
         add_phantom_data_for_generic_params(&mut model_struct);
 
-        let generic_idents = model_struct
-            .generics
-            .params
-            .iter()
-            .filter_map(|generic_param| match generic_param {
-                syn::GenericParam::Type(type_param) => Some(&type_param.ident),
-                _ => None,
-            });
-        let model_path: syn::Path = parse_quote!(
-            #model_struct_ident < #(#generic_idents),* >
-        );
+        let path = create_path(&model_struct);
 
-        Ok(Self {
-            item: model_struct,
-            path: model_path,
-        })
+        Ok(Self { item: model_struct, path, })
     }
 }
 
@@ -124,18 +120,10 @@ impl ToModelTrait {
     ) -> Self {
         let generic_params: Vec<syn::GenericParam> =
             model_struct.item.generics.params.iter().cloned().collect();
-        let generic_params_idents: Vec<Ident> = generic_params
-            .iter()
-            .filter_map(|generic_param| match generic_param {
-                syn::GenericParam::Type(type_param) => Some(type_param.ident.clone()),
-                _ => None,
-            })
-            .collect();
 
         let model_path = &model_struct.path;
-
         let to_model_trait_ident = &idents.to_model_trait_ident;
-        let item = parse_quote_spanned! {item_struct.span()=>
+        let item: syn::ItemTrait = parse_quote_spanned! {item_struct.span()=>
             #[allow(non_camel_case_types)]
             trait #to_model_trait_ident<#(#generic_params),*> {
                 #[pure]
@@ -145,9 +133,7 @@ impl ToModelTrait {
             }
         };
 
-        let path: syn::Path = parse_quote!(
-            #to_model_trait_ident<#(#generic_params_idents),*>
-        );
+        let path = create_path(&item);
 
         Self { item, path }
     }
@@ -158,32 +144,18 @@ fn create_model_impl(
     model_struct: &ModelStruct,
     to_model_trait: &ToModelTrait,
 ) -> TypeModelGenerationResult<syn::ItemImpl> {
-    let ident = &item_struct.ident;
-
-    let mut rewritten_generics: Vec<syn::GenericParam> = Vec::new();
     for param in &item_struct.generics.params {
-        match param {
-            syn::GenericParam::Lifetime(_) => rewritten_generics.push(parse_quote!('_)),
-            syn::GenericParam::Type(type_param) => {
-                let mut cloned = type_param.clone();
-                cloned.attrs.clear();
-                cloned.bounds = Punctuated::default();
-                rewritten_generics.push(syn::GenericParam::Type(cloned))
-            }
-            syn::GenericParam::Const(const_param) => {
-                return Err(TypeModelGenerationError::ConstParamDisallowed(
-                    const_param.span(),
-                ))
-            }
+        if let syn::GenericParam::Const(const_param) = param {
+            return Err(TypeModelGenerationError::ConstParamDisallowed(
+                const_param.span(),
+            ))
         }
     }
 
     let generic_params: Vec<syn::GenericParam> =
         model_struct.item.generics.params.iter().cloned().collect();
 
-    let impl_path: syn::Path = parse_quote!(
-        #ident < #(#rewritten_generics),* >
-    );
+    let impl_path = create_path(item_struct);
 
     let to_model_trait_path = &to_model_trait.path;
     let model_struct_path = &model_struct.path;
@@ -277,6 +249,22 @@ impl ToTokens for TypeModel {
         self.to_model_trait.to_tokens(tokens);
         self.model_struct.to_tokens(tokens);
         self.model_impl.to_tokens(tokens);
+    }
+}
+
+fn create_path<T: HasIdent + HasGenerics>(pathable: &T) -> syn::Path {
+    let ident = &pathable.ident();
+
+    let generic_idents = pathable.generics().params.iter()
+        .filter_map(|generic_param| match generic_param {
+            syn::GenericParam::Lifetime(lt_def) =>
+                Some(lt_def.lifetime.to_token_stream()),
+            syn::GenericParam::Type(type_param) =>
+                Some(type_param.ident.to_token_stream()),
+            _ => None,
+        });
+    parse_quote! {
+        #ident < #(#generic_idents),* >
     }
 }
 
@@ -386,7 +374,7 @@ mod tests {
     }
 
     #[test]
-    fn ok_uses_inferred_lifetime() {
+    fn ok_uses_defined_lifetime() {
         let input: syn::ItemStruct = parse_quote!(
             struct Foo<'a, 'b>(i32, u32, usize);
         );
@@ -398,14 +386,20 @@ mod tests {
         let expected_struct: syn::ItemStruct = parse_quote!(
             #[derive(Copy, Clone)]
             #[allow(non_camel_case_types)]
-            struct #model_ident(i32, u32, usize);
+            struct #model_ident<'a, 'b>(
+                i32,
+                u32,
+                usize,
+                ::core::marker::PhantomData<&'a()>,
+                ::core::marker::PhantomData<&'b()>
+            );
         );
         let expected_impl: syn::ItemImpl = parse_quote!(
             #[prusti::type_models_to_model_impl]
-            impl #trait_ident<> for Foo<'_, '_> {
+            impl<'a, 'b> #trait_ident<'a, 'b> for Foo<'a, 'b> {
                 #[trusted]
                 #[pure]
-                fn model(&self) -> #model_ident<> {
+                fn model(&self) -> #model_ident<'a, 'b> {
                     unimplemented!("Models can only be used in specifications")
                 }
             }

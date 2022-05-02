@@ -14,6 +14,7 @@ pub(crate) use receiver_rewriter::*;
 /// Module which provides various extension traits for syn types.
 /// These allow for writing of generic code over these types.
 mod syn_extensions {
+    use proc_macro2::Ident;
     use syn::{Attribute, Generics, ImplItemMacro, ImplItemMethod, ItemFn, ItemImpl, ItemStruct, ItemTrait, Macro, Signature, TraitItemMacro, TraitItemMethod};
 
     /// Trait which signals that the corresponding syn item contains generics
@@ -129,6 +130,14 @@ mod syn_extensions {
             &self.attrs
         }
     }
+
+    // Abstraction over everything that has a [syn::Ident]
+    pub(crate) trait HasIdent {
+        fn ident(&self) -> &Ident;
+    }
+
+    impl HasIdent for ItemTrait { fn ident(&self) -> &Ident { &self.ident } }
+    impl HasIdent for ItemStruct { fn ident(&self) -> &Ident { &self.ident } }
 }
 
 /// See [SelfTypeRewriter]
@@ -438,7 +447,7 @@ pub(crate) fn add_phantom_data_for_generic_params(item_struct: &mut syn::ItemStr
             }
             syn::GenericParam::Lifetime(lt_def) => {
                 let lt = &lt_def.lifetime;
-                let ty: syn::Type = parse_quote!(&#lt ::core::marker::PhantomData<()>);
+                let ty: syn::Type = parse_quote!(::core::marker::PhantomData<&#lt ()>);
                 Some(ty)
             }
             _ => None,
