@@ -167,7 +167,7 @@ pub mod trait_bounds {
                 // This needs to be done because ghost constraints might contain "deeply nested"
                 // associated types, e.g. `T: A<SomeAssocType = <Self as B>::OtherAssocType`
                 // where `<Self as B>::OtherAssocType` can be normalized to some concrete type.
-                let normalized_predicate = env.normalize_to(predicate);
+                let normalized_predicate = env.resolve_assoc_types(predicate, param_env_lookup);
 
                 env.evaluate_predicate(normalized_predicate, param_env_lookup)
             });

@@ -45,7 +45,7 @@ pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// Span of the function declaration.
     span: Span,
     /// Signature of the function to be encoded.
-    sig: ty::FnSig<'tcx>,
+    sig: ty::PolyFnSig<'tcx>,
     /// Spans of MIR locals, when encoding a local pure function.
     local_spans: Option<Vec<Span>>,
 }
@@ -106,8 +106,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .env()
             .tcx()
             .fn_sig(proc_def_id)
-            .subst(encoder.env().tcx(), substs)
-            .skip_binder();
+            .subst(encoder.env().tcx(), substs);
+        let sig = encoder
+            .env()
+            .resolve_assoc_types(sig, encoder.env().tcx().param_env(proc_def_id));
 
         PureFunctionEncoder {
             encoder,
@@ -135,7 +137,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         );
 
         self.local_spans = Some(
-            (0..=self.sig.inputs().len())
+            (0..=self.sig.skip_binder().inputs().len())
                 .map(|idx| {
                     interpreter
                         .mir_encoder()
@@ -268,7 +270,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 .encoder
                 .encode_type_bounds(
                     &vir::Expr::local(pure_fn_return_variable),
-                    self.sig.output(),
+                    self.sig.skip_binder().output(),
                 )
                 .into_iter()
                 .map(|p| p.set_default_pos(res_value_range_pos))
@@ -284,18 +286,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                     .type_is_copy(typ, self.encoder.env().tcx().param_env(self.proc_def_id)));
                 let mut bounds = self
                     .encoder
-                    .encode_type_bounds(&vir::Expr::local(formal_arg.clone()), typ);
+                    .encode_type_bounds(&vir::Expr::local(formal_arg.clone()), typ.skip_binder());
                 bounds.extend(precondition);
                 precondition = bounds;
             }
         } else if config::encode_unsigned_num_constraint() {
-            if let ty::TyKind::Uint(_) = self.sig.output().kind() {
+            if let ty::TyKind::Uint(_) = self.sig.skip_binder().output().kind() {
                 let expr = vir::Expr::le_cmp(0u32.into(), pure_fn_return_variable.into());
                 postcondition.push(expr.set_default_pos(res_value_range_pos));
             }
             for (formal_arg, local) in formal_args.iter().zip(self.args_iter()) {
                 let typ = self.get_local_ty(local);
-                if let ty::TyKind::Uint(_) = typ.kind() {
+                if let ty::TyKind::Uint(_) = typ.skip_binder().kind() {
                     precondition.push(vir::Expr::le_cmp(0u32.into(), formal_arg.into()));
                 }
             }
@@ -347,10 +349,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let span = self.get_local_span(arg);
             let target_place = self
                 .encoder
-                .encode_value_expr(vir::Expr::local(self.encode_mir_local(arg)?), arg_ty)
+                .encode_value_expr(
+                    vir::Expr::local(self.encode_mir_local(arg)?),
+                    arg_ty.skip_binder(),
+                )
                 .with_span(span)?;
             let mut new_place: vir::Expr = self.encode_local(arg)?.into();
-            if let ty::TyKind::Ref(_, _, _) = arg_ty.kind() {
+            if let ty::TyKind::Ref(_, _, _) = arg_ty.skip_binder().kind() {
                 // patch references with an explicit snap app
                 // TODO: this probably needs to be adjusted when snapshots of
                 //       references are implemented
@@ -362,7 +367,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     fn args_iter(&self) -> impl Iterator<Item = mir::Local> {
-        (0..self.sig.inputs().len()).map(|idx| mir::Local::from_usize(1 + idx))
+        (0..self.sig.skip_binder().inputs().len()).map(|idx| mir::Local::from_usize(1 + idx))
     }
 
     /// Encode the precondition with two expressions:
@@ -375,7 +380,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mut type_spec = vec![];
         for &local in contract.args.iter() {
             let local_ty = self.get_local_ty(local.into());
-            let fraction = if let ty::TyKind::Ref(_, _, hir::Mutability::Not) = local_ty.kind() {
+            let fraction = if let ty::TyKind::Ref(_, _, hir::Mutability::Not) =
+                local_ty.skip_binder().kind()
+            {
                 vir::PermAmount::Read
             } else {
                 vir::PermAmount::Write
@@ -479,7 +486,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let var_span = self.get_local_span(local);
         let var_type = self
             .encoder
-            .encode_snapshot_type(self.get_local_ty(local))
+            .encode_snapshot_type(self.get_local_ty(local).skip_binder())
             .with_span(var_span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
     }
@@ -490,16 +497,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let var_span = self.get_local_span(local);
         let var_type = self
             .encoder
-            .encode_type(self.get_local_ty(local))
+            .encode_type(self.get_local_ty(local).skip_binder())
             .with_span(var_span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
     }
 
-    fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
+    fn get_local_ty(&self, local: mir::Local) -> ty::Binder<'tcx, ty::Ty<'tcx>> {
         if local.as_usize() == 0 {
             self.sig.output()
         } else {
-            self.sig.inputs()[local.as_usize() - 1]
+            self.sig.input(local.as_usize() - 1)
         }
     }
 
@@ -531,7 +538,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         }
 
         self.encoder
-            .encode_snapshot_type(ty)
+            .encode_snapshot_type(ty.skip_binder())
             .with_span(self.get_return_span())
     }
 
@@ -543,13 +550,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     fn encode_formal_args(&self) -> SpannedEncodingResult<Vec<vir::LocalVar>> {
         let mut formal_args = vec![];
-        for (local_idx, local_ty) in self.sig.inputs().iter().enumerate() {
+        for local_idx in 0..self.sig.skip_binder().inputs().len() {
+            let local_ty = self.sig.input(local_idx);
             let local = rustc_middle::mir::Local::from_usize(local_idx + 1);
             let var_name = format!("{:?}", local);
             let var_span = self.get_local_span(local);
 
             let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
-            if !self.encoder.env().type_is_copy(*local_ty, param_env) {
+            if !self.encoder.env().type_is_copy(local_ty, param_env) {
                 return Err(SpannedEncodingError::incorrect(
                     "pure function parameters must be Copy",
                     var_span,
@@ -558,7 +566,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
             let var_type = self
                 .encoder
-                .encode_snapshot_type(*local_ty)
+                .encode_snapshot_type(local_ty.skip_binder())
                 .with_span(var_span)?;
             formal_args.push(vir::LocalVar::new(var_name, var_type))
         }

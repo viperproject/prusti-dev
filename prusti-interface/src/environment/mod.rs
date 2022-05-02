@@ -493,31 +493,13 @@ impl<'tcx> Environment<'tcx> {
             .unwrap_or((called_def_id, call_substs))
     }
 
-    pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
-        match ty.kind() {
-            ty::TyKind::Never => {
-                true
-            }
-            _ => {
-                self.type_is_copy(ty, param_env)
-            }
-        }
-    }
-
-    pub fn type_is_copy(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
-        let copy_trait = self.tcx.lang_items().copy_trait();
-        if let Some(copy_trait_def_id) = copy_trait {
-            // We need this check because `type_implements_trait`
-            // panics when called on reference types.
-            if let ty::TyKind::Ref(_, _, mutability) = ty.kind() {
-                // Shared references are copy, mutable references are not.
-                matches!(mutability, mir::Mutability::Not)
-            } else {
-                self.type_implements_trait(ty, copy_trait_def_id, param_env)
-            }
-        } else {
-            false
-        }
+    /// Checks whether `ty` is copy.
+    /// The type is wrapped into a `Binder` to handle regions correctly.
+    pub fn type_is_copy(&self, ty: ty::Binder<'tcx, ty::Ty<'tcx>>, param_env: ty::ParamEnv<'tcx>) -> bool {
+        // Normalize the type to account for associated types
+        let ty = self.resolve_assoc_types(ty, param_env);
+        let ty = self.tcx.erase_late_bound_regions(ty);
+        ty.is_copy_modulo_regions(self.tcx.at(rustc_span::DUMMY_SP), param_env)
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
@@ -561,24 +543,24 @@ impl<'tcx> Environment<'tcx> {
         })
     }
 
-    /// A facade for [rustc_trait_selection::traits::normalize_to]
     /// Normalizes associated types in foldable types,
     /// i.e. this resolves projection types ([ty::TyKind::Projection]s)
-    pub fn normalize_to<T: ty::TypeFoldable<'tcx>>(&self, normalizable: T) -> T {
-        use rustc_trait_selection::traits;
-        self.tcx.infer_ctxt().enter(|infcx| {
-            let mut selcx = traits::SelectionContext::new(&infcx);
-            // We do not really care about obligations that are constructed
-            // in the normalization process
-            let mut obligations = vec![];
+    /// **Important:** Regions while be erased during this process
+    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug + Copy>(&self, normalizable: T, param_env: ty::ParamEnv<'tcx>) -> T {
+        let norm_res = self.tcx.try_normalize_erasing_regions(
+            param_env,
+            normalizable
+        );
 
-            traits::normalize_to(
-                &mut selcx,
-                ty::ParamEnv::reveal_all(),
-                traits::ObligationCause::dummy(),
-                normalizable,
-                &mut obligations,
-            )
-        })
+        match norm_res {
+            Ok(normalized) => {
+                debug!("Normalized {:?}: {:?}", normalizable, normalized);
+                normalized
+            },
+            Err(err) => {
+                debug!("Error while resolving associated types for {:?}: {:?}", normalizable, err);
+                normalizable
+            }
+        }
     }
 }
