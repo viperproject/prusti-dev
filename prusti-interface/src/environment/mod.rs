@@ -477,10 +477,10 @@ impl<'tcx> Environment<'tcx> {
         called_def_id: ProcedureDefId, // what are we calling?
         call_substs: SubstsRef<'tcx>,
     ) -> (ProcedureDefId, SubstsRef<'tcx>) {
-        use crate::rustc_middle::ty::TypeFoldable;
-
-        // avoids a compiler-internal panic
-        if call_substs.needs_infer() {
+        // Avoids a compiler-internal panic
+        // this check ignores any lifetimes/regions, which at this point would
+        // need inference. They are thus ignored.
+        if self.any_type_needs_infer(call_substs) {
             return (called_def_id, call_substs);
         }
 
@@ -565,5 +565,34 @@ impl<'tcx> Environment<'tcx> {
                 normalizable
             }
         }
+    }
+
+    fn any_type_needs_infer<T: ty::TypeFoldable<'tcx>>(&self, t: T) -> bool {
+        // Helper
+        fn is_nested_ty(ty: ty::Ty<'_>) -> bool {
+            let mut walker = ty.walk();
+            let first = walker.next().unwrap().expect_ty(); // This is known to yield t
+            assert!(ty == first);
+            walker.next().is_some()
+        }
+
+        // Visitor
+        struct NeedsInfer;
+        impl<'tcx> ty::fold::TypeVisitor<'tcx> for NeedsInfer {
+            type BreakTy = ();
+
+            fn visit_ty(&mut self, ty: ty::Ty<'tcx>) -> std::ops::ControlFlow<Self::BreakTy> {
+                use crate::rustc_middle::ty::TypeFoldable;
+                if is_nested_ty(ty) {
+                    ty.super_visit_with(self)
+                } else if ty.needs_infer() {
+                    std::ops::ControlFlow::BREAK
+                } else {
+                    std::ops::ControlFlow::CONTINUE
+                }
+            }
+        }
+
+        t.visit_with(&mut NeedsInfer).is_break()
     }
 }
