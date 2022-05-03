@@ -664,16 +664,10 @@ mod tests {
 
         fn assert_phantom_ref_for(expected_lifetime: &str, actual_field: &syn::Field) {
             match &actual_field.ty {
-                syn::Type::Reference(type_ref) => {
-                    let actual_lifetime = type_ref.lifetime.as_ref().expect("Expected lifetime");
-                    assert_eq!(expected_lifetime, actual_lifetime.to_string().trim());
-
-                    let ty = type_ref.elem.as_ref();
-                    assert_eq!(
-                        "::core::marker::PhantomData<()>",
-                        ty.to_token_stream().to_string().replace(' ', "")
-                    );
-                }
+                syn::Type::Path(type_path) => {
+                    let actual_type = type_path.path.to_token_stream().to_string().replace(" ", "");
+                    assert_eq!(format!("::core::marker::PhantomData<&{}()>", expected_lifetime), actual_type);
+                },
                 _ => panic!(),
             }
         }
