@@ -182,6 +182,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     )?;
                 }
             }
+            vir_mid::TypeDecl::Map(map) => {
+                // TODO I'm not sure what to do here
+            }
             _ => unimplemented!("type: {:?}", type_decl),
         };
         Ok(())

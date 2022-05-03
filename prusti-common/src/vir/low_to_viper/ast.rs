@@ -6,7 +6,7 @@ use vir::low::ast::{
     position::Position,
     predicate::PredicateDecl,
     statement::{self, Statement},
-    ty::{BitVector, BitVectorSize, Float, Type},
+    ty::{BitVector, BitVectorSize, Float, Type, self as vir_ty},
     variable::VariableDecl,
 };
 
@@ -205,6 +205,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
             Expression::FuncApp(expression) => expression.to_viper(ast),
             Expression::DomainFuncApp(expression) => expression.to_viper(ast),
             // Expression::InhaleExhale(expression) => expression.to_viper(ast),
+            Expression::MapOp(expression) => expression.to_viper(ast),
             x => unimplemented!("{:?}", x),
         };
         if crate::config::simplify_encoding() {
@@ -473,6 +474,22 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::DomainFuncApp {
             &self.domain_name,
             self.position.to_viper(ast),
         )
+    }
+}
+
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::MapOp {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        let (key_ty, val_ty) = match &self.map_ty {
+            Type::Map(vir_ty::Map { key_type, val_type }) => (key_type, val_type),
+            _ => unreachable!(),
+        };
+        let key_ty = key_ty.to_viper(ast);
+        let val_ty = val_ty.to_viper(ast);
+        match self.kind {
+            expression::MapOpKind::Empty => ast.empty_map(key_ty, val_ty),
+            expression::MapOpKind::Update => todo!(),
+            expression::MapOpKind::Lookup => todo!(),
+        }
     }
 }
 

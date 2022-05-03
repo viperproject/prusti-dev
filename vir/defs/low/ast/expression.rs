@@ -179,8 +179,7 @@ pub enum ContainerOpKind {
 
 #[display(fmt = "Map{}({})", kind, "display::cjoin(operands)")]
 pub struct MapOp {
-    pub key_ty: Type,
-    pub val_ty: Type,
+    pub map_ty: Type,
     pub kind: MapOpKind,
     pub operands: Vec<Expression>,
     pub position: Position,
