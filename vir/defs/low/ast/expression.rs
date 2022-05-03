@@ -189,6 +189,7 @@ pub enum MapOpKind {
     Empty,
     Update,
     Lookup,
+    Len,
 }
 
 #[display(fmt = "Seq({})", "display::cjoin(elements)")]

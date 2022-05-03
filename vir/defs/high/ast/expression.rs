@@ -231,7 +231,9 @@ pub struct FuncApp {
 #[derive(Copy)]
 pub enum BuiltinFunc {
     EmptyMap,
-    UpdateMap
+    UpdateMap,
+    LookupMap,
+    MapLen,
 }
 
 #[display(fmt = "__builtin__{}({})", function, "display::cjoin(arguments)")]

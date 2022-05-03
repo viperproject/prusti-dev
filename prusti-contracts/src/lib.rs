@@ -152,13 +152,24 @@ mod private {
     }
 
     impl<K, V> Map<K, V> {
+        #[pure]
         pub fn empty() -> Self {
             panic!()
         }
+        #[pure]
         pub fn insert(self, _key: K, _val: V) -> Self {
             panic!()
         }
+        #[pure]
         pub fn delete(self, _key: K) -> Self {
+            panic!()
+        }
+        #[pure]
+        pub fn len(self) -> usize {
+            panic!()
+        }
+        #[pure]
+        pub fn lookup(self, _key: K) -> V {
             panic!()
         }
     }
