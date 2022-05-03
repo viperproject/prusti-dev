@@ -617,7 +617,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     EmptyMap
                 }
                 "insert" => {
-                    assert_eq!(args.len(), 2);
+                    assert_eq!(args.len(), 3);
                     UpdateMap
                 }
                 "delete" => unimplemented!(),

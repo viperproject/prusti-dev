@@ -18,4 +18,15 @@ fn checks_preconditions() {
     test1();
 }
 
+fn ghost() {
+    let mut x = 0;
+    ghost! {
+        x = 1;
+    }
+    assert!(x == 1);
+}
+
+#[ensures(Map::empty().insert(0, 0) == Map::<u32, u32>::empty())]
+fn should_fail(){}
+
 fn main() {}

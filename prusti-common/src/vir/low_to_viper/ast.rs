@@ -485,9 +485,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::MapOp {
         };
         let key_ty = key_ty.to_viper(ast);
         let val_ty = val_ty.to_viper(ast);
+
+        let arg = |idx| (&self.operands[idx] as &Expression).to_viper(ast);
+
         match self.kind {
             expression::MapOpKind::Empty => ast.empty_map(key_ty, val_ty),
-            expression::MapOpKind::Update => todo!(),
+            expression::MapOpKind::Update => ast.update_map(arg(0), arg(1), arg(2)),
             expression::MapOpKind::Lookup => todo!(),
         }
     }

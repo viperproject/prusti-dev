@@ -136,7 +136,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         domain_name: &str,
         variant_name: &str,
     ) -> SpannedEncodingResult<String> {
-        panic!("find me");
         Ok(format!("constructor${}${}", domain_name, variant_name))
     }
     fn adt_destructor_variant_name(

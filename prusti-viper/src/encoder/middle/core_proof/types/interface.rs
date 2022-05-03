@@ -249,7 +249,7 @@ pub(in super::super) trait TypesInterface {
 
 impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
     fn ensure_type_definition(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        if matches!(ty, vir_mid::Type::MBool | vir_mid::Type::MInt) {
+        if matches!(ty, vir_mid::Type::MBool | vir_mid::Type::MInt | vir_mid::Type::Map(_) | vir_mid::Type::Sequence(_)) {
             // Natively supported types, nothing to do.
             return Ok(());
         }
