@@ -608,20 +608,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             .encode_generic_arguments_high(def_id, substs)
             .with_span(span)?;
 
-        use vir_high::expression::BuiltinFunc::*;
+        use vir_high::{expression::BuiltinFunc::*, ty::*};
         if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Map::<K, V>::") {
             assert_eq!(type_arguments.len(), 2);
-            let func = match proc_name {
-                "empty" => {
-                    assert_eq!(args.len(), 0);
-                    EmptyMap
-                }
-                "insert" => {
-                    assert_eq!(args.len(), 3);
-                    UpdateMap
-                }
+
+            let key_type = type_arguments[0].clone();
+            let val_type = type_arguments[1].clone();
+            let map_type = Type::map(key_type.clone(), val_type.clone());
+
+            let (func, return_type) = match proc_name {
+                "empty" => (EmptyMap, map_type),
+                "insert" => (UpdateMap, map_type),
+                "len" => (MapLen, Type::int(Int::Usize)),
+                "lookup" => (LookupMap, val_type),
                 "delete" => unimplemented!(),
-                "get" => unimplemented!(),
                 _ => unreachable!("no further Map functions"),
             };
 
@@ -629,10 +629,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 func,
                 type_arguments.clone(),
                 args.into(),
-                vir_high::ty::Type::Map(vir_high::ty::Map {
-                    key_type: box type_arguments[0].clone(),
-                    val_type: box type_arguments[1].clone(),
-                })
+                return_type,
             );
 
             let mut state = states[target_block].clone();

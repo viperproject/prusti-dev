@@ -196,6 +196,7 @@ impl Typed for MapOp {
                 Type::Map(Map { val_type, .. }) => &*val_type,
                 _ => unreachable!(),
             },
+            MapOpKind::Len => &Type::Int,
         }
     }
     fn set_type(&mut self, _new_type: Type) {

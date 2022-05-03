@@ -2,13 +2,24 @@
 
 use prusti_contracts::*;
 
+type Map = prusti_contracts::Map<u32, u32>;
+
+#[requires(_val)]
+fn requires_true(_val: bool){}
+
+macro_rules! prusti_assert {
+    ($expr:expr) => {
+        requires_true($expr)
+    }
+}
+
 #[pure]
 #[trusted]
 fn empty() -> (u32, u32) {
     (2, 2)
 }
 
-#[requires(Map::<u32, u32>::empty() == Map::<u32, u32>::empty())]
+#[requires(Map::empty() == Map::empty())]
 fn test1() {}
 
 #[requires(empty() == empty())]
@@ -26,7 +37,22 @@ fn ghost() {
     assert!(x == 1);
 }
 
-#[ensures(Map::empty().insert(0, 0) == Map::<u32, u32>::empty())]
+//#[ensures(Map::empty().insert(0, 0) == Map::empty().insert(0, 1))]
 fn should_fail(){}
 
-fn main() {}
+#[ensures(Map::empty().insert(0, 0) == Map::empty().insert(0, 0))]
+fn should_pass1(){}
+
+#[ensures(Map::empty().insert(0, 0).insert(1, 1) == Map::empty().insert(1, 1).insert(0, 0))]
+fn should_pass2(){}
+
+#[ensures(Map::empty().len() == 0)]
+#[ensures(Map::empty().insert(1, 2).len() == 1)]
+fn map_len(){}
+
+#[ensures(Map::empty().insert(0, 1).lookup(0) == 1)]
+#[ensures(Map::empty().insert(0, 1).insert(0, 2).lookup(0) == 2)]
+fn map_lookup(){}
+
+fn main() {
+}
