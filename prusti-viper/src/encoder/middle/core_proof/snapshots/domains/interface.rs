@@ -26,7 +26,13 @@ pub(in super::super::super) trait SnapshotDomainsInterface {
 impl<'p, 'v: 'p, 'tcx: 'v> SnapshotDomainsInterface for Lowerer<'p, 'v, 'tcx> {
     fn encode_snapshot_domain_name(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<String> {
         assert!(
-            !matches!(ty, vir_mid::Type::MBool | vir_mid::Type::MInt),
+            !matches!(
+                ty,
+                vir_mid::Type::MBool
+                    | vir_mid::Type::MInt
+                    | vir_mid::Type::Map(_)
+                    | vir_mid::Type::Sequence(_)
+            ),
             "ty: {}",
             ty
         );
@@ -52,7 +58,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotDomainsInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Type> {
-        let domain_name = self.encode_snapshot_domain_name(ty)?;
-        self.domain_type(domain_name)
+        match ty {
+            vir_mid::Type::Map(map) => {
+                let enc_key = self.encode_snapshot_domain_type(&map.key_type)?;
+                let enc_val = self.encode_snapshot_domain_type(&map.val_type)?;
+
+                Ok(vir_low::Type::map(enc_key, enc_val))
+            }
+            _ => {
+                let domain_name = self.encode_snapshot_domain_name(ty)?;
+                self.domain_type(domain_name)
+            }
+        }
     }
 }
