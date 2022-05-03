@@ -190,7 +190,13 @@ impl Typed for ContainerOp {
 
 impl Typed for MapOp {
     fn get_type(&self) -> &Type {
-        unimplemented!()
+        match self.kind {
+            MapOpKind::Empty | MapOpKind::Update => &self.map_ty,
+            MapOpKind::Lookup => match &self.map_ty {
+                Type::Map(Map { val_type, .. }) => &*val_type,
+                _ => unreachable!(),
+            },
+        }
     }
     fn set_type(&mut self, _new_type: Type) {
         unimplemented!();

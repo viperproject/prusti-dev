@@ -406,9 +406,11 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             EmptyMap => vir_low::expression::MapOpKind::Empty,
             UpdateMap => vir_low::expression::MapOpKind::Update,
         };
+        let key_ty = self.type_to_snapshot(lowerer, &app.type_arguments[0])?;
+        let val_ty = self.type_to_snapshot(lowerer, &app.type_arguments[1])?;
+        let map_ty = vir_low::Type::map(key_ty, val_ty);
         Ok(vir_low::Expression::map_op(
-            self.type_to_snapshot(lowerer, &app.type_arguments[0])?,
-            self.type_to_snapshot(lowerer, &app.type_arguments[1])?,
+            map_ty,
             kind,
             self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?,
             app.position,
