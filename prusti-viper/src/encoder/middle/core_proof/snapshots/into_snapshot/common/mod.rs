@@ -401,22 +401,56 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         app: &vir_crate::middle::expression::BuiltinFuncApp,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        use vir_mid::expression::BuiltinFunc::*;
-        let kind = match app.function {
-            EmptyMap => vir_low::expression::MapOpKind::Empty,
-            UpdateMap => vir_low::expression::MapOpKind::Update,
-            LookupMap => vir_low::expression::MapOpKind::Lookup,
-            MapLen => vir_low::expression::MapOpKind::Len,
+        use vir_low::expression::{ContainerOpKind, MapOpKind};
+        use vir_mid::expression::BuiltinFunc;
+
+        let ty_args = app
+            .type_arguments
+            .iter()
+            .map(|ty| self.type_to_snapshot(lowerer, ty))
+            .collect::<Result<Vec<_>, _>>()?;
+        let args = self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
+
+        let map = |low_kind| {
+            let map_ty = vir_low::Type::map(ty_args[0].clone(), ty_args[1].clone());
+            Ok(vir_low::Expression::map_op(
+                map_ty,
+                low_kind,
+                args.clone(),
+                app.position,
+            ))
         };
-        let key_ty = self.type_to_snapshot(lowerer, &app.type_arguments[0])?;
-        let val_ty = self.type_to_snapshot(lowerer, &app.type_arguments[1])?;
-        let map_ty = vir_low::Type::map(key_ty, val_ty);
-        Ok(vir_low::Expression::map_op(
-            map_ty,
-            kind,
-            self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?,
-            app.position,
-        ))
+
+        let seq = |low_kind| {
+            Ok(vir_low::Expression::container_op(
+                low_kind,
+                args[0].clone(),
+                if args.len() > 1 {
+                    args[1].clone()
+                } else {
+                    // this is only necessary because containerop takes two arguments any time, but length only has one argument
+                    // constructing a dummy value
+                    vir_low::Expression::constant_no_pos(
+                        vir_low::expression::ConstantValue::Bool(false),
+                        vir_low::ty::Type::Bool,
+                    )
+                },
+                app.position,
+            ))
+        };
+
+        match app.function {
+            BuiltinFunc::EmptyMap => map(MapOpKind::Empty),
+            BuiltinFunc::UpdateMap => map(MapOpKind::Update),
+            BuiltinFunc::LookupMap => map(MapOpKind::Lookup),
+            BuiltinFunc::MapLen => map(MapOpKind::Len),
+            BuiltinFunc::LookupSeq => seq(ContainerOpKind::SeqIndex),
+            BuiltinFunc::ConcatSeq => seq(ContainerOpKind::SeqConcat),
+            BuiltinFunc::SeqLen => seq(ContainerOpKind::SeqLen),
+            BuiltinFunc::EmptySeq | BuiltinFunc::SingleSeq => {
+                Ok(vir_low::Expression::seq(ty_args[0].clone(), args, app.position))
+            }
+        }
     }
 
     fn type_to_snapshot(

@@ -141,6 +141,10 @@ mod private {
         pub fn lookup(self, _index: usize) -> T {
             panic!()
         }
+        #[pure]
+        pub fn len(self) -> usize {
+            panic!()
+        }
     }
 
     /// A map type

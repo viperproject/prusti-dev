@@ -234,6 +234,11 @@ pub enum BuiltinFunc {
     UpdateMap,
     LookupMap,
     MapLen,
+    EmptySeq,
+    SingleSeq,
+    LookupSeq,
+    ConcatSeq,
+    SeqLen,
 }
 
 #[display(fmt = "__builtin__{}({})", function, "display::cjoin(arguments)")]
