@@ -602,7 +602,8 @@ pub fn enable_ghost_constraints() -> bool {
     read_setting("enable_ghost_constraints")
 }
 
-/// Enables (experimental) iterator support
+/// When enabled, calls to `Iterator::next` will be encoded in the Viper program.
+/// Otherwise, an error is thrown during the encoding.
 pub fn enable_iterators() -> bool {
     read_setting("enable_iterators")
 }

@@ -144,7 +144,8 @@ on a generic type parameter) is satisfied.
 
 ## `ENABLE_ITERATORS`
 
-Enables support for iterators.
+When enabled, calls to `Iterator::next` will be encoded in the Viper program.
+Otherwise, an error is thrown during the encoding.
 
 **This is an experimental feature**, iterator support is still experimental.
 
