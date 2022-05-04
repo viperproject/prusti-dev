@@ -637,7 +637,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             Ok(Some(state))
         } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {
-            unimplemented!();
+            assert_eq!(type_arguments.len(), 1);
+
+            let elem_type = type_arguments[0].clone();
+            let seq_type = Type::sequence(elem_type.clone());
+
+            let (func, return_type) = match proc_name {
+                "empty" => (EmptySeq, seq_type),
+                "single" => (SingleSeq, seq_type),
+                "len" => (SeqLen, Type::int(Int::Usize)),
+                "lookup" => (LookupSeq, elem_type),
+                "concat" => (ConcatSeq, seq_type),
+                _ => unreachable!("no further Seq functions"),
+            };
+
+            let enc = vir_high::Expression::builtin_func_app_no_pos(
+                func,
+                type_arguments.clone(),
+                args.into(),
+                return_type,
+            );
+
+            let mut state = states[target_block].clone();
+            state.substitute_value(lhs, enc);
+
+            Ok(Some(state))
         } else {
             Ok(None)
         }
