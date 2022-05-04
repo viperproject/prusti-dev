@@ -93,6 +93,7 @@ impl<'a, T: Copy + PartialEq + 'a> IteratorSpecExt for std::slice::Iter<'a, T> {
         fn two_state_postcondition(old_self: &Self, new_self: &Self) -> bool {
             // Data does not change
             // TODO iterators: Using GhostSeq::equals here does not work
+            // new_self.model().data.equals(&old_self.model().data) &&
             new_self.model().data.len() == old_self.model().data.len() &&
             forall(|i: usize| (0 <= i && i < new_self.model().data.len()) ==> (
                 new_self.model().data.lookup(i) == old_self.model().data.lookup(i)
@@ -152,27 +153,40 @@ fn verify_slice_iter(slice: &[i32]) {
     verify_visited(&iter, 1, 777);
 }
 
-// TODO iterators: How to reason about visited values?
-// #[requires(slice.len() == 4)]
-// #[requires(slice[0] == 42)]
-// #[requires(slice[1] == 777)]
-// #[requires(slice[2] == 888)]
-// #[requires(slice[3] == 13)]
-// #[requires(seen.len() == 0)]
-// fn verify_while(slice: &[i32]) {
-//     let mut iter = slice.iter();
-//     let mut el = None;
-//     while {
-//         el = iter.next();
-//         el.is_some()
-//     } {
-//
-//         body_invariant!(iter.enumerated());
-//     }
-//     assert!(iter.next().is_none());
-//     verify_visited(&iter, 0, 42);
-// }
+#[trusted]
+#[ensures(iter.model().position == result.model().position)]
+#[ensures(iter.model().data.equals(&result.model().data))]
+fn snap_iter<'a>(iter: &Iter<'a, i32>) -> Iter<'a, i32> {
+    unimplemented!()
+}
 
+#[requires(slice.len() == 4)]
+#[requires(slice[0] == 42)]
+#[requires(slice[1] == 777)]
+#[requires(slice[2] == 888)]
+#[requires(slice[3] == 13)]
+fn verify_while(slice: &[i32]) {
+    let mut iter = slice.iter();
+    let mut el = None;
+
+    let iter_snap = snap_iter(&iter);
+
+    while {
+        el = iter.next();
+        el.is_some()
+    } {
+        body_invariant!(iter_snap.model().data.equals(&iter.model().data));
+        body_invariant!(iter.enumerated());
+    }
+
+    assert!(iter.next().is_none());
+    verify_visited(&iter, 0, 42);
+    verify_visited(&iter, 1, 777);
+    verify_visited(&iter, 2, 888);
+    verify_visited(&iter, 3, 13);
+}
+
+#[trusted]
 fn main() {
 
 }
