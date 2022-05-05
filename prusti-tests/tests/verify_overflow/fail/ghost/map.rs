@@ -46,8 +46,8 @@ fn should_pass1(){}
 #[ensures(Map::empty().insert(0, 0).insert(1, 1) == Map::empty().insert(1, 1).insert(0, 0))]
 fn should_pass2(){}
 
-#[ensures(Map::empty().len() == 0)]
-#[ensures(Map::empty().insert(1, 2).len() == 1)]
+#[ensures(Map::empty().len() == Int::new(0))]
+#[ensures(Map::empty().insert(1, 2).len() == Int::new(1))]
 fn map_len(){}
 
 #[ensures(Map::empty().insert(0, 1).lookup(0) == 1)]

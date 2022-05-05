@@ -609,7 +609,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             .with_span(span)?;
 
         use vir_high::{expression::BuiltinFunc::*, ty::*};
-        if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Map::<K, V>::") {
+
+        let val = if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Map::<K, V>::")
+        {
             assert_eq!(type_arguments.len(), 2);
 
             let key_type = type_arguments[0].clone();
@@ -625,17 +627,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 _ => unreachable!("no further Map functions"),
             };
 
-            let enc = vir_high::Expression::builtin_func_app_no_pos(
+            vir_high::Expression::builtin_func_app_no_pos(
                 func,
                 type_arguments.clone(),
                 args.into(),
                 return_type,
-            );
-
-            let mut state = states[target_block].clone();
-            state.substitute_value(lhs, enc);
-
-            Ok(Some(state))
+            )
         } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {
             assert_eq!(type_arguments.len(), 1);
 
@@ -645,26 +642,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             let (func, return_type) = match proc_name {
                 "empty" => (EmptySeq, seq_type),
                 "single" => (SingleSeq, seq_type),
-                "len" => (SeqLen, Type::int(Int::Usize)),
+                "len" => (SeqLen, Type::MInt),
                 "lookup" => (LookupSeq, elem_type),
                 "concat" => (ConcatSeq, seq_type),
                 _ => unreachable!("no further Seq functions"),
             };
 
-            let enc = vir_high::Expression::builtin_func_app_no_pos(
+            vir_high::Expression::builtin_func_app_no_pos(
                 func,
                 type_arguments.clone(),
                 args.into(),
                 return_type,
-            );
-
-            let mut state = states[target_block].clone();
-            state.substitute_value(lhs, enc);
-
-            Ok(Some(state))
+            )
+        } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Int::") {
+            match proc_name {
+                "new" => vir_high::Expression::builtin_func_app_no_pos(
+                    NewInt,
+                    vec![],
+                    args.into(),
+                    Type::MInt,
+                ),
+                _ => unreachable!("no further int functions"),
+            }
         } else {
-            Ok(None)
-        }
+            return Ok(None);
+        };
+        let mut state = states[target_block].clone();
+        state.substitute_value(lhs, val);
+        Ok(Some(state))
     }
 
     fn encode_call_len(

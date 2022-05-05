@@ -68,6 +68,10 @@ mod private {
     /// A macro for defining ghost blocks which will be left in for verification
     /// but omitted during compilation.
     pub use prusti_contracts_impl::ghost;
+
+    /// a mathematical (unbounded) integer type
+    /// it should not be constructed from running rust code, hence the private unit inside
+    pub struct Int(());
 }
 
 #[cfg(feature = "prusti")]
@@ -117,6 +121,18 @@ mod private {
         unreachable!();
     }
 
+    /// a mathematical (unbounded) integer type
+    /// it should not be constructed from running rust code, hence the private unit inside
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Int(());
+
+    impl Int {
+        #[pure]
+        pub fn new(_: i64) -> Self {
+            panic!()
+        }
+    }
+
     /// A sequence type
     #[non_exhaustive]
     #[derive(PartialEq, Eq, Copy, Clone)]
@@ -142,7 +158,7 @@ mod private {
             panic!()
         }
         #[pure]
-        pub fn len(self) -> usize {
+        pub fn len(self) -> Int {
             panic!()
         }
     }
@@ -169,7 +185,7 @@ mod private {
             panic!()
         }
         #[pure]
-        pub fn len(self) -> usize {
+        pub fn len(self) -> Int {
             panic!()
         }
         #[pure]
