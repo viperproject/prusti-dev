@@ -447,8 +447,13 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             BuiltinFunc::LookupSeq => seq(ContainerOpKind::SeqIndex),
             BuiltinFunc::ConcatSeq => seq(ContainerOpKind::SeqConcat),
             BuiltinFunc::SeqLen => seq(ContainerOpKind::SeqLen),
-            BuiltinFunc::EmptySeq | BuiltinFunc::SingleSeq => {
-                Ok(vir_low::Expression::seq(ty_args[0].clone(), args, app.position))
+            BuiltinFunc::EmptySeq | BuiltinFunc::SingleSeq => Ok(vir_low::Expression::seq(
+                ty_args[0].clone(),
+                args,
+                app.position,
+            )),
+            BuiltinFunc::NewInt => {
+                todo!("construct integer from rust i64")
             }
         }
     }
