@@ -9,7 +9,7 @@ use crate::encoder::{
     errors::{EncodingError, EncodingResult},
     foldunfold,
     high::types::HighTypeEncoderInterface,
-    mir::types::MirTypeEncoderInterface,
+    mir::{sequences::MirSequencesEncoderInterface, types::MirTypeEncoderInterface},
     snapshot::{decls::Snapshot, patcher::SnapshotPatcher},
     utils::range_extract,
     Encoder,

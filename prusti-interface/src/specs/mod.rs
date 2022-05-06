@@ -2,7 +2,8 @@ use rustc_ast::ast;
 use rustc_hir::{intravisit};
 use rustc_middle::hir::map::Map;
 use rustc_middle::ty::TyCtxt;
-use rustc_span::{Span, MultiSpan};
+use rustc_span::Span;
+use rustc_errors::MultiSpan;
 
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::collections::HashMap;

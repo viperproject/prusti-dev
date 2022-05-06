@@ -27,7 +27,7 @@ pub(in super::super) trait Context {
         place: &vir_high::Expression,
         guiding_place: &vir_high::Expression,
     ) -> SpannedEncodingResult<Vec<(ExpandedPermissionKind, vir_high::Expression)>>;
-    fn get_span(&mut self, position: vir_high::Position) -> Option<rustc_span::MultiSpan>;
+    fn get_span(&mut self, position: vir_high::Position) -> Option<rustc_errors::MultiSpan>;
     fn change_error_context(
         &mut self,
         position: vir_high::Position,

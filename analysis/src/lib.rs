@@ -10,6 +10,7 @@
 extern crate polonius_engine;
 extern crate rustc_borrowck;
 extern crate rustc_data_structures;
+extern crate rustc_errors;
 extern crate rustc_index;
 extern crate rustc_infer;
 extern crate rustc_middle;

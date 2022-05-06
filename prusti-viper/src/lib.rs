@@ -18,6 +18,7 @@
 #![allow(clippy::iter_with_drain)]
 
 extern crate rustc_middle;
+extern crate rustc_errors;
 extern crate rustc_hir;
 extern crate rustc_span;
 extern crate rustc_index;
