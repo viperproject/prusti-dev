@@ -4,11 +4,11 @@ use self::{
 };
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
-    borrows::ProcedureContractMirDef,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         casts::CastsEncoderInterface,
         constants::ConstantsEncoderInterface,
+        contracts::{ContractsEncoderInterface, ProcedureContractMirDef},
         errors::ErrorInterface,
         generics::MirGenericsEncoderInterface,
         panics::MirPanicsEncoderInterface,
@@ -29,6 +29,7 @@ use prusti_interface::environment::{
     Procedure,
 };
 use rustc_data_structures::graph::WithStartNode;
+use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty, ty::subst::SubstsRef};
 use rustc_mir_dataflow::{move_paths::LookupResult, on_all_drop_children_bits, MoveDataParamEnv};
@@ -84,6 +85,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         move_env: &move_env,
         init_data,
         lifetimes,
+        reachable_blocks: Default::default(),
         specification_blocks,
         specification_block_encoding: Default::default(),
         check_panics: config::check_panics(),
@@ -102,6 +104,8 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     move_env: &'p MoveDataParamEnv<'tcx>,
     init_data: InitializationData<'p, 'tcx>,
     lifetimes: Lifetimes,
+    /// Blocks that we managed to reach when traversing from the entry block.
+    reachable_blocks: FxHashSet<mir::BasicBlock>,
     /// Information about the specification blocks.
     specification_blocks: SpecificationBlocks,
     /// Specifications to be inserted at the given point.
@@ -379,8 +383,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         block_builder.build();
         procedure_builder.set_entry(entry_label);
         self.encode_specification_blocks()?;
-        for (bb, data) in self.mir.basic_blocks().iter_enumerated() {
-            if !self.specification_blocks.is_specification_block(bb) {
+        self.reachable_blocks.insert(self.mir.start_node());
+        for (bb, data) in rustc_middle::mir::traversal::reverse_postorder(self.mir) {
+            if !self.specification_blocks.is_specification_block(bb)
+                && self.reachable_blocks.contains(&bb)
+            {
                 self.encode_basic_block(procedure_builder, bb, data)?;
             }
         }
@@ -1441,7 +1448,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
-    fn encode_basic_block_label(&self, bb: mir::BasicBlock) -> vir_high::BasicBlockId {
+    /// Also marks it as reachable.
+    fn encode_basic_block_label(&mut self, bb: mir::BasicBlock) -> vir_high::BasicBlockId {
+        self.reachable_blocks.insert(bb);
         vir_high::BasicBlockId::new(format!("label_{:?}", bb))
     }
 

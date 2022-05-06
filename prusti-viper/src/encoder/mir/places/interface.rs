@@ -21,13 +21,6 @@ trait PlacesEncoderInterfacePrivate<'tcx> {}
 impl<'v, 'tcx: 'v> PlacesEncoderInterfacePrivate<'tcx> for super::super::super::Encoder<'v, 'tcx> {}
 
 pub(crate) trait PlacesEncoderInterface<'tcx> {
-    fn is_local_copy(
-        &self,
-        mir: &mir::Body<'tcx>,
-        local: mir::Local,
-        param_env: ty::ParamEnv<'tcx>,
-    ) -> SpannedEncodingResult<bool>;
-
     fn get_local_span(
         &self,
         mir: &mir::Body<'tcx>,
@@ -116,16 +109,6 @@ pub(crate) trait PlacesEncoderInterface<'tcx> {
 }
 
 impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
-    fn is_local_copy(
-        &self,
-        mir: &mir::Body<'tcx>,
-        local: mir::Local,
-        param_env: ty::ParamEnv<'tcx>,
-    ) -> SpannedEncodingResult<bool> {
-        let mir_type = self.get_local_type(mir, local)?;
-        Ok(self.env().type_is_copy(mir_type, param_env))
-    }
-
     fn get_local_span(
         &self,
         mir: &mir::Body<'tcx>,

@@ -136,7 +136,7 @@ trait Private {
         parameters: &mut Vec<vir_low::VariableDecl>,
         pres: &mut Vec<vir_low::Expression>,
         posts: &mut Vec<vir_low::Expression>,
-        pre_write_statements: &mut Vec<vir_low::Statement>,
+        pre_write_statements: Option<&mut Vec<vir_low::Statement>>,
         operand_counter: u32,
         operand: &vir_mid::Operand,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
@@ -356,15 +356,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             let mut parameters = Vec::new();
             let mut pres = Vec::new();
             let mut posts = Vec::new();
-            let mut _pre_write_statements = Vec::new();
-            self.encode_assign_operand(
-                &mut parameters,
-                &mut pres,
-                &mut posts,
-                &mut _pre_write_statements,
-                1,
-                operand,
-            )?;
+            self.encode_assign_operand(&mut parameters, &mut pres, &mut posts, None, 1, operand)?;
             let method =
                 vir_low::MethodDecl::new(method_name, parameters, Vec::new(), pres, posts, None);
             self.declare_method(method)?;
@@ -415,7 +407,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     parameters,
                     pres,
                     posts,
-                    pre_write_statements,
+                    Some(pre_write_statements),
                     1,
                     &value.argument,
                 )?;
@@ -431,7 +423,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     parameters,
                     pres,
                     posts,
-                    pre_write_statements,
+                    Some(pre_write_statements),
                     1,
                     &value.left,
                 )?;
@@ -439,7 +431,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     parameters,
                     pres,
                     posts,
-                    pre_write_statements,
+                    Some(pre_write_statements),
                     2,
                     &value.right,
                 )?;
@@ -484,7 +476,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         parameters,
                         pres,
                         posts,
-                        pre_write_statements,
+                        Some(pre_write_statements),
                         i.try_into().unwrap(),
                         operand,
                     )?;
@@ -585,7 +577,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             parameters,
             pres,
             posts,
-            pre_write_statements,
+            Some(pre_write_statements),
             1,
             &value.left,
         )?;
@@ -593,7 +585,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             parameters,
             pres,
             posts,
-            pre_write_statements,
+            Some(pre_write_statements),
             2,
             &value.right,
         )?;
@@ -722,7 +714,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         parameters: &mut Vec<vir_low::VariableDecl>,
         pres: &mut Vec<vir_low::Expression>,
         posts: &mut Vec<vir_low::Expression>,
-        pre_write_statements: &mut Vec<vir_low::Statement>,
+        pre_write_statements: Option<&mut Vec<vir_low::Statement>>,
         operand_counter: u32,
         operand: &vir_mid::Operand,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
@@ -737,9 +729,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let post_predicate = if operand.kind == vir_mid::OperandKind::Copy {
                     expr! { acc(OwnedNonAliased<ty>(place, root_address, value)) }
                 } else {
-                    self.encode_into_memory_block_method(ty)?;
-                    pre_write_statements
-                        .push(stmt! { call into_memory_block<ty>(place, root_address, value) });
+                    if let Some(pre_write_statements) = pre_write_statements {
+                        self.encode_into_memory_block_method(ty)?;
+                        pre_write_statements
+                            .push(stmt! { call into_memory_block<ty>(place, root_address, value) });
+                    }
                     let compute_address = ty!(Address);
                     let size_of = self.encode_type_size_expression(ty)?;
                     expr! { acc(MemoryBlock((ComputeAddress::compute_address(place, root_address)), [size_of])) }
@@ -858,7 +852,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             .contains(ty)
         {
             self.encode_compute_address(ty)?;
-            self.encode_write_place_method(ty)?;
             let span = self.encoder.get_type_definition_span_mid(ty)?;
             let position = self.register_error(
                 span,
@@ -899,7 +892,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     });
                 }
                 vir_mid::TypeDecl::TypeVar(_) => {
-                    unimplemented!()
+                    // move_place of a generic variable has no body
                 }
                 vir_mid::TypeDecl::Tuple(decl) => {
                     if decl.arguments.is_empty() {
@@ -1065,6 +1058,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             statements.push(stmtp! { position =>
                 fold OwnedNonAliased<ty>(target_place, target_root_address, source_value)
             });
+            let body = if ty.is_type_var() {
+                None
+            } else {
+                Some(statements)
+            };
             let method = vir_low::MethodDecl::new(
                 method_name! { move_place<ty> },
                 vec![
@@ -1084,7 +1082,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     expr! {(acc(MemoryBlock((ComputeAddress::compute_address(source_place, source_root_address)), [size_of])))},
                     expr! {(([bytes]) == (Snap<ty>::to_bytes(source_value)))},
                 ],
-                Some(statements),
+                body,
             );
             self.declare_method(method)?;
             self.builtin_methods_state
@@ -1173,6 +1171,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         Ok(())
     }
     fn encode_write_place_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
+        if ty.is_type_var() {
+            return Ok(());
+        }
         // TODO: Remove code duplication with encode_copy_place_method and encode_write_place_method
         if !self
             .builtin_methods_state
@@ -1210,7 +1211,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     });
                 }
                 vir_mid::TypeDecl::TypeVar(_) => {
-                    unimplemented!()
+                    unreachable!("Cannot write constants to variables of generic type.");
                 }
                 vir_mid::TypeDecl::Tuple(decl) => {
                     if decl.arguments.is_empty() {
@@ -1808,7 +1809,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             | vir_mid::TypeDecl::Pointer(_) => {
                                 // Primitive type. Nothing to do.
                             }
-                            vir_mid::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", ty),
+                            vir_mid::TypeDecl::TypeVar(_) => unreachable!("cannot convert abstract type into a generic: {}", ty),
                             vir_mid::TypeDecl::Tuple(decl) => {
                                 // TODO: Remove code duplication.
                                 for field in decl.iter_fields() {
