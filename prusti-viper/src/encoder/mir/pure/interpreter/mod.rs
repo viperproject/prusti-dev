@@ -642,7 +642,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             let (func, return_type) = match proc_name {
                 "empty" => (EmptySeq, seq_type),
                 "single" => (SingleSeq, seq_type),
-                "len" => (SeqLen, Type::MInt),
+                "len" => (SeqLen, Type::Int(vir_high::ty::Int::Unbounded)),
                 "lookup" => (LookupSeq, elem_type),
                 "concat" => (ConcatSeq, seq_type),
                 _ => unreachable!("no further Seq functions"),
@@ -660,7 +660,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     NewInt,
                     vec![],
                     args.into(),
-                    Type::MInt,
+                    Type::Int(vir_high::ty::Int::Unbounded),
                 ),
                 _ => unreachable!("no further int functions"),
             }

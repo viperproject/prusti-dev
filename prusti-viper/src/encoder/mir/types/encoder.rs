@@ -60,7 +60,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     fn is_mathematical_type(&self, did: DefId) -> bool {
         let type_name: &str = &self.encoder.env().tcx().def_path_str(did);
-        matches!(type_name, "prusti_contracts::Seq" | "prusti_contracts::Map")
+        matches!(type_name, "prusti_contracts::Seq" | "prusti_contracts::Map" | "prusti_contracts::Int")
     }
 
     fn compute_array_len(&self, size: ty::Const<'tcx>) -> u64 {
@@ -126,6 +126,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         key_type: enc_substs[0].clone(),
                         val_type: enc_substs[1].clone(),
                     })
+                } else if type_name == "prusti_contracts::Int" {
+                    vir::Type::Int(vir::ty::Int::Unbounded)
                 } else {
                     vir::Type::struct_(
                         encode_struct_name(self.encoder, adt_def.did()),
@@ -350,6 +352,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     "prusti_contracts::Map" => vir::TypeDecl::Map(vir::type_decl::Map {
                         key_type: enc_substs[0].clone(),
                         val_type: enc_substs[1].clone(),
+                    }),
+                    "prusti_contracts::Int" => vir::TypeDecl::Int(vir::type_decl::Int {
+                        lower_bound: None,
+                        upper_bound: None,
                     }),
                     _ => {
                         unreachable!();
