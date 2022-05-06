@@ -4,9 +4,6 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
 };
 
-#[rustfmt::skip]
-use ::log::trace;
-
 use rustc_hash::FxHashMap;
 use rustc_middle::{mir, ty};
 use rustc_span::MultiSpan;
@@ -18,9 +15,6 @@ pub(crate) struct MirTypeEncoderState<'tcx> {
     encoded_types: RefCell<FxHashMap<ty::TyKind<'tcx>, vir_high::Type>>,
     encoded_types_inverse: RefCell<FxHashMap<vir_high::Type, ty::Ty<'tcx>>>,
     encoded_type_decls: RefCell<FxHashMap<vir_high::Type, vir_high::TypeDecl>>,
-
-    type_tag_names: RefCell<FxHashMap<ty::TyKind<'tcx>, String>>,
-    type_tags: RefCell<FxHashMap<String, vir::FunctionIdentifier>>,
 }
 
 pub(crate) trait MirTypeEncoderInterface<'tcx> {
@@ -60,13 +54,6 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
         substs: ty::subst::SubstsRef<'tcx>,
         variant_index: Option<rustc_target::abi::VariantIdx>,
     ) -> SpannedEncodingResult<vir_high::TypeDecl>;
-    fn encode_type_invariant_def_poly(
-        &self,
-        ty: ty::Ty<'tcx>,
-        invariant_name: &str,
-    ) -> EncodingResult<vir_crate::polymorphic::Function>;
-    fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String;
-    fn encode_type_tag_def(&self, ty: ty::Ty<'tcx>);
     fn encode_type_bounds_high(
         &self,
         var: &vir_high::Expression,
@@ -301,56 +288,6 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
         variant_index: Option<rustc_target::abi::VariantIdx>,
     ) -> SpannedEncodingResult<vir_high::TypeDecl> {
         super::encoder::encode_adt_def(self, adt_def, substs, variant_index)
-    }
-    fn encode_type_invariant_def_poly(
-        &self,
-        ty: ty::Ty<'tcx>,
-        invariant_name: &str,
-    ) -> EncodingResult<vir_crate::polymorphic::Function> {
-        trace!("encode_type_invariant_def_poly: {:?}", ty.kind());
-        let type_encoder = TypeEncoder::new(self, ty);
-        let invariant = type_encoder.encode_invariant_def(invariant_name)?;
-        //Ok(invariant)
-        todo!()
-    }
-    fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
-        if !self
-            .mir_type_encoder_state
-            .type_tag_names
-            .borrow()
-            .contains_key(ty.kind())
-        {
-            let type_encoder = TypeEncoder::new(self, ty);
-            let tag_name = type_encoder
-                .encode_tag_use()
-                .expect("failed to encode unsupported type");
-            self.mir_type_encoder_state
-                .type_tag_names
-                .borrow_mut()
-                .insert(ty.kind().clone(), tag_name);
-            // Trigger encoding of definition
-            self.encode_type_tag_def(ty);
-        }
-        let tag_name = self.mir_type_encoder_state.type_tag_names.borrow()[ty.kind()].clone();
-        tag_name
-    }
-    fn encode_type_tag_def(&self, ty: ty::Ty<'tcx>) {
-        let tag_name = self.encode_type_tag_use(ty);
-        if !self
-            .mir_type_encoder_state
-            .type_tags
-            .borrow()
-            .contains_key(&tag_name)
-        {
-            let type_encoder = TypeEncoder::new(self, ty);
-            let _tag = type_encoder.encode_tag_def();
-            unimplemented!();
-            // let identifier = self.insert_function(tag);
-            // self.mir_type_encoder_state
-            //     .type_tags
-            //     .borrow_mut()
-            //     .insert(tag_name, identifier);
-        }
     }
     fn encode_type_bounds_high(
         &self,

@@ -65,6 +65,7 @@ use crate::encoder::mir::pure::PureFunctionEncoderInterface;
 use crate::encoder::mir::types::MirTypeEncoderInterface;
 use crate::encoder::mir::pure::SpecificationEncoderInterface;
 use crate::encoder::mir::specifications::{SpecificationsInterface};
+use crate::encoder::mir::type_invariants::TypeInvariantEncoderInterface;
 use super::high::generics::HighGenericsEncoderInterface;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -2779,7 +2780,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut arguments = vec![];
 
         let mut const_arg_vars: FxHashSet<vir::Expr> = FxHashSet::default();
-        let mut type_invs: FxHashMap<String, vir::Function> = FxHashMap::default();
+        let mut type_invs: Vec<vir::Expr> = vec![];
         let mut constant_args = vec![];
 
         let mut stmts = vec![];
@@ -2791,18 +2792,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let encoded_local = self.encode_prusti_local(arg);
             let arg_place = vir::Expr::local(encoded_local);
             debug!("arg: {:?} {}", arg, arg_place);
-            let inv_name = self.encoder.encode_type_invariant_use(arg_ty)
-                .with_span(call_site_span)?;
-            let arg_inv = self.encoder.encode_type_invariant_def(arg_ty)
-                .with_span(call_site_span)?;
-            type_invs.insert(inv_name, (*self.encoder.get_function(&arg_inv)?).clone());
 
             match encoded_operand {
                 Some(place) => {
                     debug!("arg: {} {}", arg_place, place);
+                    type_invs.push(
+                        self.encoder.encode_invariant_func_app(
+                            arg_ty,
+                            vir::Expr::snap_app(place.clone()),
+                        ).with_span(call_site_span)?,
+                    );
                     fake_exprs.insert(arg_place, place);
                 }
                 None => {
+                    // TODO(inv): also add invariant for constants?
+
                     // We have a constant.
                     constant_args.push(arg_place.clone());
                     let val_field = self.encoder.encode_value_field(arg_ty).with_span(call_site_span)?;
@@ -2882,6 +2886,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         // Inline or skip usages of constant parameters
                         // See issue #85
                         match orig_expr {
+                            // TODO(inv): what does this even do
+                            /*
                             vir::Expr::FuncApp( vir::FuncApp {function_name: ref name, arguments: ref args, ..} ) => {
                                 if args.len() == 1
                                     && args[0].is_local()
@@ -2893,6 +2899,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     orig_expr
                                 }
                             }
+                            */
                             vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {ref argument, ..} ) => {
                                 if argument.is_local() && const_arg_vars.contains(argument) {
                                     // Skip predicate permission

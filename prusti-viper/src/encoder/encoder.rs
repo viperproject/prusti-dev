@@ -44,6 +44,7 @@ use crate::encoder::array_encoder::{SequenceTypesEncoder, EncodedSequenceTypes};
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
 use super::mir::procedures::MirProcedureEncoderState;
+use super::mir::type_invariants::TypeInvariantEncoderState;
 use super::mir::type_layouts::MirTypeLayoutsEncoderState;
 use super::mir::{
     pure::{
@@ -76,6 +77,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) mir_type_layouts_encoder_state: MirTypeLayoutsEncoderState,
     pub(super) mid_core_proof_encoder_state: MidCoreProofEncoderState,
     pub(super) mir_type_encoder_state: MirTypeEncoderState<'tcx>,
+    pub(super) type_invariant_encoder_state: TypeInvariantEncoderState<'tcx>,
     pub(super) high_type_encoder_state: HighTypeEncoderState<'tcx>,
     pub(super) pure_function_encoder_state: PureFunctionEncoderState<'v, 'tcx>,
     pub(super) specifications_state: SpecificationsState<'tcx>,
@@ -147,6 +149,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             mid_core_proof_encoder_state: Default::default(),
             procedures: RefCell::new(FxHashMap::default()),
             mir_type_encoder_state: Default::default(),
+            type_invariant_encoder_state: Default::default(),
             high_type_encoder_state: Default::default(),
             pure_function_encoder_state: Default::default(),
             spec_functions: RefCell::new(FxHashMap::default()),
@@ -729,39 +732,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 .unwrap_or_else(|| self.env.get_item_name(def_id))
         ));
         self.intern_viper_identifier(full_name, short_name)
-    }
-
-    pub fn encode_invariant_func_app(
-        &self,
-        ty: ty::Ty<'tcx>,
-        encoded_arg: vir::Expr
-    ) -> EncodingResult<vir::Expr> {
-        trace!("encode_invariant_func_app: {:?}", ty.kind());
-        let type_pred = self.encode_type(ty)
-            .expect("failed to encode unsupported type");
-        Ok(vir::Expr::FuncApp( vir::FuncApp {
-            function_name: self.encode_type_invariant_use(ty)?,
-            type_arguments: vec![],
-            arguments: vec![encoded_arg],
-            // TODO ?
-            formal_arguments: vec![vir_local!{ self: { type_pred } }],
-            return_type: vir::Type::Bool,
-            // TODO
-            position: vir::Position::default(),
-        }))
-    }
-
-    pub fn encode_tag_func_app(&self, ty: ty::Ty<'tcx>) -> vir::Expr {
-        vir::Expr::FuncApp( vir::FuncApp {
-            function_name: self.encode_type_tag_use(ty),
-            type_arguments: vec![],
-            arguments: vec![],
-            // TODO ?
-            formal_arguments: vec![],
-            return_type: vir::Type::Int,
-            // TODO
-            position: vir::Position::default(),
-        })
     }
 
     pub fn get_item_name(&self, proc_def_id: ProcedureDefId) -> String {
