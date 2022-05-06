@@ -12,5 +12,6 @@ pub(crate) mod procedures;
 pub(crate) mod pure;
 pub(crate) mod spans;
 pub(crate) mod specifications;
+pub(crate) mod type_invariants;
 pub(crate) mod type_layouts;
 pub(crate) mod types;

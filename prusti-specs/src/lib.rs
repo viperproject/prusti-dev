@@ -32,7 +32,7 @@ pub use spec_attribute_kind::SpecAttributeKind;
 use prusti_utils::force_matches;
 pub use extern_spec_rewriter::ExternSpecKind;
 use crate::common::{merge_generics, RewritableReceiver, SelfTypeRewriter};
-use crate::specifications::preparser::{NestedSpec, parse_ghost_constraint};
+use crate::specifications::preparser::{NestedSpec, parse_prusti, parse_ghost_constraint};
 use crate::predicate::{is_predicate_macro, ParsedPredicate};
 
 macro_rules! handle_result {
@@ -465,9 +465,11 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let item_span = item.span();
     let item_ident = item.ident.clone();
     let item_name = syn::Ident::new(
-        &format!("prusti_invariant_item_{}_{}", item_ident.to_string(), spec_id),
+        &format!("prusti_invariant_item_{}_{}", item_ident, spec_id),
         item_span,
     );
+
+    let attr = handle_result!(parse_prusti(attr));
 
     // TODO: move some of this to AstRewriter?
     // see AstRewriter::generate_spec_item_fn for explanation of syntax below

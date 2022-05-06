@@ -7,6 +7,7 @@ struct Percentage {
     value: u8,
 }
 
+#[trusted]
 fn get_first<T: Copy>(p: Vec<T>) -> T {
     p[0]
 }
