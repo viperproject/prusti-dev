@@ -409,7 +409,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             .iter()
             .map(|ty| self.type_to_snapshot(lowerer, ty))
             .collect::<Result<Vec<_>, _>>()?;
-        let args = self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
+        let mut args = self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
 
         let map = |low_kind| {
             let map_ty = vir_low::Type::map(ty_args[0].clone(), ty_args[1].clone());
@@ -453,7 +453,10 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 app.position,
             )),
             BuiltinFunc::NewInt => {
-                todo!("construct integer from rust i64")
+                assert_eq!(args.len(), 1);
+                let arg = args.pop().unwrap();
+                let value = lowerer.obtain_constant_value(app.arguments[0].get_type(), arg, app.position)?;
+                lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
         }
     }
