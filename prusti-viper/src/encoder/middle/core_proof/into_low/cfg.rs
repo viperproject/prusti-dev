@@ -285,15 +285,30 @@ impl IntoLow for vir_mid::Statement {
                 let source_place = lowerer.encode_expression_as_place(&statement.source)?;
                 let source_address = lowerer.extract_root_address(&statement.source)?;
                 let value = statement.source.to_procedure_snapshot(lowerer)?;
-                let mut statements = vec![stmtp! { statement.position =>
-                    call move_place<target_ty>(
-                        [target_place],
-                        [target_address],
-                        [source_place],
-                        [source_address],
-                        [value.clone()]
-                    )
-                }];
+                let mut statements = if let vir_mid::Type::Reference(reference) = target_ty {
+                    let lifetime =
+                        lowerer.encode_lifetime_const_into_variable(reference.lifetime.clone())?;
+                    vec![stmtp! { statement.position =>
+                        call move_place<target_ty>(
+                            [target_place],
+                            [target_address],
+                            [source_place],
+                            [source_address],
+                            [value.clone()],
+                            [lifetime.into()]
+                        )
+                    }]
+                } else {
+                    vec![stmtp! { statement.position =>
+                        call move_place<target_ty>(
+                            [target_place],
+                            [target_address],
+                            [source_place],
+                            [source_address],
+                            [value.clone()]
+                        )
+                    }]
+                };
                 lowerer.encode_snapshot_update(
                     &mut statements,
                     &statement.target,
@@ -467,6 +482,58 @@ impl IntoLow for vir_mid::Statement {
                 } else {
                     Ok(vec![])
                 }
+            }
+            Self::OpenFracRef(statement) => {
+                let place = statement.place.get_parent_ref().unwrap();
+                let ty = place.get_type();
+                lowerer.encode_frac_bor_atomic_acc_method(ty)?;
+                let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
+                let perm_amount = vir_low::Expression::fractional_permission(statement.rd_perm);
+                let reference_place = lowerer.encode_expression_as_place(place)?;
+                let reference_value = place.to_procedure_snapshot(lowerer)?;
+                let tmp_var_name = format!("tmp_frac_ref_perm${}", lifetime.name);
+                let tmp_frac_ref_perm =
+                    lowerer.create_variable(tmp_var_name, vir_low::Type::Perm)?;
+                let targets = vec![vir_low::Expression::local_no_pos(tmp_frac_ref_perm)];
+                Ok(vec![Statement::method_call(
+                    method_name!(frac_bor_atomic_acc<ty>),
+                    vec![
+                        lifetime.into(),
+                        perm_amount,
+                        reference_place,
+                        reference_value,
+                    ],
+                    targets,
+                    statement.position,
+                )])
+            }
+            Self::CloseFracRef(statement) => {
+                let place = statement.place.get_parent_ref().unwrap();
+                let ty = place.get_type();
+                let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
+                let perm_amount = vir_low::Expression::fractional_permission(statement.rd_perm);
+                let reference_place = lowerer.encode_expression_as_place(place)?;
+                let deref_place =
+                    lowerer.reference_deref_place(reference_place, statement.position)?;
+                let reference_value = place.to_procedure_snapshot(lowerer)?;
+                let current_snapshot = lowerer.reference_target_current_snapshot(
+                    ty,
+                    reference_value.clone(),
+                    statement.position,
+                )?;
+                let address_snapshot =
+                    lowerer.reference_address_snapshot(ty, reference_value, statement.position)?;
+                let tmp_var_name = format!("tmp_frac_ref_perm${}", lifetime.name);
+                let tmp_frac_ref_perm =
+                    lowerer.create_variable(tmp_var_name, vir_low::Type::Perm)?;
+                let type_decl = lowerer.encoder.get_type_decl_mid(ty)?;
+                let target_type = &type_decl.unwrap_reference().target_type;
+                Ok(vec![stmtp! {
+                    statement.position =>
+                    apply (acc(OwnedNonAliased<target_type>(
+                        [deref_place], [address_snapshot], [current_snapshot]), tmp_frac_ref_perm))
+                    --* (acc(LifetimeToken([lifetime.into()]), [perm_amount]))
+                }])
             }
             Self::OpenMutRef(statement) => {
                 let place = statement.place.get_parent_ref().unwrap();
