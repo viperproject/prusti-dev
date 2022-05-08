@@ -549,7 +549,7 @@ impl<'tcx> Environment<'tcx> {
 
     /// Normalizes associated types in foldable types,
     /// i.e. this resolves projection types ([ty::TyKind::Projection]s)
-    /// **Important:** Regions while be erased during this process
+    /// **Important:** Regions will be erased during this process
     pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug + Copy>(&self, normalizable: T, param_env: ty::ParamEnv<'tcx>) -> T {
         let norm_res = self.tcx.try_normalize_erasing_regions(
             param_env,
