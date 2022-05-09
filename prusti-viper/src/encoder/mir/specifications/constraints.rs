@@ -207,9 +207,10 @@ pub mod trait_bounds {
         // associated types, e.g. `T: A<SomeAssocType = <Self as B>::OtherAssocType`
         // where `<Self as B>::OtherAssocType` can be normalized to some concrete type.
         let param_env = env.resolve_assoc_types(param_env, param_env_lookup);
+        let param_env = env.tcx().erase_regions(param_env);
 
         trace!(
-            "Constraints after resolving associated types: {:#?}",
+            "Constrai nts after resolving associated types and erasing regions: {:#?}",
             param_env
         );
 
