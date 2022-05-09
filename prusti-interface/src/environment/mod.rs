@@ -607,7 +607,7 @@ impl<'tcx> Environment<'tcx> {
         // Helper
         fn is_nested_ty(ty: ty::Ty<'_>) -> bool {
             let mut walker = ty.walk();
-            let first = walker.next().unwrap().expect_ty(); // This is known to yield t
+            let first = walker.next().unwrap().expect_ty();
             assert!(ty == first);
             walker.next().is_some()
         }
