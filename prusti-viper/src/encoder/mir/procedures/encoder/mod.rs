@@ -674,18 +674,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         object: vir_high::Expression,
     ) -> SpannedEncodingResult<()> {
         if let Some(base) = deref_base {
-            if let vir_high::ty::Type::Reference(vir_high::ty::Reference { lifetime, .. }) =
-                base.get_type()
+            if let vir_high::ty::Type::Reference(vir_high::ty::Reference {
+                lifetime,
+                uniqueness,
+                ..
+            }) = base.get_type()
             {
-                block_builder.add_statement(self.set_statement_error(
-                    location,
-                    ErrorCtxt::CloseMutRef,
-                    vir_high::Statement::close_mut_ref_no_pos(
-                        lifetime.clone(),
-                        self.rd_perm,
-                        object,
-                    ),
-                )?);
+                if *uniqueness == vir_high::ty::Uniqueness::Unique {
+                    block_builder.add_statement(self.set_statement_error(
+                        location,
+                        ErrorCtxt::CloseMutRef,
+                        vir_high::Statement::close_mut_ref_no_pos(
+                            lifetime.clone(),
+                            self.rd_perm,
+                            object,
+                        ),
+                    )?);
+                } else {
+                    block_builder.add_statement(self.set_statement_error(
+                        location,
+                        ErrorCtxt::CloseFracRef,
+                        vir_high::Statement::close_frac_ref_no_pos(
+                            lifetime.clone(),
+                            self.rd_perm,
+                            object,
+                        ),
+                    )?);
+                }
             } else {
                 unreachable!();
             };
@@ -701,18 +716,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         object: vir_high::Expression,
     ) -> SpannedEncodingResult<()> {
         if let Some(base) = deref_base {
-            if let vir_high::ty::Type::Reference(vir_high::ty::Reference { lifetime, .. }) =
-                base.get_type()
+            if let vir_high::ty::Type::Reference(vir_high::ty::Reference {
+                lifetime,
+                uniqueness,
+                ..
+            }) = base.get_type()
             {
-                block_builder.add_statement(self.set_statement_error(
-                    location,
-                    ErrorCtxt::OpenMutRef,
-                    vir_high::Statement::open_mut_ref_no_pos(
-                        lifetime.clone(),
-                        self.rd_perm,
-                        object,
-                    ),
-                )?);
+                if *uniqueness == vir_high::ty::Uniqueness::Unique {
+                    block_builder.add_statement(self.set_statement_error(
+                        location,
+                        ErrorCtxt::OpenMutRef,
+                        vir_high::Statement::open_mut_ref_no_pos(
+                            lifetime.clone(),
+                            self.rd_perm,
+                            object,
+                        ),
+                    )?);
+                } else {
+                    block_builder.add_statement(self.set_statement_error(
+                        location,
+                        ErrorCtxt::OpenFracRef,
+                        vir_high::Statement::open_frac_ref_no_pos(
+                            lifetime.clone(),
+                            self.rd_perm,
+                            object,
+                        ),
+                    )?);
+                }
             } else {
                 unreachable!();
             }

@@ -130,7 +130,7 @@ impl WithIdentifier for ty::Reference {
     fn get_identifier(&self) -> String {
         format!(
             "ref${}${}",
-            self.lifetime.get_identifier(),
+            self.uniqueness,
             self.target_type.get_identifier(),
         )
     }

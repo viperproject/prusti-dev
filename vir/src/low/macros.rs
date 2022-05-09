@@ -73,6 +73,20 @@ pub macro expr {
             )
         }
     },
+    ( acc($predicate_name:ident<$ty:tt>( $($argument:tt),*), $perm:tt) ) => {
+        {
+            let mut arguments = vec![ $( $crate::low::macros::expr!( $argument ) ),* ];
+            $crate::low::ast::expression::Expression::predicate_access_predicate_no_pos(
+                format!(
+                    "{}${}",
+                    stringify!($predicate_name),
+                    $crate::common::identifier::WithIdentifier::get_identifier($ty)
+                ),
+                arguments,
+                $crate::low::macros::expr!( $perm ),
+            )
+        }
+    },
     ( acc($predicate_name:ident( $($argument:tt),* ), $perm:tt) ) => {
         $crate::low::ast::expression::Expression::predicate_access_predicate_no_pos(
             stringify!($predicate_name).to_string(),
