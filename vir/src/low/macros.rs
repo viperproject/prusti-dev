@@ -55,15 +55,43 @@ pub macro expr {
             $crate::low::ast::ty::Type::Bool,
         )
     },
-    ( acc($predicate_name:ident<$ty:tt>( $($argument:tt),* )) ) => {
+    ( acc($predicate_name:ident<$ty:tt>(
+        $($argument:tt),*
+        $(; $argument_list:ident )?
+    )) ) => {
+        {
+            let mut arguments = vec![ $( $crate::low::macros::expr!( $argument ) ),* ];
+            $( arguments.extend($argument_list); )?
+            $crate::low::ast::expression::Expression::predicate_access_predicate_no_pos(
+                format!(
+                    "{}${}",
+                    stringify!($predicate_name),
+                    $crate::common::identifier::WithIdentifier::get_identifier($ty)
+                ),
+                arguments,
+                $crate::low::ast::expression::Expression::full_permission(),
+            )
+        }
+    },
+    ( acc($predicate_name:ident<$ty:tt>( $($argument:tt),*), $perm:tt) ) => {
+        {
+            let mut arguments = vec![ $( $crate::low::macros::expr!( $argument ) ),* ];
+            $crate::low::ast::expression::Expression::predicate_access_predicate_no_pos(
+                format!(
+                    "{}${}",
+                    stringify!($predicate_name),
+                    $crate::common::identifier::WithIdentifier::get_identifier($ty)
+                ),
+                arguments,
+                $crate::low::macros::expr!( $perm ),
+            )
+        }
+    },
+    ( acc($predicate_name:ident( $($argument:tt),* ), $perm:tt) ) => {
         $crate::low::ast::expression::Expression::predicate_access_predicate_no_pos(
-            format!(
-                "{}${}",
-                stringify!($predicate_name),
-                $crate::common::identifier::WithIdentifier::get_identifier($ty)
-            ),
+            stringify!($predicate_name).to_string(),
             vec![ $( $crate::low::macros::expr!( $argument ) ),* ],
-            $crate::low::ast::expression::Expression::full_permission(),
+            $crate::low::macros::expr!( $perm ),
         )
     },
     ( acc($predicate_name:ident( $($argument:tt),* )) ) => {
@@ -258,32 +286,44 @@ pub macro stmt {
             Vec::new(),
         )
     }},
-    (fold<$condition:ident> $predicate_name:ident<$ty:tt>( $($argument:tt),* )) => {
+    (fold<$condition:ident> $predicate_name:ident<$ty:tt>(
+        $($argument:tt),*
+        $(; $argument_list:ident )?
+    )) => {
         $crate::low::ast::statement::Statement::conditional_no_pos(
             $condition,
             vec![
-                $crate::low::macros::stmt!{ fold $predicate_name<$ty>( $($argument),* ) }
+                $crate::low::macros::stmt!{ fold $predicate_name<$ty>( $($argument),* $(; $argument_list )? ) }
             ],
             Vec::new(),
         )
     },
-    (fold $predicate_name:ident<$ty:tt>( $($argument:tt),* )) => {
+    (fold $predicate_name:ident<$ty:tt>(
+        $($argument:tt),*
+        $(; $argument_list:ident )?
+    )) => {
         $crate::low::ast::statement::Statement::fold_no_pos(
-            $crate::low::macros::expr!(acc($predicate_name<$ty>( $($argument),* )))
+            $crate::low::macros::expr!(acc($predicate_name<$ty>( $($argument),* $(; $argument_list )? )))
         )
     },
-    (unfold<$condition:ident> $predicate_name:ident<$ty:tt>( $($argument:tt),* )) => {
+    (unfold<$condition:ident> $predicate_name:ident<$ty:tt>(
+        $($argument:tt),*
+        $(; $argument_list:ident )?
+    )) => {
         $crate::low::ast::statement::Statement::conditional_no_pos(
             $condition,
             vec![
-                $crate::low::macros::stmt!{ unfold $predicate_name<$ty>( $($argument),* ) }
+                $crate::low::macros::stmt!{ unfold $predicate_name<$ty>( $($argument),* $(; $argument_list )? ) }
             ],
             Vec::new(),
         )
     },
-    (unfold $predicate_name:ident<$ty:tt>( $($argument:tt),* )) => {
+    (unfold $predicate_name:ident<$ty:tt>(
+        $($argument:tt),*
+        $(; $argument_list:ident )?
+    )) => {
         $crate::low::ast::statement::Statement::unfold_no_pos(
-            $crate::low::macros::expr!(acc($predicate_name<$ty>( $($argument),* )))
+            $crate::low::macros::expr!(acc($predicate_name<$ty>( $($argument),* $(; $argument_list )? )))
         )
     },
     (apply<$condition:ident> $lhs:tt --* $rhs:tt) => {

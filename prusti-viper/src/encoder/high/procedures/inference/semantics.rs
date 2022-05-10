@@ -85,7 +85,7 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::EndLft(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
-            vir_high::Statement::GhostAssignment(statement) => {
+            vir_high::Statement::Dead(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::LifetimeTake(statement) => {
@@ -94,7 +94,16 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::OpenMutRef(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::OpenFracRef(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
             vir_high::Statement::CloseMutRef(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::CloseFracRef(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::LifetimeReturn(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
         }
@@ -520,7 +529,7 @@ impl CollectPermissionChanges for vir_high::EndLft {
     }
 }
 
-impl CollectPermissionChanges for vir_high::GhostAssignment {
+impl CollectPermissionChanges for vir_high::Dead {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
@@ -542,7 +551,7 @@ impl CollectPermissionChanges for vir_high::LifetimeTake {
     }
 }
 
-impl CollectPermissionChanges for vir_high::OpenMutRef {
+impl CollectPermissionChanges for vir_high::LifetimeReturn {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
@@ -553,13 +562,54 @@ impl CollectPermissionChanges for vir_high::OpenMutRef {
     }
 }
 
+impl CollectPermissionChanges for vir_high::OpenMutRef {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::OpenFracRef {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
 impl CollectPermissionChanges for vir_high::CloseMutRef {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
-        _consumed_permissions: &mut Vec<Permission>,
-        _produced_permissions: &mut Vec<Permission>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::CloseFracRef {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
         Ok(())
     }
 }

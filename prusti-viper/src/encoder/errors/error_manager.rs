@@ -7,7 +7,7 @@
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
 use rustc_span::source_map::SourceMap;
-use rustc_span::MultiSpan;
+use rustc_errors::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
 use log::{debug, trace};
@@ -130,10 +130,16 @@ pub enum ErrorCtxt {
     LifetimeEncoding,
     /// Failed to encode LifetimeTake
     LifetimeTake,
-    /// Failed to encode CloseMutRef
-    CloseMutRef,
+    /// Failed to encode LifetimeReturn
+    LifetimeReturn,
     /// Failed to encode OpenMutRef
     OpenMutRef,
+    /// Failed to encode OpenFracRef
+    OpenFracRef,
+    /// Failed to encode CloseMutRef
+    CloseMutRef,
+    /// Failed to encode CloseFracRef
+    CloseFracRef,
     /// Failed to set an active variant of an union.
     SetEnumVariant,
 }

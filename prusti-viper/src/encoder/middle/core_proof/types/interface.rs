@@ -78,6 +78,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let validity = conjuncts.into_iter().conjoin();
                 self.encode_validity_axioms_primitive(&domain_name, vir_low::Type::Int, validity)?;
             }
+            vir_mid::TypeDecl::TypeVar(_decl) => {
+                // FIXME: we should make sure that the snapshot and validity
+                // function is generated, but nothing else.
+            }
             vir_mid::TypeDecl::Tuple(decl) => {
                 let mut parameters = Vec::new();
                 for field in decl.iter_fields() {
@@ -154,16 +158,37 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 self.register_constant_constructor(&domain_name, address_type.clone())?;
                 self.encode_validity_axioms_primitive(&domain_name, address_type, true.into())?;
             }
-            vir_mid::TypeDecl::Reference(reference) if reference.uniqueness.is_unique() => {
+            vir_mid::TypeDecl::Reference(reference) => {
                 self.ensure_type_definition(&reference.target_type)?;
                 let target_type = reference.target_type.to_snapshot(self)?;
-                let parameters = vars! {
-                    address: Address,
-                    target_current: {target_type.clone()},
-                    target_final: {target_type}
-                };
-                self.register_struct_constructor(&domain_name, parameters.clone())?;
-                self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
+                if reference.uniqueness.is_unique() {
+                    let parameters = vars! {
+                        address: Address,
+                        target_current: {target_type.clone()},
+                        target_final: {target_type}
+                    };
+                    self.register_struct_constructor(&domain_name, parameters.clone())?;
+                    self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
+                } else {
+                    let parameters = vars! {
+                        address: Address,
+                        target_current: {target_type.clone()}
+                    };
+                    self.register_struct_constructor(&domain_name, parameters.clone())?;
+                    self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
+                    let no_alloc_parameters = vars! { target_current: {target_type} };
+                    self.register_alternative_constructor(
+                        &domain_name,
+                        "no_alloc",
+                        no_alloc_parameters.clone(),
+                    )?;
+                    self.encode_validity_axioms_struct_alternative_constructor(
+                        &domain_name,
+                        "no_alloc",
+                        no_alloc_parameters,
+                        true.into(),
+                    )?;
+                }
             }
             _ => unimplemented!("type: {:?}", type_decl),
         };
@@ -233,10 +258,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             // Natively supported types, nothing to do.
             return Ok(());
         }
-        if !self.types_state.ensured_definitions.contains(ty) {
+        // FIXME: We should avoid these copies in some smarter way.
+        let mut ty_no_lifetime = ty.clone();
+        ty_no_lifetime.erase_lifetime();
+        if !self
+            .types_state
+            .ensured_definitions
+            .contains(&ty_no_lifetime)
+        {
             // We insert before doing the actual work to break infinite
             // recursion.
-            self.types_state.ensured_definitions.insert(ty.clone());
+            self.types_state.ensured_definitions.insert(ty_no_lifetime);
 
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             self.ensure_type_definition_for_decl(ty, &type_decl)?;
@@ -314,7 +346,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             self.register_alternative_constructor(
                 &result_domain,
                 &variant_name,
-                vars! { left: {snapshot_type.clone()}, right: {snapshot_type} },
+                vars! { left: {snapshot_type.clone()}, right: {snapshot_type.clone()} },
             )?;
             // Simplification axioms.
             let op = op.to_snapshot(self)?;
@@ -334,6 +366,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                     argument_type,
                     result,
                 )?;
+            } else if op == vir_low::BinaryOpKind::EqCmp {
+                // FIXME: For now, we treat Rust's == as bit equality.
+                var_decls! { left: {snapshot_type.clone()}, right: {snapshot_type} };
+                let domain_name = self.encode_snapshot_domain_name(&vir_mid::Type::Bool)?;
+                let op_constructor_call = vir_low::Expression::domain_function_call(
+                    &domain_name,
+                    self.snapshot_constructor_struct_alternative_name(&domain_name, &variant_name)?,
+                    vec![left.clone().into(), right.clone().into()],
+                    result_type.to_snapshot(self)?,
+                );
+                let constructor_call_op = self.snapshot_constructor_constant_call(
+                    &domain_name,
+                    vec![expr! { left == right }],
+                )?;
+                let body = vir_low::Expression::forall(
+                    vec![left, right],
+                    vec![vir_low::Trigger::new(vec![op_constructor_call.clone()])],
+                    expr! { [op_constructor_call] == [constructor_call_op] },
+                );
+                let axiom = vir_low::DomainAxiomDecl {
+                    name: format!("{}$simplification_axiom", variant_name),
+                    body,
+                };
+                self.declare_axiom(&domain_name, axiom)?;
             }
         }
         Ok(variant_name)

@@ -7,9 +7,9 @@ use crate::encoder::{
 #[rustfmt::skip]
 use ::log::trace;
 
+use rustc_errors::MultiSpan;
 use rustc_hash::FxHashMap;
 use rustc_middle::{mir, ty};
-use rustc_span::MultiSpan;
 use std::cell::RefCell;
 use vir_crate::{common::expression::less_equals, high as vir_high, polymorphic as vir};
 
@@ -156,6 +156,12 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             // vir_high::Type type. However, this should not be the problem for
             // using the inverse because we care only between differences that
             // are not dropped in the translation.
+            self.mir_type_encoder_state
+                .encoded_types_inverse
+                .borrow_mut()
+                .insert(encoded_type.clone(), ty);
+            let mut encoded_type = encoded_type;
+            encoded_type.erase_lifetime();
             self.mir_type_encoder_state
                 .encoded_types_inverse
                 .borrow_mut()
