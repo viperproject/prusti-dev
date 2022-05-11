@@ -25,7 +25,7 @@ pub fn is_purifiable_type(ty: &Type) -> bool {
 fn translate_type(typ: &Type) -> Type {
     match typ {
         Type::TypedRef(..) => match typ.name().as_str() {
-            "i32" | "usize" | "u32" => Type::Int,
+            "i32" | "isize" | "usize" | "u32" => Type::Int,
             "bool" => Type::Bool,
             _ => todo!("{:?}", typ),
         },
@@ -34,7 +34,7 @@ fn translate_type(typ: &Type) -> Type {
     }
 }
 
-static SUPPORTED_TYPES: &[&str] = &["bool", "i32", "usize", "u32"];
+static SUPPORTED_TYPES: &[&str] = &["bool", "i32", "isize", "usize", "u32"];
 
 fn purify_method(method: &mut cfg::CfgMethod, predicates: &[ast::Predicate]) {
     let mut candidates = HashSet::new();
@@ -67,14 +67,21 @@ fn purify_method(method: &mut cfg::CfgMethod, predicates: &[ast::Predicate]) {
     }
     let mut p = Purifier::new(collector, predicates);
 
-    //for stmt in method
     for block in &mut method.basic_blocks {
-        block.stmts = block
-            .stmts
-            .clone()
-            .into_iter()
-            .map(|stmt| ast::StmtFolder::fold(&mut p, stmt))
-            .collect();
+        let stmts = std::mem::take(&mut block.stmts);
+        for stmt in stmts {
+            if let Stmt::Inhale(mut inhale) = stmt {
+                assert!(p.purified_predicates.is_none());
+                p.purified_predicates = Some(BTreeSet::new());
+                inhale.expr = ast::ExprFolder::fold(&mut p, inhale.expr);
+                block.stmts.push(Stmt::Inhale(inhale));
+                for variable in p.purified_predicates.take().unwrap() {
+                    block.stmts.push(generate_havoc(variable));
+                }
+            } else {
+                block.stmts.push(ast::StmtFolder::fold(&mut p, stmt));
+            };
+        }
     }
 }
 
@@ -123,6 +130,8 @@ struct Purifier<'a> {
     targets: BTreeSet<String>,
     /// Viper predicates.
     predicates: &'a [ast::Predicate],
+    /// Purified PredicateAccessPredicates within an expression.
+    purified_predicates: Option<BTreeSet<LocalVar>>,
 }
 
 impl<'a> Purifier<'a> {
@@ -135,6 +144,7 @@ impl<'a> Purifier<'a> {
         Purifier {
             targets,
             predicates,
+            purified_predicates: None,
         }
     }
     /// Get the body of the struct predicate. If the predicate does not exist,
@@ -179,7 +189,7 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
                             typ: Type::Bool,
                         });
                     }
-                    "i32" | "usize" | "u32" => {
+                    "i32" | "isize" | "usize" | "u32" => {
                         source = source.field(Field {
                             name: "val_int".into(),
                             typ: Type::Int,
@@ -201,28 +211,14 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
         ast::MethodCall {
             method_name,
             arguments,
-            targets,
+            mut targets,
         }: ast::MethodCall,
     ) -> Stmt {
         if method_name.starts_with("builtin$havoc")
             && targets.len() == 1
             && self.targets.contains(&targets[0].name)
         {
-            let target = &targets[0];
-            let target_name = force_matches!(target.typ, Type::TypedRef(..) => target.typ.name());
-            match target_name.as_str() {
-                "bool" => Stmt::MethodCall(ast::MethodCall {
-                    method_name: "builtin$havoc_bool".to_string(),
-                    arguments,
-                    targets: vec![ast::LocalVar::new(&target.name, Type::Bool)],
-                }),
-                "i32" | "usize" | "u32" => Stmt::MethodCall(ast::MethodCall {
-                    method_name: "builtin$havoc_int".to_string(),
-                    arguments,
-                    targets: vec![ast::LocalVar::new(&target.name, Type::Int)],
-                }),
-                x => unreachable!("{}", x),
-            }
+            generate_havoc(targets.pop().unwrap())
         } else {
             Stmt::MethodCall(ast::MethodCall {
                 method_name,
@@ -361,6 +357,9 @@ impl<'a> ast::ExprFolder for Purifier<'a> {
         }) = *argument.clone()
         {
             if self.targets.contains(&local.name) {
+                if let Some(purified_predicates) = &mut self.purified_predicates {
+                    purified_predicates.insert(local);
+                }
                 return true.into();
             }
         }
@@ -447,5 +446,22 @@ impl<'a> ast::ExprFolder for Purifier<'a> {
         } else {
             *folded_body
         }
+    }
+}
+
+fn generate_havoc(variable: LocalVar) -> Stmt {
+    let target_name = force_matches!(variable.typ, Type::TypedRef(..) => variable.typ.name());
+    match target_name.as_str() {
+        "bool" => Stmt::MethodCall(ast::MethodCall {
+            method_name: "builtin$havoc_bool".to_string(),
+            arguments: Vec::new(),
+            targets: vec![ast::LocalVar::new(variable.name, Type::Bool)],
+        }),
+        "i32" | "isize" | "usize" | "u32" => Stmt::MethodCall(ast::MethodCall {
+            method_name: "builtin$havoc_int".to_string(),
+            arguments: Vec::new(),
+            targets: vec![ast::LocalVar::new(variable.name, Type::Int)],
+        }),
+        x => unreachable!("{}", x),
     }
 }
