@@ -482,7 +482,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             )?;
 
             // FIXME: Refactor encode_pure_function_use to depend on this function.
-            let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, substs)?;
+            if !prusti_common::config::unsafe_core_proof() {
+                let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, substs)?;
+            }
 
             call_infos.insert(key.clone(), function_call_info);
         }

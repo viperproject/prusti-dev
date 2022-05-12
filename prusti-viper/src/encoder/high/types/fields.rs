@@ -19,6 +19,10 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
             vir::FieldDecl::new("val_float64", vir::Type::MFloat64)
         }
 
+        vir::Type::Sequence(ref _seq) => vir::FieldDecl::new("val_seq", ty),
+
+        vir::Type::Map(ref _map) => vir::FieldDecl::new("val_map", ty),
+
         // For composed data structures, we typically use a snapshot rather than a field.
         // To unify how parameters are passed to functions, we treat them like a reference.
         vir::Type::Tuple(_)

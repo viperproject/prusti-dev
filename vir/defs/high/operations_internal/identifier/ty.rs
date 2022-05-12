@@ -10,6 +10,8 @@ impl WithIdentifier for ty::Type {
             ty::Type::MFloat64 => "MFloat64".to_string(),
             ty::Type::Bool => "Bool".to_string(),
             ty::Type::Int(ty) => ty.get_identifier(),
+            ty::Type::Sequence(ty) => ty.get_identifier(),
+            ty::Type::Map(ty) => ty.get_identifier(),
             ty::Type::Float(ty) => ty.get_identifier(),
             ty::Type::TypeVar(ty) => ty.get_identifier(),
             ty::Type::Tuple(ty) => ty.get_identifier(),
@@ -35,6 +37,22 @@ impl WithIdentifier for ty::Type {
 impl WithIdentifier for ty::Int {
     fn get_identifier(&self) -> String {
         self.to_string()
+    }
+}
+
+impl WithIdentifier for ty::Sequence {
+    fn get_identifier(&self) -> String {
+        format!("Seq${}", self.element_type.get_identifier())
+    }
+}
+
+impl WithIdentifier for ty::Map {
+    fn get_identifier(&self) -> String {
+        format!(
+            "Map${}${}",
+            self.key_type.get_identifier(),
+            self.val_type.get_identifier()
+        )
     }
 }
 

@@ -1222,6 +1222,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let full_called_function_name = self.encoder.env().tcx().def_path_str(*def_id);
             if !self.try_encode_builtin_call(
                 block_builder,
+                location,
                 span,
                 &full_called_function_name,
                 args,
@@ -1250,9 +1251,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn try_encode_builtin_call(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
         span: Span,
         called_function: &str,
         args: &[mir::Operand<'tcx>],
@@ -1280,6 +1283,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 } else {
                     unimplemented!();
                 }
+            }
+            "prusti_contracts::Int::new" => {
+                let (target_place, target_block) = destination.unwrap();
+                let position = self
+                    .encoder
+                    .error_manager()
+                    .register_error(span, ErrorCtxt::WritePlace, self.def_id)
+                    .into();
+                let encoded_target_place = self
+                    .encoder
+                    .encode_place_high(self.mir, target_place)?
+                    .set_default_position(position);
+                assert_eq!(args.len(), 1);
+                self.encode_assign_operand(
+                    block_builder,
+                    location,
+                    encoded_target_place,
+                    &args[0],
+                )?;
+                let target_label = self.encode_basic_block_label(target_block);
+                vir_high::Successor::Goto(target_label)
             }
             _ => return Ok(false),
         };
