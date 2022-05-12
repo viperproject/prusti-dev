@@ -178,6 +178,7 @@ pub enum Type {
     Float(Float),
     BitVector(BitVector),
     Seq(Box<Type>),
+    Map(Box<Type>, Box<Type>),
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
@@ -193,6 +194,7 @@ pub enum TypeId {
     BitVector,
     Ref,
     Seq,
+    Map,
     Domain,
     Snapshot,
 }
@@ -209,6 +211,7 @@ impl fmt::Display for Type {
             Type::Domain(ref name) => write!(f, "Domain({})", name),
             Type::Snapshot(ref name) => write!(f, "Snapshot({})", name),
             Type::Seq(ref elem_ty) => write!(f, "Seq[{}]", elem_ty),
+            Type::Map(ref key_type, ref val_type) => write!(f, "Map[{}, {}]", key_type, val_type),
         }
     }
 }
@@ -237,6 +240,7 @@ impl Type {
             Type::Domain(ref pred_name) => pred_name.to_string(),
             Type::Snapshot(ref pred_name) => pred_name.to_string(),
             Type::Seq(_) => "Seq".to_string(),
+            Type::Map(..) => "Map".to_string(),
         }
     }
 
@@ -277,6 +281,7 @@ impl Type {
             Type::Domain(_) => TypeId::Domain,
             Type::Snapshot(_) => TypeId::Snapshot,
             Type::Seq(_) => TypeId::Seq,
+            Type::Map(..) => TypeId::Map,
         }
     }
 }

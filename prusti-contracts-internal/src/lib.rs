@@ -77,3 +77,8 @@ pub fn ghost_constraint(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     )
     .into()
 }
+
+#[proc_macro]
+pub fn ghost(tokens: TokenStream) -> TokenStream {
+    tokens
+}
