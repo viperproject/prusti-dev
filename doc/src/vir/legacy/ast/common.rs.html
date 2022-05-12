@@ -356,6 +356,11 @@
 <span id="351">351</span>
 <span id="352">352</span>
 <span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -530,12 +535,13 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-186">Type</a> {
+<span class="kw">pub</span> <span class="kw">enum</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-187">Type</a> {
     <span class="ident">Int</span>,
     <span class="ident">Bool</span>,
     <span class="ident">Float</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#133-136">Float</a>),
     <span class="ident">BitVector</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#160-163">BitVector</a>),
-    <span class="ident">Seq</span>(<span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-186">Type</a><span class="op">&gt;</span>),
+    <span class="ident">Seq</span>(<span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-187">Type</a><span class="op">&gt;</span>),
+    <span class="ident">Map</span>(<span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-187">Type</a><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-187">Type</a><span class="op">&gt;</span>),
     <span class="comment">//Ref, // At the moment we don&#39;t need this</span>
     <span class="doccomment">/// TypedRef: the first parameter is the name of the predicate that encodes the type</span>
     <span class="ident">TypedRef</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
@@ -551,60 +557,63 @@
     <span class="ident">BitVector</span>,
     <span class="ident">Ref</span>,
     <span class="ident">Seq</span>,
+    <span class="ident">Map</span>,
     <span class="ident">Domain</span>,
     <span class="ident">Snapshot</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-186">Type</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-187">Type</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#201">self</a> {
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#176">Type::Int</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#201">f</a>, <span class="string">&quot;Int&quot;</span>),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#177">Type::Bool</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#201">f</a>, <span class="string">&quot;Bool&quot;</span>),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#178">Type::Float</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#134">Float::F32</a>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#201">f</a>, <span class="string">&quot;F32&quot;</span>),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#178">Type::Float</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#135">Float::F64</a>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#201">f</a>, <span class="string">&quot;F64&quot;</span>),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#179">Type::BitVector</a>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#201">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#207">value</a>),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#183">Type::TypedRef</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#201">f</a>, <span class="string">&quot;Ref({})&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#208">name</a>),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::Domain</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#201">f</a>, <span class="string">&quot;Domain({})&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#209">name</a>),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#185">Type::Snapshot</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#201">f</a>, <span class="string">&quot;Snapshot({})&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#210">name</a>),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#180">Type::Seq</a>(<span class="kw-2">ref</span> <span class="ident">elem_ty</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#201">f</a>, <span class="string">&quot;Seq[{}]&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#211">elem_ty</a>),
+        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#203">self</a> {
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#176">Type::Int</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#203">f</a>, <span class="string">&quot;Int&quot;</span>),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#177">Type::Bool</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#203">f</a>, <span class="string">&quot;Bool&quot;</span>),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#178">Type::Float</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#134">Float::F32</a>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#203">f</a>, <span class="string">&quot;F32&quot;</span>),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#178">Type::Float</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#135">Float::F64</a>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#203">f</a>, <span class="string">&quot;F64&quot;</span>),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#179">Type::BitVector</a>(<span class="ident">value</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#203">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#209">value</a>),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::TypedRef</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#203">f</a>, <span class="string">&quot;Ref({})&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#210">name</a>),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#185">Type::Domain</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#203">f</a>, <span class="string">&quot;Domain({})&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#211">name</a>),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#186">Type::Snapshot</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#203">f</a>, <span class="string">&quot;Snapshot({})&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#212">name</a>),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#180">Type::Seq</a>(<span class="kw-2">ref</span> <span class="ident">elem_ty</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#203">f</a>, <span class="string">&quot;Seq[{}]&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#213">elem_ty</a>),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#181">Type::Map</a>(<span class="kw-2">ref</span> <span class="ident">key_type</span>, <span class="kw-2">ref</span> <span class="ident">val_type</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#203">f</a>, <span class="string">&quot;Map[{}, {}]&quot;</span>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#214">key_type</a>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#214">val_type</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-186">Type</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-187">Type</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">matches!</span>(<a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#217">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#183">Type::TypedRef</a>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#220">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::TypedRef</a>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">matches!</span>(<a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#221">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::Domain</a>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#224">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#185">Type::Domain</a>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_snapshot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">matches!</span>(<a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#225">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#185">Type::Snapshot</a>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#228">self</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#186">Type::Snapshot</a>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#229">self</a> {
+        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#232">self</a> {
             <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#177">Type::Bool</a> =&gt; <span class="string">&quot;bool&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#176">Type::Int</a> =&gt; <span class="string">&quot;int&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#178">Type::Float</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#134">Float::F32</a>) =&gt; <span class="string">&quot;f32&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#178">Type::Float</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#135">Float::F64</a>) =&gt; <span class="string">&quot;f64&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#179">Type::BitVector</a>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#235">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#183">Type::TypedRef</a>(<span class="kw-2">ref</span> <span class="ident">pred_name</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#236">pred_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::Domain</a>(<span class="kw-2">ref</span> <span class="ident">pred_name</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#237">pred_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#185">Type::Snapshot</a>(<span class="kw-2">ref</span> <span class="ident">pred_name</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#238">pred_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#179">Type::BitVector</a>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#238">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::TypedRef</a>(<span class="kw-2">ref</span> <span class="ident">pred_name</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#239">pred_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#185">Type::Domain</a>(<span class="kw-2">ref</span> <span class="ident">pred_name</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#240">pred_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#186">Type::Snapshot</a>(<span class="kw-2">ref</span> <span class="ident">pred_name</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#241">pred_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#180">Type::Seq</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Seq&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#181">Type::Map</a>(..) =&gt; <span class="string">&quot;Map&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         }
     }
 
     <span class="doccomment">/// Construct a new VIR type that corresponds to an enum variant.</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variant</span>(<span class="self">self</span>, <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#245">self</a> {
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#183">Type::TypedRef</a>(<span class="kw-2">mut</span> <span class="ident">name</span>) =&gt; {
-                <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#247">name</a>.<span class="ident">push_str</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#245">variant</a>);
-                <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#183">Type::TypedRef</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#247">name</a>)
+        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#249">self</a> {
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::TypedRef</a>(<span class="kw-2">mut</span> <span class="ident">name</span>) =&gt; {
+                <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#251">name</a>.<span class="ident">push_str</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#249">variant</a>);
+                <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::TypedRef</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#251">name</a>)
             }
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         }
@@ -614,99 +623,100 @@
     <span class="doccomment">/// FIXME: this is a hack to support generics. See issue #187.</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">patch</span>(<span class="self">self</span>, <span class="ident">substs</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#258">self</a> {
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#183">Type::TypedRef</a>(<span class="kw-2">mut</span> <span class="ident">predicate_name</span>) =&gt; {
-                <span class="kw">for</span> (<span class="ident">typ</span>, <span class="ident">subst</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#258">substs</a> {
-                    <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#260">predicate_name</a> <span class="op">=</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#260">predicate_name</a>.<span class="ident">replace</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#261">typ</a>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#261">subst</a>);
+        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#262">self</a> {
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::TypedRef</a>(<span class="kw-2">mut</span> <span class="ident">predicate_name</span>) =&gt; {
+                <span class="kw">for</span> (<span class="ident">typ</span>, <span class="ident">subst</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#262">substs</a> {
+                    <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#264">predicate_name</a> <span class="op">=</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#264">predicate_name</a>.<span class="ident">replace</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#265">typ</a>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#265">subst</a>);
                 }
-                <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#183">Type::TypedRef</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#260">predicate_name</a>)
+                <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::TypedRef</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#264">predicate_name</a>)
             }
-            <span class="ident">typ</span> =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#266">typ</a>,
+            <span class="ident">typ</span> =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#270">typ</a>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#189-198">TypeId</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#270">self</a> {
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#177">Type::Bool</a> =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#191">TypeId::Bool</a>,
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#176">Type::Int</a> =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#190">TypeId::Int</a>,
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#178">Type::Float</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#192">TypeId::Float</a>,
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#179">Type::BitVector</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#193">TypeId::BitVector</a>,
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#183">Type::TypedRef</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#194">TypeId::Ref</a>,
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::Domain</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#196">TypeId::Domain</a>,
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#185">Type::Snapshot</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#197">TypeId::Snapshot</a>,
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#180">Type::Seq</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#195">TypeId::Seq</a>,
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#190-200">TypeId</a> {
+        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#274">self</a> {
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#177">Type::Bool</a> =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#192">TypeId::Bool</a>,
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#176">Type::Int</a> =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#191">TypeId::Int</a>,
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#178">Type::Float</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#193">TypeId::Float</a>,
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#179">Type::BitVector</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#194">TypeId::BitVector</a>,
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::TypedRef</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#195">TypeId::Ref</a>,
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#185">Type::Domain</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#198">TypeId::Domain</a>,
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#186">Type::Snapshot</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#199">TypeId::Snapshot</a>,
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#180">Type::Seq</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#196">TypeId::Seq</a>,
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#181">Type::Map</a>(..) =&gt; <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#197">TypeId::Map</a>,
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#285-288">LocalVar</a> {
+<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#290-293">LocalVar</a> {
     <span class="kw">pub</span> <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span> <span class="ident">typ</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-186">Type</a>,
+    <span class="kw">pub</span> <span class="ident">typ</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-187">Type</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#285-288">LocalVar</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#290-293">LocalVar</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#291">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#291">self</a>.<span class="ident">name</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#296">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#296">self</a>.<span class="ident">name</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#285-288">LocalVar</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#290-293">LocalVar</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#297">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#297">self</a>.<span class="ident">name</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#297">self</a>.<span class="ident">typ</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#302">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#302">self</a>.<span class="ident">name</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#302">self</a>.<span class="ident">typ</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#285-288">LocalVar</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">S</span>, <span class="ident">typ</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-186">Type</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#285-288">LocalVar</a> {
-            <span class="ident">name</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#303">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#303">typ</a>,
+<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#290-293">LocalVar</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">S</span>, <span class="ident">typ</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-187">Type</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#290-293">LocalVar</a> {
+            <span class="ident">name</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#308">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#308">typ</a>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_typed_ref</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">S</span>, <span class="ident">ty_ref_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident">LocalVar::new</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#310">name</a>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#183">Type::TypedRef</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#310">ty_ref_name</a>))
+        <span class="ident">LocalVar::new</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#315">name</a>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::TypedRef</a>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#315">ty_ref_name</a>))
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#316-319">Field</a> {
+<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#321-324">Field</a> {
     <span class="kw">pub</span> <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span> <span class="ident">typ</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-186">Type</a>,
+    <span class="kw">pub</span> <span class="ident">typ</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-187">Type</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#316-319">Field</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#321-324">Field</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#322">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#322">self</a>.<span class="ident">name</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#327">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#327">self</a>.<span class="ident">name</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#316-319">Field</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#321-324">Field</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#328">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#328">self</a>.<span class="ident">name</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#328">self</a>.<span class="ident">typ</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#333">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#333">self</a>.<span class="ident">name</span>, <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#333">self</a>.<span class="ident">typ</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#316-319">Field</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">S</span>, <span class="ident">typ</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-186">Type</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#316-319">Field</a> {
-            <span class="ident">name</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#334">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#334">typ</a>,
+<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#321-324">Field</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">S</span>, <span class="ident">typ</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#175-187">Type</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#321-324">Field</a> {
+            <span class="ident">name</span>: <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#339">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#339">typ</a>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_ref_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#341">self</a>.<span class="ident">typ</span> {
-            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#183">Type::TypedRef</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#343">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        <span class="kw">match</span> <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#346">self</a>.<span class="ident">typ</span> {
+            <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#184">Type::TypedRef</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#348">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/common/identifier.rs.html#1-3">WithIdentifier</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#316-319">Field</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/vir/common/identifier.rs.html#1-3">WithIdentifier</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#321-324">Field</a> {
     <span class="kw">fn</span> <span class="ident">get_identifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#350">self</a>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="../../../../src/vir/legacy/ast/common.rs.html#355">self</a>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 </code></pre></div>

@@ -1411,6 +1411,50 @@
 <span id="1406">1406</span>
 <span id="1407">1407</span>
 <span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
+<span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
 </pre><pre class="rust"><code><span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
@@ -2664,159 +2708,203 @@
         )
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">range_seq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">low</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">high</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key_ty</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#8">Type</a>, <span class="ident">val_ty</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#8">Type</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
             <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1254">self</a>,
             <span class="ident">Expr</span>,
+            <span class="ident">ast::EmptyMap</span>,
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1254">key_ty</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#8">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1254">val_ty</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#8">to_jobject</a>()
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">explicit_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">keys_values</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>]) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="macro">build_ast_node!</span>(
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1264">self</a>,
+            <span class="ident">Expr</span>,
+            <span class="ident">ast::ExplicitMap</span>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1264">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../../src/viper/jni_utils.rs.html#100">new_seq</a>(<span class="kw-2">&amp;</span><span class="macro">map_to_jobjects!</span>(<a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1264">keys_values</a>))
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">map</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">key</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">val</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="macro">build_ast_node!</span>(
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1273">self</a>,
+            <span class="ident">Expr</span>,
+            <span class="ident">ast::MapUpdate</span>,
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1273">map</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1273">key</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1273">val</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">map</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">key</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="macro">build_ast_node!</span>(
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1284">self</a>,
+            <span class="ident">Expr</span>,
+            <span class="ident">ast::MapLookup</span>,
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1284">map</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1284">key</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">map</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1294">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::MapCardinality</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1294">map</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>())
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">range_seq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">low</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">high</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="macro">build_ast_node!</span>(
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1298">self</a>,
+            <span class="ident">Expr</span>,
             <span class="ident">ast::RangeSeq</span>,
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1254">low</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1254">high</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1298">low</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1298">high</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seq_append</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">left</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">right</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1264">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1308">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::SeqAppend</span>,
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1264">left</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1264">right</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1308">left</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1308">right</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seq_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">seq</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">index</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1274">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1318">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::SeqIndex</span>,
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1274">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1274">index</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1318">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1318">index</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seq_take</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">seq</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">num</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1284">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::SeqTake</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1284">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(), <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1284">num</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>())
+        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1328">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::SeqTake</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1328">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(), <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1328">num</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seq_drop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">seq</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">num</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1288">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::SeqDrop</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1288">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(), <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1288">num</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>())
+        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1332">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::SeqDrop</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1332">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(), <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1332">num</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seq_contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">elem</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">seq</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1292">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1336">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::SeqContains</span>,
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1292">elem</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1292">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1336">elem</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1336">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seq_update</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">seq</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">index</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">elem</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1302">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1346">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::SeqUpdate</span>,
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1302">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1302">index</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1302">elem</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1346">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1346">index</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1346">elem</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seq_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">seq</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1313">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::SeqLength</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1313">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>())
+        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1357">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::SeqLength</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1357">seq</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">elem_type</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#8">Type</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1317">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::EmptySet</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1317">elem_type</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#8">to_jobject</a>())
+        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1361">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::EmptySet</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1361">elem_type</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#8">to_jobject</a>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">explicit_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">elems</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>]) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1321">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1365">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::ExplicitSet</span>,
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1321">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../../src/viper/jni_utils.rs.html#100">new_seq</a>(<span class="kw-2">&amp;</span><span class="macro">map_to_jobjects!</span>(<a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1321">elems</a>))
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1365">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../../src/viper/jni_utils.rs.html#100">new_seq</a>(<span class="kw-2">&amp;</span><span class="macro">map_to_jobjects!</span>(<a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1365">elems</a>))
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty_multiset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">elem_type</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#8">Type</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1330">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::EmptyMultiset</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1330">elem_type</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#8">to_jobject</a>())
+        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1374">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::EmptyMultiset</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1374">elem_type</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#8">to_jobject</a>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">explicit_multiset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">elems</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>]) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1334">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1378">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::ExplicitMultiset</span>,
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1334">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../../src/viper/jni_utils.rs.html#100">new_seq</a>(<span class="kw-2">&amp;</span><span class="macro">map_to_jobjects!</span>(<a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1334">elems</a>))
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1378">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../../src/viper/jni_utils.rs.html#100">new_seq</a>(<span class="kw-2">&amp;</span><span class="macro">map_to_jobjects!</span>(<a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1378">elems</a>))
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">any_set_union</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">left</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">right</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1343">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1387">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::AnySetUnion</span>,
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1343">left</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1343">right</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1387">left</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1387">right</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">any_set_intersection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">left</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">right</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1353">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1397">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::AnySetIntersection</span>,
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1353">left</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1353">right</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1397">left</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1397">right</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">any_set_subset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">left</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">right</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1363">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1407">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::AnySetSubset</span>,
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1363">left</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1363">right</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1407">left</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1407">right</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">any_set_minus</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">left</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">right</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1373">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1417">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::AnySetMinus</span>,
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1373">left</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1373">right</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1417">left</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1417">right</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">any_set_contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">elem</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>, <span class="ident">set</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">build_ast_node!</span>(
-            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1383">self</a>,
+            <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1427">self</a>,
             <span class="ident">Expr</span>,
             <span class="ident">ast::AnySetContains</span>,
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1383">elem</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1383">set</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1427">elem</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1427">set</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>()
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">any_set_cardinality</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">set</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1393">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::AnySetCardinality</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1393">set</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>())
+        <span class="macro">build_ast_node!</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1437">self</a>, <span class="ident">Expr</span>, <span class="ident">ast::AnySetCardinality</span>, <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1437">set</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simplified_expression</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">expr</span>: <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">Expr</a>) -&gt; <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">simplifier_object_wrapper</span> <span class="op">=</span> <span class="ident">ast::utility::Simplifier_object::with</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1397">self</a>.<span class="ident">env</span>);
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1397">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(
-            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1398">simplifier_object_wrapper</a>.<span class="ident">call_simplify</span>(
-                <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1397">self</a>.<span class="ident">jni</span>
-                    .<a class="ident" href="../../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1398">simplifier_object_wrapper</a>.<span class="ident">singleton</span>()),
-                <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1397">expr</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
+        <span class="kw">let</span> <span class="ident">simplifier_object_wrapper</span> <span class="op">=</span> <span class="ident">ast::utility::Simplifier_object::with</span>(<a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1441">self</a>.<span class="ident">env</span>);
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1441">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(
+            <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1442">simplifier_object_wrapper</a>.<span class="ident">call_simplify</span>(
+                <a class="self" href="../../../src/viper/ast_factory/expression.rs.html#1441">self</a>.<span class="ident">jni</span>
+                    .<a class="ident" href="../../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1442">simplifier_object_wrapper</a>.<span class="ident">singleton</span>()),
+                <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1441">expr</a>.<a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#9">to_jobject</a>(),
             ),
         );
-        <span class="ident">Expr::new</span>(<a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1399">obj</a>)
+        <span class="ident">Expr::new</span>(<a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#1443">obj</a>)
     }
 }
 </code></pre></div>
