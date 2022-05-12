@@ -73,4 +73,31 @@ fn test6(v: &mut[i32]) {
     assert!(zero_num_start == zero_num_end);    //~ ERROR: the asserted expression might not hold
 }
 
+fn test7(v: &mut [i32], start: usize, mid: usize, end: usize) {
+    let mut u = start;
+    while u < mid {
+        body_invariant!(u < mid);
+        u += 1;
+    }
+    assert!(!(u < mid));
+}
+
+fn test8(v: &mut [i32], start: usize, mid: usize, end: usize) {
+    let mut u = start;
+    while u < mid {
+        body_invariant!(u < mid);
+        u += 1;
+        assert!(u < mid);   //~ ERROR: the asserted expression might not hold
+    }
+}
+
+fn test9(v: &mut [i32], start: usize, mid: usize, end: usize) {
+    let mut u = start;
+    while u < mid {
+        body_invariant!(u < mid);
+        u += 1;
+    }
+    assert!(u == mid);  //~ ERROR: the asserted expression might not hold
+}
+
 fn main() {}
