@@ -76,7 +76,20 @@ fn purify_method(method: &mut cfg::CfgMethod, predicates: &[ast::Predicate]) {
                 inhale.expr = ast::ExprFolder::fold(&mut p, inhale.expr);
                 block.stmts.push(Stmt::Inhale(inhale));
                 for variable in p.purified_predicates.take().unwrap() {
-                    block.stmts.push(generate_havoc(variable));
+                    block.stmts.push(generate_havoc(variable.clone()));
+                    let predicate_type = variable.typ.clone();
+                    if let Some(predicate) = p.find_predicate(&predicate_type) {
+                        let purified_predicate = predicate
+                            .clone()
+                            .replace_place(
+                                &LocalVar::new("self", predicate_type).into(),
+                                &variable.clone().into(),
+                            )
+                            .purify();
+                        block.stmts.push(Stmt::Inhale(ast::Inhale {
+                            expr: ast::ExprFolder::fold(&mut p, purified_predicate),
+                        }));
+                    }
                 }
             } else {
                 block.stmts.push(ast::StmtFolder::fold(&mut p, stmt));
