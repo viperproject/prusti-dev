@@ -259,26 +259,33 @@ impl<'a> Verifier<'a> {
                             .unwrap_result(verification_error_wrapper.call_fullId(viper_error)),
                     );
 
-                    let offending_node = self
+                    // Unused since we get pos from the offending_node instead.
+                    // Currently calling pos on e.g. `ExhaleFailed` of Silver returns the exhale expression pos,
+                    // rather than the Exhale node pos
+                    let _pos = self
                         .jni
-                        .unwrap_result(verification_error_wrapper.call_offendingNode(viper_error));
-
-                    let pos = self
-                        .jni
-                        .unwrap_result(error_node_positioned_wrapper.call_pos(offending_node));
+                        .unwrap_result(verification_error_wrapper.call_pos(viper_error));
 
                     let message =
                         self.jni.to_string(self.jni.unwrap_result(
                             verification_error_wrapper.call_readableMessage(viper_error),
                         ));
 
-                    let pos_id =
+                    let offending_node = self
+                        .jni
+                        .unwrap_result(verification_error_wrapper.call_offendingNode(viper_error));
+
+                    let offending_pos = self
+                        .jni
+                        .unwrap_result(error_node_positioned_wrapper.call_pos(offending_node));
+
+                    let offending_pos_id =
                         if self
                             .jni
-                            .is_instance_of(pos, "viper/silver/ast/HasIdentifier")
+                            .is_instance_of(offending_pos, "viper/silver/ast/HasIdentifier")
                         {
                             Some(self.jni.get_string(
-                                self.jni.unwrap_result(has_identifier_wrapper.call_id(pos)),
+                                self.jni.unwrap_result(has_identifier_wrapper.call_id(offending_pos)),
                             ))
                         } else {
                             debug!(
@@ -290,7 +297,7 @@ impl<'a> Verifier<'a> {
 
                     errors.push(VerificationError::new(
                         error_full_id,
-                        pos_id,
+                        offending_pos_id,
                         reason_pos_id,
                         message,
                         counterexample,
