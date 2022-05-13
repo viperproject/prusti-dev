@@ -149,8 +149,8 @@ impl<'tcx> ToText for rustc_middle::ty::Ty<'tcx> {
 impl<'tcx> ToText for rustc_middle::ty::Region<'tcx> {
     fn to_text(&self) -> String {
         match self.kind() {
-            rustc_middle::ty::ReEarlyBound(_) => {
-                unimplemented!("ReEarlyBound: {}", format!("{}", self));
+            rustc_middle::ty::ReEarlyBound(reg) => {
+                format!("lft_early_bound_{}", reg.index)
             }
             rustc_middle::ty::ReLateBound(debruijn, bound_reg) => {
                 format!("lft_late_{}_{}", debruijn.index(), bound_reg.var.index())

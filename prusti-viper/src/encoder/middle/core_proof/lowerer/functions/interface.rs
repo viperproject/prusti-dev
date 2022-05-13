@@ -7,12 +7,14 @@ use crate::encoder::{
         snapshots::{
             IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot, SnapshotValidityInterface,
         },
+        types::TypesInterface,
     },
 };
 use std::collections::BTreeMap;
 use vir_crate::{
     common::expression::{ExpressionIterator, QuantifierHelpers},
     low::{self as vir_low},
+    middle as vir_mid,
 };
 
 #[derive(Default)]
@@ -29,6 +31,10 @@ impl FunctionsLowererState {
 trait Private {
     fn caller_function_name(&mut self, function_name: &str) -> String;
     fn ensure_pure_function_lowered(&mut self, function_name: String) -> SpannedEncodingResult<()>;
+    fn ensure_all_types_lowered(
+        &mut self,
+        function_decl: &vir_mid::FunctionDecl,
+    ) -> SpannedEncodingResult<()>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
@@ -38,9 +44,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     fn ensure_pure_function_lowered(&mut self, function_name: String) -> SpannedEncodingResult<()> {
         if !self.functions_state.functions.contains_key(&function_name) {
             let function_decl = self.encoder.get_pure_function_decl_mid(&function_name)?;
+            self.ensure_all_types_lowered(&function_decl)?;
             let caller_function_name = self.caller_function_name(&function_name);
             let mut pres = function_decl.pres.to_pure_bool_expression(self)?;
-            let posts = function_decl.posts.to_pure_bool_expression(self)?;
+            let mut posts = function_decl.posts.to_pure_bool_expression(self)?;
             let mut parameters = function_decl.parameters.to_pure_snapshot(self)?;
             let mut arguments = Vec::new();
             for (parameter, parameter_mid) in parameters.iter().zip(&function_decl.parameters) {
@@ -50,7 +57,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     self.encode_snapshot_valid_call_for_type(argument, &parameter_mid.ty)?;
                 pres.push(argument_validity);
             }
+            use vir_low::macros::*;
             let return_type = function_decl.return_type.to_snapshot(self)?;
+            let result: vir_low::Expression = var! { __result: {return_type.clone()} }.into();
+            let result_validity = self
+                .encode_snapshot_valid_call_for_type(result.clone(), &function_decl.return_type)?;
+            posts.push(result_validity);
             let gas_amount = self.function_gas_constant(2)?;
             let function = vir_low::FunctionDecl::new(
                 caller_function_name,
@@ -81,8 +93,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             // TODO: This should be done as a fix-point finalization action that
             // takes into account gas, (potentially mutual) recursion, predicate
             // unfoldings.
-            if function_decl.body.is_some() || !function_decl.posts.is_empty() {
-                use vir_low::macros::*;
+            if function_decl.body.is_some() || !posts.is_empty() {
                 let gas = self.function_gas_parameter()?;
                 parameters.push(gas.clone());
                 let mut arguments_without_gas_level = arguments.clone();
@@ -98,14 +109,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     "Functions",
                     function_name.clone(),
                     arguments_without_gas_level,
-                    return_type.clone(),
+                    return_type,
                 );
                 let body = if let Some(body) = function_decl.body {
                     expr! { ([call.clone()] == [body.to_pure_snapshot(self)?]) }
                 } else {
                     true.into()
                 };
-                let result = var! { __result: {return_type} }.into();
                 let posts_expression = posts.into_iter().conjoin().replace_place(&result, &call);
                 let axiom_body = vir_low::Expression::forall(
                     parameters,
@@ -124,6 +134,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             }
         }
         Ok(())
+    }
+    fn ensure_all_types_lowered(
+        &mut self,
+        function_decl: &vir_mid::FunctionDecl,
+    ) -> SpannedEncodingResult<()> {
+        function_decl.walk_types(|ty| self.ensure_type_definition(ty))
     }
 }
 

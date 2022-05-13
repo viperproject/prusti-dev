@@ -115,10 +115,18 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let kind = self.get_proc_kind(def_id, substs);
-        let pure = matches!(
+        let mut pure = matches!(
             kind,
             ProcedureSpecificationKind::Pure | ProcedureSpecificationKind::Predicate(_)
         );
+
+        let func_name = self.env().get_unique_item_name(def_id);
+        if func_name.starts_with("prusti_contracts::prusti_contracts::Map")
+            || func_name.starts_with("prusti_contracts::prusti_contracts::Seq")
+        {
+            pure = true;
+        }
+
         trace!("is_pure {:?} = {}", def_id, pure);
         pure
     }

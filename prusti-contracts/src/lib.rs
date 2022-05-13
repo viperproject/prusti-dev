@@ -54,6 +54,21 @@ mod private {
     /// A macro to add trait bounds on a generic type parameter and specifications
     /// which are active only when these bounds are satisfied for a call.
     pub use prusti_contracts_impl::ghost_constraint;
+
+    /// A sequence type
+    #[non_exhaustive]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Seq<T> {
+        _phantom: core::marker::PhantomData<T>,
+    }
+
+    /// A macro for defining ghost blocks which will be left in for verification
+    /// but omitted during compilation.
+    pub use prusti_contracts_impl::ghost;
+
+    /// a mathematical (unbounded) integer type
+    /// it should not be constructed from running rust code, hence the private unit inside
+    pub struct Int(());
 }
 
 #[cfg(feature = "prusti")]
@@ -102,6 +117,72 @@ mod private {
     pub fn prusti_set_union_active_field<T>(_arg: T) {
         unreachable!();
     }
+
+    /// a mathematical (unbounded) integer type
+    /// it should not be constructed from running rust code, hence the private unit inside
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Int(());
+
+    impl Int {
+        pub fn new(_: i64) -> Self {
+            panic!()
+        }
+    }
+
+    /// A sequence type
+    #[non_exhaustive]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Seq<T: Copy> {
+        _phantom: core::marker::PhantomData<T>,
+    }
+
+    impl<T: Copy> Seq<T> {
+        pub fn empty() -> Self {
+            panic!()
+        }
+        pub fn single(_: T) -> Self {
+            panic!()
+        }
+        pub fn concat(_: Self, _: Self) -> Self {
+            panic!()
+        }
+        pub fn lookup(self, _index: usize) -> T {
+            panic!()
+        }
+        pub fn len(self) -> Int {
+            panic!()
+        }
+    }
+
+    /// A map type
+    #[non_exhaustive]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Map<K, V> {
+        _key_phantom: core::marker::PhantomData<K>,
+        _val_phantom: core::marker::PhantomData<V>,
+    }
+
+    impl<K, V> Map<K, V> {
+        pub fn empty() -> Self {
+            panic!()
+        }
+        pub fn insert(self, _key: K, _val: V) -> Self {
+            panic!()
+        }
+        pub fn delete(self, _key: K) -> Self {
+            panic!()
+        }
+        pub fn len(self) -> Int {
+            panic!()
+        }
+        pub fn lookup(self, _key: K) -> V {
+            panic!()
+        }
+    }
+
+    /// A macro for defining ghost blocks which will be left in for verification
+    /// but omitted during compilation.
+    pub use prusti_contracts_internal::ghost;
 }
 
 /// This function is used to evaluate an expression in the context just

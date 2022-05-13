@@ -70,9 +70,13 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     // Separate the output with an empty line
     eprintln!();
 
+    let fallback_bundle =
+        rustc_errors::fallback_fluent_bundle(rustc_errors::DEFAULT_LOCALE_RESOURCES, false);
     let emitter = box rustc_errors::emitter::EmitterWriter::stderr(
         rustc_errors::ColorConfig::Auto,
         None,
+        None,
+        fallback_bundle,
         false,
         false,
         None,
@@ -82,8 +86,8 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
 
     // a .span_bug or .bug call has already printed what it wants to print.
     if !info.payload().is::<rustc_errors::ExplicitBug>() {
-        let d = rustc_errors::Diagnostic::new(rustc_errors::Level::Bug, "unexpected panic");
-        handler.emit_diagnostic(&d);
+        let mut d = rustc_errors::Diagnostic::new(rustc_errors::Level::Bug, "unexpected panic");
+        handler.emit_diagnostic(&mut d);
     }
 
     let version_info = get_prusti_version_info();
@@ -95,7 +99,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     ];
 
     for note in &xs {
-        handler.note_without_error(note);
+        handler.note_without_error(note.as_ref());
     }
 
     // If backtraces are enabled, also print the query stack

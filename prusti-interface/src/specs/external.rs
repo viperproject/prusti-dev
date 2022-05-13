@@ -3,7 +3,8 @@ use rustc_hir::{
     intravisit::{self, Visitor},
 };
 use rustc_middle::{hir::map::Map};
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
+use rustc_errors::MultiSpan;
 
 use crate::{environment::Environment, PrustiError};
 use std::collections::HashMap;

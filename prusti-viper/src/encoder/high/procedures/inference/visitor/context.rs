@@ -68,18 +68,20 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
                 ]
             }
             vir_high::TypeDecl::Array(_) => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Reference(_) => {
-                // TODO: implement context visitor for Reference
-                // required e.g. for returning a reference?
-                unimplemented!("ty: {}", ty)
+            vir_high::TypeDecl::Reference(decl) => {
+                let deref_place =
+                    vir_high::Expression::deref(place.clone(), decl.target_type, place.position());
+                vec![(ExpandedPermissionKind::Same, deref_place)]
             }
+            vir_high::TypeDecl::Sequence(_) => unimplemented!("ty: {}", ty),
+            vir_high::TypeDecl::Map(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Never => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),
         };
         Ok(expansion)
     }
-    fn get_span(&mut self, position: vir_high::Position) -> Option<rustc_span::MultiSpan> {
+    fn get_span(&mut self, position: vir_high::Position) -> Option<rustc_errors::MultiSpan> {
         self.encoder
             .error_manager()
             .position_manager()

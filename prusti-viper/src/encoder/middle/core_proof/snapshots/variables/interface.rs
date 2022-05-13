@@ -3,6 +3,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         lowerer::{Lowerer, VariablesLowererInterface},
+        references::ReferencesInterface,
         snapshots::{IntoProcedureSnapshot, IntoSnapshot, SnapshotValuesInterface},
         types::TypesInterface,
     },
@@ -169,7 +170,52 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     ))
                 }
                 vir_mid::TypeDecl::Array(_) => unimplemented!("ty: {}", type_decl),
-                vir_mid::TypeDecl::Reference(_) => unimplemented!("ty: {}", type_decl),
+                vir_mid::TypeDecl::Reference(_) => {
+                    if place.is_deref() {
+                        let old_address_snapshot = self.reference_address_snapshot(
+                            parent_type,
+                            old_snapshot.clone(),
+                            Default::default(),
+                        )?;
+                        let new_address_snapshot = self.reference_address_snapshot(
+                            parent_type,
+                            new_snapshot.clone(),
+                            Default::default(),
+                        )?;
+                        statements.push(stmtp! { position =>
+                            assume ([new_address_snapshot] == [old_address_snapshot])
+                        });
+                        let old_final_snapshot = self.reference_target_final_snapshot(
+                            parent_type,
+                            old_snapshot.clone(),
+                            Default::default(),
+                        )?;
+                        let new_final_snapshot = self.reference_target_final_snapshot(
+                            parent_type,
+                            new_snapshot.clone(),
+                            Default::default(),
+                        )?;
+                        statements.push(stmtp! { position =>
+                            assume ([new_final_snapshot] == [old_final_snapshot])
+                        });
+                        Ok((
+                            self.reference_target_current_snapshot(
+                                parent_type,
+                                old_snapshot,
+                                Default::default(),
+                            )?,
+                            self.reference_target_current_snapshot(
+                                parent_type,
+                                new_snapshot,
+                                Default::default(),
+                            )?,
+                        ))
+                    } else {
+                        unimplemented!("Place: {}", place);
+                    }
+                }
+                vir_mid::TypeDecl::Sequence(_) => unimplemented!("ty: {}", type_decl),
+                vir_mid::TypeDecl::Map(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Never => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Closure(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", type_decl),
