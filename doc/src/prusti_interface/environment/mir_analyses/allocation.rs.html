@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-interface/src/environment/mir_analyses/allocation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>allocation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_interface/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+</pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
+<span class="comment">//</span>
+<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
+<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
+<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+
+<span class="doccomment">//! This module provides the definitely allocated analysis for MIR.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Definitely allocated:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A local `x` is definitely allocated if either there is no</span>
+<span class="doccomment">//! `StorageLive(x)`/`StorageDead(x)` in MIR or on all paths leading to the</span>
+<span class="doccomment">//! current statement `x` was allocated with `StorageLive(x)` and was not</span>
+<span class="doccomment">//! deallocated with `StorageDead(x)`.</span>
+
+<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/initialization.rs.html#29-34"><span class="kw">super</span>::initialization::AnalysisResult</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/local_set.rs.html#16-18"><span class="kw">crate</span>::environment::mir_sets::LocalSet</a>;
+<span class="kw">use</span> <span class="ident">analysis</span>::{
+    <span class="ident">abstract_interpretation</span>::{<a class="ident" href="../../../../analysis/abstract_interpretation/abstract_state/trait.AbstractState.html">AbstractState</a>, <a class="ident" href="../../../../analysis/abstract_interpretation/fixpoint_engine/trait.FixpointEngine.html">FixpointEngine</a>},
+    <a class="ident" href="../../../../analysis/domains/definitely_allocated/analysis/struct.DefinitelyAllocatedAnalysis.html">domains::DefinitelyAllocatedAnalysis</a>,
+};
+<span class="kw">use</span> <a class="ident" href="../../../../prusti_common/stopwatch/struct.Stopwatch.html">prusti_common::Stopwatch</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">rustc_hir::def_id::DefId</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">rustc_middle::mir</a>;
+
+<span class="doccomment">/// The result of the definitely allocated analysis.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DefinitelyAllocatedAnalysisResult</span> <span class="op">=</span> <span class="ident">AnalysisResult</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_interface/environment/mir_sets/local_set.rs.html#16-18">LocalSet</a><span class="op">&gt;</span>;
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_definitely_allocated</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+    <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+) -&gt; <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#28">DefinitelyAllocatedAnalysisResult</a> {
+    <span class="kw">let</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start_debug</span>(<span class="string">&quot;prusti-client&quot;</span>, <span class="string">&quot;allocation analysis&quot;</span>);
+    <span class="kw">let</span> <span class="ident">analysis</span> <span class="op">=</span> <span class="ident">DefinitelyAllocatedAnalysis::new</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#31">def_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#32">body</a>);
+    <span class="kw">let</span> <span class="ident">pointwise_state</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#35">analysis</a>
+        .<a class="ident" href="../../../../analysis/abstract_interpretation/fixpoint_engine/trait.FixpointEngine.html">run_fwd_analysis</a>()
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+            <span class="macro">panic!</span>(
+                <span class="string">&quot;Error while analyzing function at {:?}: {}&quot;</span>,
+                <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#32">body</a>.<span class="ident">span</span>,
+                <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#38">e</a>.<span class="ident">to_pretty_str</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#32">body</a>)
+            )
+        })
+        .<span class="ident">unwrap</span>();
+
+    <span class="comment">// Convert the pointwise_state to analysis_result.</span>
+    <span class="comment">// TODO: Replace AnalysisResult with PointwiseState, to avoid this conversion.</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">analysis_result</span> <span class="op">=</span> <span class="ident">AnalysisResult::new</span>();
+    <span class="kw">for</span> (<span class="ident">bb</span>, <span class="ident">bb_data</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#32">body</a>.<span class="ident">basic_blocks</span>().<span class="ident">iter_enumerated</span>() {
+        <span class="kw">let</span> <span class="ident">num_statements</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#50">bb_data</a>.<span class="ident">statements</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#50">bb</a>.<span class="ident">start_location</span>();
+        <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#49">analysis_result</a>.<span class="ident">before_block</span>.<span class="ident">insert</span>(
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#50">bb</a>,
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#36">pointwise_state</a>
+                .<span class="ident">lookup_before</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#52">location</a>)
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">get_def_allocated_locals</span>()
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        );
+        <span class="kw">while</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#52">location</a>.<span class="ident">statement_index</span> <span class="op">&lt;</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#51">num_statements</a> {
+            <span class="comment">// `location` identifies a statement</span>
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#36">pointwise_state</a>.<span class="ident">lookup_after</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#52">location</a>).<span class="ident">unwrap</span>();
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#49">analysis_result</a>
+                .<span class="ident">after_statement</span>
+                .<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#52">location</a>, <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#64">state</a>.<span class="ident">get_def_allocated_locals</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#52">location</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#52">location</a>.<span class="ident">successor_within_block</span>();
+        }
+        <span class="comment">// `location` identifies a terminator</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">states_after_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#36">pointwise_state</a>.<span class="ident">lookup_after_block</span>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#50">bb</a>).<span class="ident">unwrap</span>().<span class="ident">values</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opt_state_after_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#71">states_after_block</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">cloned</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">curr_state</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#72">opt_state_after_block</a>.<span class="ident">as_mut</span>() {
+            <span class="kw">for</span> <span class="ident">state</span> <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#71">states_after_block</a> {
+                <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#73">curr_state</a>.<a class="ident" href="../../../../analysis/abstract_interpretation/abstract_state/trait.AbstractState.html">join</a>(<a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#74">state</a>);
+            }
+        }
+        <span class="kw">let</span> <span class="ident">state_after_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#72">opt_state_after_block</a>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#35">analysis</a>.<a class="ident" href="../../../../analysis/abstract_interpretation/fixpoint_engine/trait.FixpointEngine.html">new_bottom</a>());
+        <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#49">analysis_result</a>.<span class="ident">after_statement</span>.<span class="ident">insert</span>(
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#52">location</a>,
+            <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#78">state_after_block</a>.<span class="ident">get_def_allocated_locals</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        );
+    }
+    <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#34">stopwatch</a>.<span class="ident">finish</span>();
+    <a class="ident" href="../../../../src/prusti_interface/environment/mir_analyses/allocation.rs.html#49">analysis_result</a>
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</body></html>
