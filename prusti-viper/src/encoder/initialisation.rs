@@ -8,7 +8,7 @@ use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 /// Module that allows querying the initialisation information.
 use vir_crate::polymorphic as vir;
 use prusti_interface::environment::mir_analyses::initialization::compute_definitely_initialized;
-use prusti_interface::environment::place_set::PlaceSet;
+use prusti_interface::environment::mir_sets::PlaceSet;
 use prusti_interface::utils::expand_one_level;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty::{self, TyCtxt}};

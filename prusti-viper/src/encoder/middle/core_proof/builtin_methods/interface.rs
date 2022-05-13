@@ -38,8 +38,10 @@ pub(in super::super) struct BuiltinMethodsState {
     encoded_move_place_methods: FxHashSet<vir_mid::Type>,
     encoded_copy_place_methods: FxHashSet<vir_mid::Type>,
     encoded_write_address_methods: FxHashSet<vir_mid::Type>,
+    encoded_owned_non_aliased_havoc_methods: FxHashSet<vir_mid::Type>,
     encoded_memory_block_split_methods: FxHashSet<vir_mid::Type>,
     encoded_memory_block_join_methods: FxHashSet<vir_mid::Type>,
+    encoded_memory_block_havoc_methods: FxHashSet<vir_mid::Type>,
     encoded_into_memory_block_methods: FxHashSet<vir_mid::Type>,
     encoded_assign_methods: FxHashSet<String>,
     encoded_consume_operand_methods: FxHashSet<String>,
@@ -87,6 +89,10 @@ trait Private {
     fn encode_consume_operand_method_name(
         &self,
         operand: &vir_mid::Operand,
+    ) -> SpannedEncodingResult<String>;
+    fn encode_havoc_owned_non_aliased_method_name(
+        &self,
+        ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<String>;
     fn encode_assign_method(
         &mut self,
@@ -258,6 +264,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         operand: &vir_mid::Operand,
     ) -> SpannedEncodingResult<String> {
         Ok(format!("consume${}", operand.get_identifier()))
+    }
+    fn encode_havoc_owned_non_aliased_method_name(
+        &self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<String> {
+        Ok(format!("havoc_owned${}", ty.get_identifier()))
     }
     fn encode_assign_method(
         &mut self,
@@ -749,6 +761,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     expr! { acc(OwnedNonAliased<ty>(place, root_address, value)) }
                 } else {
                     if let Some(pre_write_statements) = pre_write_statements {
+                        // FIXME: This is wrong for the case when `ty` contains
+                        // type variables. The correct encoding should
+                        // recursively call copy_place<ty> or move_place<ty>,
+                        // which then could be implemented as bodyless methods
+                        // in case `ty` is a type variable.
                         self.encode_into_memory_block_method(ty)?;
                         pre_write_statements
                             .push(stmt! { call into_memory_block<ty>(place, root_address, value) });
@@ -802,9 +819,15 @@ pub(in super::super) trait BuiltinMethodsInterface {
     fn encode_move_place_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_copy_place_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_write_place_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
+    fn encode_havoc_owned_non_aliased_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()>;
     fn encode_memory_block_split_method(&mut self, ty: &vir_mid::Type)
         -> SpannedEncodingResult<()>;
     fn encode_memory_block_join_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
+    fn encode_havoc_memory_block_method(&mut self, ty: &vir_mid::Type)
+        -> SpannedEncodingResult<()>;
     fn encode_into_memory_block_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_assign_method_call(
         &mut self,
@@ -817,6 +840,12 @@ pub(in super::super) trait BuiltinMethodsInterface {
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         operand: vir_mid::Operand,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()>;
+    fn encode_havoc_method_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        predicate: vir_mid::Predicate,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
     fn encode_frac_bor_atomic_acc_method(
@@ -1503,6 +1532,45 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+    fn encode_havoc_owned_non_aliased_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()> {
+        let mut ty_without_lifetime = ty.clone();
+        ty_without_lifetime.erase_lifetime();
+        if !self
+            .builtin_methods_state
+            .encoded_owned_non_aliased_havoc_methods
+            .contains(ty)
+        {
+            use vir_low::macros::*;
+            let method_name = self.encode_havoc_owned_non_aliased_method_name(ty)?;
+            var_decls! {
+                place: Place,
+                root_address: Address,
+                old_value: {ty.to_snapshot(self)?},
+                fresh_value: {ty.to_snapshot(self)?}
+            };
+            let validity =
+                self.encode_snapshot_valid_call_for_type(fresh_value.clone().into(), ty)?;
+            let method = vir_low::MethodDecl::new(
+                method_name,
+                vec![place.clone(), root_address.clone(), old_value.clone()],
+                vec![fresh_value.clone()],
+                vec![expr! { (acc(OwnedNonAliased<ty>(place, root_address, old_value))) }],
+                vec![
+                    expr! { (acc(OwnedNonAliased<ty>(place, root_address, fresh_value))) },
+                    validity,
+                ],
+                None,
+            );
+            self.declare_method(method)?;
+            self.builtin_methods_state
+                .encoded_owned_non_aliased_havoc_methods
+                .insert(ty.clone());
+        }
+        Ok(())
+    }
     fn encode_memory_block_split_method(
         &mut self,
         ty: &vir_mid::Type,
@@ -1855,6 +1923,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+    fn encode_havoc_memory_block_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()> {
+        let mut ty_without_lifetime = ty.clone();
+        ty_without_lifetime.erase_lifetime();
+        if !self
+            .builtin_methods_state
+            .encoded_memory_block_havoc_methods
+            .contains(&ty_without_lifetime)
+        {
+            use vir_low::macros::*;
+            self.encode_snapshot_to_bytes_function(ty)?;
+            let size_of = self.encode_type_size_expression(&ty_without_lifetime)?;
+            let method = method! {
+                havoc_memory_block<ty>(
+                    address: Address
+                ) returns ()
+                    requires (acc(MemoryBlock((address), [size_of.clone()])));
+                    ensures (acc(MemoryBlock((address), [size_of])));
+            };
+            self.declare_method(method)?;
+            self.builtin_methods_state
+                .encoded_memory_block_havoc_methods
+                .insert(ty_without_lifetime);
+        }
+        Ok(())
+    }
     // FIXME: This method has to be inlined if the converted type has a resource
     // invariant in it. Otherwise, that resource would be leaked.
     fn encode_into_memory_block_method(
@@ -1914,7 +2010,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             | vir_mid::TypeDecl::Map(_) => {
                                 // Primitive type. Nothing to do.
                             }
-                            vir_mid::TypeDecl::TypeVar(_) => unreachable!("cannot convert abstract type into a generic: {}", ty),
+                            vir_mid::TypeDecl::TypeVar(_) => unreachable!("cannot convert abstract type into a memory block: {}", ty),
                             vir_mid::TypeDecl::Tuple(decl) => {
                                 // TODO: Remove code duplication.
                                 for field in decl.iter_fields() {
@@ -2099,7 +2195,50 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         ));
         Ok(())
     }
-
+    fn encode_havoc_method_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        predicate: vir_mid::Predicate,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        match predicate {
+            vir_mid::Predicate::OwnedNonAliased(predicate) => {
+                let ty = predicate.place.get_type();
+                self.mark_owned_non_aliased_as_unfolded(ty)?;
+                self.encode_havoc_owned_non_aliased_method(ty)?;
+                let place = self.encode_expression_as_place(&predicate.place)?;
+                let address = self.extract_root_address(&predicate.place)?;
+                let old_value = predicate.place.to_procedure_snapshot(self)?;
+                let snapshot_type = ty.to_snapshot(self)?;
+                let fresh_value = self.create_new_temporary_variable(snapshot_type)?;
+                let method_name = self.encode_havoc_owned_non_aliased_method_name(ty)?;
+                statements.push(vir_low::Statement::method_call(
+                    method_name,
+                    vec![place, address, old_value],
+                    vec![fresh_value.clone().into()],
+                    position,
+                ));
+                self.encode_snapshot_update(
+                    statements,
+                    &predicate.place,
+                    fresh_value.into(),
+                    position,
+                )?;
+            }
+            vir_mid::Predicate::MemoryBlockStack(predicate) => {
+                let ty = predicate.place.get_type();
+                self.encode_havoc_memory_block_method(ty)?;
+                let address = self.encode_expression_as_place_address(&predicate.place)?;
+                use vir_low::macros::*;
+                statements.push(stmtp! {
+                    position =>
+                    call havoc_memory_block<ty>([address])
+                });
+            }
+            _ => unimplemented!(),
+        }
+        Ok(())
+    }
     fn encode_frac_bor_atomic_acc_method(
         &mut self,
         ty_with_lifetime: &vir_mid::Type,

@@ -789,10 +789,11 @@ fn encode_variant<'v, 'tcx: 'v>(
 ) -> SpannedEncodingResult<vir::type_decl::Struct> {
     let tcx = encoder.env().tcx();
     let mut fields = Vec::new();
-    for field in &variant.fields {
+    for (field_index, field) in variant.fields.iter().enumerate() {
         let field_name = crate::encoder::encoder::encode_field_name(field.ident(tcx).as_str());
         let field_ty = field.ty(tcx, substs);
-        let field = vir::FieldDecl::new(field_name, encoder.encode_type_high(field_ty)?);
+        let field =
+            vir::FieldDecl::new(field_name, field_index, encoder.encode_type_high(field_ty)?);
         fields.push(field);
     }
     let variant = vir::type_decl::Struct::new(name, fields);
@@ -810,7 +811,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         debug!("ADT {:?} is a box", adt_def);
         assert!(variant_index.is_none());
         let boxed_ty = encoder.encode_type_high(substs.type_at(0))?;
-        let field = vir::FieldDecl::new("val_ref", boxed_ty);
+        let field = vir::FieldDecl::new("val_ref", 0usize, boxed_ty);
         Ok(vir::TypeDecl::struct_(encode_box_name(), vec![field]))
     } else if adt_def.is_struct() {
         debug!("ADT {:?} is a struct", adt_def);
@@ -836,10 +837,11 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         let discriminant_bounds = (0, num_variants - 1);
         let discriminant_values = (0..num_variants).collect();
         let mut variants = Vec::new();
-        for field in &variant.fields {
+        for (field_index, field) in variant.fields.iter().enumerate() {
             let field_name = field.ident(tcx).as_str().to_string();
             let field_ty = field.ty(tcx, substs);
-            let encoded_field = vir::FieldDecl::new("value", encoder.encode_type_high(field_ty)?);
+            let encoded_field =
+                vir::FieldDecl::new("value", field_index, encoder.encode_type_high(field_ty)?);
             let variant = vir::type_decl::Struct::new(field_name, vec![encoded_field]);
             variants.push(variant);
         }

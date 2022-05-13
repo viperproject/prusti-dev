@@ -7,7 +7,7 @@
 use prusti_interface::environment::mir_analyses::initialization::{
     compute_definitely_initialized, DefinitelyInitializedAnalysisResult,
 };
-use prusti_interface::environment::place_set::PlaceSet;
+use prusti_interface::environment::mir_sets::PlaceSet;
 use prusti_interface::environment::{BasicBlockIndex, PermissionForest, ProcedureLoops, Procedure};
 use prusti_interface::utils;
 use rustc_middle::{mir, ty};

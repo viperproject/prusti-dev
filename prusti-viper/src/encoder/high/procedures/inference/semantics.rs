@@ -52,11 +52,17 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::Consume(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::Havoc(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
             vir_high::Statement::Assume(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::Assert(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::LoopInvariant(_) => {
+                unreachable!("LoopInvariant statement should have been removed before.");
             }
             vir_high::Statement::MovePlace(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
@@ -186,6 +192,19 @@ impl CollectPermissionChanges for vir_high::Consume {
     ) -> SpannedEncodingResult<()> {
         self.operand
             .collect(encoder, consumed_permissions, produced_permissions)?;
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::Havoc {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.extend(extract_managed_predicate_place(&self.predicate)?);
+        produced_permissions.extend(extract_managed_predicate_place(&self.predicate)?);
         Ok(())
     }
 }

@@ -25,6 +25,10 @@ use crate::encoder::{
 use log::debug;
 use prusti_common::config;
 use prusti_interface::environment::{
+    mir_analyses::{
+        allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
+        initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
+    },
     mir_dump::{graphviz::ToText, lifetimes::Lifetimes},
     Procedure,
 };
@@ -52,6 +56,7 @@ use vir_crate::{
 mod elaborate_drops;
 mod initialisation;
 mod lifetimes;
+mod loops;
 mod specification_blocks;
 
 pub(super) fn encode_procedure<'v, 'tcx: 'v>(
@@ -76,7 +81,9 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let init_data = InitializationData::new(tcx, mir, &move_env);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
     let rd_perm = lifetimes.lifetime_count();
-    let specification_blocks = SpecificationBlocks::build(tcx, mir);
+    let specification_blocks = SpecificationBlocks::build(tcx, mir, &procedure);
+    let initialization = compute_definitely_initialized(def_id, mir, encoder.env().tcx());
+    let allocation = compute_definitely_allocated(def_id, mir);
     let mut procedure_encoder = ProcedureEncoder {
         encoder,
         def_id,
@@ -84,10 +91,13 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         mir,
         move_env: &move_env,
         init_data,
+        initialization,
+        allocation,
         lifetimes,
         reachable_blocks: Default::default(),
         specification_blocks,
         specification_block_encoding: Default::default(),
+        loop_invariant_encoding: Default::default(),
         check_panics: config::check_panics(),
         locals_without_explicit_allocation,
         fresh_id_generator: 0,
@@ -103,6 +113,8 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     mir: &'p mir::Body<'tcx>,
     move_env: &'p MoveDataParamEnv<'tcx>,
     init_data: InitializationData<'p, 'tcx>,
+    initialization: DefinitelyInitializedAnalysisResult<'tcx>,
+    allocation: DefinitelyAllocatedAnalysisResult,
     lifetimes: Lifetimes,
     /// Blocks that we managed to reach when traversing from the entry block.
     reachable_blocks: FxHashSet<mir::BasicBlock>,
@@ -110,6 +122,8 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     specification_blocks: SpecificationBlocks,
     /// Specifications to be inserted at the given point.
     specification_block_encoding: BTreeMap<mir::BasicBlock, Vec<vir_high::Statement>>,
+    /// The loop invariant to be inserted at the end of the given basic block.
+    loop_invariant_encoding: BTreeMap<mir::BasicBlock, vir_high::Statement>,
     check_panics: bool,
     /// Locals that are not explicitly allocated or deallocated with
     /// `StorageLive`/`StorageDead`. Such locals are assumed to be alive through
@@ -168,7 +182,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let alloc_statement = vir_high::Statement::inhale_no_pos(
                 vir_high::Predicate::owned_non_aliased_no_pos(parameter.clone().into()),
             );
-            allocation.push(self.encoder.set_statement_error_ctxt_from_position(
+            allocation.push(self.encoder.set_surrounding_error_context_for_statement(
                 alloc_statement,
                 parameter.position,
                 ErrorCtxt::UnexpectedStorageLive,
@@ -178,7 +192,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let dealloc_statement = vir_high::Statement::exhale_no_pos(
                 vir_high::Predicate::memory_block_stack_no_pos(parameter.clone().into(), size),
             );
-            deallocation.push(self.encoder.set_statement_error_ctxt_from_position(
+            deallocation.push(self.encoder.set_surrounding_error_context_for_statement(
                 dealloc_statement,
                 parameter.position,
                 ErrorCtxt::UnexpectedStorageDead,
@@ -193,7 +207,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let return_local = self.encode_local(mir::RETURN_PLACE)?;
         let mir_type = self.encoder.get_local_type(self.mir, mir::RETURN_PLACE)?;
         let size = self.encoder.encode_type_size_expression(mir_type)?;
-        let alloc_statement = self.encoder.set_statement_error_ctxt_from_position(
+        let alloc_statement = self.encoder.set_surrounding_error_context_for_statement(
             vir_high::Statement::inhale_no_pos(vir_high::Predicate::memory_block_stack_no_pos(
                 return_local.clone().into(),
                 size,
@@ -201,7 +215,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             return_local.position,
             ErrorCtxt::UnexpectedStorageLive,
         )?;
-        let dealloc_statement = self.encoder.set_statement_error_ctxt_from_position(
+        let dealloc_statement = self.encoder.set_surrounding_error_context_for_statement(
             vir_high::Statement::exhale_no_pos(vir_high::Predicate::owned_non_aliased_no_pos(
                 return_local.clone().into(),
             )),
@@ -350,14 +364,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let predicate =
                 vir_high::Predicate::memory_block_stack_no_pos(encoded_local.clone().into(), size);
             procedure_builder.add_alloc_statement(
-                self.encoder.set_statement_error_ctxt_from_position(
+                self.encoder.set_surrounding_error_context_for_statement(
                     vir_high::Statement::inhale_no_pos(predicate.clone()),
                     encoded_local.position,
                     ErrorCtxt::UnexpectedStorageLive,
                 )?,
             );
             procedure_builder.add_dealloc_statement(
-                self.encoder.set_statement_error_ctxt_from_position(
+                self.encoder.set_surrounding_error_context_for_statement(
                     vir_high::Statement::exhale_no_pos(predicate.clone()),
                     encoded_local.position,
                     ErrorCtxt::UnexpectedStorageLive,
@@ -391,6 +405,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.encode_basic_block(procedure_builder, bb, data)?;
             }
         }
+        assert!(
+            self.loop_invariant_encoding.is_empty(),
+            "not consumed loop invariant: {:?}",
+            self.loop_invariant_encoding.keys()
+        );
         Ok(())
     }
 
@@ -432,6 +451,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         if let Some(terminator) = terminator {
             self.encode_terminator(&mut block_builder, location, terminator)?;
+        }
+        if let Some(statement) = self.loop_invariant_encoding.remove(&bb) {
+            block_builder.add_statement(statement);
         }
         block_builder.build();
         Ok(())
@@ -1022,18 +1044,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             TerminatorKind::FalseEdge {
                 real_target,
                 imaginary_target: _,
+            }
+            | TerminatorKind::FalseUnwind {
+                real_target,
+                unwind: _,
             } => SuccessorBuilder::jump(vir_high::Successor::Goto(
                 self.encode_basic_block_label(*real_target),
             )),
-            // TerminatorKind::FalseUnwind {
-            //     real_target,
-            //     unwind,
-            // } => {
-            //     graph.add_regular_edge(bb, real_target);
-            //     if let Some(imaginary_target) = unwind {
-            //         graph.add_imaginary_edge(bb, imaginary_target);
-            //     }
-            // }
             // TerminatorKind::InlineAsm { .. } => {
             //     graph.add_exit_edge(bb, "inline_asm");
             // }
@@ -1062,11 +1079,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let real_target = all_targets[(spec + 1) % 2];
                     let spec_target = all_targets[spec];
                     block_builder.add_comment(format!("Spefication from block: {:?}", spec_target));
-                    block_builder.add_statements(
-                        self.specification_block_encoding
-                            .remove(&spec_target)
-                            .unwrap(),
-                    );
+                    if let Some(statements) = self.specification_block_encoding.remove(&spec_target)
+                    {
+                        block_builder.add_statements(statements);
+                    }
                     return Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
                         self.encode_basic_block_label(real_target),
                     )));
@@ -1536,7 +1552,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_high::Statement> {
         let position = self.register_error(location, error_ctxt.clone());
         self.encoder
-            .set_statement_error_ctxt_from_position(statement, position, error_ctxt)
+            .set_surrounding_error_context_for_statement(statement, position, error_ctxt)
     }
 
     fn encode_specification_blocks(&mut self) -> SpannedEncodingResult<()> {
@@ -1553,6 +1569,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         assert!(self.specification_block_encoding.is_empty());
         self.specification_block_encoding = entry_points;
+
+        // Encode loop invariants.
+        let mut loop_invariant_blocks = self.specification_blocks.loop_invariant_blocks().clone();
+        for loop_head in &self.procedure.loop_info().loop_heads {
+            let (invariant_location, specification_blocks) =
+                if let Some(blocks) = loop_invariant_blocks.remove(loop_head) {
+                    (blocks.location, blocks.specification_blocks)
+                } else {
+                    (*loop_head, Vec::new())
+                };
+            let statement =
+                self.encode_loop_invariant(*loop_head, invariant_location, specification_blocks)?;
+            self.loop_invariant_encoding
+                .insert(invariant_location, statement);
+        }
+
         Ok(())
     }
 
@@ -1562,6 +1594,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_statements: &mut Vec<vir_high::Statement>,
     ) -> SpannedEncodingResult<()> {
         let block = &self.mir[bb];
+        if self.try_encode_specification_function_call(bb, block, encoded_statements)? {
+            Ok(())
+        } else {
+            unreachable!()
+        }
+    }
+
+    fn try_encode_specification_function_call(
+        &mut self,
+        bb: mir::BasicBlock,
+        block: &mir::BasicBlockData<'tcx>,
+        encoded_statements: &mut Vec<vir_high::Statement>,
+    ) -> SpannedEncodingResult<bool> {
         let span = self.encoder.get_mir_terminator_span(block.terminator());
         match &block.terminator().kind {
             mir::TerminatorKind::Call {
@@ -1614,6 +1659,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             )?;
                             statement.check_no_default_position();
                             encoded_statements.push(statement);
+                            Ok(true)
                         }
                         _ => unreachable!(),
                     }
@@ -1621,8 +1667,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     unreachable!();
                 }
             }
-            _ => unreachable!(),
+            _ => unreachable!("block: {:?}", bb),
         }
-        Ok(())
     }
 }

@@ -74,6 +74,15 @@ impl IntoLow for vir_mid::Statement {
                 )?;
                 Ok(statements)
             }
+            Self::Havoc(statement) => {
+                let mut statements = Vec::new();
+                lowerer.encode_havoc_method_call(
+                    &mut statements,
+                    statement.predicate,
+                    statement.position,
+                )?;
+                Ok(statements)
+            }
             Self::Assume(statement) => Ok(vec![Statement::assume(
                 statement.expression.to_procedure_bool_expression(lowerer)?,
                 statement.position,
