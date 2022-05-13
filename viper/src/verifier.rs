@@ -149,6 +149,8 @@ impl<'a> Verifier<'a> {
 
                 let verification_error_wrapper = silver::verifier::VerificationError::with(self.env);
 
+                let error_node_positioned_wrapper = silver::ast::Positioned::with(self.env);
+
                 let failure_context_wrapper = silver::verifier::FailureContext::with(self.env);
 
                 let has_identifier_wrapper = silver::ast::HasIdentifier::with(self.env);
@@ -257,9 +259,13 @@ impl<'a> Verifier<'a> {
                             .unwrap_result(verification_error_wrapper.call_fullId(viper_error)),
                     );
 
+                    let offending_node = self
+                        .jni
+                        .unwrap_result(verification_error_wrapper.call_offendingNode(viper_error));
+
                     let pos = self
                         .jni
-                        .unwrap_result(verification_error_wrapper.call_pos(viper_error));
+                        .unwrap_result(error_node_positioned_wrapper.call_pos(offending_node));
 
                     let message =
                         self.jni.to_string(self.jni.unwrap_result(

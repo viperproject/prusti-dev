@@ -577,6 +577,9 @@ fn main() {
             java_class!("viper.silver.ast.PermDiv", vec![
                 constructor!(),
             ]),
+            java_class!("viper.silver.ast.Positioned", vec![
+                method!("pos"),
+            ]),
             java_class!("viper.silver.ast.Predicate", vec![
                 constructor!(),
             ]),
@@ -682,6 +685,7 @@ fn main() {
             ]),
             java_class!("viper.silver.verifier.VerificationError", vec![
                 method!("id"),
+                method!("offendingNode"),
                 method!("pos"),
                 method!("fullId"),
                 method!("reason"),
