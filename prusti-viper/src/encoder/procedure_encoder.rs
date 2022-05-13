@@ -4,7 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::borrows::ProcedureContract;
 use crate::encoder::builtin_encoder::{BuiltinMethodKind};
 use crate::encoder::errors::{
     SpannedEncodingError, ErrorCtxt, EncodingError, WithSpan,
@@ -54,7 +53,8 @@ use rustc_middle::ty::{self, layout::IntegerExt, ParamEnv, subst::SubstsRef};
 use rustc_target::abi::Integer;
 use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_attr::IntType::SignedInt;
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
+use rustc_errors::MultiSpan;
 use prusti_interface::specs::typed;
 use ::log::{trace, debug};
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
@@ -63,11 +63,19 @@ use std::convert::TryInto;
 use prusti_interface::specs::typed::{Pledge, SpecificationItem};
 use vir_crate::polymorphic::Float;
 use crate::utils::is_reference;
-use crate::encoder::mir::pure::PureFunctionEncoderInterface;
-use crate::encoder::mir::types::MirTypeEncoderInterface;
-use crate::encoder::mir::pure::SpecificationEncoderInterface;
-use crate::encoder::mir::specifications::{SpecificationsInterface};
+use crate::encoder::mir::{
+    sequences::MirSequencesEncoderInterface,
+    contracts::{
+        ContractsEncoderInterface,
+        ProcedureContract,
+    },
+    pure::PureFunctionEncoderInterface,
+    types::MirTypeEncoderInterface,
+    pure::SpecificationEncoderInterface,
+    specifications::SpecificationsInterface,
+};
 use super::high::generics::HighGenericsEncoderInterface;
+use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -1052,6 +1060,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Snapshot(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Seq(_) => BuiltinMethodKind::HavocRef,
+                vir::Type::Map(_) => BuiltinMethodKind::HavocRef,
             };
             let stmt = vir::Stmt::MethodCall( vir::MethodCall {
                 method_name: self.encoder.encode_builtin_method_use(builtin_method),
@@ -1434,26 +1443,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     location,
                 )?
             }
-            mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
-                let mut slice_op_ty = None;
-                if let ty::TyKind::Ref(_, ref_ty, _) = ty.kind() {
-                    if let ty::TyKind::Slice(..) = ref_ty.kind() {
-                        slice_op_ty = Some((operand, ty));
-                    }
-                }
-
-                if let Some((operand, ty)) = slice_op_ty {
-                    trace!("slice: operand={:?}, ty={:?}", operand, ty);
+            mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, cast_ty) => {
+                let rhs_ty = self.mir_encoder.get_operand_ty(operand);
+                if rhs_ty.is_array_ref() && cast_ty.is_slice_ref() {
+                    trace!("slice: operand={:?}, ty={:?}", operand, cast_ty);
                     self.encode_assign_slice(
                         encoded_lhs,
                         operand,
-                        *ty,
+                        *cast_ty,
                         location,
                     )?
                 } else {
-                    return Err(EncodingError::unsupported(
-                        "unsizing a pointer or reference value is not supported"
-                    )).with_span(span);
+                    return Err(SpannedEncodingError::unsupported(
+                        format!("unsizing a {} into a {} is not supported", rhs_ty, cast_ty),
+                        span,
+                    ));
                 }
             }
             mir::Rvalue::Cast(mir::CastKind::Pointer(_), _, _) => {
@@ -2663,7 +2667,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location,
         )?;
         stmts.extend(encode_stmts);
-        if !lhs_ty.is_slice() {
+        if !lhs_ty.is_slice_or_ref() && !lhs_ty.is_array_or_ref() {
             return Err(EncodingError::unsupported(
                 format!("Non-slice LHS type '{:?}' not supported yet", lhs_ty)
             ));
@@ -2683,12 +2687,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let base_seq = self.mir_encoder.encode_operand_place(&args[0])?.unwrap();
         let base_seq_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
-        match base_seq_ty {
-            a if a.peel_refs().is_array() => (),
-            s if s.is_slice() => (),
-            _ => return Err(EncodingError::unsupported(
+        if !base_seq_ty.is_slice_or_ref() && !base_seq_ty.is_array_or_ref() {
+            return Err(EncodingError::unsupported(
                 format!("Slicing is only supported for arrays/slices currently, not '{:?}'", base_seq_ty)
-            ))
+            ));
         }
 
         // base_seq is expected to be ref$Array$.. or ref$Slice$.., but lookup_pure wants the
@@ -5949,6 +5951,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!("encode_assign_slice(lhs={:?}, operand={:?}, ty={:?})", encoded_lhs, operand, ty);
+        debug_assert!(ty.is_slice_ref());
         let span = self.mir_encoder.get_span_of_location(location);
         let mut stmts = Vec::new();
 

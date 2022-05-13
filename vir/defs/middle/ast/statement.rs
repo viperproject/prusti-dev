@@ -32,10 +32,13 @@ pub enum Statement {
     Assign(Assign),
     NewLft(NewLft),
     EndLft(EndLft),
-    GhostAssignment(GhostAssignment),
+    Dead(Dead),
     LifetimeTake(LifetimeTake),
+    LifetimeReturn(LifetimeReturn),
     OpenMutRef(OpenMutRef),
+    OpenFracRef(OpenFracRef),
     CloseMutRef(CloseMutRef),
+    CloseFracRef(CloseFracRef),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -215,33 +218,66 @@ pub struct EndLft {
     pub position: Position,
 }
 
-#[display(fmt = "ghost-assign {} := {}", target, value)]
-pub struct GhostAssignment {
-    pub target: VariableDecl,
-    pub value: Expression,
+#[display(fmt = "dead({})", target)]
+pub struct Dead {
+    pub target: Expression,
     pub position: Position,
 }
 
-#[display(fmt = "{} := shorten_lifetime({:?}, {})", target, value, rd_perm)]
+#[display(
+    fmt = "{} := lifetime_take({}, {})",
+    target,
+    "display::cjoin(value)",
+    rd_perm
+)]
 pub struct LifetimeTake {
     pub target: VariableDecl,
-    pub value: Vec<LifetimeConst>,
+    pub value: Vec<VariableDecl>,
     pub rd_perm: u32,
     pub position: Position,
 }
 
-#[display(fmt = "open_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+#[display(
+    fmt = "lifetime_return({}, {}, {})",
+    target,
+    "display::cjoin(value)",
+    rd_perm
+)]
+pub struct LifetimeReturn {
+    pub target: VariableDecl,
+    pub value: Vec<VariableDecl>,
+    pub rd_perm: u32,
+    pub position: Position,
+}
+
+#[display(fmt = "open_mut_ref({}, rd({}), {})", lifetime, rd_perm, place)]
 pub struct OpenMutRef {
     pub lifetime: LifetimeConst,
     pub rd_perm: u32,
-    pub object: Expression,
+    pub place: Expression,
     pub position: Position,
 }
 
-#[display(fmt = "close_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+#[display(fmt = "open_frac_ref({}, rd({}), {})", lifetime, rd_perm, place)]
+pub struct OpenFracRef {
+    pub lifetime: LifetimeConst,
+    pub rd_perm: u32,
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "close_mut_ref({}, rd({}), {})", lifetime, rd_perm, place)]
 pub struct CloseMutRef {
     pub lifetime: LifetimeConst,
     pub rd_perm: u32,
-    pub object: Expression,
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "close_frac_ref({}, rd({}), {})", lifetime, rd_perm, place)]
+pub struct CloseFracRef {
+    pub lifetime: LifetimeConst,
+    pub rd_perm: u32,
+    pub place: Expression,
     pub position: Position,
 }

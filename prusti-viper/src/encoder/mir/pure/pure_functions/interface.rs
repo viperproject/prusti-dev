@@ -277,7 +277,10 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
 
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
                 let proc_kind = self.get_proc_kind(proc_def_id, Some(substs));
-                let mut function = if self.is_trusted(proc_def_id, Some(substs)) {
+                let is_bodyless = self.is_trusted(proc_def_id, Some(substs))
+                    || !self.env().tcx().is_mir_available(proc_def_id)
+                    || self.env().tcx().is_constructor(proc_def_id);
+                let mut function = if is_bodyless {
                     pure_function_encoder.encode_bodyless_function()?
                 } else {
                     match proc_kind {
@@ -479,7 +482,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             )?;
 
             // FIXME: Refactor encode_pure_function_use to depend on this function.
-            let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, substs)?;
+            if !prusti_common::config::unsafe_core_proof() {
+                let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, substs)?;
+            }
 
             call_infos.insert(key.clone(), function_call_info);
         }

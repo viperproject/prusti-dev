@@ -3,6 +3,7 @@
 pub(super) mod state;
 
 use self::state::ExprBackwardInterpreterState;
+use super::PureEncodingContext;
 use crate::encoder::{
     errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{
@@ -23,6 +24,7 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_common::vir_high_local;
+use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty, ty::subst::SubstsRef};
@@ -34,8 +36,6 @@ use vir_crate::{
     },
     high::{self as vir_high, operations::ty::Typed},
 };
-
-use super::PureEncodingContext;
 
 // FIXME: Make this explicitly accessible only to spec_encoder and pure
 // expression encoder.
@@ -153,7 +153,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         rhs: &mir::Rvalue<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<()> {
-        let encoded_lhs = self.encode_place(lhs)?;
+        let encoded_lhs = self.encode_place(lhs)?.erase_lifetime();
         let ty = self
             .encoder
             .encode_type_of_place_high(self.mir, lhs)
@@ -270,19 +270,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 operand,
                 cast_ty,
             ) => {
-                if !cast_ty.is_slice() {
+                let rhs_ty = self.mir_encoder.get_operand_ty(operand);
+                if rhs_ty.is_array_ref() && cast_ty.is_slice_ref() {
+                    // We have a cast of a slice or array into a slice.
+                    let arg = self.encode_operand(operand, span)?;
+                    let expr = self
+                        .encoder
+                        .encode_cast_into_slice(arg, ty)
+                        .with_span(span)?;
+                    state.substitute_value(&encoded_lhs, expr);
+                } else {
                     return Err(SpannedEncodingError::unsupported(
-                        "unsizing a pointer or reference value is not supported",
+                        format!("unsizing a {} into a {} is not supported", rhs_ty, cast_ty),
                         span,
                     ));
                 }
-                // We have a cast of a slice or array into a slice.
-                let arg = self.encode_operand(operand, span)?;
-                let expr = self
-                    .encoder
-                    .encode_cast_into_slice(arg, ty)
-                    .with_span(span)?;
-                state.substitute_value(&encoded_lhs, expr);
             }
             mir::Rvalue::Cast(kind, _, _) => {
                 return Err(SpannedEncodingError::unsupported(
@@ -429,116 +431,41 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             let state = if let Some((lhs_place, target_block)) = destination {
                 let encoded_lhs = self.encode_place(*lhs_place).with_span(span)?;
-                let mut encoded_args: Vec<_> = args
+                let encoded_args: Vec<_> = args
                     .iter()
                     .map(|arg| self.encode_operand(arg, span))
                     .collect::<Result<_, _>>()
                     .with_span(span)?;
-                match full_func_proc_name {
-                    "prusti_contracts::old" => {
-                        let argument = encoded_args.pop().unwrap();
-                        let position = argument.position();
-                        let encoded_rhs = vir_high::Expression::labelled_old(
-                            PRECONDITION_LABEL.to_string(),
-                            argument,
-                            position,
-                        );
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, encoded_rhs);
-                        state
-                    }
-                    "prusti_contracts::before_expiry" => {
-                        // self.encode_call_before_expiry()?
-                        unimplemented!();
-                    }
-                    "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
-                        if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
-                    {
-                        assert_eq!(args.len(), 2);
-                        let encoded_rhs = vir_high::Expression::equals(
-                            encoded_args[0].clone(),
-                            encoded_args[1].clone(),
-                        );
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, encoded_rhs);
-                        state
-                    }
-                    "std::cmp::PartialEq::ne" | "core::cmp::PartialEq::ne"
-                        if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
-                    {
-                        assert_eq!(args.len(), 2);
-                        let encoded_rhs = vir_high::Expression::not_equals(
-                            encoded_args[0].clone(),
-                            encoded_args[1].clone(),
-                        );
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, encoded_rhs);
-                        state
-                    }
-                    "core::slice::<impl [T]>::len" => {
-                        assert_eq!(args.len(), 1);
-                        self.encode_call_len(
-                            *target_block,
-                            states,
-                            encoded_lhs,
-                            encoded_args.pop().unwrap(),
-                            span,
-                        )?
-                    }
-                    "std::ops::IndexMut::index_mut"
-                    | "core::ops::IndexMut::index_mut"
-                    | "std::ops::Index::index"
-                    | "core::ops::Index::index" => {
-                        assert_eq!(args.len(), 2);
-                        self.encode_call_index(
-                            *target_block,
-                            states,
-                            encoded_lhs,
-                            encoded_args[0].clone(),
-                            encoded_args[1].clone(),
-                            span,
-                        )?
-                    }
-
-                    // Prusti-specific syntax
-                    // TODO: check we are in a spec function
-                    "prusti_contracts::exists"
-                    | "prusti_contracts::forall"
-                    | "prusti_contracts::specification_entailment"
-                    | "prusti_contracts::call_description" => {
-                        let expr = self.encoder.encode_prusti_operation_high(
-                            full_func_proc_name,
-                            span,
-                            encoded_args,
-                            self.caller_def_id,
-                            substs,
-                        )?;
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, expr);
-                        state
-                    }
-
-                    _ => {
-                        if self.encoder.is_pure(def_id, Some(substs)) {
-                            self.encode_call_generic(
-                                *target_block,
-                                states,
-                                encoded_lhs,
-                                def_id,
-                                encoded_args,
-                                span,
-                                substs,
-                            )?
-                        } else {
-                            return Err(SpannedEncodingError::incorrect(
-                                format!(
-                                    "use of impure function {:?} in pure code is not allowed",
-                                    func_proc_name
-                                ),
-                                span,
-                            ));
-                        }
-                    }
+                if let Some(state) = self.try_encode_builtin_funs(
+                    def_id,
+                    full_func_proc_name,
+                    target_block,
+                    &states,
+                    encoded_lhs.clone(),
+                    args,
+                    &encoded_args,
+                    span,
+                    substs,
+                )? {
+                    state
+                } else if self.encoder.is_pure(def_id, Some(substs)) {
+                    self.encode_call_generic(
+                        *target_block,
+                        states,
+                        encoded_lhs,
+                        def_id,
+                        encoded_args,
+                        span,
+                        substs,
+                    )?
+                } else {
+                    return Err(SpannedEncodingError::incorrect(
+                        format!(
+                            "use of impure function {:?} in pure code is not allowed",
+                            func_proc_name
+                        ),
+                        span,
+                    ));
                 }
             } else {
                 // FIXME: Refactor the common code with the procedure encoder.
@@ -576,6 +503,157 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 format!("unsupported type of call: {:?}", ty.kind()),
                 span,
             ))
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn try_encode_builtin_funs(
+        &self,
+        def_id: DefId,
+        proc_name: &str,
+        target_block: &mir::BasicBlock,
+        states: &FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
+        encoded_lhs: vir_high::Expression,
+        args: &[rustc_middle::mir::Operand<'tcx>],
+        encoded_args: &[vir_high::Expression],
+        span: Span,
+        substs: SubstsRef<'tcx>,
+    ) -> SpannedEncodingResult<Option<ExprBackwardInterpreterState>> {
+        let type_arguments = self
+            .encoder
+            .encode_generic_arguments_high(def_id, substs)
+            .with_span(span)?;
+
+        use vir_high::{expression::BuiltinFunc::*, ty::*};
+
+        let subst_with = |val| {
+            let mut state = states[target_block].clone();
+            state.substitute_value(&encoded_lhs, val);
+            Ok(Some(state))
+        };
+
+        let builtin = |(function, return_type)| {
+            subst_with(vir_high::Expression::builtin_func_app_no_pos(
+                function,
+                type_arguments.clone(),
+                encoded_args.into(),
+                return_type,
+            ))
+        };
+
+        if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Map::<K, V>::") {
+            assert_eq!(type_arguments.len(), 2);
+
+            let key_type = type_arguments[0].clone();
+            let val_type = type_arguments[1].clone();
+            let map_type = Type::map(key_type, val_type.clone());
+
+            return builtin(match proc_name {
+                "empty" => (EmptyMap, map_type),
+                "insert" => (UpdateMap, map_type),
+                "len" => (MapLen, Type::int(Int::Unbounded)),
+                "lookup" => (LookupMap, val_type),
+                "delete" => unimplemented!(),
+                _ => unreachable!("no further Map functions"),
+            });
+        } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {
+            assert_eq!(type_arguments.len(), 1);
+
+            let elem_type = type_arguments[0].clone();
+            let seq_type = Type::sequence(elem_type.clone());
+
+            return builtin(match proc_name {
+                "empty" => (EmptySeq, seq_type),
+                "single" => (SingleSeq, seq_type),
+                "len" => (SeqLen, Type::Int(vir_high::ty::Int::Unbounded)),
+                "lookup" => (LookupSeq, elem_type),
+                "concat" => (ConcatSeq, seq_type),
+                _ => unreachable!("no further Seq functions"),
+            });
+        } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Int::") {
+            assert!(type_arguments.is_empty());
+            return match proc_name {
+                "new" => builtin((NewInt, Type::Int(vir_high::ty::Int::Unbounded))),
+                _ => unreachable!("no further int functions"),
+            };
+        }
+
+        match proc_name {
+            "prusti_contracts::old" => {
+                let argument = encoded_args.last().cloned().unwrap();
+                let position = argument.position();
+                let encoded_rhs = vir_high::Expression::labelled_old(
+                    PRECONDITION_LABEL.to_string(),
+                    argument,
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::before_expiry" => {
+                // self.encode_call_before_expiry()?
+                unimplemented!();
+            }
+            "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
+                if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
+            {
+                assert_eq!(encoded_args.len(), 2);
+                let encoded_rhs =
+                    vir_high::Expression::equals(encoded_args[0].clone(), encoded_args[1].clone());
+                subst_with(encoded_rhs)
+            }
+            "std::cmp::PartialEq::ne" | "core::cmp::PartialEq::ne"
+                if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
+            {
+                assert_eq!(encoded_args.len(), 2);
+                let encoded_rhs = vir_high::Expression::not_equals(
+                    encoded_args[0].clone(),
+                    encoded_args[1].clone(),
+                );
+                subst_with(encoded_rhs)
+            }
+            "core::slice::<impl [T]>::len" => {
+                assert_eq!(encoded_args.len(), 1);
+                self.encode_call_len(
+                    *target_block,
+                    states.clone(),
+                    encoded_lhs,
+                    encoded_args.last().cloned().unwrap(),
+                    span,
+                )
+                .map(Some)
+            }
+            "std::ops::IndexMut::index_mut"
+            | "core::ops::IndexMut::index_mut"
+            | "std::ops::Index::index"
+            | "core::ops::Index::index" => {
+                assert_eq!(encoded_args.len(), 2);
+                self.encode_call_index(
+                    *target_block,
+                    states.clone(),
+                    encoded_lhs,
+                    encoded_args[0].clone(),
+                    encoded_args[1].clone(),
+                    span,
+                )
+                .map(Some)
+            }
+
+            // Prusti-specific syntax
+            // TODO: check we are in a spec function
+            "prusti_contracts::exists"
+            | "prusti_contracts::forall"
+            | "prusti_contracts::specification_entailment"
+            | "prusti_contracts::call_description" => {
+                let expr = self.encoder.encode_prusti_operation_high(
+                    proc_name,
+                    span,
+                    encoded_args.to_vec(),
+                    self.caller_def_id,
+                    substs,
+                )?;
+                subst_with(expr)
+            }
+            _ => Ok(None),
         }
     }
 

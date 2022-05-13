@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_span::{Span, MultiSpan};
+use rustc_span::Span;
+use rustc_errors::MultiSpan;
 use crate::environment::Environment;
 use prusti_common::config;
 use ::log::warn;

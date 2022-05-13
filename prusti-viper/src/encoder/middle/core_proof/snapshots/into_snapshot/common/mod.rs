@@ -2,7 +2,10 @@ use super::super::super::lowerer::Lowerer;
 use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
-    middle::core_proof::snapshots::{SnapshotDomainsInterface, SnapshotValuesInterface},
+    middle::core_proof::{
+        references::ReferencesInterface,
+        snapshots::{SnapshotDomainsInterface, SnapshotValuesInterface},
+    },
 };
 use vir_crate::{
     common::position::Positioned,
@@ -46,8 +49,12 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             vir_mid::Expression::Field(expression) => {
                 self.field_to_snapshot(lowerer, expression, expect_math_bool)
             }
-            // vir_mid::Expression::Deref(expression) => self.deref_to_snapshot(lowerer, expression, expect_math_bool),
-            // vir_mid::Expression::AddrOf(expression) => self.addrof_to_snapshot(lowerer, expression, expect_math_bool),
+            vir_mid::Expression::Deref(expression) => {
+                self.deref_to_snapshot(lowerer, expression, expect_math_bool)
+            }
+            vir_mid::Expression::AddrOf(expression) => {
+                self.addr_of_to_snapshot(lowerer, expression, expect_math_bool)
+            }
             vir_mid::Expression::LabelledOld(expression) => {
                 self.labelled_old_to_snapshot(lowerer, expression, expect_math_bool)
             }
@@ -69,6 +76,9 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             // vir_mid::Expression::LetExpr(expression) => self.letexpr_to_snapshot(lowerer, expression, expect_math_bool),
             vir_mid::Expression::FuncApp(expression) => {
                 self.func_app_to_snapshot(lowerer, expression, expect_math_bool)
+            }
+            vir_mid::Expression::BuiltinFuncApp(expression) => {
+                self.builtin_func_app_to_snapshot(lowerer, expression, expect_math_bool)
             }
             // vir_mid::Expression::Downcast(expression) => self.downcast_to_snapshot(lowerer, expression, expect_math_bool),
             x => unimplemented!("{:?}", x),
@@ -165,6 +175,42 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             )?
         };
         self.ensure_bool_expression(lowerer, field.get_type(), result, expect_math_bool)
+    }
+
+    fn deref_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        deref: &vir_mid::Deref,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let base_snapshot = self.expression_to_snapshot(lowerer, &deref.base, expect_math_bool)?;
+        let result = lowerer.reference_target_current_snapshot(
+            deref.base.get_type(),
+            base_snapshot,
+            Default::default(),
+        )?;
+        self.ensure_bool_expression(lowerer, deref.get_type(), result, expect_math_bool)
+    }
+
+    fn addr_of_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        addr_of: &vir_mid::AddrOf,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let result = match &addr_of.ty {
+            vir_mid::Type::Reference(reference) if reference.uniqueness.is_shared() => {
+                let base_snapshot =
+                    self.expression_to_snapshot(lowerer, &addr_of.base, expect_math_bool)?;
+                lowerer.shared_non_alloc_reference_snapshot_constructor(
+                    &addr_of.ty,
+                    base_snapshot,
+                    Default::default(),
+                )?
+            }
+            _ => unimplemented!("ty: {}", addr_of.ty),
+        };
+        self.ensure_bool_expression(lowerer, &addr_of.ty, result, expect_math_bool)
     }
 
     fn labelled_old_to_snapshot(
@@ -348,6 +394,77 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         app: &vir_mid::FuncApp,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    fn builtin_func_app_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        app: &vir_crate::middle::expression::BuiltinFuncApp,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        use vir_low::expression::{ContainerOpKind, MapOpKind};
+        use vir_mid::expression::BuiltinFunc;
+
+        let ty_args = app
+            .type_arguments
+            .iter()
+            .map(|ty| self.type_to_snapshot(lowerer, ty))
+            .collect::<Result<Vec<_>, _>>()?;
+        let mut args =
+            self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
+
+        let map = |low_kind| {
+            let map_ty = vir_low::Type::map(ty_args[0].clone(), ty_args[1].clone());
+            Ok(vir_low::Expression::map_op(
+                map_ty,
+                low_kind,
+                args.clone(),
+                app.position,
+            ))
+        };
+
+        let seq = |low_kind| {
+            Ok(vir_low::Expression::container_op(
+                low_kind,
+                args[0].clone(),
+                if args.len() > 1 {
+                    args[1].clone()
+                } else {
+                    // this is only necessary because containerop takes two arguments any time, but length only has one argument
+                    // constructing a dummy value
+                    vir_low::Expression::constant_no_pos(
+                        vir_low::expression::ConstantValue::Bool(false),
+                        vir_low::ty::Type::Bool,
+                    )
+                },
+                app.position,
+            ))
+        };
+
+        match app.function {
+            BuiltinFunc::EmptyMap => map(MapOpKind::Empty),
+            BuiltinFunc::UpdateMap => map(MapOpKind::Update),
+            BuiltinFunc::LookupMap => map(MapOpKind::Lookup),
+            BuiltinFunc::MapLen => map(MapOpKind::Len),
+            BuiltinFunc::LookupSeq => seq(ContainerOpKind::SeqIndex),
+            BuiltinFunc::ConcatSeq => seq(ContainerOpKind::SeqConcat),
+            BuiltinFunc::SeqLen => seq(ContainerOpKind::SeqLen),
+            BuiltinFunc::EmptySeq | BuiltinFunc::SingleSeq => Ok(vir_low::Expression::seq(
+                ty_args[0].clone(),
+                args,
+                app.position,
+            )),
+            BuiltinFunc::NewInt => {
+                assert_eq!(args.len(), 1);
+                let arg = args.pop().unwrap();
+                let value = lowerer.obtain_constant_value(
+                    app.arguments[0].get_type(),
+                    arg,
+                    app.position,
+                )?;
+                lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
+            }
+        }
+    }
 
     fn type_to_snapshot(
         &mut self,
