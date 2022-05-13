@@ -18,9 +18,9 @@ pub use self::{
         rvalue::{Operand, OperandKind, Rvalue},
         statement::{
             Assert, Assign, Assume, CloseFracRef, CloseMutRef, Comment, Consume, CopyPlace, Dead,
-            EndLft, Exhale, Inhale, LeakAll, LifetimeReturn, LifetimeTake, MovePlace, NewLft,
-            OldLabel, OpenFracRef, OpenMutRef, SetUnionVariant, Statement, WriteAddress,
-            WritePlace,
+            EndLft, Exhale, Havoc, Inhale, LeakAll, LifetimeReturn, LifetimeTake, LoopInvariant,
+            MovePlace, NewLft, OldLabel, OpenFracRef, OpenMutRef, SetUnionVariant, Statement,
+            WriteAddress, WritePlace,
         },
         ty::{self, Type},
         type_decl::{self, DiscriminantRange, DiscriminantValue, TypeDecl},

@@ -9,14 +9,12 @@ use crate::data::ProcedureDefId;
 use rustc_middle::mir::{self, Body as Mir, Rvalue, AggregateKind};
 use rustc_middle::mir::{BasicBlock, BasicBlockData};
 use rustc_middle::ty::{Ty, TyCtxt};
-
 use std::rc::Rc;
 use std::collections::{HashSet, HashMap};
 use rustc_span::Span;
 use log::{trace, debug};
 use rustc_middle::mir::StatementKind;
 use rustc_hir::def_id;
-
 use crate::environment::mir_utils::RealEdges;
 use crate::environment::mir_dump::graphviz::to_text::ToText;
 use crate::environment::Environment;
@@ -209,6 +207,21 @@ pub fn is_marked_specification_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> 
         }
     }
     false
+}
+
+pub fn get_loop_invariant<'tcx>(bb_data: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -> Option<(ProcedureDefId, rustc_middle::ty::subst::SubstsRef<'tcx>)> {
+    for stmt in &bb_data.statements {
+        if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, substs), _))) = &stmt.kind {
+            if is_spec_closure(*def_id, &tcx) && crate::utils::has_prusti_attr(tcx.get_attrs(*def_id), "loop_body_invariant_spec") {
+                return Some((*def_id, substs))
+            }
+        }
+    }
+    None
+}
+
+pub fn is_loop_invariant_block<'tcx>(bb_data: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -> bool {
+    get_loop_invariant(bb_data, tcx).is_some()
 }
 
 #[derive(Debug)]

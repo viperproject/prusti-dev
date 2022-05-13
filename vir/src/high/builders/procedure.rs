@@ -91,10 +91,13 @@ impl ProcedureBuilder {
             statements: Vec::new(),
             successor: vir_high::Successor::Exit,
         };
-        assert!(basic_blocks.insert(self.end_label, end_block).is_none());
+        assert!(basic_blocks
+            .insert(self.end_label.clone(), end_block)
+            .is_none());
         vir_high::ProcedureDecl {
             name: self.name,
             entry: self.start_label,
+            exit: self.end_label,
             basic_blocks,
         }
     }

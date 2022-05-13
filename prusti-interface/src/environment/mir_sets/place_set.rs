@@ -8,7 +8,6 @@ use crate::utils::{self, is_prefix};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_middle::{mir, ty::TyCtxt};
 
-
 /// A set of MIR places.
 ///
 /// Invariant: we never have a place and any of its descendants in the
@@ -25,6 +24,11 @@ impl<'tcx> PlaceSet<'tcx> {
     }
     pub fn contains(&self, place: &mir::Place) -> bool {
         self.places.contains(place)
+    }
+    pub fn contains_prefix_of(&self, place: mir::Place) -> bool {
+        self.places
+            .iter()
+            .any(|potential_prefix| is_prefix(&place, potential_prefix))
     }
     pub fn check_invariant(&self) {
         for place1 in self.places.iter() {

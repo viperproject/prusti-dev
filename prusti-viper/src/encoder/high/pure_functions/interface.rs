@@ -97,9 +97,7 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         // FIXME: Should use encode_builtin_function_use.
         let name = "subslice";
         let element_type = extract_container_element_type(&container)?;
-        let pure_lifetime = vir_high::ty::LifetimeConst {
-            name: String::from("pure_erased"),
-        };
+        let pure_lifetime = vir_high::ty::LifetimeConst::erased();
         let return_type = vir_high::Type::reference(
             pure_lifetime,
             vir_high::ty::Uniqueness::Shared,

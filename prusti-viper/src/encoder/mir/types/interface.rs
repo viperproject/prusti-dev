@@ -109,6 +109,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
         let field_decl = match type_decl {
             vir_high::TypeDecl::Tuple(item) => vir_high::FieldDecl::new(
                 format!("tuple_{}", field.index()),
+                field.index(),
                 item.arguments[field.index()].clone(),
             ),
             vir_high::TypeDecl::Struct(item) => item.fields[field.index()].clone(),
@@ -120,6 +121,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             }
             vir_high::TypeDecl::Closure(item) => vir_high::FieldDecl::new(
                 format!("closure_{}", field.index()),
+                field.index(),
                 item.arguments[field.index()].clone(),
             ),
             _ => {

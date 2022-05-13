@@ -204,8 +204,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .encoder
                     .encode_binary_op_check_high(*op, encoded_left, encoded_right, &operand_ty)
                     .with_span(span)?;
-                let value_field = vir_high::FieldDecl::new("tuple_0".to_string(), operand_ty);
-                let check_field = vir_high::FieldDecl::new("tuple_1".to_string(), check_ty);
+                let value_field =
+                    vir_high::FieldDecl::new("tuple_0".to_string(), 0usize, operand_ty);
+                let check_field = vir_high::FieldDecl::new("tuple_1".to_string(), 1usize, check_ty);
                 let lhs_value =
                     vir_high::Expression::field_no_pos(encoded_lhs.clone(), value_field);
                 let lhs_check =
@@ -239,9 +240,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .encoder
                     .encode_type_of_place_high(self.mir, *place)
                     .with_span(span)?;
-                let pure_lifetime = vir_high::ty::LifetimeConst {
-                    name: String::from("pure_erased"),
-                };
+                let pure_lifetime = vir_high::ty::LifetimeConst::erased();
                 let encoded_ref = vir_high::Expression::addr_of_no_pos(
                     encoded_place,
                     vir_high::Type::reference(pure_lifetime, vir_high::ty::Uniqueness::Shared, ty),
@@ -962,7 +961,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 unimplemented!("kind: {:?} at {:?}", kind, location);
             }
         }
-
+        trace!("after {:?}, state: {}", statement, state);
         // self.apply_downcasts(state, location)?; FIXME: Is this needed?
 
         Ok(())

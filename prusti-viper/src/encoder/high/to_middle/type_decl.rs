@@ -19,6 +19,7 @@ impl<'v, 'tcx> ToMiddleTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> {
     ) -> Result<vir_mid::FieldDecl, Self::Error> {
         Ok(vir_mid::FieldDecl {
             name: decl.name,
+            index: decl.index,
             ty: self.to_middle_expression_type(decl.ty)?,
         })
     }
