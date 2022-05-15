@@ -238,7 +238,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         let id = ti.hir_id();
         let local_id = self.tcx.hir().local_def_id(id);
         let def_id = local_id.to_def_id();
-        let attrs = self.tcx.get_attrs(ti.def_id.to_def_id());
+        let attrs = self.env.get_local_attributes(ti.def_id);
 
         // Collect procedure specifications
         if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
