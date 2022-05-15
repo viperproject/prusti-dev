@@ -426,7 +426,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             // compose substitutions
             // TODO(tymap): do we need this?
             use crate::rustc_middle::ty::subst::Subst;
-            let substs = call_substs.subst(self.encoder.env().tcx(), self.substs);
+            let substs = ty::EarlyBinder(*call_substs).subst(self.encoder.env().tcx(), self.substs);
 
             let state = if let Some((lhs_place, target_block)) = destination {
                 let encoded_lhs = self.encode_place(*lhs_place).with_span(span)?;
