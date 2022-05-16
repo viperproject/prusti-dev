@@ -1301,6 +1301,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
             "prusti_contracts::Int::new" => {
+                // FIXME: Deduplicate with encode_function_call.
                 let (target_place, target_block) = destination.unwrap();
                 let position = self
                     .encoder
@@ -1312,12 +1313,62 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .encode_place_high(self.mir, target_place)?
                     .set_default_position(position);
                 assert_eq!(args.len(), 1);
-                self.encode_assign_operand(
-                    block_builder,
-                    location,
-                    encoded_target_place,
-                    &args[0],
+                let encoded_arg = self.encode_statement_operand(location, &args[0])?;
+                let statement = vir_high::Statement::consume_no_pos(encoded_arg.clone());
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    statement,
+                    span,
+                    ErrorCtxt::ProcedureCall,
+                    self.def_id,
+                )?);
+                let target_place_local = if let Some(target_place_local) = target_place.as_local() {
+                    target_place_local
+                } else {
+                    unimplemented!()
+                };
+                let size = self.encoder.encode_type_size_expression(
+                    self.encoder.get_local_type(self.mir, target_place_local)?,
                 )?;
+                let target_memory_block = vir_high::Predicate::memory_block_stack_no_pos(
+                    encoded_target_place.clone(),
+                    size,
+                );
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    vir_high::Statement::exhale_no_pos(target_memory_block.clone()),
+                    span,
+                    ErrorCtxt::ProcedureCall,
+                    self.def_id,
+                )?);
+                let inhale_statement = vir_high::Statement::inhale_no_pos(
+                    vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place.clone()),
+                );
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    inhale_statement,
+                    span,
+                    ErrorCtxt::ProcedureCall,
+                    self.def_id,
+                )?);
+                let expression = vir_high::Expression::equals(
+                    encoded_target_place,
+                    vir_high::Expression::builtin_func_app_no_pos(
+                        vir_high::BuiltinFunc::NewInt,
+                        Vec::new(),
+                        vec![encoded_arg.expression],
+                        vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+                    ),
+                );
+                let assume_statement = self.encoder.set_statement_error_ctxt(
+                    vir_high::Statement::assume_no_pos(expression),
+                    span,
+                    ErrorCtxt::UnexpectedAssumeMethodPostcondition,
+                    self.def_id,
+                )?;
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    assume_statement,
+                    span,
+                    ErrorCtxt::ProcedureCall,
+                    self.def_id,
+                )?);
                 let target_label = self.encode_basic_block_label(target_block);
                 vir_high::Successor::Goto(target_label)
             }
