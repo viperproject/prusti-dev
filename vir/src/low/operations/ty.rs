@@ -210,8 +210,8 @@ impl Typed for MapOp {
             MapOpKind::Len => &Type::Int,
         }
     }
-    fn set_type(&mut self, _new_type: Type) {
-        unimplemented!();
+    fn set_type(&mut self, new_type: Type) {
+        assert_eq!(self.get_type(), &new_type, "Changing the type of MapOp.");
     }
 }
 
