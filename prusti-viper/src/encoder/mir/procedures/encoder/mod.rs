@@ -1334,7 +1334,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     size,
                 );
                 block_builder.add_statement(self.encoder.set_statement_error_ctxt(
-                    vir_high::Statement::exhale_no_pos(target_memory_block.clone()),
+                    vir_high::Statement::exhale_no_pos(target_memory_block),
                     span,
                     ErrorCtxt::ProcedureCall,
                     self.def_id,
