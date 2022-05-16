@@ -444,7 +444,10 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             BuiltinFunc::EmptyMap => map(MapOpKind::Empty),
             BuiltinFunc::UpdateMap => map(MapOpKind::Update),
             BuiltinFunc::LookupMap => map(MapOpKind::Lookup),
-            BuiltinFunc::MapLen => map(MapOpKind::Len),
+            BuiltinFunc::MapLen => {
+                let value = map(MapOpKind::Len)?;
+                lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
+            }
             BuiltinFunc::LookupSeq => seq(ContainerOpKind::SeqIndex),
             BuiltinFunc::ConcatSeq => seq(ContainerOpKind::SeqConcat),
             BuiltinFunc::SeqLen => {
