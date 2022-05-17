@@ -46,7 +46,8 @@ pub(super) fn inline_closure_high<'tcx>(
     Ok(encoder
         .encode_pure_expression_high(def_id, parent_def_id, substs)?
         .erase_lifetime()
-        .replace_multiple_places(&body_replacements))
+        .replace_multiple_places(&body_replacements)
+        .simplify())
 }
 
 #[allow(clippy::unnecessary_unwrap)]
@@ -91,7 +92,8 @@ pub(super) fn inline_spec_item_high<'tcx>(
     }
     Ok(encoder
         .encode_pure_expression_high(def_id, parent_def_id, substs)?
-        .replace_multiple_places(&body_replacements))
+        .replace_multiple_places(&body_replacements)
+        .simplify())
 }
 
 pub(super) fn encode_quantifier_high<'tcx>(
@@ -189,7 +191,8 @@ pub(super) fn encode_quantifier_high<'tcx>(
         Expression::and(bounds.into_iter().conjoin(), encoded_body)
     } else {
         Expression::implies(bounds.into_iter().conjoin(), encoded_body)
-    };
+    }
+    .simplify();
     if is_exists {
         Ok(Expression::exists(
             encoded_qvars,

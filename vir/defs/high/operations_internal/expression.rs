@@ -8,7 +8,7 @@ use super::{
             *,
         },
         position::Position,
-        ty::{visitors::TypeFolder, LifetimeConst, Type},
+        ty::{self, visitors::TypeFolder, LifetimeConst, Type},
     },
     ty::Typed,
 };
@@ -255,6 +255,47 @@ impl Expression {
                     base: box Expression::Constructor(Constructor { arguments, .. }),
                     ..
                 }) => arguments[field.index].clone(),
+                Expression::BinaryOp(BinaryOp {
+                    op_kind: BinaryOpKind::EqCmp,
+                    left:
+                        box Expression::AddrOf(AddrOf {
+                            base: left,
+                            ty:
+                                Type::Reference(ty::Reference {
+                                    lifetime: _,
+                                    uniqueness: ty::Uniqueness::Shared,
+                                    target_type: box Type::Map(_) | box Type::Sequence(_),
+                                }),
+                            ..
+                        }),
+                    right:
+                        box Expression::AddrOf(AddrOf {
+                            base: right,
+                            ty:
+                                Type::Reference(ty::Reference {
+                                    lifetime: _,
+                                    uniqueness: ty::Uniqueness::Shared,
+                                    target_type: box Type::Map(_) | box Type::Sequence(_),
+                                }),
+                            ..
+                        }),
+                    position,
+                }) => Expression::BinaryOp(BinaryOp {
+                    op_kind: BinaryOpKind::EqCmp,
+                    left,
+                    right,
+                    position,
+                }),
+                Expression::UnaryOp(UnaryOp {
+                    op_kind: op_kind_outer,
+                    argument:
+                        box Expression::UnaryOp(UnaryOp {
+                            op_kind: op_kind_inner,
+                            argument,
+                            ..
+                        }),
+                    ..
+                }) if op_kind_inner == op_kind_outer => *argument,
                 _ => {
                     break expression;
                 }
