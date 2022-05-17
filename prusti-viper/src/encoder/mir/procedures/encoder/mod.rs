@@ -1234,34 +1234,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         cleanup: &Option<mir::BasicBlock>,
         _fn_span: Span,
     ) -> SpannedEncodingResult<()> {
-        if let ty::TyKind::FnDef(def_id, _substs) = ty.kind() {
-            let full_called_function_name = self.encoder.env().tcx().def_path_str(*def_id);
+        if let ty::TyKind::FnDef(called_def_id, call_substs) = ty.kind() {
             if !self.try_encode_builtin_call(
                 block_builder,
                 location,
                 span,
-                &full_called_function_name,
+                *called_def_id,
+                call_substs,
                 args,
                 destination,
                 cleanup,
             )? {
-                if let ty::TyKind::FnDef(called_def_id, call_substs) = ty.kind() {
-                    self.encode_function_call(
-                        block_builder,
-                        location,
-                        span,
-                        *called_def_id,
-                        call_substs,
-                        args,
-                        destination,
-                        cleanup,
-                    )?;
-                } else {
-                    // Other kind of calls?
-                    unimplemented!();
-                }
+                self.encode_function_call(
+                    block_builder,
+                    location,
+                    span,
+                    *called_def_id,
+                    call_substs,
+                    args,
+                    destination,
+                    cleanup,
+                )?;
             }
         } else {
+            // Other kind of calls?
             unimplemented!();
         };
         Ok(())
@@ -1273,12 +1269,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
         span: Span,
-        called_function: &str,
+        called_def_id: DefId,
+        call_substs: SubstsRef<'tcx>,
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
         cleanup: &Option<mir::BasicBlock>,
     ) -> SpannedEncodingResult<bool> {
-        let successor = match called_function {
+        let full_called_function_name = self.encoder.env().tcx().def_path_str(called_def_id);
+        let successor = match full_called_function_name.as_str() {
             "core::panicking::panic" => {
                 let panic_message = format!("{:?}", args[0]);
                 let panic_cause = self.encoder.encode_panic_cause(span)?;
@@ -1301,7 +1299,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
             "prusti_contracts::Int::new" => {
-                // FIXME: Deduplicate with encode_function_call.
+                // FIXME: Deduplicate with encode_function_call and other arms.
                 let (target_place, target_block) = destination.unwrap();
                 let position = self
                     .encoder
@@ -1355,6 +1353,144 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         Vec::new(),
                         vec![encoded_arg.expression],
                         vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+                    ),
+                );
+                let assume_statement = self.encoder.set_statement_error_ctxt(
+                    vir_high::Statement::assume_no_pos(expression),
+                    span,
+                    ErrorCtxt::UnexpectedAssumeMethodPostcondition,
+                    self.def_id,
+                )?;
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    assume_statement,
+                    span,
+                    ErrorCtxt::ProcedureCall,
+                    self.def_id,
+                )?);
+                let target_label = self.encode_basic_block_label(target_block);
+                vir_high::Successor::Goto(target_label)
+            }
+            "prusti_contracts::Map::<K, V>::empty" => {
+                // FIXME: Deduplicate with encode_function_call and other arms.
+                let (target_place, target_block) = destination.unwrap();
+                let position = self
+                    .encoder
+                    .error_manager()
+                    .register_error(span, ErrorCtxt::WritePlace, self.def_id)
+                    .into();
+                let encoded_target_place = self
+                    .encoder
+                    .encode_place_high(self.mir, target_place)?
+                    .set_default_position(position);
+                assert_eq!(args.len(), 0);
+                let target_place_local = if let Some(target_place_local) = target_place.as_local() {
+                    target_place_local
+                } else {
+                    unimplemented!()
+                };
+                let size = self.encoder.encode_type_size_expression(
+                    self.encoder.get_local_type(self.mir, target_place_local)?,
+                )?;
+                let target_memory_block = vir_high::Predicate::memory_block_stack_no_pos(
+                    encoded_target_place.clone(),
+                    size,
+                );
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    vir_high::Statement::exhale_no_pos(target_memory_block),
+                    span,
+                    ErrorCtxt::ProcedureCall,
+                    self.def_id,
+                )?);
+                let inhale_statement = vir_high::Statement::inhale_no_pos(
+                    vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place.clone()),
+                );
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    inhale_statement,
+                    span,
+                    ErrorCtxt::ProcedureCall,
+                    self.def_id,
+                )?);
+                let type_arguments = self
+                    .encoder
+                    .encode_generic_arguments_high(called_def_id, call_substs)
+                    .with_span(span)?;
+                let target_type = encoded_target_place.get_type().clone();
+                let expression = vir_high::Expression::equals(
+                    encoded_target_place,
+                    vir_high::Expression::builtin_func_app_no_pos(
+                        vir_high::BuiltinFunc::EmptyMap,
+                        type_arguments,
+                        Vec::new(),
+                        target_type,
+                    ),
+                );
+                let assume_statement = self.encoder.set_statement_error_ctxt(
+                    vir_high::Statement::assume_no_pos(expression),
+                    span,
+                    ErrorCtxt::UnexpectedAssumeMethodPostcondition,
+                    self.def_id,
+                )?;
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    assume_statement,
+                    span,
+                    ErrorCtxt::ProcedureCall,
+                    self.def_id,
+                )?);
+                let target_label = self.encode_basic_block_label(target_block);
+                vir_high::Successor::Goto(target_label)
+            }
+            "prusti_contracts::Seq::<T>::empty" => {
+                // FIXME: Deduplicate with encode_function_call and other arms.
+                let (target_place, target_block) = destination.unwrap();
+                let position = self
+                    .encoder
+                    .error_manager()
+                    .register_error(span, ErrorCtxt::WritePlace, self.def_id)
+                    .into();
+                let encoded_target_place = self
+                    .encoder
+                    .encode_place_high(self.mir, target_place)?
+                    .set_default_position(position);
+                assert_eq!(args.len(), 0);
+                let target_place_local = if let Some(target_place_local) = target_place.as_local() {
+                    target_place_local
+                } else {
+                    unimplemented!()
+                };
+                let size = self.encoder.encode_type_size_expression(
+                    self.encoder.get_local_type(self.mir, target_place_local)?,
+                )?;
+                let target_memory_block = vir_high::Predicate::memory_block_stack_no_pos(
+                    encoded_target_place.clone(),
+                    size,
+                );
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    vir_high::Statement::exhale_no_pos(target_memory_block),
+                    span,
+                    ErrorCtxt::ProcedureCall,
+                    self.def_id,
+                )?);
+                let inhale_statement = vir_high::Statement::inhale_no_pos(
+                    vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place.clone()),
+                );
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    inhale_statement,
+                    span,
+                    ErrorCtxt::ProcedureCall,
+                    self.def_id,
+                )?);
+                let type_arguments = self
+                    .encoder
+                    .encode_generic_arguments_high(called_def_id, call_substs)
+                    .with_span(span)?;
+                let target_type = encoded_target_place.get_type().clone();
+                let expression = vir_high::Expression::equals(
+                    encoded_target_place,
+                    vir_high::Expression::builtin_func_app_no_pos(
+                        vir_high::BuiltinFunc::EmptySeq,
+                        type_arguments,
+                        Vec::new(),
+                        target_type,
                     ),
                 );
                 let assume_statement = self.encoder.set_statement_error_ctxt(

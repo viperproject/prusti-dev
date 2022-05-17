@@ -44,8 +44,7 @@ fn map_len2() {}
 fn map_lookup() {}
 
 fn map_construction() {
-    // FIXME
-    // let map = Map::empty();
+    let map = Map::empty();
 }
 
 fn main() {}
