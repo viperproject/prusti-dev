@@ -86,7 +86,9 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
-            | vir_mid::TypeDecl::Pointer(_) => {
+            | vir_mid::TypeDecl::Pointer(_)
+            | vir_mid::TypeDecl::Sequence(_)
+            | vir_mid::TypeDecl::Map(_) => {
                 predicate! {
                     OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
                     {(

@@ -18,4 +18,8 @@ fn seq_eq1() {}
 #[ensures(Seq::single(1) == Seq::single(2))] //~ ERROR: postcondition might not hold.
 fn seq_eq2() {}
 
+fn seq_construction() {
+    let seq: prusti_contracts::Seq<prusti_contracts::Seq<Int>> = prusti_contracts::Seq::empty();
+}
+
 fn main() {}
