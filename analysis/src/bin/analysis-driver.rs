@@ -36,7 +36,7 @@ struct OurCompilerCalls {
     args: Vec<String>,
 }
 
-fn get_attributes<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: DefId) -> &[rustc_ast::ast::Attribute] {
+fn get_attributes(tcx: ty::TyCtxt<'_>, def_id: DefId) -> &[rustc_ast::ast::Attribute] {
     if let Some(local_def_id) = def_id.as_local() {
         tcx.hir()
             .attrs(tcx.hir().local_def_id_to_hir_id(local_def_id))
