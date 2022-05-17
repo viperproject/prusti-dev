@@ -67,7 +67,7 @@ impl Display for SpecificationId {
         write!(
             f,
             "{}",
-            self.0.to_simple().encode_lower(&mut Uuid::encode_buffer()),
+            self.0.simple().encode_lower(&mut Uuid::encode_buffer()),
         )
     }
 }
@@ -97,18 +97,18 @@ impl SpecificationIdGenerator {
 }
 
 pub(crate) fn generate_struct_name(item: &syn::ItemImpl) -> String {
-    let uuid = Uuid::new_v4().to_simple();
+    let uuid = Uuid::new_v4().simple();
     let name_ty = generate_name_for_type(&*item.self_ty).unwrap_or_default();
     format!("PrustiStruct{}_{}", name_ty, uuid)
 }
 
 pub(crate) fn generate_struct_name_for_trait(item: &syn::ItemTrait) -> String {
-    let uuid = Uuid::new_v4().to_simple();
+    let uuid = Uuid::new_v4().simple();
     format!("PrustiTrait{}_{}", item.ident, uuid)
 }
 
 pub(crate) fn generate_mod_name(ident: &syn::Ident) -> String {
-    let uuid = Uuid::new_v4().to_simple();
+    let uuid = Uuid::new_v4().simple();
     format!("{}_{}", ident, uuid)
 }
 

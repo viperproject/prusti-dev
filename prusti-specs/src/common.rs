@@ -407,7 +407,7 @@ pub(crate) fn add_phantom_data_for_generic_params(item_struct: &mut syn::ItemStr
 
     let generate_field_ident = |span: proc_macro2::Span| {
         if need_named_fields {
-            let uuid = Uuid::new_v4().to_simple();
+            let uuid = Uuid::new_v4().simple();
             let field_name = format!("prusti_injected_phantom_field_{}", uuid);
             return Some(syn::Ident::new(field_name.as_str(), span));
         }

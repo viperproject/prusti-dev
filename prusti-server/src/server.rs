@@ -101,8 +101,7 @@ where
     // Here we use a single thread because
     // 1. Viper is not thread safe yet (Silicon issue #578), and
     // 2. By default Silicon already uses as many cores as possible.
-    let mut runtime = Builder::new()
-        .basic_scheduler()
+    let runtime = Builder::new_current_thread()
         .thread_name("prusti-server")
         .enable_all()
         .build()
