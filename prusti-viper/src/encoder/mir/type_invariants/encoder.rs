@@ -18,6 +18,7 @@ use vir_crate::polymorphic::{self as vir, ExprIterator};
 pub(super) fn needs_invariant_func(ty: ty::Ty<'_>) -> bool {
     match ty.kind() {
         ty::TyKind::Ref(_, ty, _) => needs_invariant_func(*ty),
+        ty::TyKind::Adt(adt_def, _) if adt_def.is_box() => needs_invariant_func(ty.boxed_ty()),
         //ty::TyKind::Int(..)
         //| ty::TyKind::Uint(..)
         ty::TyKind::Tuple(..) | ty::TyKind::Closure(..) => true,
@@ -70,6 +71,7 @@ pub(super) fn encode_invariant_def<'p, 'v: 'p, 'tcx: 'v>(
     match ty.kind() {
         // ty should be peeled already
         ty::TyKind::Ref(..) => unreachable!(),
+        ty::TyKind::Adt(adt_def, _) if adt_def.is_box() => unreachable!(),
 
         // TODO(inv): incorporate integer bounds
         //ty::TyKind::Int(_)
@@ -115,6 +117,7 @@ pub(super) fn encode_invariant_def<'p, 'v: 'p, 'tcx: 'v>(
                 }
             } else if adt_def.is_enum() {
                 let predicate = encoder.encode_type_predicate_def(ty)?;
+                let mut variants = vec![];
                 for (variant_idx, variant) in adt_def.variants().iter_enumerated() {
                     let mut fields = vec![];
                     let variant_idx: usize = variant_idx.into();
@@ -151,10 +154,16 @@ pub(super) fn encode_invariant_def<'p, 'v: 'p, 'tcx: 'v>(
                         arg_expr.clone().field(encoder.encode_discriminant_field());
                     let variant_discriminant = size.sign_extend(discriminant_raw) as i128;
 
-                    conjuncts.push(vir::Expr::implies(
+                    variants.push((
                         vir_expr! { [arg_discriminant] == [vir::Expr::from(variant_discriminant)] },
                         fields.into_iter().conjoin(),
                     ));
+                }
+                if variants.len() == 1 {
+                    // skip discriminant call and implication if only one variant
+                    conjuncts.push(variants[0].1.clone());
+                } else {
+                    conjuncts.extend(variants.into_iter().map(|(l, r)| vir::Expr::implies(l, r)));
                 }
             }
 

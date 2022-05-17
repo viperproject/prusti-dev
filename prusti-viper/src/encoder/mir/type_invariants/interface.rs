@@ -25,7 +25,8 @@ impl<'v, 'tcx: 'v> TypeInvariantEncoderInterface<'tcx> for super::super::super::
         ty: ty::Ty<'tcx>,
         encoded_arg: vir::Expr,
     ) -> EncodingResult<vir::Expr> {
-        let ty = ty.peel_refs();
+        // match snapshot ref/box peeling
+        let ty = crate::encoder::snapshot::encoder::strip_refs_and_boxes(ty);
 
         if !needs_invariant_func(ty) {
             return Ok(true.into());
