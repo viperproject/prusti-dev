@@ -209,7 +209,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn is_spec_closure(&self, def_id: DefId) -> bool {
-        has_spec_only_attr(self.env().tcx().get_attrs(def_id))
+        has_spec_only_attr(self.env().get_attributes(def_id))
     }
 
     fn get_spec_span(&self, def_id: DefId) -> Span {

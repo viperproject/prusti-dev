@@ -136,11 +136,8 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     if !tcx.is_closure(proc_def_id) {
         // FIXME: "skip_binder" is most likely wrong
         // FIXME: Replace with FakeMirEncoder.
-        let fn_sig: FnSig = env
-            .tcx()
-            .fn_sig(proc_def_id)
-            .skip_binder()
-            .subst(env.tcx(), substs);
+        let fn_sig: FnSig =
+            ty::EarlyBinder(env.tcx().fn_sig(proc_def_id).skip_binder()).subst(env.tcx(), substs);
         if fn_sig.c_variadic {
             return Err(EncodingError::unsupported(
                 "variadic functions are not supported",

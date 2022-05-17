@@ -258,7 +258,7 @@ impl SpecGraph<ProcedureSpecification> {
         spec: LocalDefId,
         env: &Environment<'tcx>,
     ) -> Option<SpecConstraintKind> {
-        let attrs = env.tcx().get_attrs(spec.to_def_id());
+        let attrs = env.get_local_attributes(spec);
         if has_trait_bounds_ghost_constraint(attrs) {
             return Some(SpecConstraintKind::ResolveGenericParamTraitBounds);
         }
