@@ -37,7 +37,7 @@ impl<'a, 'tcx> CollectPrustiSpecVisitor<'a, 'tcx> {
 
 impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     fn visit_item(&mut self, item: &hir::Item) {
-        let attrs = self.tcx.get_attrs(item.def_id.to_def_id());
+        let attrs = self.env.get_local_attributes(item.def_id);
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }
@@ -50,7 +50,7 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     }
 
     fn visit_trait_item(&mut self, trait_item: &hir::TraitItem) {
-        let attrs = self.tcx.get_attrs(trait_item.def_id.to_def_id());
+        let attrs = self.env.get_local_attributes(trait_item.def_id);
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }
@@ -73,7 +73,7 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     }
 
     fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
-        let attrs = self.tcx.get_attrs(impl_item.def_id.to_def_id());
+        let attrs = self.env.get_local_attributes(impl_item.def_id);
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }

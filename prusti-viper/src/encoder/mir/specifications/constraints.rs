@@ -187,7 +187,7 @@ pub mod trait_bounds {
         let maybe_trait_method = env.find_trait_method_substs(context.proc_def_id, context.substs);
         let param_env = if let Some((_, trait_substs)) = maybe_trait_method {
             trace!("Applying trait substs {:?}", trait_substs);
-            param_env.subst(env.tcx(), trait_substs)
+            ty::EarlyBinder(param_env).subst(env.tcx(), trait_substs)
         } else {
             param_env
         };
@@ -201,7 +201,7 @@ pub mod trait_bounds {
             param_env
         } else {
             trace!("Applying call substs {:?}", context.substs);
-            param_env.subst(env.tcx(), context.substs)
+            ty::EarlyBinder(param_env).subst(env.tcx(), context.substs)
         };
 
         trace!(
@@ -231,7 +231,7 @@ pub mod trait_bounds {
         for spec_id in pres.iter().chain(posts.iter()) {
             let param_env = env.tcx().param_env(spec_id.to_def_id());
             let spec_span = env.tcx().def_span(spec_id.to_def_id());
-            let attrs = env.tcx().get_attrs(spec_id.to_def_id());
+            let attrs = env.get_local_attributes(*spec_id);
             if has_trait_bounds_ghost_constraint(attrs) {
                 param_envs
                     .entry(param_env)
