@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.7/src/explicit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>explicit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.8/src/explicit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>explicit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_bidi/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -192,6 +192,12 @@
 <span id="187">187</span>
 <span id="188">188</span>
 <span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2015 The Servo Project Developers. See the</span>
 <span class="comment">// COPYRIGHT file at the top-level directory of this distribution.</span>
 <span class="comment">//</span>
@@ -207,7 +213,10 @@
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::char_data</span>::{<span class="ident">BidiClass</span>::{<a class="self" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">self</a>, <span class="kw-2">*</span>}, <a class="ident" href="../../src/unicode_bidi/char_data/mod.rs.html#27">is_rtl</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::char_data</span>::{
+    <a class="ident" href="../../src/unicode_bidi/char_data/mod.rs.html#45">is_rtl</a>,
+    <span class="ident">BidiClass</span>::{<a class="self" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">self</a>, <span class="kw-2">*</span>},
+};
 <span class="kw">use</span> <a class="ident" href="../../src/unicode_bidi/level.rs.html#34"><span class="kw">super</span>::level::Level</a>;
 
 <span class="doccomment">/// Compute explicit embedding levels for one paragraph of text (X1-X8).</span>
@@ -222,109 +231,110 @@
     <span class="ident">levels</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="../../src/unicode_bidi/level.rs.html#34">Level</a>],
     <span class="ident">processing_classes</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">BidiClass</a>],
 ) {
-    <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#25">text</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#27">original_classes</a>.<span class="ident">len</span>());
+    <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#28">text</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#30">original_classes</a>.<span class="ident">len</span>());
 
     <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#X1&gt;</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">DirectionalStatusStack::new</span>();
-    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#182">push</a>(<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#26">para_level</a>, <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#167">OverrideStatus::Neutral</a>);
+    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#188">push</a>(<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#29">para_level</a>, <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#171">OverrideStatus::Neutral</a>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overflow_isolate_count</span> <span class="op">=</span> <span class="number">0u32</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overflow_embedding_count</span> <span class="op">=</span> <span class="number">0u32</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">valid_isolate_count</span> <span class="op">=</span> <span class="number">0u32</span>;
 
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">c</span>) <span class="kw">in</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#25">text</a>.<span class="ident">char_indices</span>() {
-        <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#27">original_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] {
-
+    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">c</span>) <span class="kw">in</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#28">text</a>.<span class="ident">char_indices</span>() {
+        <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#30">original_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] {
             <span class="comment">// Rules X2-X5c</span>
             <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#37">RLE</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#29">LRE</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#39">RLO</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#31">LRO</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#38">RLI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#30">LRI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#27">FSI</a> =&gt; {
-                <span class="kw">let</span> <span class="ident">last_level</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#186">last</a>().<span class="ident">level</span>;
+                <span class="kw">let</span> <span class="ident">last_level</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#192">last</a>().<span class="ident">level</span>;
 
                 <span class="comment">// X5a-X5c: Isolate initiators get the level of the last entry on the stack.</span>
-                <span class="kw">let</span> <span class="ident">is_isolate</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#27">original_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] {
+                <span class="kw">let</span> <span class="ident">is_isolate</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#30">original_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] {
                     <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#38">RLI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#30">LRI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#27">FSI</a> =&gt; <span class="bool-val">true</span>,
                     <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
                 };
-                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#49">is_isolate</a> {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#28">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#46">last_level</a>;
-                    <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#186">last</a>().<span class="ident">status</span> {
-                        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#168">OverrideStatus::RTL</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#29">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>,
-                        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#169">OverrideStatus::LTR</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#29">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>,
+                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#51">is_isolate</a> {
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#31">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#48">last_level</a>;
+                    <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#192">last</a>().<span class="ident">status</span> {
+                        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#172">OverrideStatus::RTL</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#32">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>,
+                        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#173">OverrideStatus::LTR</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#32">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>,
                         <span class="kw">_</span> =&gt; {}
                     }
                 }
 
-                <span class="kw">let</span> <span class="ident">new_level</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/char_data/mod.rs.html#27">is_rtl</a>(<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#27">original_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>]) {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#46">last_level</a>.<a class="ident" href="../../src/unicode_bidi/level.rs.html#173">new_explicit_next_rtl</a>()
+                <span class="kw">let</span> <span class="ident">new_level</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/char_data/mod.rs.html#45">is_rtl</a>(<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#30">original_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>]) {
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#48">last_level</a>.<a class="ident" href="../../src/unicode_bidi/level.rs.html#173">new_explicit_next_rtl</a>()
                 } <span class="kw">else</span> {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#46">last_level</a>.<a class="ident" href="../../src/unicode_bidi/level.rs.html#167">new_explicit_next_ltr</a>()
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#48">last_level</a>.<a class="ident" href="../../src/unicode_bidi/level.rs.html#167">new_explicit_next_ltr</a>()
                 };
-                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#62">new_level</a>.<span class="ident">is_ok</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">overflow_isolate_count</a> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span>
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#38">overflow_embedding_count</a> <span class="op">==</span> <span class="number">0</span>
+                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#64">new_level</a>.<span class="ident">is_ok</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#40">overflow_isolate_count</a> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">overflow_embedding_count</a> <span class="op">==</span> <span class="number">0</span>
                 {
-                    <span class="kw">let</span> <span class="ident">new_level</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#62">new_level</a>.<span class="ident">unwrap</span>();
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#182">push</a>(
-                        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#70">new_level</a>,
-                        <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#27">original_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] {
-                            <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#39">RLO</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#168">OverrideStatus::RTL</a>,
-                            <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#31">LRO</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#169">OverrideStatus::LTR</a>,
-                            <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#38">RLI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#30">LRI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#27">FSI</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#170">OverrideStatus::Isolate</a>,
-                            <span class="kw">_</span> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#167">OverrideStatus::Neutral</a>,
+                    <span class="kw">let</span> <span class="ident">new_level</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#64">new_level</a>.<span class="ident">unwrap</span>();
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#188">push</a>(
+                        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#71">new_level</a>,
+                        <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#30">original_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] {
+                            <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#39">RLO</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#172">OverrideStatus::RTL</a>,
+                            <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#31">LRO</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#173">OverrideStatus::LTR</a>,
+                            <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#38">RLI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#30">LRI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#27">FSI</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#174">OverrideStatus::Isolate</a>,
+                            <span class="kw">_</span> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#171">OverrideStatus::Neutral</a>,
                         },
                     );
-                    <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#49">is_isolate</a> {
-                        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#39">valid_isolate_count</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#51">is_isolate</a> {
+                        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#42">valid_isolate_count</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     } <span class="kw">else</span> {
                         <span class="comment">// The spec doesn&#39;t explicitly mention this step, but it is necessary.</span>
                         <span class="comment">// See the reference implementations for comparison.</span>
-                        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#28">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#70">new_level</a>;
+                        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#31">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#71">new_level</a>;
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#49">is_isolate</a> {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">overflow_isolate_count</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">overflow_isolate_count</a> <span class="op">==</span> <span class="number">0</span> {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#38">overflow_embedding_count</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#51">is_isolate</a> {
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#40">overflow_isolate_count</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#40">overflow_isolate_count</a> <span class="op">==</span> <span class="number">0</span> {
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">overflow_embedding_count</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
             }
 
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#X6a&gt;</span>
             <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#35">PDI</a> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">overflow_isolate_count</a> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">overflow_isolate_count</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#39">valid_isolate_count</a> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#38">overflow_embedding_count</a> <span class="op">=</span> <span class="number">0</span>;
+                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#40">overflow_isolate_count</a> <span class="op">&gt;</span> <span class="number">0</span> {
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#40">overflow_isolate_count</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#42">valid_isolate_count</a> <span class="op">&gt;</span> <span class="number">0</span> {
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">overflow_embedding_count</a> <span class="op">=</span> <span class="number">0</span>;
                     <span class="kw">loop</span> {
                         <span class="comment">// Pop everything up to and including the last Isolate status.</span>
-                        <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<span class="ident">vec</span>.<span class="ident">pop</span>() {
-                            <span class="prelude-val">None</span> <span class="op">|</span>
-                            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#160-163">Status</a> { <span class="ident">status</span>: <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#170">OverrideStatus::Isolate</a>, .. }) =&gt; <span class="kw">break</span>,
+                        <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<span class="ident">vec</span>.<span class="ident">pop</span>() {
+                            <span class="prelude-val">None</span>
+                            <span class="op">|</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#164-167">Status</a> {
+                                <span class="ident">status</span>: <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#174">OverrideStatus::Isolate</a>,
+                                ..
+                            }) =&gt; <span class="kw">break</span>,
                             <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
                         }
                     }
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#39">valid_isolate_count</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#42">valid_isolate_count</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 }
-                <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#186">last</a>();
-                <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#28">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#110">last</a>.<span class="ident">level</span>;
-                <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#110">last</a>.<span class="ident">status</span> {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#168">OverrideStatus::RTL</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#29">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>,
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#169">OverrideStatus::LTR</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#29">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>,
+                <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#192">last</a>();
+                <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#31">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#114">last</a>.<span class="ident">level</span>;
+                <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#114">last</a>.<span class="ident">status</span> {
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#172">OverrideStatus::RTL</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#32">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>,
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#173">OverrideStatus::LTR</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#32">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>,
                     <span class="kw">_</span> =&gt; {}
                 }
             }
 
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#X7&gt;</span>
             <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#34">PDF</a> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">overflow_isolate_count</a> <span class="op">&gt;</span> <span class="number">0</span> {
+                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#40">overflow_isolate_count</a> <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="kw">continue</span>;
                 }
-                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#38">overflow_embedding_count</a> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#38">overflow_embedding_count</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">overflow_embedding_count</a> <span class="op">&gt;</span> <span class="number">0</span> {
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">overflow_embedding_count</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="kw">continue</span>;
                 }
-                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#186">last</a>().<span class="ident">status</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#170">OverrideStatus::Isolate</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<span class="ident">vec</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<span class="ident">vec</span>.<span class="ident">pop</span>();
+                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#192">last</a>().<span class="ident">status</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#174">OverrideStatus::Isolate</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<span class="ident">vec</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<span class="ident">vec</span>.<span class="ident">pop</span>();
                 }
                 <span class="comment">// The spec doesn&#39;t explicitly mention this step, but it is necessary.</span>
                 <span class="comment">// See the reference implementations for comparison.</span>
-                <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#28">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#186">last</a>().<span class="ident">level</span>;
+                <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#31">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#192">last</a>().<span class="ident">level</span>;
             }
 
             <span class="comment">// Nothing</span>
@@ -332,20 +342,20 @@
 
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#X6&gt;</span>
             <span class="kw">_</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#34">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#186">last</a>();
-                <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#28">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#141">last</a>.<span class="ident">level</span>;
-                <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#141">last</a>.<span class="ident">status</span> {
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#168">OverrideStatus::RTL</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#29">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>,
-                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#169">OverrideStatus::LTR</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#29">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>,
+                <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#37">stack</a>.<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#192">last</a>();
+                <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#31">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#145">last</a>.<span class="ident">level</span>;
+                <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#145">last</a>.<span class="ident">status</span> {
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#172">OverrideStatus::RTL</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#32">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>,
+                    <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#173">OverrideStatus::LTR</a> =&gt; <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#32">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>,
                     <span class="kw">_</span> =&gt; {}
                 }
             }
         }
 
         <span class="comment">// Handle multi-byte characters.</span>
-        <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">1</span>..<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">c</a>.<span class="ident">len_utf8</span>() {
-            <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#28">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a> <span class="op">+</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#152">j</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#28">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>];
-            <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#29">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a> <span class="op">+</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#152">j</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#29">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#41">i</a>];
+        <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">1</span>..<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">c</a>.<span class="ident">len_utf8</span>() {
+            <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#31">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a> <span class="op">+</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#156">j</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#31">levels</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>];
+            <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#32">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a> <span class="op">+</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#156">j</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#32">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#44">i</a>];
         }
     }
 }
@@ -353,7 +363,7 @@
 <span class="doccomment">/// Entries in the directional status stack:</span>
 <span class="kw">struct</span> <span class="ident">Status</span> {
     <span class="ident">level</span>: <a class="ident" href="../../src/unicode_bidi/level.rs.html#34">Level</a>,
-    <span class="ident">status</span>: <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#166-171">OverrideStatus</a>,
+    <span class="ident">status</span>: <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#170-175">OverrideStatus</a>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>)]</span>
@@ -365,22 +375,24 @@
 }
 
 <span class="kw">struct</span> <span class="ident">DirectionalStatusStack</span> {
-    <span class="ident">vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/unicode_bidi/explicit.rs.html#160-163">Status</a><span class="op">&gt;</span>,
+    <span class="ident">vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/unicode_bidi/explicit.rs.html#164-167">Status</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#173-175">DirectionalStatusStack</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#177-179">DirectionalStatusStack</a> {
     <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#173-175">DirectionalStatusStack</a> { <span class="ident">vec</span>: <span class="ident">Vec::with_capacity</span>(<span class="ident">Level::max_explicit_depth</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">+</span> <span class="number">2</span>) }
+        <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#177-179">DirectionalStatusStack</a> {
+            <span class="ident">vec</span>: <span class="ident">Vec::with_capacity</span>(<span class="ident">Level::max_explicit_depth</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">+</span> <span class="number">2</span>),
+        }
     }
 
-    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">level</span>: <a class="ident" href="../../src/unicode_bidi/level.rs.html#34">Level</a>, <span class="ident">status</span>: <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#166-171">OverrideStatus</a>) {
-        <a class="self" href="../../src/unicode_bidi/explicit.rs.html#182">self</a>.<span class="ident">vec</span>.<span class="ident">push</span>(<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#160-163">Status</a> { <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#182">level</a>, <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#182">status</a> });
+    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">level</span>: <a class="ident" href="../../src/unicode_bidi/level.rs.html#34">Level</a>, <span class="ident">status</span>: <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#170-175">OverrideStatus</a>) {
+        <a class="self" href="../../src/unicode_bidi/explicit.rs.html#188">self</a>.<span class="ident">vec</span>.<span class="ident">push</span>(<a class="ident" href="../../src/unicode_bidi/explicit.rs.html#164-167">Status</a> { <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#188">level</a>, <a class="ident" href="../../src/unicode_bidi/explicit.rs.html#188">status</a> });
     }
 
-    <span class="kw">fn</span> <span class="ident">last</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/explicit.rs.html#160-163">Status</a> {
-        <a class="self" href="../../src/unicode_bidi/explicit.rs.html#186">self</a>.<span class="ident">vec</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>()
+    <span class="kw">fn</span> <span class="ident">last</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/explicit.rs.html#164-167">Status</a> {
+        <a class="self" href="../../src/unicode_bidi/explicit.rs.html#192">self</a>.<span class="ident">vec</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>()
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

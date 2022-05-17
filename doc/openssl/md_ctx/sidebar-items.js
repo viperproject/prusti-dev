@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["MdCtx",""],["MdCtxRef","A reference to an [`MdCtx`]."]]});

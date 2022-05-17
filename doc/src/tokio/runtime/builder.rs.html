@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.17.0/src/runtime/builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.18.2/src/runtime/builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -721,8 +721,15 @@
 <span id="716">716</span>
 <span id="717">717</span>
 <span id="718">718</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17-48"><span class="kw">crate</span>::runtime::handle::Handle</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime</span>::{<a class="ident" href="../../../src/tokio/runtime/mod.rs.html#201">blocking</a>, <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#217">driver</a>, <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#308">Callback</a>, <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#285-294">Runtime</a>, <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#10-14">Spawner</a>};
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17-19"><span class="kw">crate</span>::runtime::handle::Handle</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime</span>::{<a class="ident" href="../../../src/tokio/runtime/mod.rs.html#205">blocking</a>, <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#221">driver</a>, <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#308">Callback</a>, <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#285-294">Runtime</a>, <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#11-15">Spawner</a>};
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
@@ -889,9 +896,9 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;process&quot;</span>, <span class="ident">all</span>(<span class="ident">unix</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;signal&quot;</span>)))]</span>
-        <a class="self" href="../../../src/tokio/runtime/builder.rs.html#167">self</a>.<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#606">enable_io</a>();
+        <a class="self" href="../../../src/tokio/runtime/builder.rs.html#167">self</a>.<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#611">enable_io</a>();
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
-        <a class="self" href="../../../src/tokio/runtime/builder.rs.html#167">self</a>.<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#629">enable_time</a>();
+        <a class="self" href="../../../src/tokio/runtime/builder.rs.html#167">self</a>.<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#634">enable_time</a>();
 
         <a class="self" href="../../../src/tokio/runtime/builder.rs.html#167">self</a>
     }
@@ -994,7 +1001,7 @@
     <span class="doccomment">///     .build();</span>
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#274">val</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <a class="self" href="../../../src/tokio/runtime/builder.rs.html#274">self</a>.<span class="ident">thread_name</span> <span class="op">=</span> <span class="ident">std::sync::Arc::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#275">val</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         <a class="self" href="../../../src/tokio/runtime/builder.rs.html#274">self</a>
@@ -1238,7 +1245,7 @@
         <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#514">self</a>.<span class="ident">kind</span> {
             <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#86">Kind::CurrentThread</a> =&gt; <a class="self" href="../../../src/tokio/runtime/builder.rs.html#514">self</a>.<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#557">build_basic_runtime</a>(),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rt-multi-thread&quot;</span>)]</span>
-            <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#88">Kind::MultiThread</a> =&gt; <a class="self" href="../../../src/tokio/runtime/builder.rs.html#514">self</a>.<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#663">build_threaded_runtime</a>(),
+            <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#88">Kind::MultiThread</a> =&gt; <a class="self" href="../../../src/tokio/runtime/builder.rs.html#514">self</a>.<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#668">build_threaded_runtime</a>(),
         }
     }
 
@@ -1278,33 +1285,38 @@
     }
 
     <span class="kw">fn</span> <span class="ident">build_basic_runtime</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/mod.rs.html#285-294">Runtime</a><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime</span>::{<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#23-39">BasicScheduler</a>, <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#298-305">Kind</a>};
+        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime</span>::{<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#23-39">BasicScheduler</a>, <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#23-52">HandleInner</a>, <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#298-305">Kind</a>};
 
         <span class="kw">let</span> (<span class="ident">driver</span>, <span class="ident">resources</span>) <span class="op">=</span> <span class="ident">driver::Driver::new</span>(<a class="self" href="../../../src/tokio/runtime/builder.rs.html#557">self</a>.<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#522">get_cfg</a>())<span class="question-mark">?</span>;
+
+        <span class="comment">// Blocking pool</span>
+        <span class="kw">let</span> <span class="ident">blocking_pool</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/blocking/mod.rs.html#21">blocking::create_blocking_pool</a>(<a class="self" href="../../../src/tokio/runtime/builder.rs.html#557">self</a>, <a class="self" href="../../../src/tokio/runtime/builder.rs.html#557">self</a>.<span class="ident">max_blocking_threads</span>);
+        <span class="kw">let</span> <span class="ident">blocking_spawner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#563">blocking_pool</a>.<a class="ident" href="../../../src/tokio/runtime/blocking/pool.rs.html#170">spawner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+
+        <span class="kw">let</span> <span class="ident">handle_inner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#23-52">HandleInner</a> {
+            <span class="ident">io_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#560">resources</a>.<span class="ident">io_handle</span>,
+            <span class="ident">time_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#560">resources</a>.<span class="ident">time_handle</span>,
+            <span class="ident">signal_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#560">resources</a>.<span class="ident">signal_handle</span>,
+            <span class="ident">clock</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#560">resources</a>.<span class="ident">clock</span>,
+            <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#564">blocking_spawner</a>,
+        };
 
         <span class="comment">// And now put a single-threaded scheduler on top of the timer. When</span>
         <span class="comment">// there are no futures ready to do something, it&#39;ll let the timer or</span>
         <span class="comment">// the reactor to generate some new stimuli for the futures to continue</span>
         <span class="comment">// in their life.</span>
-        <span class="kw">let</span> <span class="ident">scheduler</span> <span class="op">=</span>
-            <span class="ident">BasicScheduler::new</span>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#560">driver</a>, <a class="self" href="../../../src/tokio/runtime/builder.rs.html#557">self</a>.<span class="ident">before_park</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="self" href="../../../src/tokio/runtime/builder.rs.html#557">self</a>.<span class="ident">after_unpark</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#11">Spawner::Basic</a>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#566">scheduler</a>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#156">spawner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-
-        <span class="comment">// Blocking pool</span>
-        <span class="kw">let</span> <span class="ident">blocking_pool</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/blocking/mod.rs.html#21">blocking::create_blocking_pool</a>(<a class="self" href="../../../src/tokio/runtime/builder.rs.html#557">self</a>, <a class="self" href="../../../src/tokio/runtime/builder.rs.html#557">self</a>.<span class="ident">max_blocking_threads</span>);
-        <span class="kw">let</span> <span class="ident">blocking_spawner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#571">blocking_pool</a>.<a class="ident" href="../../../src/tokio/runtime/blocking/pool.rs.html#169">spawner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="ident">BasicScheduler::new</span>(
+            <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#560">driver</a>,
+            <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#566">handle_inner</a>,
+            <a class="self" href="../../../src/tokio/runtime/builder.rs.html#557">self</a>.<span class="ident">before_park</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a class="self" href="../../../src/tokio/runtime/builder.rs.html#557">self</a>.<span class="ident">after_unpark</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        );
+        <span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#12">Spawner::Basic</a>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#578">scheduler</a>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#161">spawner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/runtime/mod.rs.html#285-294">Runtime</a> {
-            <span class="ident">kind</span>: <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#300">Kind::CurrentThread</a>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#566">scheduler</a>),
-            <span class="ident">handle</span>: <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17-48">Handle</a> {
-                <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#568">spawner</a>,
-                <span class="ident">io_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#560">resources</a>.<span class="ident">io_handle</span>,
-                <span class="ident">time_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#560">resources</a>.<span class="ident">time_handle</span>,
-                <span class="ident">signal_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#560">resources</a>.<span class="ident">signal_handle</span>,
-                <span class="ident">clock</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#560">resources</a>.<span class="ident">clock</span>,
-                <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#572">blocking_spawner</a>,
-            },
-            <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#571">blocking_pool</a>,
+            <span class="ident">kind</span>: <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#300">Kind::CurrentThread</a>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#578">scheduler</a>),
+            <span class="ident">handle</span>: <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17-19">Handle</a> { <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#584">spawner</a> },
+            <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#563">blocking_pool</a>,
         })
     }
 }
@@ -1327,8 +1339,8 @@
         <span class="doccomment">///     .unwrap();</span>
         <span class="doccomment">/// ```</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_io</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-            <a class="self" href="../../../src/tokio/runtime/builder.rs.html#606">self</a>.<span class="ident">enable_io</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <a class="self" href="../../../src/tokio/runtime/builder.rs.html#606">self</a>
+            <a class="self" href="../../../src/tokio/runtime/builder.rs.html#611">self</a>.<span class="ident">enable_io</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <a class="self" href="../../../src/tokio/runtime/builder.rs.html#611">self</a>
         }
     }
 }
@@ -1350,8 +1362,8 @@
         <span class="doccomment">///     .unwrap();</span>
         <span class="doccomment">/// ```</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_time</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-            <a class="self" href="../../../src/tokio/runtime/builder.rs.html#629">self</a>.<span class="ident">enable_time</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <a class="self" href="../../../src/tokio/runtime/builder.rs.html#629">self</a>
+            <a class="self" href="../../../src/tokio/runtime/builder.rs.html#634">self</a>.<span class="ident">enable_time</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <a class="self" href="../../../src/tokio/runtime/builder.rs.html#634">self</a>
         }
     }
 }
@@ -1385,38 +1397,40 @@
     <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#40-81">Builder</a> {
         <span class="kw">fn</span> <span class="ident">build_threaded_runtime</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/runtime/mod.rs.html#285-294">Runtime</a><span class="op">&gt;</span> {
             <span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/mod.rs.html#87"><span class="kw">crate</span>::loom::sys::num_cpus</a>;
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime</span>::{<a class="ident" href="../../../src/tokio/runtime/mod.rs.html#298-305">Kind</a>, <a class="ident" href="../../../src/tokio/runtime/thread_pool/mod.rs.html#19-21">ThreadPool</a>};
-            <span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/park.rs.html#15-17"><span class="kw">crate</span>::runtime::park::Parker</a>;
+            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime</span>::{<a class="ident" href="../../../src/tokio/runtime/mod.rs.html#298-305">Kind</a>, <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#23-52">HandleInner</a>, <a class="ident" href="../../../src/tokio/runtime/thread_pool/mod.rs.html#24-26">ThreadPool</a>};
 
-            <span class="kw">let</span> <span class="ident">core_threads</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/builder.rs.html#663">self</a>.<span class="ident">worker_threads</span>.<span class="ident">unwrap_or_else</span>(<a class="ident" href="../../../src/tokio/loom/std/mod.rs.html#87">num_cpus</a>);
+            <span class="kw">let</span> <span class="ident">core_threads</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/builder.rs.html#668">self</a>.<span class="ident">worker_threads</span>.<span class="ident">unwrap_or_else</span>(<a class="ident" href="../../../src/tokio/loom/std/mod.rs.html#87">num_cpus</a>);
 
-            <span class="kw">let</span> (<span class="ident">driver</span>, <span class="ident">resources</span>) <span class="op">=</span> <span class="ident">driver::Driver::new</span>(<a class="self" href="../../../src/tokio/runtime/builder.rs.html#663">self</a>.<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#522">get_cfg</a>())<span class="question-mark">?</span>;
-
-            <span class="kw">let</span> (<span class="ident">scheduler</span>, <span class="ident">launch</span>) <span class="op">=</span> <span class="ident">ThreadPool::new</span>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#668">core_threads</a>, <span class="ident">Parker::new</span>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#670">driver</a>), <a class="self" href="../../../src/tokio/runtime/builder.rs.html#663">self</a>.<span class="ident">before_park</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="self" href="../../../src/tokio/runtime/builder.rs.html#663">self</a>.<span class="ident">after_unpark</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#13">Spawner::ThreadPool</a>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#672">scheduler</a>.<a class="ident" href="../../../src/tokio/runtime/thread_pool/mod.rs.html#60">spawner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="kw">let</span> (<span class="ident">driver</span>, <span class="ident">resources</span>) <span class="op">=</span> <span class="ident">driver::Driver::new</span>(<a class="self" href="../../../src/tokio/runtime/builder.rs.html#668">self</a>.<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#522">get_cfg</a>())<span class="question-mark">?</span>;
 
             <span class="comment">// Create the blocking pool</span>
-            <span class="kw">let</span> <span class="ident">blocking_pool</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/blocking/mod.rs.html#21">blocking::create_blocking_pool</a>(<a class="self" href="../../../src/tokio/runtime/builder.rs.html#663">self</a>, <a class="self" href="../../../src/tokio/runtime/builder.rs.html#663">self</a>.<span class="ident">max_blocking_threads</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#668">core_threads</a>);
-            <span class="kw">let</span> <span class="ident">blocking_spawner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#676">blocking_pool</a>.<a class="ident" href="../../../src/tokio/runtime/blocking/pool.rs.html#169">spawner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw">let</span> <span class="ident">blocking_pool</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/blocking/mod.rs.html#21">blocking::create_blocking_pool</a>(<a class="self" href="../../../src/tokio/runtime/builder.rs.html#668">self</a>, <a class="self" href="../../../src/tokio/runtime/builder.rs.html#668">self</a>.<span class="ident">max_blocking_threads</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#672">core_threads</a>);
+            <span class="kw">let</span> <span class="ident">blocking_spawner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#677">blocking_pool</a>.<a class="ident" href="../../../src/tokio/runtime/blocking/pool.rs.html#170">spawner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+
+            <span class="kw">let</span> <span class="ident">handle_inner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#23-52">HandleInner</a> {
+                <span class="ident">io_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#674">resources</a>.<span class="ident">io_handle</span>,
+                <span class="ident">time_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#674">resources</a>.<span class="ident">time_handle</span>,
+                <span class="ident">signal_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#674">resources</a>.<span class="ident">signal_handle</span>,
+                <span class="ident">clock</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#674">resources</a>.<span class="ident">clock</span>,
+                <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#678">blocking_spawner</a>,
+            };
+
+            <span class="kw">let</span> (<span class="ident">scheduler</span>, <span class="ident">launch</span>) <span class="op">=</span> <span class="ident">ThreadPool::new</span>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#672">core_threads</a>, <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#674">driver</a>, <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#680">handle_inner</a>, <a class="self" href="../../../src/tokio/runtime/builder.rs.html#668">self</a>.<span class="ident">before_park</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="self" href="../../../src/tokio/runtime/builder.rs.html#668">self</a>.<span class="ident">after_unpark</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#14">Spawner::ThreadPool</a>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#688">scheduler</a>.<a class="ident" href="../../../src/tokio/runtime/thread_pool/mod.rs.html#68">spawner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
             <span class="comment">// Create the runtime handle</span>
-            <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17-48">Handle</a> {
-                <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#673">spawner</a>,
-                <span class="ident">io_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#670">resources</a>.<span class="ident">io_handle</span>,
-                <span class="ident">time_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#670">resources</a>.<span class="ident">time_handle</span>,
-                <span class="ident">signal_handle</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#670">resources</a>.<span class="ident">signal_handle</span>,
-                <span class="ident">clock</span>: <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#670">resources</a>.<span class="ident">clock</span>,
-                <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#677">blocking_spawner</a>,
+            <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/handle.rs.html#17-19">Handle</a> {
+                <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#689">spawner</a>,
             };
 
             <span class="comment">// Spawn the thread pool workers</span>
-            <span class="kw">let</span> <span class="ident">_enter</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#83"><span class="kw">crate</span>::runtime::context::enter</a>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#680">handle</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#672">launch</a>.<a class="ident" href="../../../src/tokio/runtime/thread_pool/worker.rs.html#350">launch</a>();
+            <span class="kw">let</span> <span class="ident">_enter</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#83"><span class="kw">crate</span>::runtime::context::enter</a>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#692">handle</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#688">launch</a>.<a class="ident" href="../../../src/tokio/runtime/thread_pool/worker.rs.html#356">launch</a>();
 
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/runtime/mod.rs.html#285-294">Runtime</a> {
-                <span class="ident">kind</span>: <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#304">Kind::ThreadPool</a>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#672">scheduler</a>),
-                <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#680">handle</a>,
-                <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#676">blocking_pool</a>,
+                <span class="ident">kind</span>: <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#304">Kind::ThreadPool</a>(<a class="ident" href="../../../src/tokio/runtime/builder.rs.html#688">scheduler</a>),
+                <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#692">handle</a>,
+                <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#677">blocking_pool</a>,
             })
         }
     }
@@ -1424,21 +1438,21 @@
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#40-81">Builder</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#703">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Builder&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;worker_threads&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#703">self</a>.<span class="ident">worker_threads</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;max_blocking_threads&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#703">self</a>.<span class="ident">max_blocking_threads</span>)
+        <a class="ident" href="../../../src/tokio/runtime/builder.rs.html#710">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Builder&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;worker_threads&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#710">self</a>.<span class="ident">worker_threads</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;max_blocking_threads&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#710">self</a>.<span class="ident">max_blocking_threads</span>)
             .<span class="ident">field</span>(
                 <span class="string">&quot;thread_name&quot;</span>,
                 <span class="kw-2">&amp;</span><span class="string">&quot;&lt;dyn Fn() -&gt; String + Send + Sync + &#39;static&gt;&quot;</span>,
             )
-            .<span class="ident">field</span>(<span class="string">&quot;thread_stack_size&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#703">self</a>.<span class="ident">thread_stack_size</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;after_start&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#703">self</a>.<span class="ident">after_start</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;before_stop&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#703">self</a>.<span class="ident">before_stop</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;before_park&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#703">self</a>.<span class="ident">before_park</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;after_unpark&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#703">self</a>.<span class="ident">after_unpark</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;thread_stack_size&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#710">self</a>.<span class="ident">thread_stack_size</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;after_start&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#710">self</a>.<span class="ident">after_start</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;before_stop&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#710">self</a>.<span class="ident">before_stop</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;before_park&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#710">self</a>.<span class="ident">before_park</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;after_unpark&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/runtime/builder.rs.html#710">self</a>.<span class="ident">after_unpark</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>))
             .<span class="ident">finish</span>()
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

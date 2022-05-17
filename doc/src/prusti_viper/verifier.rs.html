@@ -431,7 +431,6 @@
 <span id="426">426</span>
 <span id="427">427</span>
 <span id="428">428</span>
-<span id="429">429</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -831,36 +830,35 @@
         <span class="comment">// Here we construct a Tokio runtime to block until completion of the futures returned by</span>
         <span class="comment">// `client.verify`. However, to report verification errors as early as possible,</span>
         <span class="comment">// `verify_programs` should return an asynchronous stream of verification results.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">Builder::new</span>()
-            .<span class="ident">basic_scheduler</span>()
+        <span class="kw">let</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">Builder::new_current_thread</span>()
             .<span class="ident">thread_name</span>(<span class="string">&quot;prusti-viper&quot;</span>)
             .<span class="ident">enable_all</span>()
             .<span class="ident">build</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;failed to construct Tokio runtime&quot;</span>);
         <a class="ident" href="../../src/prusti_viper/verifier.rs.html#374">verification_requests</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">program_name</span>, <span class="ident">request</span>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">remote_result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#400">runtime</a>.<span class="ident">block_on</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#391">client</a>.<span class="ident">verify</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#406">request</a>));
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#407">remote_result</a>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">remote_result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#400">runtime</a>.<span class="ident">block_on</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#391">client</a>.<span class="ident">verify</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#405">request</a>));
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#406">remote_result</a>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
                 <span class="macro">panic!</span>(
                     <span class="string">&quot;Verification request of program {} failed: {:?}&quot;</span>,
-                    <a class="ident" href="../../src/prusti_viper/verifier.rs.html#406">program_name</a>,
-                    <a class="ident" href="../../src/prusti_viper/verifier.rs.html#408">error</a>
+                    <a class="ident" href="../../src/prusti_viper/verifier.rs.html#405">program_name</a>,
+                    <a class="ident" href="../../src/prusti_viper/verifier.rs.html#407">error</a>
                 )
             });
-            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#406">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#408">result</a>)
+            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#405">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#407">result</a>)
         }).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     } <span class="kw">else</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-viper&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
         <span class="kw">let</span> <span class="ident">viper</span> <span class="op">=</span> <span class="ident">Viper::new_with_args</span>(<span class="ident">config::extra_jvm_args</span>());
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#418">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;attach current thread to the JVM&quot;</span>);
-        <span class="kw">let</span> <span class="ident">viper_thread</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#419">viper</a>.<span class="ident">attach_current_thread</span>();
-        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#418">stopwatch</a>.<span class="ident">finish</span>();
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#417">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;attach current thread to the JVM&quot;</span>);
+        <span class="kw">let</span> <span class="ident">viper_thread</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#418">viper</a>.<span class="ident">attach_current_thread</span>();
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#417">stopwatch</a>.<span class="ident">finish</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <span class="ident">PersistentCache::load_cache</span>(<span class="ident">config::cache_path</span>());
         <a class="ident" href="../../src/prusti_viper/verifier.rs.html#374">verification_requests</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">program_name</span>, <span class="ident">request</span>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../prusti_server/process_verification/fn.process_verification_request.html">process_verification_request</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#421">viper_thread</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#424">request</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#423">cache</a>);
-            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#424">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#425">result</a>)
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../prusti_server/process_verification/fn.process_verification_request.html">process_verification_request</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#420">viper_thread</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#423">request</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#422">cache</a>);
+            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#423">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#424">result</a>)
         }).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

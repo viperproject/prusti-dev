@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.23.1/src/errno.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>errno.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.1/src/errno.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>errno.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -2726,13 +2726,17 @@
 <span id="2721">2721</span>
 <span id="2722">2722</span>
 <span id="2723">2723</span>
+<span id="2724">2724</span>
+<span id="2725">2725</span>
+<span id="2726">2726</span>
+<span id="2727">2727</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">cfg_if::cfg_if</span>;
 <span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
 <span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/index.html">error</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/nix/lib.rs.html#103">Error</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/nix/lib.rs.html#181">Error</a>, <span class="prelude-ty">Result</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#770-1073"><span class="self">self</span>::consts</a>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#772-1075"><span class="self">self</span>::consts</a>::<span class="kw-2">*</span>;
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
@@ -2776,7 +2780,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> {
     <span class="doccomment">/// Convert this `Error` to an [`Errno`](enum.Errno.html).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Example</span>
@@ -2801,7 +2805,7 @@
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;It&#39;s a no-op now; just delete it.&quot;</span>
     )]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span> <span class="comment">// False positive</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_errno</span>(<span class="ident">errno</span>: <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a>) -&gt; <a class="ident" href="../../src/nix/lib.rs.html#103">Error</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_errno</span>(<span class="ident">errno</span>: <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a>) -&gt; <a class="ident" href="../../src/nix/lib.rs.html#181">Error</a> {
         <a class="ident" href="../../src/nix/errno.rs.html#76">errno</a>
     }
 
@@ -2810,8 +2814,8 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.22.0&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use Errno::EINVAL instead&quot;</span>
     )]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">invalid_argument</span>() -&gt; <a class="ident" href="../../src/nix/lib.rs.html#103">Error</a> {
-        <a class="ident" href="../../src/nix/errno.rs.html#797">Errno::EINVAL</a>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">invalid_argument</span>() -&gt; <a class="ident" href="../../src/nix/lib.rs.html#181">Error</a> {
+        <a class="ident" href="../../src/nix/errno.rs.html#799">Errno::EINVAL</a>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last</span>() -&gt; <span class="self">Self</span> {
@@ -2822,8 +2826,8 @@
         <a class="ident" href="../../src/nix/errno.rs.html#186">desc</a>(<a class="self" href="../../src/nix/errno.rs.html#93">self</a>)
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_i32</span>(<span class="ident">err</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> {
-        <a class="ident" href="../../src/nix/errno.rs.html#933">from_i32</a>(<a class="ident" href="../../src/nix/errno.rs.html#97">err</a>)
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_i32</span>(<span class="ident">err</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> {
+        <a class="ident" href="../../src/nix/errno.rs.html#935">from_i32</a>(<a class="ident" href="../../src/nix/errno.rs.html#97">err</a>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>() {
@@ -2852,7 +2856,7 @@
     )]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">Sys</span>(<span class="ident">errno</span>: <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a>) -&gt; <a class="ident" href="../../src/nix/lib.rs.html#103">Error</a> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">Sys</span>(<span class="ident">errno</span>: <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a>) -&gt; <a class="ident" href="../../src/nix/lib.rs.html#181">Error</a> {
         <a class="ident" href="../../src/nix/errno.rs.html#127">errno</a>
     }
 }
@@ -2883,21 +2887,21 @@
     <span class="kw">fn</span> <span class="ident">sentinel</span>() -&gt; <span class="self">Self</span> { <span class="ident">libc::SIG_ERR</span> }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> {}
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../src/nix/errno.rs.html#161">f</a>, <span class="string">&quot;{:?}: {}&quot;</span>, <a class="self" href="../../src/nix/errno.rs.html#161">self</a>, <a class="self" href="../../src/nix/errno.rs.html#161">self</a>.<a class="ident" href="../../src/nix/errno.rs.html#93">desc</a>())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a>) -&gt; <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a>) -&gt; <span class="self">Self</span> {
         <span class="ident">io::Error::from_raw_os_error</span>(<a class="ident" href="../../src/nix/errno.rs.html#167">err</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> {
+<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
     <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">ioerror</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
@@ -2907,383 +2911,383 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">last</span>() -&gt; <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> {
+<span class="kw">fn</span> <span class="ident">last</span>() -&gt; <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> {
     <span class="ident">Errno::from_i32</span>(<a class="ident" href="../../src/nix/errno.rs.html#45">errno</a>())
 }
 
-<span class="kw">fn</span> <span class="ident">desc</span>(<span class="ident">errno</span>: <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#774-909"><span class="self">self</span>::Errno</a>::<span class="kw-2">*</span>;
+<span class="kw">fn</span> <span class="ident">desc</span>(<span class="ident">errno</span>: <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+    <span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#776-911"><span class="self">self</span>::Errno</a>::<span class="kw-2">*</span>;
     <span class="kw">match</span> <a class="ident" href="../../src/nix/errno.rs.html#186">errno</a> {
-        <a class="ident" href="../../src/nix/errno.rs.html#775">UnknownErrno</a>    =&gt; <span class="string">&quot;Unknown errno&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#776">EPERM</a>           =&gt; <span class="string">&quot;Operation not permitted&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#777">ENOENT</a>          =&gt; <span class="string">&quot;No such file or directory&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#778">ESRCH</a>           =&gt; <span class="string">&quot;No such process&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#779">EINTR</a>           =&gt; <span class="string">&quot;Interrupted system call&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#780">EIO</a>             =&gt; <span class="string">&quot;I/O error&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#781">ENXIO</a>           =&gt; <span class="string">&quot;No such device or address&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#782">E2BIG</a>           =&gt; <span class="string">&quot;Argument list too long&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#783">ENOEXEC</a>         =&gt; <span class="string">&quot;Exec format error&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#784">EBADF</a>           =&gt; <span class="string">&quot;Bad file number&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#785">ECHILD</a>          =&gt; <span class="string">&quot;No child processes&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#786">EAGAIN</a>          =&gt; <span class="string">&quot;Try again&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#787">ENOMEM</a>          =&gt; <span class="string">&quot;Out of memory&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#788">EACCES</a>          =&gt; <span class="string">&quot;Permission denied&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#789">EFAULT</a>          =&gt; <span class="string">&quot;Bad address&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#790">ENOTBLK</a>         =&gt; <span class="string">&quot;Block device required&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#791">EBUSY</a>           =&gt; <span class="string">&quot;Device or resource busy&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#792">EEXIST</a>          =&gt; <span class="string">&quot;File exists&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#793">EXDEV</a>           =&gt; <span class="string">&quot;Cross-device link&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#794">ENODEV</a>          =&gt; <span class="string">&quot;No such device&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#795">ENOTDIR</a>         =&gt; <span class="string">&quot;Not a directory&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#796">EISDIR</a>          =&gt; <span class="string">&quot;Is a directory&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#797">EINVAL</a>          =&gt; <span class="string">&quot;Invalid argument&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#798">ENFILE</a>          =&gt; <span class="string">&quot;File table overflow&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#799">EMFILE</a>          =&gt; <span class="string">&quot;Too many open files&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#800">ENOTTY</a>          =&gt; <span class="string">&quot;Not a typewriter&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#801">ETXTBSY</a>         =&gt; <span class="string">&quot;Text file busy&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#802">EFBIG</a>           =&gt; <span class="string">&quot;File too large&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#803">ENOSPC</a>          =&gt; <span class="string">&quot;No space left on device&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#804">ESPIPE</a>          =&gt; <span class="string">&quot;Illegal seek&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#805">EROFS</a>           =&gt; <span class="string">&quot;Read-only file system&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#806">EMLINK</a>          =&gt; <span class="string">&quot;Too many links&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#807">EPIPE</a>           =&gt; <span class="string">&quot;Broken pipe&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#808">EDOM</a>            =&gt; <span class="string">&quot;Math argument out of domain of func&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#809">ERANGE</a>          =&gt; <span class="string">&quot;Math result not representable&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#810">EDEADLK</a>         =&gt; <span class="string">&quot;Resource deadlock would occur&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#811">ENAMETOOLONG</a>    =&gt; <span class="string">&quot;File name too long&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#812">ENOLCK</a>          =&gt; <span class="string">&quot;No record locks available&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#813">ENOSYS</a>          =&gt; <span class="string">&quot;Function not implemented&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#814">ENOTEMPTY</a>       =&gt; <span class="string">&quot;Directory not empty&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#815">ELOOP</a>           =&gt; <span class="string">&quot;Too many symbolic links encountered&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#816">ENOMSG</a>          =&gt; <span class="string">&quot;No message of desired type&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#817">EIDRM</a>           =&gt; <span class="string">&quot;Identifier removed&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#888">EINPROGRESS</a>     =&gt; <span class="string">&quot;Operation now in progress&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#887">EALREADY</a>        =&gt; <span class="string">&quot;Operation already in progress&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#861">ENOTSOCK</a>        =&gt; <span class="string">&quot;Socket operation on non-socket&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#862">EDESTADDRREQ</a>    =&gt; <span class="string">&quot;Destination address required&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#863">EMSGSIZE</a>        =&gt; <span class="string">&quot;Message too long&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#864">EPROTOTYPE</a>      =&gt; <span class="string">&quot;Protocol wrong type for socket&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#865">ENOPROTOOPT</a>     =&gt; <span class="string">&quot;Protocol not available&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#866">EPROTONOSUPPORT</a> =&gt; <span class="string">&quot;Protocol not supported&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#867">ESOCKTNOSUPPORT</a> =&gt; <span class="string">&quot;Socket type not supported&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#869">EPFNOSUPPORT</a>    =&gt; <span class="string">&quot;Protocol family not supported&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#870">EAFNOSUPPORT</a>    =&gt; <span class="string">&quot;Address family not supported by protocol&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#871">EADDRINUSE</a>      =&gt; <span class="string">&quot;Address already in use&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#872">EADDRNOTAVAIL</a>   =&gt; <span class="string">&quot;Cannot assign requested address&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#873">ENETDOWN</a>        =&gt; <span class="string">&quot;Network is down&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#874">ENETUNREACH</a>     =&gt; <span class="string">&quot;Network is unreachable&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#875">ENETRESET</a>       =&gt; <span class="string">&quot;Network dropped connection because of reset&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#876">ECONNABORTED</a>    =&gt; <span class="string">&quot;Software caused connection abort&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#877">ECONNRESET</a>      =&gt; <span class="string">&quot;Connection reset by peer&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#878">ENOBUFS</a>         =&gt; <span class="string">&quot;No buffer space available&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#879">EISCONN</a>         =&gt; <span class="string">&quot;Transport endpoint is already connected&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#880">ENOTCONN</a>        =&gt; <span class="string">&quot;Transport endpoint is not connected&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#881">ESHUTDOWN</a>       =&gt; <span class="string">&quot;Cannot send after transport endpoint shutdown&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#882">ETOOMANYREFS</a>    =&gt; <span class="string">&quot;Too many references: cannot splice&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#883">ETIMEDOUT</a>       =&gt; <span class="string">&quot;Connection timed out&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#884">ECONNREFUSED</a>    =&gt; <span class="string">&quot;Connection refused&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#885">EHOSTDOWN</a>       =&gt; <span class="string">&quot;Host is down&quot;</span>,
-        <a class="ident" href="../../src/nix/errno.rs.html#886">EHOSTUNREACH</a>    =&gt; <span class="string">&quot;No route to host&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#777">UnknownErrno</a>    =&gt; <span class="string">&quot;Unknown errno&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#778">EPERM</a>           =&gt; <span class="string">&quot;Operation not permitted&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#779">ENOENT</a>          =&gt; <span class="string">&quot;No such file or directory&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#780">ESRCH</a>           =&gt; <span class="string">&quot;No such process&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#781">EINTR</a>           =&gt; <span class="string">&quot;Interrupted system call&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#782">EIO</a>             =&gt; <span class="string">&quot;I/O error&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#783">ENXIO</a>           =&gt; <span class="string">&quot;No such device or address&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#784">E2BIG</a>           =&gt; <span class="string">&quot;Argument list too long&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#785">ENOEXEC</a>         =&gt; <span class="string">&quot;Exec format error&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#786">EBADF</a>           =&gt; <span class="string">&quot;Bad file number&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#787">ECHILD</a>          =&gt; <span class="string">&quot;No child processes&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#788">EAGAIN</a>          =&gt; <span class="string">&quot;Try again&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#789">ENOMEM</a>          =&gt; <span class="string">&quot;Out of memory&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#790">EACCES</a>          =&gt; <span class="string">&quot;Permission denied&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#791">EFAULT</a>          =&gt; <span class="string">&quot;Bad address&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#792">ENOTBLK</a>         =&gt; <span class="string">&quot;Block device required&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#793">EBUSY</a>           =&gt; <span class="string">&quot;Device or resource busy&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#794">EEXIST</a>          =&gt; <span class="string">&quot;File exists&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#795">EXDEV</a>           =&gt; <span class="string">&quot;Cross-device link&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#796">ENODEV</a>          =&gt; <span class="string">&quot;No such device&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#797">ENOTDIR</a>         =&gt; <span class="string">&quot;Not a directory&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#798">EISDIR</a>          =&gt; <span class="string">&quot;Is a directory&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#799">EINVAL</a>          =&gt; <span class="string">&quot;Invalid argument&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#800">ENFILE</a>          =&gt; <span class="string">&quot;File table overflow&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#801">EMFILE</a>          =&gt; <span class="string">&quot;Too many open files&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#802">ENOTTY</a>          =&gt; <span class="string">&quot;Not a typewriter&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#803">ETXTBSY</a>         =&gt; <span class="string">&quot;Text file busy&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#804">EFBIG</a>           =&gt; <span class="string">&quot;File too large&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#805">ENOSPC</a>          =&gt; <span class="string">&quot;No space left on device&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#806">ESPIPE</a>          =&gt; <span class="string">&quot;Illegal seek&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#807">EROFS</a>           =&gt; <span class="string">&quot;Read-only file system&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#808">EMLINK</a>          =&gt; <span class="string">&quot;Too many links&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#809">EPIPE</a>           =&gt; <span class="string">&quot;Broken pipe&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#810">EDOM</a>            =&gt; <span class="string">&quot;Math argument out of domain of func&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#811">ERANGE</a>          =&gt; <span class="string">&quot;Math result not representable&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#812">EDEADLK</a>         =&gt; <span class="string">&quot;Resource deadlock would occur&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#813">ENAMETOOLONG</a>    =&gt; <span class="string">&quot;File name too long&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#814">ENOLCK</a>          =&gt; <span class="string">&quot;No record locks available&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#815">ENOSYS</a>          =&gt; <span class="string">&quot;Function not implemented&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#816">ENOTEMPTY</a>       =&gt; <span class="string">&quot;Directory not empty&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#817">ELOOP</a>           =&gt; <span class="string">&quot;Too many symbolic links encountered&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#818">ENOMSG</a>          =&gt; <span class="string">&quot;No message of desired type&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#819">EIDRM</a>           =&gt; <span class="string">&quot;Identifier removed&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#890">EINPROGRESS</a>     =&gt; <span class="string">&quot;Operation now in progress&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#889">EALREADY</a>        =&gt; <span class="string">&quot;Operation already in progress&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#863">ENOTSOCK</a>        =&gt; <span class="string">&quot;Socket operation on non-socket&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#864">EDESTADDRREQ</a>    =&gt; <span class="string">&quot;Destination address required&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#865">EMSGSIZE</a>        =&gt; <span class="string">&quot;Message too long&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#866">EPROTOTYPE</a>      =&gt; <span class="string">&quot;Protocol wrong type for socket&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#867">ENOPROTOOPT</a>     =&gt; <span class="string">&quot;Protocol not available&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#868">EPROTONOSUPPORT</a> =&gt; <span class="string">&quot;Protocol not supported&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#869">ESOCKTNOSUPPORT</a> =&gt; <span class="string">&quot;Socket type not supported&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#871">EPFNOSUPPORT</a>    =&gt; <span class="string">&quot;Protocol family not supported&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#872">EAFNOSUPPORT</a>    =&gt; <span class="string">&quot;Address family not supported by protocol&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#873">EADDRINUSE</a>      =&gt; <span class="string">&quot;Address already in use&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#874">EADDRNOTAVAIL</a>   =&gt; <span class="string">&quot;Cannot assign requested address&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#875">ENETDOWN</a>        =&gt; <span class="string">&quot;Network is down&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#876">ENETUNREACH</a>     =&gt; <span class="string">&quot;Network is unreachable&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#877">ENETRESET</a>       =&gt; <span class="string">&quot;Network dropped connection because of reset&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#878">ECONNABORTED</a>    =&gt; <span class="string">&quot;Software caused connection abort&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#879">ECONNRESET</a>      =&gt; <span class="string">&quot;Connection reset by peer&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#880">ENOBUFS</a>         =&gt; <span class="string">&quot;No buffer space available&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#881">EISCONN</a>         =&gt; <span class="string">&quot;Transport endpoint is already connected&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#882">ENOTCONN</a>        =&gt; <span class="string">&quot;Transport endpoint is not connected&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#883">ESHUTDOWN</a>       =&gt; <span class="string">&quot;Cannot send after transport endpoint shutdown&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#884">ETOOMANYREFS</a>    =&gt; <span class="string">&quot;Too many references: cannot splice&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#885">ETIMEDOUT</a>       =&gt; <span class="string">&quot;Connection timed out&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#886">ECONNREFUSED</a>    =&gt; <span class="string">&quot;Connection refused&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#887">EHOSTDOWN</a>       =&gt; <span class="string">&quot;Host is down&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#888">EHOSTUNREACH</a>    =&gt; <span class="string">&quot;No route to host&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#818">ECHRNG</a>          =&gt; <span class="string">&quot;Channel number out of range&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#820">ECHRNG</a>          =&gt; <span class="string">&quot;Channel number out of range&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#819">EL2NSYNC</a>        =&gt; <span class="string">&quot;Level 2 not synchronized&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#821">EL2NSYNC</a>        =&gt; <span class="string">&quot;Level 2 not synchronized&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#820">EL3HLT</a>          =&gt; <span class="string">&quot;Level 3 halted&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#822">EL3HLT</a>          =&gt; <span class="string">&quot;Level 3 halted&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#821">EL3RST</a>          =&gt; <span class="string">&quot;Level 3 reset&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#823">EL3RST</a>          =&gt; <span class="string">&quot;Level 3 reset&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#822">ELNRNG</a>          =&gt; <span class="string">&quot;Link number out of range&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#824">ELNRNG</a>          =&gt; <span class="string">&quot;Link number out of range&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#823">EUNATCH</a>         =&gt; <span class="string">&quot;Protocol driver not attached&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#825">EUNATCH</a>         =&gt; <span class="string">&quot;Protocol driver not attached&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#824">ENOCSI</a>          =&gt; <span class="string">&quot;No CSI structure available&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#826">ENOCSI</a>          =&gt; <span class="string">&quot;No CSI structure available&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#825">EL2HLT</a>          =&gt; <span class="string">&quot;Level 2 halted&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#827">EL2HLT</a>          =&gt; <span class="string">&quot;Level 2 halted&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#826">EBADE</a>           =&gt; <span class="string">&quot;Invalid exchange&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#828">EBADE</a>           =&gt; <span class="string">&quot;Invalid exchange&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#827">EBADR</a>           =&gt; <span class="string">&quot;Invalid request descriptor&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#829">EBADR</a>           =&gt; <span class="string">&quot;Invalid request descriptor&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#828">EXFULL</a>          =&gt; <span class="string">&quot;Exchange full&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#830">EXFULL</a>          =&gt; <span class="string">&quot;Exchange full&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#829">ENOANO</a>          =&gt; <span class="string">&quot;No anode&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#831">ENOANO</a>          =&gt; <span class="string">&quot;No anode&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#830">EBADRQC</a>         =&gt; <span class="string">&quot;Invalid request code&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#832">EBADRQC</a>         =&gt; <span class="string">&quot;Invalid request code&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#831">EBADSLT</a>         =&gt; <span class="string">&quot;Invalid slot&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#833">EBADSLT</a>         =&gt; <span class="string">&quot;Invalid slot&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#832">EBFONT</a>          =&gt; <span class="string">&quot;Bad font file format&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#834">EBFONT</a>          =&gt; <span class="string">&quot;Bad font file format&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#833">ENOSTR</a>          =&gt; <span class="string">&quot;Device not a stream&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#835">ENOSTR</a>          =&gt; <span class="string">&quot;Device not a stream&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#834">ENODATA</a>         =&gt; <span class="string">&quot;No data available&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#836">ENODATA</a>         =&gt; <span class="string">&quot;No data available&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#835">ETIME</a>           =&gt; <span class="string">&quot;Timer expired&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#837">ETIME</a>           =&gt; <span class="string">&quot;Timer expired&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#836">ENOSR</a>           =&gt; <span class="string">&quot;Out of streams resources&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#838">ENOSR</a>           =&gt; <span class="string">&quot;Out of streams resources&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#837">ENONET</a>          =&gt; <span class="string">&quot;Machine is not on the network&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#839">ENONET</a>          =&gt; <span class="string">&quot;Machine is not on the network&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#838">ENOPKG</a>          =&gt; <span class="string">&quot;Package not installed&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#840">ENOPKG</a>          =&gt; <span class="string">&quot;Package not installed&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#839">EREMOTE</a>         =&gt; <span class="string">&quot;Object is remote&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#841">EREMOTE</a>         =&gt; <span class="string">&quot;Object is remote&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#840">ENOLINK</a>         =&gt; <span class="string">&quot;Link has been severed&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#842">ENOLINK</a>         =&gt; <span class="string">&quot;Link has been severed&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#841">EADV</a>            =&gt; <span class="string">&quot;Advertise error&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#843">EADV</a>            =&gt; <span class="string">&quot;Advertise error&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#842">ESRMNT</a>          =&gt; <span class="string">&quot;Srmount error&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#844">ESRMNT</a>          =&gt; <span class="string">&quot;Srmount error&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#843">ECOMM</a>           =&gt; <span class="string">&quot;Communication error on send&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#845">ECOMM</a>           =&gt; <span class="string">&quot;Communication error on send&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#844">EPROTO</a>          =&gt; <span class="string">&quot;Protocol error&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#846">EPROTO</a>          =&gt; <span class="string">&quot;Protocol error&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#845">EMULTIHOP</a>       =&gt; <span class="string">&quot;Multihop attempted&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#847">EMULTIHOP</a>       =&gt; <span class="string">&quot;Multihop attempted&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#846">EDOTDOT</a>         =&gt; <span class="string">&quot;RFS specific error&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#848">EDOTDOT</a>         =&gt; <span class="string">&quot;RFS specific error&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#847">EBADMSG</a>         =&gt; <span class="string">&quot;Not a data message&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#849">EBADMSG</a>         =&gt; <span class="string">&quot;Not a data message&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
         <span class="ident">EBADMSG</span>         =&gt; <span class="string">&quot;Trying to read unreadable message&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#848">EOVERFLOW</a>       =&gt; <span class="string">&quot;Value too large for defined data type&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#850">EOVERFLOW</a>       =&gt; <span class="string">&quot;Value too large for defined data type&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#849">ENOTUNIQ</a>        =&gt; <span class="string">&quot;Name not unique on network&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#851">ENOTUNIQ</a>        =&gt; <span class="string">&quot;Name not unique on network&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#850">EBADFD</a>          =&gt; <span class="string">&quot;File descriptor in bad state&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#852">EBADFD</a>          =&gt; <span class="string">&quot;File descriptor in bad state&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#851">EREMCHG</a>         =&gt; <span class="string">&quot;Remote address changed&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#853">EREMCHG</a>         =&gt; <span class="string">&quot;Remote address changed&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#852">ELIBACC</a>         =&gt; <span class="string">&quot;Can not access a needed shared library&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#854">ELIBACC</a>         =&gt; <span class="string">&quot;Can not access a needed shared library&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#853">ELIBBAD</a>         =&gt; <span class="string">&quot;Accessing a corrupted shared library&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#855">ELIBBAD</a>         =&gt; <span class="string">&quot;Accessing a corrupted shared library&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#854">ELIBSCN</a>         =&gt; <span class="string">&quot;.lib section in a.out corrupted&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#856">ELIBSCN</a>         =&gt; <span class="string">&quot;.lib section in a.out corrupted&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#855">ELIBMAX</a>         =&gt; <span class="string">&quot;Attempting to link in too many shared libraries&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#857">ELIBMAX</a>         =&gt; <span class="string">&quot;Attempting to link in too many shared libraries&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#856">ELIBEXEC</a>        =&gt; <span class="string">&quot;Cannot exec a shared library directly&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#858">ELIBEXEC</a>        =&gt; <span class="string">&quot;Cannot exec a shared library directly&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#857">EILSEQ</a>          =&gt; <span class="string">&quot;Illegal byte sequence&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#859">EILSEQ</a>          =&gt; <span class="string">&quot;Illegal byte sequence&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#858">ERESTART</a>        =&gt; <span class="string">&quot;Interrupted system call should be restarted&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#860">ERESTART</a>        =&gt; <span class="string">&quot;Interrupted system call should be restarted&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#859">ESTRPIPE</a>        =&gt; <span class="string">&quot;Streams pipe error&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#861">ESTRPIPE</a>        =&gt; <span class="string">&quot;Streams pipe error&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#860">EUSERS</a>          =&gt; <span class="string">&quot;Too many users&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#862">EUSERS</a>          =&gt; <span class="string">&quot;Too many users&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#868">EOPNOTSUPP</a>      =&gt; <span class="string">&quot;Operation not supported on transport endpoint&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#870">EOPNOTSUPP</a>      =&gt; <span class="string">&quot;Operation not supported on transport endpoint&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#889">ESTALE</a>          =&gt; <span class="string">&quot;Stale file handle&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#891">ESTALE</a>          =&gt; <span class="string">&quot;Stale file handle&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#890">EUCLEAN</a>         =&gt; <span class="string">&quot;Structure needs cleaning&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#892">EUCLEAN</a>         =&gt; <span class="string">&quot;Structure needs cleaning&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#891">ENOTNAM</a>         =&gt; <span class="string">&quot;Not a XENIX named type file&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#893">ENOTNAM</a>         =&gt; <span class="string">&quot;Not a XENIX named type file&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#892">ENAVAIL</a>         =&gt; <span class="string">&quot;No XENIX semaphores available&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#894">ENAVAIL</a>         =&gt; <span class="string">&quot;No XENIX semaphores available&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#893">EISNAM</a>          =&gt; <span class="string">&quot;Is a named type file&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#895">EISNAM</a>          =&gt; <span class="string">&quot;Is a named type file&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#894">EREMOTEIO</a>       =&gt; <span class="string">&quot;Remote I/O error&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#896">EREMOTEIO</a>       =&gt; <span class="string">&quot;Remote I/O error&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#895">EDQUOT</a>          =&gt; <span class="string">&quot;Quota exceeded&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#897">EDQUOT</a>          =&gt; <span class="string">&quot;Quota exceeded&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#896">ENOMEDIUM</a>       =&gt; <span class="string">&quot;No medium found&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#898">ENOMEDIUM</a>       =&gt; <span class="string">&quot;No medium found&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#897">EMEDIUMTYPE</a>     =&gt; <span class="string">&quot;Wrong medium type&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#899">EMEDIUMTYPE</a>     =&gt; <span class="string">&quot;Wrong medium type&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#898">ECANCELED</a>       =&gt; <span class="string">&quot;Operation canceled&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#900">ECANCELED</a>       =&gt; <span class="string">&quot;Operation canceled&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#899">ENOKEY</a>          =&gt; <span class="string">&quot;Required key not available&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#901">ENOKEY</a>          =&gt; <span class="string">&quot;Required key not available&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#900">EKEYEXPIRED</a>     =&gt; <span class="string">&quot;Key has expired&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#902">EKEYEXPIRED</a>     =&gt; <span class="string">&quot;Key has expired&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#901">EKEYREVOKED</a>     =&gt; <span class="string">&quot;Key has been revoked&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#903">EKEYREVOKED</a>     =&gt; <span class="string">&quot;Key has been revoked&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#902">EKEYREJECTED</a>    =&gt; <span class="string">&quot;Key was rejected by service&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#904">EKEYREJECTED</a>    =&gt; <span class="string">&quot;Key was rejected by service&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#903">EOWNERDEAD</a>      =&gt; <span class="string">&quot;Owner died&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#905">EOWNERDEAD</a>      =&gt; <span class="string">&quot;Owner died&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>( <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
         <span class="ident">EOWNERDEAD</span>      =&gt; <span class="string">&quot;Process died with lock&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#904">ENOTRECOVERABLE</a> =&gt; <span class="string">&quot;State not recoverable&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#906">ENOTRECOVERABLE</a> =&gt; <span class="string">&quot;State not recoverable&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
         <span class="ident">ENOTRECOVERABLE</span> =&gt; <span class="string">&quot;Lock is not recoverable&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_arch</span><span class="op">=</span><span class="string">&quot;mips&quot;</span>)),
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#906">ERFKILL</a>         =&gt; <span class="string">&quot;Operation not possible due to RF-kill&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#908">ERFKILL</a>         =&gt; <span class="string">&quot;Operation not possible due to RF-kill&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_arch</span><span class="op">=</span><span class="string">&quot;mips&quot;</span>)),
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
-        <a class="ident" href="../../src/nix/errno.rs.html#908">EHWPOISON</a>       =&gt; <span class="string">&quot;Memory page has hardware error&quot;</span>,
+        <a class="ident" href="../../src/nix/errno.rs.html#910">EHWPOISON</a>       =&gt; <span class="string">&quot;Memory page has hardware error&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
         <span class="ident">EDOOFUS</span>         =&gt; <span class="string">&quot;Programming error&quot;</span>,
@@ -3336,11 +3340,13 @@
         <span class="ident">EPROTO</span>          =&gt; <span class="string">&quot;Protocol error&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
         <span class="ident">ENOTRECOVERABLE</span> =&gt; <span class="string">&quot;State not recoverable&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
         <span class="ident">EOWNERDEAD</span>      =&gt; <span class="string">&quot;Previous owner died&quot;</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
@@ -3640,162 +3646,162 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.22.1&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use nix::errno::Errno::EWOULDBLOCK instead&quot;</span>
     )]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EWOULDBLOCK</span>: <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#786">Errno::EAGAIN</a>;
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EWOULDBLOCK</span>: <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#788">Errno::EAGAIN</a>;
     <span class="attribute">#[<span class="ident">deprecated</span>(
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.22.1&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use nix::errno::Errno::EDEADLOCK instead&quot;</span>
     )]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EDEADLOCK</span>:   <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#810">Errno::EDEADLK</a>;
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EDEADLOCK</span>:   <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#812">Errno::EDEADLK</a>;
     <span class="attribute">#[<span class="ident">deprecated</span>(
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.22.1&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use nix::errno::Errno::ENOTSUP instead&quot;</span>
     )]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTSUP</span>:  <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#868">Errno::EOPNOTSUPP</a>;
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTSUP</span>:  <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#870">Errno::EOPNOTSUPP</a>;
 
-    <span class="kw">impl</span> <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EWOULDBLOCK</span>: <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#786">Errno::EAGAIN</a>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EDEADLOCK</span>:   <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#810">Errno::EDEADLK</a>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTSUP</span>:     <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#868">Errno::EOPNOTSUPP</a>;
+    <span class="kw">impl</span> <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EWOULDBLOCK</span>: <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#788">Errno::EAGAIN</a>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EDEADLOCK</span>:   <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#812">Errno::EDEADLK</a>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTSUP</span>:     <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> <span class="op">=</span> <a class="ident" href="../../src/nix/errno.rs.html#870">Errno::EOPNOTSUPP</a>;
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_i32</span>(<span class="ident">e</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a> {
-        <span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#774-909"><span class="self">self</span>::Errno</a>::<span class="kw-2">*</span>;
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_i32</span>(<span class="ident">e</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a> {
+        <span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#776-911"><span class="self">self</span>::Errno</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">match</span> <a class="ident" href="../../src/nix/errno.rs.html#933">e</a> {
-            <span class="ident">libc::EPERM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#776">EPERM</a>,
-            <span class="ident">libc::ENOENT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#777">ENOENT</a>,
-            <span class="ident">libc::ESRCH</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#778">ESRCH</a>,
-            <span class="ident">libc::EINTR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#779">EINTR</a>,
-            <span class="ident">libc::EIO</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#780">EIO</a>,
-            <span class="ident">libc::ENXIO</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#781">ENXIO</a>,
-            <span class="ident">libc::E2BIG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#782">E2BIG</a>,
-            <span class="ident">libc::ENOEXEC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#783">ENOEXEC</a>,
-            <span class="ident">libc::EBADF</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#784">EBADF</a>,
-            <span class="ident">libc::ECHILD</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#785">ECHILD</a>,
-            <span class="ident">libc::EAGAIN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#786">EAGAIN</a>,
-            <span class="ident">libc::ENOMEM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#787">ENOMEM</a>,
-            <span class="ident">libc::EACCES</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#788">EACCES</a>,
-            <span class="ident">libc::EFAULT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#789">EFAULT</a>,
-            <span class="ident">libc::ENOTBLK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#790">ENOTBLK</a>,
-            <span class="ident">libc::EBUSY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#791">EBUSY</a>,
-            <span class="ident">libc::EEXIST</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#792">EEXIST</a>,
-            <span class="ident">libc::EXDEV</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#793">EXDEV</a>,
-            <span class="ident">libc::ENODEV</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#794">ENODEV</a>,
-            <span class="ident">libc::ENOTDIR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#795">ENOTDIR</a>,
-            <span class="ident">libc::EISDIR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#796">EISDIR</a>,
-            <span class="ident">libc::EINVAL</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#797">EINVAL</a>,
-            <span class="ident">libc::ENFILE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#798">ENFILE</a>,
-            <span class="ident">libc::EMFILE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#799">EMFILE</a>,
-            <span class="ident">libc::ENOTTY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#800">ENOTTY</a>,
-            <span class="ident">libc::ETXTBSY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#801">ETXTBSY</a>,
-            <span class="ident">libc::EFBIG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#802">EFBIG</a>,
-            <span class="ident">libc::ENOSPC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#803">ENOSPC</a>,
-            <span class="ident">libc::ESPIPE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#804">ESPIPE</a>,
-            <span class="ident">libc::EROFS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#805">EROFS</a>,
-            <span class="ident">libc::EMLINK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#806">EMLINK</a>,
-            <span class="ident">libc::EPIPE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#807">EPIPE</a>,
-            <span class="ident">libc::EDOM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#808">EDOM</a>,
-            <span class="ident">libc::ERANGE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#809">ERANGE</a>,
-            <span class="ident">libc::EDEADLK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#810">EDEADLK</a>,
-            <span class="ident">libc::ENAMETOOLONG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#811">ENAMETOOLONG</a>,
-            <span class="ident">libc::ENOLCK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#812">ENOLCK</a>,
-            <span class="ident">libc::ENOSYS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#813">ENOSYS</a>,
-            <span class="ident">libc::ENOTEMPTY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#814">ENOTEMPTY</a>,
-            <span class="ident">libc::ELOOP</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#815">ELOOP</a>,
-            <span class="ident">libc::ENOMSG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#816">ENOMSG</a>,
-            <span class="ident">libc::EIDRM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#817">EIDRM</a>,
-            <span class="ident">libc::ECHRNG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#818">ECHRNG</a>,
-            <span class="ident">libc::EL2NSYNC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#819">EL2NSYNC</a>,
-            <span class="ident">libc::EL3HLT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#820">EL3HLT</a>,
-            <span class="ident">libc::EL3RST</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#821">EL3RST</a>,
-            <span class="ident">libc::ELNRNG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#822">ELNRNG</a>,
-            <span class="ident">libc::EUNATCH</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#823">EUNATCH</a>,
-            <span class="ident">libc::ENOCSI</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#824">ENOCSI</a>,
-            <span class="ident">libc::EL2HLT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#825">EL2HLT</a>,
-            <span class="ident">libc::EBADE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#826">EBADE</a>,
-            <span class="ident">libc::EBADR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#827">EBADR</a>,
-            <span class="ident">libc::EXFULL</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#828">EXFULL</a>,
-            <span class="ident">libc::ENOANO</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#829">ENOANO</a>,
-            <span class="ident">libc::EBADRQC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#830">EBADRQC</a>,
-            <span class="ident">libc::EBADSLT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#831">EBADSLT</a>,
-            <span class="ident">libc::EBFONT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#832">EBFONT</a>,
-            <span class="ident">libc::ENOSTR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#833">ENOSTR</a>,
-            <span class="ident">libc::ENODATA</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#834">ENODATA</a>,
-            <span class="ident">libc::ETIME</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#835">ETIME</a>,
-            <span class="ident">libc::ENOSR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#836">ENOSR</a>,
-            <span class="ident">libc::ENONET</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#837">ENONET</a>,
-            <span class="ident">libc::ENOPKG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#838">ENOPKG</a>,
-            <span class="ident">libc::EREMOTE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#839">EREMOTE</a>,
-            <span class="ident">libc::ENOLINK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#840">ENOLINK</a>,
-            <span class="ident">libc::EADV</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#841">EADV</a>,
-            <span class="ident">libc::ESRMNT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#842">ESRMNT</a>,
-            <span class="ident">libc::ECOMM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#843">ECOMM</a>,
-            <span class="ident">libc::EPROTO</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#844">EPROTO</a>,
-            <span class="ident">libc::EMULTIHOP</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#845">EMULTIHOP</a>,
-            <span class="ident">libc::EDOTDOT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#846">EDOTDOT</a>,
-            <span class="ident">libc::EBADMSG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#847">EBADMSG</a>,
-            <span class="ident">libc::EOVERFLOW</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#848">EOVERFLOW</a>,
-            <span class="ident">libc::ENOTUNIQ</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#849">ENOTUNIQ</a>,
-            <span class="ident">libc::EBADFD</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#850">EBADFD</a>,
-            <span class="ident">libc::EREMCHG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#851">EREMCHG</a>,
-            <span class="ident">libc::ELIBACC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#852">ELIBACC</a>,
-            <span class="ident">libc::ELIBBAD</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#853">ELIBBAD</a>,
-            <span class="ident">libc::ELIBSCN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#854">ELIBSCN</a>,
-            <span class="ident">libc::ELIBMAX</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#855">ELIBMAX</a>,
-            <span class="ident">libc::ELIBEXEC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#856">ELIBEXEC</a>,
-            <span class="ident">libc::EILSEQ</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#857">EILSEQ</a>,
-            <span class="ident">libc::ERESTART</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#858">ERESTART</a>,
-            <span class="ident">libc::ESTRPIPE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#859">ESTRPIPE</a>,
-            <span class="ident">libc::EUSERS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#860">EUSERS</a>,
-            <span class="ident">libc::ENOTSOCK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#861">ENOTSOCK</a>,
-            <span class="ident">libc::EDESTADDRREQ</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#862">EDESTADDRREQ</a>,
-            <span class="ident">libc::EMSGSIZE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#863">EMSGSIZE</a>,
-            <span class="ident">libc::EPROTOTYPE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#864">EPROTOTYPE</a>,
-            <span class="ident">libc::ENOPROTOOPT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#865">ENOPROTOOPT</a>,
-            <span class="ident">libc::EPROTONOSUPPORT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#866">EPROTONOSUPPORT</a>,
-            <span class="ident">libc::ESOCKTNOSUPPORT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#867">ESOCKTNOSUPPORT</a>,
-            <span class="ident">libc::EOPNOTSUPP</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#868">EOPNOTSUPP</a>,
-            <span class="ident">libc::EPFNOSUPPORT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#869">EPFNOSUPPORT</a>,
-            <span class="ident">libc::EAFNOSUPPORT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#870">EAFNOSUPPORT</a>,
-            <span class="ident">libc::EADDRINUSE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#871">EADDRINUSE</a>,
-            <span class="ident">libc::EADDRNOTAVAIL</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#872">EADDRNOTAVAIL</a>,
-            <span class="ident">libc::ENETDOWN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#873">ENETDOWN</a>,
-            <span class="ident">libc::ENETUNREACH</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#874">ENETUNREACH</a>,
-            <span class="ident">libc::ENETRESET</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#875">ENETRESET</a>,
-            <span class="ident">libc::ECONNABORTED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#876">ECONNABORTED</a>,
-            <span class="ident">libc::ECONNRESET</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#877">ECONNRESET</a>,
-            <span class="ident">libc::ENOBUFS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#878">ENOBUFS</a>,
-            <span class="ident">libc::EISCONN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#879">EISCONN</a>,
-            <span class="ident">libc::ENOTCONN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#880">ENOTCONN</a>,
-            <span class="ident">libc::ESHUTDOWN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#881">ESHUTDOWN</a>,
-            <span class="ident">libc::ETOOMANYREFS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#882">ETOOMANYREFS</a>,
-            <span class="ident">libc::ETIMEDOUT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#883">ETIMEDOUT</a>,
-            <span class="ident">libc::ECONNREFUSED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#884">ECONNREFUSED</a>,
-            <span class="ident">libc::EHOSTDOWN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#885">EHOSTDOWN</a>,
-            <span class="ident">libc::EHOSTUNREACH</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#886">EHOSTUNREACH</a>,
-            <span class="ident">libc::EALREADY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#887">EALREADY</a>,
-            <span class="ident">libc::EINPROGRESS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#888">EINPROGRESS</a>,
-            <span class="ident">libc::ESTALE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#889">ESTALE</a>,
-            <span class="ident">libc::EUCLEAN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#890">EUCLEAN</a>,
-            <span class="ident">libc::ENOTNAM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#891">ENOTNAM</a>,
-            <span class="ident">libc::ENAVAIL</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#892">ENAVAIL</a>,
-            <span class="ident">libc::EISNAM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#893">EISNAM</a>,
-            <span class="ident">libc::EREMOTEIO</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#894">EREMOTEIO</a>,
-            <span class="ident">libc::EDQUOT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#895">EDQUOT</a>,
-            <span class="ident">libc::ENOMEDIUM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#896">ENOMEDIUM</a>,
-            <span class="ident">libc::EMEDIUMTYPE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#897">EMEDIUMTYPE</a>,
-            <span class="ident">libc::ECANCELED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#898">ECANCELED</a>,
-            <span class="ident">libc::ENOKEY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#899">ENOKEY</a>,
-            <span class="ident">libc::EKEYEXPIRED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#900">EKEYEXPIRED</a>,
-            <span class="ident">libc::EKEYREVOKED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#901">EKEYREVOKED</a>,
-            <span class="ident">libc::EKEYREJECTED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#902">EKEYREJECTED</a>,
-            <span class="ident">libc::EOWNERDEAD</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#903">EOWNERDEAD</a>,
-            <span class="ident">libc::ENOTRECOVERABLE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#904">ENOTRECOVERABLE</a>,
+        <span class="kw">match</span> <a class="ident" href="../../src/nix/errno.rs.html#935">e</a> {
+            <span class="ident">libc::EPERM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#778">EPERM</a>,
+            <span class="ident">libc::ENOENT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#779">ENOENT</a>,
+            <span class="ident">libc::ESRCH</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#780">ESRCH</a>,
+            <span class="ident">libc::EINTR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#781">EINTR</a>,
+            <span class="ident">libc::EIO</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#782">EIO</a>,
+            <span class="ident">libc::ENXIO</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#783">ENXIO</a>,
+            <span class="ident">libc::E2BIG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#784">E2BIG</a>,
+            <span class="ident">libc::ENOEXEC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#785">ENOEXEC</a>,
+            <span class="ident">libc::EBADF</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#786">EBADF</a>,
+            <span class="ident">libc::ECHILD</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#787">ECHILD</a>,
+            <span class="ident">libc::EAGAIN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#788">EAGAIN</a>,
+            <span class="ident">libc::ENOMEM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#789">ENOMEM</a>,
+            <span class="ident">libc::EACCES</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#790">EACCES</a>,
+            <span class="ident">libc::EFAULT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#791">EFAULT</a>,
+            <span class="ident">libc::ENOTBLK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#792">ENOTBLK</a>,
+            <span class="ident">libc::EBUSY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#793">EBUSY</a>,
+            <span class="ident">libc::EEXIST</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#794">EEXIST</a>,
+            <span class="ident">libc::EXDEV</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#795">EXDEV</a>,
+            <span class="ident">libc::ENODEV</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#796">ENODEV</a>,
+            <span class="ident">libc::ENOTDIR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#797">ENOTDIR</a>,
+            <span class="ident">libc::EISDIR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#798">EISDIR</a>,
+            <span class="ident">libc::EINVAL</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#799">EINVAL</a>,
+            <span class="ident">libc::ENFILE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#800">ENFILE</a>,
+            <span class="ident">libc::EMFILE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#801">EMFILE</a>,
+            <span class="ident">libc::ENOTTY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#802">ENOTTY</a>,
+            <span class="ident">libc::ETXTBSY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#803">ETXTBSY</a>,
+            <span class="ident">libc::EFBIG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#804">EFBIG</a>,
+            <span class="ident">libc::ENOSPC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#805">ENOSPC</a>,
+            <span class="ident">libc::ESPIPE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#806">ESPIPE</a>,
+            <span class="ident">libc::EROFS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#807">EROFS</a>,
+            <span class="ident">libc::EMLINK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#808">EMLINK</a>,
+            <span class="ident">libc::EPIPE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#809">EPIPE</a>,
+            <span class="ident">libc::EDOM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#810">EDOM</a>,
+            <span class="ident">libc::ERANGE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#811">ERANGE</a>,
+            <span class="ident">libc::EDEADLK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#812">EDEADLK</a>,
+            <span class="ident">libc::ENAMETOOLONG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#813">ENAMETOOLONG</a>,
+            <span class="ident">libc::ENOLCK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#814">ENOLCK</a>,
+            <span class="ident">libc::ENOSYS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#815">ENOSYS</a>,
+            <span class="ident">libc::ENOTEMPTY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#816">ENOTEMPTY</a>,
+            <span class="ident">libc::ELOOP</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#817">ELOOP</a>,
+            <span class="ident">libc::ENOMSG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#818">ENOMSG</a>,
+            <span class="ident">libc::EIDRM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#819">EIDRM</a>,
+            <span class="ident">libc::ECHRNG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#820">ECHRNG</a>,
+            <span class="ident">libc::EL2NSYNC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#821">EL2NSYNC</a>,
+            <span class="ident">libc::EL3HLT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#822">EL3HLT</a>,
+            <span class="ident">libc::EL3RST</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#823">EL3RST</a>,
+            <span class="ident">libc::ELNRNG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#824">ELNRNG</a>,
+            <span class="ident">libc::EUNATCH</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#825">EUNATCH</a>,
+            <span class="ident">libc::ENOCSI</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#826">ENOCSI</a>,
+            <span class="ident">libc::EL2HLT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#827">EL2HLT</a>,
+            <span class="ident">libc::EBADE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#828">EBADE</a>,
+            <span class="ident">libc::EBADR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#829">EBADR</a>,
+            <span class="ident">libc::EXFULL</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#830">EXFULL</a>,
+            <span class="ident">libc::ENOANO</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#831">ENOANO</a>,
+            <span class="ident">libc::EBADRQC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#832">EBADRQC</a>,
+            <span class="ident">libc::EBADSLT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#833">EBADSLT</a>,
+            <span class="ident">libc::EBFONT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#834">EBFONT</a>,
+            <span class="ident">libc::ENOSTR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#835">ENOSTR</a>,
+            <span class="ident">libc::ENODATA</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#836">ENODATA</a>,
+            <span class="ident">libc::ETIME</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#837">ETIME</a>,
+            <span class="ident">libc::ENOSR</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#838">ENOSR</a>,
+            <span class="ident">libc::ENONET</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#839">ENONET</a>,
+            <span class="ident">libc::ENOPKG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#840">ENOPKG</a>,
+            <span class="ident">libc::EREMOTE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#841">EREMOTE</a>,
+            <span class="ident">libc::ENOLINK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#842">ENOLINK</a>,
+            <span class="ident">libc::EADV</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#843">EADV</a>,
+            <span class="ident">libc::ESRMNT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#844">ESRMNT</a>,
+            <span class="ident">libc::ECOMM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#845">ECOMM</a>,
+            <span class="ident">libc::EPROTO</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#846">EPROTO</a>,
+            <span class="ident">libc::EMULTIHOP</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#847">EMULTIHOP</a>,
+            <span class="ident">libc::EDOTDOT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#848">EDOTDOT</a>,
+            <span class="ident">libc::EBADMSG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#849">EBADMSG</a>,
+            <span class="ident">libc::EOVERFLOW</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#850">EOVERFLOW</a>,
+            <span class="ident">libc::ENOTUNIQ</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#851">ENOTUNIQ</a>,
+            <span class="ident">libc::EBADFD</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#852">EBADFD</a>,
+            <span class="ident">libc::EREMCHG</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#853">EREMCHG</a>,
+            <span class="ident">libc::ELIBACC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#854">ELIBACC</a>,
+            <span class="ident">libc::ELIBBAD</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#855">ELIBBAD</a>,
+            <span class="ident">libc::ELIBSCN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#856">ELIBSCN</a>,
+            <span class="ident">libc::ELIBMAX</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#857">ELIBMAX</a>,
+            <span class="ident">libc::ELIBEXEC</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#858">ELIBEXEC</a>,
+            <span class="ident">libc::EILSEQ</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#859">EILSEQ</a>,
+            <span class="ident">libc::ERESTART</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#860">ERESTART</a>,
+            <span class="ident">libc::ESTRPIPE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#861">ESTRPIPE</a>,
+            <span class="ident">libc::EUSERS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#862">EUSERS</a>,
+            <span class="ident">libc::ENOTSOCK</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#863">ENOTSOCK</a>,
+            <span class="ident">libc::EDESTADDRREQ</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#864">EDESTADDRREQ</a>,
+            <span class="ident">libc::EMSGSIZE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#865">EMSGSIZE</a>,
+            <span class="ident">libc::EPROTOTYPE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#866">EPROTOTYPE</a>,
+            <span class="ident">libc::ENOPROTOOPT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#867">ENOPROTOOPT</a>,
+            <span class="ident">libc::EPROTONOSUPPORT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#868">EPROTONOSUPPORT</a>,
+            <span class="ident">libc::ESOCKTNOSUPPORT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#869">ESOCKTNOSUPPORT</a>,
+            <span class="ident">libc::EOPNOTSUPP</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#870">EOPNOTSUPP</a>,
+            <span class="ident">libc::EPFNOSUPPORT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#871">EPFNOSUPPORT</a>,
+            <span class="ident">libc::EAFNOSUPPORT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#872">EAFNOSUPPORT</a>,
+            <span class="ident">libc::EADDRINUSE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#873">EADDRINUSE</a>,
+            <span class="ident">libc::EADDRNOTAVAIL</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#874">EADDRNOTAVAIL</a>,
+            <span class="ident">libc::ENETDOWN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#875">ENETDOWN</a>,
+            <span class="ident">libc::ENETUNREACH</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#876">ENETUNREACH</a>,
+            <span class="ident">libc::ENETRESET</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#877">ENETRESET</a>,
+            <span class="ident">libc::ECONNABORTED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#878">ECONNABORTED</a>,
+            <span class="ident">libc::ECONNRESET</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#879">ECONNRESET</a>,
+            <span class="ident">libc::ENOBUFS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#880">ENOBUFS</a>,
+            <span class="ident">libc::EISCONN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#881">EISCONN</a>,
+            <span class="ident">libc::ENOTCONN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#882">ENOTCONN</a>,
+            <span class="ident">libc::ESHUTDOWN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#883">ESHUTDOWN</a>,
+            <span class="ident">libc::ETOOMANYREFS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#884">ETOOMANYREFS</a>,
+            <span class="ident">libc::ETIMEDOUT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#885">ETIMEDOUT</a>,
+            <span class="ident">libc::ECONNREFUSED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#886">ECONNREFUSED</a>,
+            <span class="ident">libc::EHOSTDOWN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#887">EHOSTDOWN</a>,
+            <span class="ident">libc::EHOSTUNREACH</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#888">EHOSTUNREACH</a>,
+            <span class="ident">libc::EALREADY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#889">EALREADY</a>,
+            <span class="ident">libc::EINPROGRESS</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#890">EINPROGRESS</a>,
+            <span class="ident">libc::ESTALE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#891">ESTALE</a>,
+            <span class="ident">libc::EUCLEAN</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#892">EUCLEAN</a>,
+            <span class="ident">libc::ENOTNAM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#893">ENOTNAM</a>,
+            <span class="ident">libc::ENAVAIL</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#894">ENAVAIL</a>,
+            <span class="ident">libc::EISNAM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#895">EISNAM</a>,
+            <span class="ident">libc::EREMOTEIO</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#896">EREMOTEIO</a>,
+            <span class="ident">libc::EDQUOT</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#897">EDQUOT</a>,
+            <span class="ident">libc::ENOMEDIUM</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#898">ENOMEDIUM</a>,
+            <span class="ident">libc::EMEDIUMTYPE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#899">EMEDIUMTYPE</a>,
+            <span class="ident">libc::ECANCELED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#900">ECANCELED</a>,
+            <span class="ident">libc::ENOKEY</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#901">ENOKEY</a>,
+            <span class="ident">libc::EKEYEXPIRED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#902">EKEYEXPIRED</a>,
+            <span class="ident">libc::EKEYREVOKED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#903">EKEYREVOKED</a>,
+            <span class="ident">libc::EKEYREJECTED</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#904">EKEYREJECTED</a>,
+            <span class="ident">libc::EOWNERDEAD</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#905">EOWNERDEAD</a>,
+            <span class="ident">libc::ENOTRECOVERABLE</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#906">ENOTRECOVERABLE</a>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_arch</span><span class="op">=</span><span class="string">&quot;mips&quot;</span>)))]</span>
-            <span class="ident">libc::ERFKILL</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#906">ERFKILL</a>,
+            <span class="ident">libc::ERFKILL</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#908">ERFKILL</a>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_arch</span><span class="op">=</span><span class="string">&quot;mips&quot;</span>)))]</span>
-            <span class="ident">libc::EHWPOISON</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#908">EHWPOISON</a>,
-            <span class="kw">_</span>   =&gt; <a class="ident" href="../../src/nix/errno.rs.html#775">UnknownErrno</a>,
+            <span class="ident">libc::EHWPOISON</span> =&gt; <a class="ident" href="../../src/nix/errno.rs.html#910">EHWPOISON</a>,
+            <span class="kw">_</span>   =&gt; <a class="ident" href="../../src/nix/errno.rs.html#777">UnknownErrno</a>,
         }
     }
 }
@@ -4391,6 +4397,8 @@
         <span class="ident">ENOLINK</span>         <span class="op">=</span> <span class="ident">libc::ENOLINK</span>,
         <span class="ident">EPROTO</span>          <span class="op">=</span> <span class="ident">libc::EPROTO</span>,
         <span class="ident">ENOMEDIUM</span>       <span class="op">=</span> <span class="ident">libc::ENOMEDIUM</span>,
+        <span class="ident">ENOTRECOVERABLE</span> <span class="op">=</span> <span class="ident">libc::ENOTRECOVERABLE</span>,
+        <span class="ident">EOWNERDEAD</span>      <span class="op">=</span> <span class="ident">libc::EOWNERDEAD</span>,
         <span class="ident">EASYNC</span>          <span class="op">=</span> <span class="ident">libc::EASYNC</span>,
     }
 
@@ -5450,5 +5458,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

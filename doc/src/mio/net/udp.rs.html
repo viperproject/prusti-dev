@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.2/src/net/udp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.3/src/net/udp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -696,6 +696,10 @@
 <span id="691">691</span>
 <span id="692">692</span>
 <span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Primitives for working with UDP.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The types provided in this module are non-blocking by default and are</span>
@@ -1018,8 +1022,12 @@
     <span class="doccomment">/// Connects the UDP socket setting the default destination for `send()`</span>
     <span class="doccomment">/// and limiting packets that are read via `recv` from the address specified</span>
     <span class="doccomment">/// in `addr`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This may return a `WouldBlock` in which case the socket connection</span>
+    <span class="doccomment">/// cannot be completed immediately, it usually means there are insufficient</span>
+    <span class="doccomment">/// entries in the routing cache.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#323">self</a>.<span class="ident">inner</span>.<span class="ident">connect</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#323">addr</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#327">self</a>.<span class="ident">inner</span>.<span class="ident">connect</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#327">addr</a>)
     }
 
     <span class="doccomment">/// Sets the value of the `SO_BROADCAST` option for this socket.</span>
@@ -1047,7 +1055,7 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_broadcast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">on</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#351">self</a>.<span class="ident">inner</span>.<span class="ident">set_broadcast</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#351">on</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#355">self</a>.<span class="ident">inner</span>.<span class="ident">set_broadcast</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#355">on</a>)
     }
 
     <span class="doccomment">/// Gets the value of the `SO_BROADCAST` option for this socket.</span>
@@ -1073,7 +1081,7 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">broadcast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#377">self</a>.<span class="ident">inner</span>.<span class="ident">broadcast</span>()
+        <a class="self" href="../../../src/mio/net/udp.rs.html#381">self</a>.<span class="ident">inner</span>.<span class="ident">broadcast</span>()
     }
 
     <span class="doccomment">/// Sets the value of the `IP_MULTICAST_LOOP` option for this socket.</span>
@@ -1081,7 +1089,7 @@
     <span class="doccomment">/// If enabled, multicast packets will be looped back to the local socket.</span>
     <span class="doccomment">/// Note that this may not have any affect on IPv6 sockets.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_multicast_loop_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">on</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#385">self</a>.<span class="ident">inner</span>.<span class="ident">set_multicast_loop_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#385">on</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#389">self</a>.<span class="ident">inner</span>.<span class="ident">set_multicast_loop_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#389">on</a>)
     }
 
     <span class="doccomment">/// Gets the value of the `IP_MULTICAST_LOOP` option for this socket.</span>
@@ -1091,7 +1099,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [link]: #method.set_multicast_loop_v4</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multicast_loop_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#395">self</a>.<span class="ident">inner</span>.<span class="ident">multicast_loop_v4</span>()
+        <a class="self" href="../../../src/mio/net/udp.rs.html#399">self</a>.<span class="ident">inner</span>.<span class="ident">multicast_loop_v4</span>()
     }
 
     <span class="doccomment">/// Sets the value of the `IP_MULTICAST_TTL` option for this socket.</span>
@@ -1102,7 +1110,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that this may not have any affect on IPv6 sockets.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_multicast_ttl_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ttl</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#406">self</a>.<span class="ident">inner</span>.<span class="ident">set_multicast_ttl_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#406">ttl</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#410">self</a>.<span class="ident">inner</span>.<span class="ident">set_multicast_ttl_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#410">ttl</a>)
     }
 
     <span class="doccomment">/// Gets the value of the `IP_MULTICAST_TTL` option for this socket.</span>
@@ -1112,7 +1120,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [link]: #method.set_multicast_ttl_v4</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multicast_ttl_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#416">self</a>.<span class="ident">inner</span>.<span class="ident">multicast_ttl_v4</span>()
+        <a class="self" href="../../../src/mio/net/udp.rs.html#420">self</a>.<span class="ident">inner</span>.<span class="ident">multicast_ttl_v4</span>()
     }
 
     <span class="doccomment">/// Sets the value of the `IPV6_MULTICAST_LOOP` option for this socket.</span>
@@ -1120,7 +1128,7 @@
     <span class="doccomment">/// Controls whether this socket sees the multicast packets it sends itself.</span>
     <span class="doccomment">/// Note that this may not have any affect on IPv4 sockets.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_multicast_loop_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">on</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#424">self</a>.<span class="ident">inner</span>.<span class="ident">set_multicast_loop_v6</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#424">on</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#428">self</a>.<span class="ident">inner</span>.<span class="ident">set_multicast_loop_v6</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#428">on</a>)
     }
 
     <span class="doccomment">/// Gets the value of the `IPV6_MULTICAST_LOOP` option for this socket.</span>
@@ -1130,7 +1138,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [link]: #method.set_multicast_loop_v6</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multicast_loop_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#434">self</a>.<span class="ident">inner</span>.<span class="ident">multicast_loop_v6</span>()
+        <a class="self" href="../../../src/mio/net/udp.rs.html#438">self</a>.<span class="ident">inner</span>.<span class="ident">multicast_loop_v6</span>()
     }
 
     <span class="doccomment">/// Sets the value for the `IP_TTL` option on this socket.</span>
@@ -1158,7 +1166,7 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ttl</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#462">self</a>.<span class="ident">inner</span>.<span class="ident">set_ttl</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#462">ttl</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#466">self</a>.<span class="ident">inner</span>.<span class="ident">set_ttl</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#466">ttl</a>)
     }
 
     <span class="doccomment">/// Gets the value of the `IP_TTL` option for this socket.</span>
@@ -1185,7 +1193,7 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ttl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#489">self</a>.<span class="ident">inner</span>.<span class="ident">ttl</span>()
+        <a class="self" href="../../../src/mio/net/udp.rs.html#493">self</a>.<span class="ident">inner</span>.<span class="ident">ttl</span>()
     }
 
     <span class="doccomment">/// Executes an operation of the `IP_ADD_MEMBERSHIP` type.</span>
@@ -1197,7 +1205,7 @@
     <span class="doccomment">/// interface is chosen by the system.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_multicast_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <span class="ident">interface</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#501">self</a>.<span class="ident">inner</span>.<span class="ident">join_multicast_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#501">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#501">interface</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#505">self</a>.<span class="ident">inner</span>.<span class="ident">join_multicast_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#505">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#505">interface</a>)
     }
 
     <span class="doccomment">/// Executes an operation of the `IPV6_ADD_MEMBERSHIP` type.</span>
@@ -1207,7 +1215,7 @@
     <span class="doccomment">/// index of the interface to join/leave (or 0 to indicate any interface).</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_multicast_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, <span class="ident">interface</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#511">self</a>.<span class="ident">inner</span>.<span class="ident">join_multicast_v6</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#511">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#511">interface</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#515">self</a>.<span class="ident">inner</span>.<span class="ident">join_multicast_v6</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#515">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#515">interface</a>)
     }
 
     <span class="doccomment">/// Executes an operation of the `IP_DROP_MEMBERSHIP` type.</span>
@@ -1218,7 +1226,7 @@
     <span class="doccomment">/// [link]: #method.join_multicast_v4</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_multicast_v4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>, <span class="ident">interface</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv4Addr.html">Ipv4Addr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#522">self</a>.<span class="ident">inner</span>.<span class="ident">leave_multicast_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#522">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#522">interface</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#526">self</a>.<span class="ident">inner</span>.<span class="ident">leave_multicast_v4</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#526">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#526">interface</a>)
     }
 
     <span class="doccomment">/// Executes an operation of the `IPV6_DROP_MEMBERSHIP` type.</span>
@@ -1229,13 +1237,13 @@
     <span class="doccomment">/// [link]: #method.join_multicast_v6</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_multicast_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">multiaddr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/struct.Ipv6Addr.html">Ipv6Addr</a>, <span class="ident">interface</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#533">self</a>.<span class="ident">inner</span>.<span class="ident">leave_multicast_v6</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#533">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#533">interface</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#537">self</a>.<span class="ident">inner</span>.<span class="ident">leave_multicast_v6</span>(<a class="ident" href="../../../src/mio/net/udp.rs.html#537">multiaddr</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#537">interface</a>)
     }
 
     <span class="doccomment">/// Get the value of the `IPV6_V6ONLY` option on this socket.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">only_v6</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/mio/sys/unix/udp.rs.html#26">sys::udp::only_v6</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/net/udp.rs.html#539">self</a>.<span class="ident">inner</span>)
+        <a class="ident" href="../../../src/mio/sys/unix/udp.rs.html#26">sys::udp::only_v6</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/mio/net/udp.rs.html#543">self</a>.<span class="ident">inner</span>)
     }
 
     <span class="doccomment">/// Get the value of the `SO_ERROR` option on this socket.</span>
@@ -1244,7 +1252,7 @@
     <span class="doccomment">/// the field in the process. This can be useful for checking errors between</span>
     <span class="doccomment">/// calls.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#548">self</a>.<span class="ident">inner</span>.<span class="ident">take_error</span>()
+        <a class="self" href="../../../src/mio/net/udp.rs.html#552">self</a>.<span class="ident">inner</span>.<span class="ident">take_error</span>()
     }
 
     <span class="doccomment">/// Execute an I/O operation ensuring that the socket receives more events</span>
@@ -1302,7 +1310,7 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#603">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#603">f</a>())
+        <a class="self" href="../../../src/mio/net/udp.rs.html#607">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#90-92">do_io</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#607">f</a>())
     }
 }
 
@@ -1313,7 +1321,7 @@
         <span class="ident">token</span>: <a class="ident" href="../../../src/mio/token.rs.html#132">Token</a>,
         <span class="ident">interests</span>: <a class="ident" href="../../../src/mio/interest.rs.html#17">Interest</a>,
     ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#613">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/event/source.rs.html#83-88">register</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#614">registry</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#615">token</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#616">interests</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#617">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/event/source.rs.html#83-88">register</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#618">registry</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#619">token</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#620">interests</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">reregister</span>(
@@ -1322,31 +1330,31 @@
         <span class="ident">token</span>: <a class="ident" href="../../../src/mio/token.rs.html#132">Token</a>,
         <span class="ident">interests</span>: <a class="ident" href="../../../src/mio/interest.rs.html#17">Interest</a>,
     ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#622">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#623">registry</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#624">token</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#625">interests</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#626">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#627">registry</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#628">token</a>, <a class="ident" href="../../../src/mio/net/udp.rs.html#629">interests</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/mio/poll.rs.html#232-234">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#630">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/event/source.rs.html#111">deregister</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#630">registry</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#634">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/event/source.rs.html#111">deregister</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#634">registry</a>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#91-93">UdpSocket</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#636">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#636">f</a>)
+        <a class="self" href="../../../src/mio/net/udp.rs.html#640">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#640">f</a>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#91-93">UdpSocket</a> {
     <span class="kw">fn</span> <span class="ident">into_raw_fd</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#643">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#105">into_inner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
+        <a class="self" href="../../../src/mio/net/udp.rs.html#647">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/mio/io_source.rs.html#105">into_inner</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">into_raw_fd</a>()
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/mio/net/udp.rs.html#91-93">UdpSocket</a> {
     <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../../src/mio/net/udp.rs.html#650">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+        <a class="self" href="../../../src/mio/net/udp.rs.html#654">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
@@ -1359,7 +1367,7 @@
     <span class="doccomment">/// The caller is responsible for ensuring that the socket is in</span>
     <span class="doccomment">/// non-blocking mode.</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <a class="ident" href="../../../src/mio/net/udp.rs.html#91-93">UdpSocket</a> {
-        <span class="ident">UdpSocket::from_std</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd::from_raw_fd</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#663">fd</a>))
+        <span class="ident">UdpSocket::from_std</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd::from_raw_fd</a>(<a class="ident" href="../../../src/mio/net/udp.rs.html#667">fd</a>))
     }
 }
 
@@ -1390,5 +1398,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

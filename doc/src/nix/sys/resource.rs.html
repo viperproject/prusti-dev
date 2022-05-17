@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.23.1/src/sys/resource.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resource.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.1/src/sys/resource.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resource.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -236,18 +236,48 @@
 <span id="231">231</span>
 <span id="232">232</span>
 <span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Configure the process resource limits.</span>
 <span class="kw">use</span> <span class="ident">cfg_if::cfg_if</span>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#774-909"><span class="kw">crate</span>::errno::Errno</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#91"><span class="kw">crate</span>::Result</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#776-911"><span class="kw">crate</span>::errno::Errno</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#169"><span class="kw">crate</span>::Result</a>;
 <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../nix/sys/resource/type.rlim_t.html">libc::rlim_t</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
 <span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>))]</span>{
-        <span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../../libc/unix/linux_like/linux/gnu/type.__rlimit_resource_t.html">__rlimit_resource_t</a>, <a class="ident" href="../../../libc/unix/struct.rlimit.html">rlimit</a>, <a class="ident" href="../../../libc/unix/linux_like/linux/arch/generic/constant.RLIM_INFINITY.html">RLIM_INFINITY</a>};
-    }<span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)))]</span>{
+        <span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../../libc/unix/linux_like/linux/gnu/type.__rlimit_resource_t.html">__rlimit_resource_t</a>, <a class="ident" href="../../../libc/unix/struct.rlimit.html">rlimit</a>};
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
@@ -257,24 +287,27 @@
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>))
     ))]</span>{
-        <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_int</span>, <span class="ident">rlimit</span>, <span class="ident">RLIM_INFINITY</span>};
+        <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_int</span>, <span class="ident">rlimit</span>};
     }
 }
 
 <span class="macro">libc_enum!</span> {
+    <span class="doccomment">/// Types of process resources.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// The Resource enum is platform dependent. Check different platform</span>
-    <span class="doccomment">/// manuals for more details. Some platform links has been provided for</span>
-    <span class="doccomment">/// earier reference (non-exhaustive).</span>
+    <span class="doccomment">/// manuals for more details. Some platform links have been provided for</span>
+    <span class="doccomment">/// easier reference (non-exhaustive).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// * [Linux](https://man7.org/linux/man-pages/man2/getrlimit.2.html)</span>
     <span class="doccomment">/// * [FreeBSD](https://www.freebsd.org/cgi/man.cgi?query=setrlimit)</span>
+    <span class="doccomment">/// * [NetBSD](https://man.netbsd.org/setrlimit.2)</span>
 
     <span class="comment">// linux-gnu uses u_int as resource enum, which is implemented in libc as</span>
     <span class="comment">// well.</span>
     <span class="comment">//</span>
     <span class="comment">// https://gcc.gnu.org/legacy-ml/gcc/2015-08/msg00441.html</span>
     <span class="comment">// https://github.com/rust-lang/libc/blob/master/src/unix/linux_like/linux/gnu/mod.rs</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>), <span class="ident">repr</span>(<span class="ident">u32</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)), <span class="ident">repr</span>(<span class="ident">u32</span>))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">any</span>(
             <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
             <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
@@ -283,15 +316,12 @@
             <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
             <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
             <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-            <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>))
+            <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)))
         ), <span class="ident">repr</span>(<span class="ident">i32</span>))]</span>
     <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Resource</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>
-        )))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>)))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// The maximum amount (in bytes) of virtual memory the process is</span>
         <span class="doccomment">/// allowed to map.</span>
         <span class="ident">RLIMIT_AS</span>,
@@ -310,69 +340,100 @@
         <span class="ident">RLIMIT_STACK</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// The maximum number of kqueues this user id is allowed to create.</span>
         <span class="ident">RLIMIT_KQUEUES</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// A limit on the combined number of flock locks and fcntl leases that</span>
         <span class="doccomment">/// this process may establish.</span>
         <span class="ident">RLIMIT_LOCKS</span>,
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>
+        ))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// The maximum size (in bytes) which a process may lock into memory</span>
         <span class="doccomment">/// using the mlock(2) system call.</span>
         <span class="ident">RLIMIT_MEMLOCK</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// A limit on the number of bytes that can be allocated for POSIX</span>
         <span class="doccomment">/// message queues  for  the  real  user  ID  of  the  calling process.</span>
         <span class="ident">RLIMIT_MSGQUEUE</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// A ceiling to which the process&#39;s nice value can be raised using</span>
         <span class="doccomment">/// setpriority or nice.</span>
         <span class="ident">RLIMIT_NICE</span>,
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+        ))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// The maximum number of simultaneous processes for this user id.</span>
         <span class="ident">RLIMIT_NPROC</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// The maximum number of pseudo-terminals this user id is allowed to</span>
         <span class="doccomment">/// create.</span>
         <span class="ident">RLIMIT_NPTS</span>,
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
+            <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+        ))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// When there is memory pressure and swap is available, prioritize</span>
         <span class="doccomment">/// eviction of a process&#39; resident pages beyond this amount (in bytes).</span>
         <span class="ident">RLIMIT_RSS</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// A ceiling on the real-time priority that may be set for this process</span>
         <span class="doccomment">/// using sched_setscheduler and  sched_set‐ param.</span>
         <span class="ident">RLIMIT_RTPRIO</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// A limit (in microseconds) on the amount of CPU time that a process</span>
         <span class="doccomment">/// scheduled under a real-time scheduling policy may con‐ sume without</span>
         <span class="doccomment">/// making a blocking system call.</span>
         <span class="ident">RLIMIT_RTTIME</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// A limit on the number of signals that may be queued for the real</span>
         <span class="doccomment">/// user ID of the  calling  process.</span>
         <span class="ident">RLIMIT_SIGPENDING</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// The maximum size (in bytes) of socket buffer usage for this user.</span>
         <span class="ident">RLIMIT_SBSIZE</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// The maximum size (in bytes) of the swap space that may be reserved</span>
         <span class="doccomment">/// or used by all of this user id&#39;s processes.</span>
         <span class="ident">RLIMIT_SWAP</span>,
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="doccomment">/// An alias for RLIMIT_AS.</span>
         <span class="ident">RLIMIT_VMEM</span>,
     }
@@ -380,8 +441,8 @@
 
 <span class="doccomment">/// Get the current processes resource limits</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// A value of `None` indicates the value equals to `RLIM_INFINITY` which means</span>
-<span class="doccomment">/// there is no limit.</span>
+<span class="doccomment">/// The special value `RLIM_INFINITY` indicates that no limit will be</span>
+<span class="doccomment">/// enforced.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Parameters</span>
 <span class="doccomment">///</span>
@@ -393,8 +454,8 @@
 <span class="doccomment">/// # use nix::sys::resource::{getrlimit, Resource};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let (soft_limit, hard_limit) = getrlimit(Resource::RLIMIT_NOFILE).unwrap();</span>
-<span class="doccomment">/// println!(&quot;current soft_limit: {:?}&quot;, soft_limit);</span>
-<span class="doccomment">/// println!(&quot;current hard_limit: {:?}&quot;, hard_limit);</span>
+<span class="doccomment">/// println!(&quot;current soft_limit: {}&quot;, soft_limit);</span>
+<span class="doccomment">/// println!(&quot;current hard_limit: {}&quot;, hard_limit);</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # References</span>
@@ -402,20 +463,20 @@
 <span class="doccomment">/// [getrlimit(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getrlimit.html#tag_16_215)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Resource`]: enum.Resource.html</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrlimit</span>(<span class="ident">resource</span>: <a class="ident" href="../../../src/nix/sys/resource.rs.html#26-141">Resource</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrlimit</span>(<span class="ident">resource</span>: <a class="ident" href="../../../src/nix/sys/resource.rs.html#26-172">Resource</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a>, <a class="ident" href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">old_rlim</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit</span>::<span class="op">&lt;</span><a class="ident" href="../../../libc/unix/struct.rlimit.html">rlimit</a><span class="op">&gt;</span><span class="ident">::uninit</span>();
 
     <span class="macro">cfg_if!</span> {
-        <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>))]</span>{
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::getrlimit</span>(<a class="ident" href="../../../src/nix/sys/resource.rs.html#167">resource</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/type.__rlimit_resource_t.html">__rlimit_resource_t</a>, <a class="ident" href="../../../src/nix/sys/resource.rs.html#168">old_rlim</a>.<span class="ident">as_mut_ptr</span>()) };
-        }<span class="kw">else</span>{
+        <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)))]</span>{
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::getrlimit</span>(<a class="ident" href="../../../src/nix/sys/resource.rs.html#198">resource</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/type.__rlimit_resource_t.html">__rlimit_resource_t</a>, <a class="ident" href="../../../src/nix/sys/resource.rs.html#199">old_rlim</a>.<span class="ident">as_mut_ptr</span>()) };
+        } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::getrlimit</span>(<span class="ident">resource</span> <span class="kw">as</span> <span class="ident">c_int</span>, <span class="ident">old_rlim</span>.<span class="ident">as_mut_ptr</span>()) };
         }
     }
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/resource.rs.html#172">res</a>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-        <span class="kw">let</span> <a class="ident" href="../../../libc/unix/struct.rlimit.html">rlimit</a> { <span class="ident">rlim_cur</span>, <span class="ident">rlim_max</span> } <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/nix/sys/resource.rs.html#168">old_rlim</a>.<span class="ident">assume_init</span>() };
-        (<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/resource.rs.html#179">rlim_cur</a>), <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/nix/sys/resource.rs.html#179">rlim_max</a>))
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/resource.rs.html#203">res</a>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+        <span class="kw">let</span> <a class="ident" href="../../../libc/unix/struct.rlimit.html">rlimit</a> { <span class="ident">rlim_cur</span>, <span class="ident">rlim_max</span> } <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/nix/sys/resource.rs.html#199">old_rlim</a>.<span class="ident">assume_init</span>() };
+        (<a class="ident" href="../../../src/nix/sys/resource.rs.html#210">rlim_cur</a>, <a class="ident" href="../../../src/nix/sys/resource.rs.html#210">rlim_max</a>)
     })
 }
 
@@ -425,21 +486,20 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `resource`: The [`Resource`] that we want to set the limits of.</span>
 <span class="doccomment">/// * `soft_limit`: The value that the kernel enforces for the corresponding</span>
-<span class="doccomment">///   resource. Note: `None` input will be replaced by constant `RLIM_INFINITY`.</span>
+<span class="doccomment">///   resource.</span>
 <span class="doccomment">/// * `hard_limit`: The ceiling for the soft limit. Must be lower or equal to</span>
-<span class="doccomment">///   the current hard limit for non-root users. Note: `None` input will be</span>
-<span class="doccomment">///   replaced by constant `RLIM_INFINITY`.</span>
+<span class="doccomment">///   the current hard limit for non-root users.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// &gt; Note: for some os (linux_gnu), setting hard_limit to `RLIM_INFINITY` can</span>
-<span class="doccomment">/// &gt; results `EPERM` Error. So you will need to set the number explicitly.</span>
+<span class="doccomment">/// The special value `RLIM_INFINITY` indicates that no limit will be</span>
+<span class="doccomment">/// enforced.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// # use nix::sys::resource::{setrlimit, Resource};</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let soft_limit = Some(512);</span>
-<span class="doccomment">/// let hard_limit = Some(1024);</span>
+<span class="doccomment">/// let soft_limit = 512;</span>
+<span class="doccomment">/// let hard_limit = 1024;</span>
 <span class="doccomment">/// setrlimit(Resource::RLIMIT_NOFILE, soft_limit, hard_limit).unwrap();</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
@@ -451,24 +511,24 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: `setrlimit` provides a safe wrapper to libc&#39;s `setrlimit`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setrlimit</span>(
-    <span class="ident">resource</span>: <a class="ident" href="../../../src/nix/sys/resource.rs.html#26-141">Resource</a>,
-    <span class="ident">soft_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a><span class="op">&gt;</span>,
-    <span class="ident">hard_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a><span class="op">&gt;</span>,
+    <span class="ident">resource</span>: <a class="ident" href="../../../src/nix/sys/resource.rs.html#26-172">Resource</a>,
+    <span class="ident">soft_limit</span>: <a class="ident" href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a>,
+    <span class="ident">hard_limit</span>: <a class="ident" href="../../../nix/sys/resource/type.rlim_t.html">rlim_t</a>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">new_rlim</span> <span class="op">=</span> <a class="ident" href="../../../libc/unix/struct.rlimit.html">rlimit</a> {
-        <span class="ident">rlim_cur</span>: <a class="ident" href="../../../src/nix/sys/resource.rs.html#217">soft_limit</a>.<span class="ident">unwrap_or</span>(<a class="ident" href="../../../libc/unix/linux_like/linux/arch/generic/constant.RLIM_INFINITY.html">RLIM_INFINITY</a>),
-        <span class="ident">rlim_max</span>: <a class="ident" href="../../../src/nix/sys/resource.rs.html#218">hard_limit</a>.<span class="ident">unwrap_or</span>(<a class="ident" href="../../../libc/unix/linux_like/linux/arch/generic/constant.RLIM_INFINITY.html">RLIM_INFINITY</a>),
+        <span class="ident">rlim_cur</span>: <a class="ident" href="../../../src/nix/sys/resource.rs.html#247">soft_limit</a>,
+        <span class="ident">rlim_max</span>: <a class="ident" href="../../../src/nix/sys/resource.rs.html#248">hard_limit</a>,
     };
     <span class="macro">cfg_if!</span> {
-        <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>))]</span>{
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setrlimit</span>(<a class="ident" href="../../../src/nix/sys/resource.rs.html#216">resource</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/type.__rlimit_resource_t.html">__rlimit_resource_t</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/resource.rs.html#220">new_rlim</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/struct.rlimit.html">rlimit</a>) };
+        <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)))]</span>{
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setrlimit</span>(<a class="ident" href="../../../src/nix/sys/resource.rs.html#246">resource</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/type.__rlimit_resource_t.html">__rlimit_resource_t</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/nix/sys/resource.rs.html#250">new_rlim</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/struct.rlimit.html">rlimit</a>) };
         }<span class="kw">else</span>{
             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setrlimit</span>(<span class="ident">resource</span> <span class="kw">as</span> <span class="ident">c_int</span>, <span class="kw-2">&amp;</span><span class="ident">new_rlim</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">rlimit</span>) };
         }
     }
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/resource.rs.html#226">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/resource.rs.html#256">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

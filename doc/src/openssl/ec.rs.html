@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.38/src/ec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/ec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1074,134 +1074,19 @@
 <span id="1069">1069</span>
 <span id="1070">1070</span>
 <span id="1071">1071</span>
-<span id="1072">1072</span>
-<span id="1073">1073</span>
-<span id="1074">1074</span>
-<span id="1075">1075</span>
-<span id="1076">1076</span>
-<span id="1077">1077</span>
-<span id="1078">1078</span>
-<span id="1079">1079</span>
-<span id="1080">1080</span>
-<span id="1081">1081</span>
-<span id="1082">1082</span>
-<span id="1083">1083</span>
-<span id="1084">1084</span>
-<span id="1085">1085</span>
-<span id="1086">1086</span>
-<span id="1087">1087</span>
-<span id="1088">1088</span>
-<span id="1089">1089</span>
-<span id="1090">1090</span>
-<span id="1091">1091</span>
-<span id="1092">1092</span>
-<span id="1093">1093</span>
-<span id="1094">1094</span>
-<span id="1095">1095</span>
-<span id="1096">1096</span>
-<span id="1097">1097</span>
-<span id="1098">1098</span>
-<span id="1099">1099</span>
-<span id="1100">1100</span>
-<span id="1101">1101</span>
-<span id="1102">1102</span>
-<span id="1103">1103</span>
-<span id="1104">1104</span>
-<span id="1105">1105</span>
-<span id="1106">1106</span>
-<span id="1107">1107</span>
-<span id="1108">1108</span>
-<span id="1109">1109</span>
-<span id="1110">1110</span>
-<span id="1111">1111</span>
-<span id="1112">1112</span>
-<span id="1113">1113</span>
-<span id="1114">1114</span>
-<span id="1115">1115</span>
-<span id="1116">1116</span>
-<span id="1117">1117</span>
-<span id="1118">1118</span>
-<span id="1119">1119</span>
-<span id="1120">1120</span>
-<span id="1121">1121</span>
-<span id="1122">1122</span>
-<span id="1123">1123</span>
-<span id="1124">1124</span>
-<span id="1125">1125</span>
-<span id="1126">1126</span>
-<span id="1127">1127</span>
-<span id="1128">1128</span>
-<span id="1129">1129</span>
-<span id="1130">1130</span>
-<span id="1131">1131</span>
-<span id="1132">1132</span>
-<span id="1133">1133</span>
-<span id="1134">1134</span>
-<span id="1135">1135</span>
-<span id="1136">1136</span>
-<span id="1137">1137</span>
-<span id="1138">1138</span>
-<span id="1139">1139</span>
-<span id="1140">1140</span>
-<span id="1141">1141</span>
-<span id="1142">1142</span>
-<span id="1143">1143</span>
-<span id="1144">1144</span>
-<span id="1145">1145</span>
-<span id="1146">1146</span>
-<span id="1147">1147</span>
-<span id="1148">1148</span>
-<span id="1149">1149</span>
-<span id="1150">1150</span>
-<span id="1151">1151</span>
-<span id="1152">1152</span>
-<span id="1153">1153</span>
-<span id="1154">1154</span>
-<span id="1155">1155</span>
-<span id="1156">1156</span>
-<span id="1157">1157</span>
-<span id="1158">1158</span>
-<span id="1159">1159</span>
-<span id="1160">1160</span>
-<span id="1161">1161</span>
-<span id="1162">1162</span>
-<span id="1163">1163</span>
-<span id="1164">1164</span>
-<span id="1165">1165</span>
-<span id="1166">1166</span>
-<span id="1167">1167</span>
-<span id="1168">1168</span>
-<span id="1169">1169</span>
-<span id="1170">1170</span>
-<span id="1171">1171</span>
-<span id="1172">1172</span>
-<span id="1173">1173</span>
-<span id="1174">1174</span>
-<span id="1175">1175</span>
-<span id="1176">1176</span>
-<span id="1177">1177</span>
-<span id="1178">1178</span>
-<span id="1179">1179</span>
-<span id="1180">1180</span>
-<span id="1181">1181</span>
-<span id="1182">1182</span>
-<span id="1183">1183</span>
-<span id="1184">1184</span>
-<span id="1185">1185</span>
-<span id="1186">1186</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Elliptic Curve</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Cryptology relies on the difficulty of solving mathematical problems, such as the factor</span>
+<span class="doccomment">//! Cryptography relies on the difficulty of solving mathematical problems, such as the factor</span>
 <span class="doccomment">//! of large integers composed of two large prime numbers and the discrete logarithm of a</span>
-<span class="doccomment">//! random eliptic curve.  This module provides low-level features of the latter.</span>
+<span class="doccomment">//! random elliptic curve.  This module provides low-level features of the latter.</span>
 <span class="doccomment">//! Elliptic Curve protocols can provide the same security with smaller keys.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! There are 2 forms of elliptic curves, `Fp` and `F2^m`.  These curves use irreducible</span>
-<span class="doccomment">//! trinomial or pentanomial .  Being a generic interface to a wide range of algorithms,</span>
-<span class="doccomment">//! the cuves are generally referenced by [`EcGroup`].  There are many built in groups</span>
+<span class="doccomment">//! trinomial or pentanomial.  Being a generic interface to a wide range of algorithms,</span>
+<span class="doccomment">//! the curves are generally referenced by [`EcGroup`].  There are many built-in groups</span>
 <span class="doccomment">//! found in [`Nid`].</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! OpenSSL Wiki explains the fields and curves in detail at [Eliptic Curve Cryptography].</span>
+<span class="doccomment">//! OpenSSL Wiki explains the fields and curves in detail at [Elliptic Curve Cryptography].</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [`EcGroup`]: struct.EcGroup.html</span>
 <span class="doccomment">//! [`Nid`]: ../nid/struct.Nid.html</span>
@@ -1211,12 +1096,13 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bn</span>::{<a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>, <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bn</span>::{<a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>, <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/nid.rs.html#47"><span class="kw">crate</span>::nid::Nid</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#104">HasParams</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#111">HasPublic</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#63">Params</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#81-93"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#188">cvt_n</a>, <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>, <a class="ident" href="../../openssl/fn.init.html">init</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#112">HasParams</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#80-92"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>, <a class="ident" href="../../openssl/fn.init.html">init</a>};
+<span class="kw">use</span> <span class="ident">openssl_macros::corresponds</span>;
 
 <span class="doccomment">/// Compressed or Uncompressed conversion</span>
 <span class="doccomment">///</span>
@@ -1228,20 +1114,20 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [X9.62]: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.202.2977&amp;rep=rep1&amp;type=pdf</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PointConversionForm</span>(<a class="ident" href="../../openssl_sys/ec/enum.point_conversion_form_t.html">ffi::point_conversion_form_t</a>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PointConversionForm</span>(<a class="ident" href="../../openssl_sys/handwritten/ec/enum.point_conversion_form_t.html">ffi::point_conversion_form_t</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#40">PointConversionForm</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#41">PointConversionForm</a> {
     <span class="doccomment">/// Compressed conversion from point value.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">COMPRESSED</span>: <a class="ident" href="../../src/openssl/ec.rs.html#40">PointConversionForm</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ec.rs.html#40">PointConversionForm</a>(<span class="ident">ffi::point_conversion_form_t::POINT_CONVERSION_COMPRESSED</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">COMPRESSED</span>: <a class="ident" href="../../src/openssl/ec.rs.html#41">PointConversionForm</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ec.rs.html#41">PointConversionForm</a>(<span class="ident">ffi::point_conversion_form_t::POINT_CONVERSION_COMPRESSED</span>);
 
     <span class="doccomment">/// Uncompressed conversion from point value.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNCOMPRESSED</span>: <a class="ident" href="../../src/openssl/ec.rs.html#40">PointConversionForm</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ec.rs.html#40">PointConversionForm</a>(<span class="ident">ffi::point_conversion_form_t::POINT_CONVERSION_UNCOMPRESSED</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNCOMPRESSED</span>: <a class="ident" href="../../src/openssl/ec.rs.html#41">PointConversionForm</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ec.rs.html#41">PointConversionForm</a>(<span class="ident">ffi::point_conversion_form_t::POINT_CONVERSION_UNCOMPRESSED</span>);
 
     <span class="doccomment">/// Performs both compressed and uncompressed conversions.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HYBRID</span>: <a class="ident" href="../../src/openssl/ec.rs.html#40">PointConversionForm</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ec.rs.html#40">PointConversionForm</a>(<span class="ident">ffi::point_conversion_form_t::POINT_CONVERSION_HYBRID</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HYBRID</span>: <a class="ident" href="../../src/openssl/ec.rs.html#41">PointConversionForm</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ec.rs.html#41">PointConversionForm</a>(<span class="ident">ffi::point_conversion_form_t::POINT_CONVERSION_HYBRID</span>);
 }
 
 <span class="doccomment">/// Named Curve or Explicit</span>
@@ -1250,7 +1136,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Asn1Flag</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#60">Asn1Flag</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#61">Asn1Flag</a> {
     <span class="doccomment">/// Curve defined using polynomial parameters</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Most applications use a named EC_GROUP curve, however, support</span>
@@ -1264,7 +1150,7 @@
     <span class="doccomment">/// OpenSSL documentation at [`EC_GROUP`]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`EC_GROUP`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_GROUP_get_seed_len.html</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXPLICIT_CURVE</span>: <a class="ident" href="../../src/openssl/ec.rs.html#60">Asn1Flag</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ec.rs.html#60">Asn1Flag</a>(<span class="number">0</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXPLICIT_CURVE</span>: <a class="ident" href="../../src/openssl/ec.rs.html#61">Asn1Flag</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ec.rs.html#61">Asn1Flag</a>(<span class="number">0</span>);
 
     <span class="doccomment">/// Standard Curves</span>
     <span class="doccomment">///</span>
@@ -1274,11 +1160,11 @@
     <span class="doccomment">/// OpenSSL documentation at [`EC_GROUP`]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`EC_GROUP`]: https://www.openssl.org/docs/manmaster/man3/EC_GROUP_order_bits.html</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NAMED_CURVE</span>: <a class="ident" href="../../src/openssl/ec.rs.html#60">Asn1Flag</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ec.rs.html#60">Asn1Flag</a>(<span class="ident">ffi::OPENSSL_EC_NAMED_CURVE</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NAMED_CURVE</span>: <a class="ident" href="../../src/openssl/ec.rs.html#61">Asn1Flag</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ec.rs.html#61">Asn1Flag</a>(<span class="ident">ffi::OPENSSL_EC_NAMED_CURVE</span>);
 }
 
 <span class="macro">foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/ec/enum.EC_GROUP.html">ffi::EC_GROUP</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/ec/enum.EC_GROUP.html">ffi::EC_GROUP</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::EC_GROUP_free</span>;
 
     <span class="doccomment">/// Describes the curve</span>
@@ -1304,41 +1190,35 @@
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EcGroupRef</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroup</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroup</a> {
     <span class="doccomment">/// Returns the group of a standard named curve.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_GROUP_new`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_GROUP_new`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_GROUP_new.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_curve_name</span>(<span class="ident">nid</span>: <a class="ident" href="../../src/openssl/nid.rs.html#47">Nid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroup</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_GROUP_new_by_curve_name</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_curve_name</span>(<span class="ident">nid</span>: <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroup</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <a class="ident" href="../../openssl/fn.init.html">init</a>();
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::EC_GROUP_new_by_curve_name</span>(<a class="ident" href="../../src/openssl/ec.rs.html#122">nid</a>.<a class="ident" href="../../src/openssl/nid.rs.html#58">as_raw</a>())).<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroup</a>)
+            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EC_GROUP_new_by_curve_name</span>(<a class="ident" href="../../src/openssl/ec.rs.html#120">nid</a>.<a class="ident" href="../../src/openssl/nid.rs.html#60">as_raw</a>())).<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroup</a>)
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a> {
     <span class="doccomment">/// Places the components of a curve over a prime field in the provided `BigNum`s.</span>
     <span class="doccomment">/// The components make up the formula `y^2 mod p = x^3 + ax + b mod p`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation available at [`EC_GROUP_get_curve_GFp`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_GROUP_get_curve_GFp`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_GROUP_get_curve_GFp.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_GROUP_get_curve_GFp</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">components_gfp</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">p</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">a</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">b</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">p</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">a</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">b</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_GROUP_get_curve_GFp</span>(
-                <a class="self" href="../../src/openssl/ec.rs.html#138">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#139">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#140">a</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#141">b</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#142">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_GROUP_get_curve_GFp</span>(
+                <a class="self" href="../../src/openssl/ec.rs.html#133">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#134">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#135">a</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#136">b</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#137">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
@@ -1350,96 +1230,78 @@
     <span class="doccomment">/// In this form `p` relates to the irreducible polynomial.  Each bit represents</span>
     <span class="doccomment">/// a term in the polynomial.  It will be set to 3 `1`s or 5 `1`s depending on</span>
     <span class="doccomment">/// using a trinomial or pentanomial.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_GROUP_get_curve_GF2m`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_GROUP_get_curve_GF2m`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_GROUP_get_curve_GF2m.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_GROUP_get_curve_GF2m</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">components_gf2m</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">p</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">a</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">b</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">p</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">a</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">b</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_GROUP_get_curve_GF2m</span>(
-                <a class="self" href="../../src/openssl/ec.rs.html#168">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#169">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#170">a</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#171">b</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#172">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_GROUP_get_curve_GF2m</span>(
+                <a class="self" href="../../src/openssl/ec.rs.html#160">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#161">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#162">a</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#163">b</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#164">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
     <span class="doccomment">/// Places the cofactor of the group in the provided `BigNum`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_GROUP_get_cofactor`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_GROUP_get_cofactor`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_GROUP_get_cofactor.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_GROUP_get_cofactor</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cofactor</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">cofactor</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">cofactor</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_GROUP_get_cofactor</span>(
-                <a class="self" href="../../src/openssl/ec.rs.html#192">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#193">cofactor</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#194">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_GROUP_get_cofactor</span>(
+                <a class="self" href="../../src/openssl/ec.rs.html#181">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#182">cofactor</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#183">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
     <span class="doccomment">/// Returns the degree of the curve.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_GROUP_get_degree`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_GROUP_get_degree`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_GROUP_get_degree.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_GROUP_get_degree</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">degree</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">unsafe</span> { <span class="ident">ffi::EC_GROUP_get_degree</span>(<a class="self" href="../../src/openssl/ec.rs.html#211">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
+        <span class="kw">unsafe</span> { <span class="ident">ffi::EC_GROUP_get_degree</span>(<a class="self" href="../../src/openssl/ec.rs.html#197">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
     }
 
     <span class="doccomment">/// Returns the number of bits in the group order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_GROUP_order_bits`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_GROUP_order_bits`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_GROUP_order_bits.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_GROUP_order_bits</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">order_bits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">unsafe</span> { <span class="ident">ffi::EC_GROUP_order_bits</span>(<a class="self" href="../../src/openssl/ec.rs.html#221">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
+        <span class="kw">unsafe</span> { <span class="ident">ffi::EC_GROUP_order_bits</span>(<a class="self" href="../../src/openssl/ec.rs.html#204">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
     }
 
-    <span class="doccomment">/// Returns the generator for the given curve as a [`EcPoint`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_GROUP_get0_generator`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_GROUP_get0_generator`]: https://www.openssl.org/docs/man1.1.0/man3/EC_GROUP_get0_generator.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPointRef</a> {
+    <span class="doccomment">/// Returns the generator for the given curve as an [`EcPoint`].</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_GROUP_get0_generator</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPointRef</a> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EC_GROUP_get0_generator</span>(<a class="self" href="../../src/openssl/ec.rs.html#230">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="ident">EcPointRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#232">ptr</a>)
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EC_GROUP_get0_generator</span>(<a class="self" href="../../src/openssl/ec.rs.html#210">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="ident">EcPointRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#212">ptr</a>)
         }
     }
 
     <span class="doccomment">/// Places the order of the curve in the provided `BigNum`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_GROUP_get_order`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_GROUP_get_order`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_GROUP_get_order.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_GROUP_get_order</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">order</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">order</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">order</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_GROUP_get_order</span>(
-                <a class="self" href="../../src/openssl/ec.rs.html#243">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#244">order</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#245">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_GROUP_get_order</span>(
+                <a class="self" href="../../src/openssl/ec.rs.html#220">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#221">order</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#222">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
@@ -1450,21 +1312,19 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This defaults to `EXPLICIT_CURVE` in OpenSSL 1.0.1 and 1.0.2, but `NAMED_CURVE` in OpenSSL</span>
     <span class="doccomment">/// 1.1.0.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_asn1_flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">flag</span>: <a class="ident" href="../../src/openssl/ec.rs.html#60">Asn1Flag</a>) {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_GROUP_set_asn1_flag</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_asn1_flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">flag</span>: <a class="ident" href="../../src/openssl/ec.rs.html#61">Asn1Flag</a>) {
         <span class="kw">unsafe</span> {
-            <span class="ident">ffi::EC_GROUP_set_asn1_flag</span>(<a class="self" href="../../src/openssl/ec.rs.html#262">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#262">flag</a>.<span class="number">0</span>);
+            <span class="ident">ffi::EC_GROUP_set_asn1_flag</span>(<a class="self" href="../../src/openssl/ec.rs.html#240">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#240">flag</a>.<span class="number">0</span>);
         }
     }
 
     <span class="doccomment">/// Returns the name of the curve, if a name is associated.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_GROUP_get_curve_name`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_GROUP_get_curve_name`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_GROUP_get_curve_name.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">curve_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/nid.rs.html#47">Nid</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">nid</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi::EC_GROUP_get_curve_name</span>(<a class="self" href="../../src/openssl/ec.rs.html#273">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) };
-        <span class="kw">if</span> <a class="ident" href="../../src/openssl/ec.rs.html#274">nid</a> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Nid::from_raw</span>(<a class="ident" href="../../src/openssl/ec.rs.html#274">nid</a>))
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_GROUP_get_curve_name</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">curve_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">nid</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi::EC_GROUP_get_curve_name</span>(<a class="self" href="../../src/openssl/ec.rs.html#248">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) };
+        <span class="kw">if</span> <a class="ident" href="../../src/openssl/ec.rs.html#249">nid</a> <span class="op">&gt;</span> <span class="number">0</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">Nid::from_raw</span>(<a class="ident" href="../../src/openssl/ec.rs.html#249">nid</a>))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -1472,444 +1332,374 @@
 }
 
 <span class="macro">foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/ec/enum.EC_POINT.html">ffi::EC_POINT</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/ec/enum.EC_POINT.html">ffi::EC_POINT</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::EC_POINT_free</span>;
 
     <span class="doccomment">/// Represents a point on the curve</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_new`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_new`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_new.html</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EcPoint</span>;
-    <span class="doccomment">/// Reference to [`EcPoint`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EcPoint`]: struct.EcPoint.html</span>
+    <span class="doccomment">/// A reference a borrowed [`EcPoint`].</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EcPointRef</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPointRef</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPointRef</a> {
     <span class="doccomment">/// Computes `a + b`, storing the result in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_add`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_add`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_add.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_add</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">a</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPointRef</a>,
-        <span class="ident">b</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPointRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">a</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPointRef</a>,
+        <span class="ident">b</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPointRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_POINT_add</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#307">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#306">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#308">a</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#309">b</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#310">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_POINT_add</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#273">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#272">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#274">a</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#275">b</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#276">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
     <span class="doccomment">/// Computes `q * m`, storing the result in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_mul`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_mul`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_mul.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_mul</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">q</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPointRef</a>,
-        <span class="ident">m</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">q</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPointRef</a>,
+        <span class="ident">m</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
         <span class="comment">// FIXME should be &amp;mut</span>
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_POINT_mul</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#331">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#330">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_POINT_mul</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#294">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#293">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <span class="ident">ptr::null</span>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#332">q</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#333">m</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#335">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#295">q</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#296">m</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#298">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
     <span class="doccomment">/// Computes `generator * n`, storing the result in `self`.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_mul</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul_generator</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">n</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">n</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
         <span class="comment">// FIXME should be &amp;mut</span>
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_POINT_mul</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#353">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#352">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#354">n</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_POINT_mul</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#317">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#316">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#318">n</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <span class="ident">ptr::null</span>(),
                 <span class="ident">ptr::null</span>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#356">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#320">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
     <span class="doccomment">/// Computes `generator * n + q * m`, storing the result in `self`.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_mul</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul_full</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">n</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">q</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPointRef</a>,
-        <span class="ident">m</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">n</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">q</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPointRef</a>,
+        <span class="ident">m</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_POINT_mul</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#374">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#373">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#375">n</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#376">q</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#377">m</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#378">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_POINT_mul</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#339">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#338">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#340">n</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#341">q</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#342">m</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#343">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
     <span class="doccomment">/// Inverts `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_invert`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_invert`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_invert.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_invert</span>)]</span>
+    <span class="comment">// FIXME should be mutable</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_POINT_invert</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#398">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#398">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#398">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_POINT_invert</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#361">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#361">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#361">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
     <span class="doccomment">/// Serializes the point to a binary representation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_point2oct`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_point2oct`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_point2oct.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_point2oct</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">form</span>: <a class="ident" href="../../src/openssl/ec.rs.html#40">PointConversionForm</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">form</span>: <a class="ident" href="../../src/openssl/ec.rs.html#41">PointConversionForm</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">ffi::EC_POINT_point2oct</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#416">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#415">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#417">form</a>.<span class="number">0</span>,
+                <a class="ident" href="../../src/openssl/ec.rs.html#376">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#375">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#377">form</a>.<span class="number">0</span>,
                 <span class="ident">ptr::null_mut</span>(),
                 <span class="number">0</span>,
-                <a class="ident" href="../../src/openssl/ec.rs.html#418">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#378">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             );
-            <span class="kw">if</span> <a class="ident" href="../../src/openssl/ec.rs.html#421">len</a> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/openssl/ec.rs.html#381">len</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>());
             }
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <a class="ident" href="../../src/openssl/ec.rs.html#421">len</a>];
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <a class="ident" href="../../src/openssl/ec.rs.html#381">len</a>];
             <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">ffi::EC_POINT_point2oct</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#416">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#415">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#417">form</a>.<span class="number">0</span>,
-                <a class="ident" href="../../src/openssl/ec.rs.html#432">buf</a>.<span class="ident">as_mut_ptr</span>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#421">len</a>,
-                <a class="ident" href="../../src/openssl/ec.rs.html#418">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#376">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#375">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#377">form</a>.<span class="number">0</span>,
+                <a class="ident" href="../../src/openssl/ec.rs.html#392">buf</a>.<span class="ident">as_mut_ptr</span>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#381">len</a>,
+                <a class="ident" href="../../src/openssl/ec.rs.html#378">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             );
-            <span class="kw">if</span> <a class="ident" href="../../src/openssl/ec.rs.html#433">len</a> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/openssl/ec.rs.html#393">len</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>())
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/ec.rs.html#432">buf</a>)
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/ec.rs.html#392">buf</a>)
             }
         }
     }
 
     <span class="doccomment">/// Creates a new point on the specified curve with the same value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_dup`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_dup`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_dup.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPoint</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::EC_POINT_dup</span>(<a class="self" href="../../src/openssl/ec.rs.html#454">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#454">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPoint</a>) }
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_dup</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPoint</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EC_POINT_dup</span>(<a class="self" href="../../src/openssl/ec.rs.html#411">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#411">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPoint</a>) }
     }
 
     <span class="doccomment">/// Determines if this point is equal to another.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL doucmentation at [`EC_POINT_cmp`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_cmp`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_cmp.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_cmp</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">eq</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPointRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPointRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#188">cvt_n</a>(<span class="ident">ffi::EC_POINT_cmp</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#465">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#464">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#466">other</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#467">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>(<span class="ident">ffi::EC_POINT_cmp</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#419">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#418">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#420">other</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#421">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/ec.rs.html#470">res</a> <span class="op">==</span> <span class="number">0</span>)
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/ec.rs.html#424">res</a> <span class="op">==</span> <span class="number">0</span>)
         }
     }
 
-    <span class="doccomment">/// Place affine coordinates of a curve over a prime field in the provided</span>
-    <span class="doccomment">/// `x` and `y` `BigNum`s</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_get_affine_coordinates`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_get_affine_coordinates`]: https://www.openssl.org/docs/man1.1.1/man3/EC_POINT_get_affine_coordinates.html</span>
+    <span class="doccomment">/// Places affine coordinates of a curve over a prime field in the provided</span>
+    <span class="doccomment">/// `x` and `y` `BigNum`s.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_get_affine_coordinates</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">affine_coordinates</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">x</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">y</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">x</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">y</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_POINT_get_affine_coordinates</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#489">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#488">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#490">x</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#491">y</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#492">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_POINT_get_affine_coordinates</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#440">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#439">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#441">x</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#442">y</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#443">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
-    <span class="doccomment">/// Place affine coordinates of a curve over a prime field in the provided</span>
+    <span class="doccomment">/// Places affine coordinates of a curve over a prime field in the provided</span>
     <span class="doccomment">/// `x` and `y` `BigNum`s</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_get_affine_coordinates_GFp`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_get_affine_coordinates_GFp`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_get_affine_coordinates_GFp.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_get_affine_coordinates_GFp</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">affine_coordinates_gfp</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">x</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">y</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">x</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">y</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_POINT_get_affine_coordinates_GFp</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#514">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#513">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#515">x</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#516">y</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#517">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_POINT_get_affine_coordinates_GFp</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#462">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#461">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#463">x</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#464">y</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#465">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
-    <span class="doccomment">/// Place affine coordinates of a curve over a binary field in the provided</span>
+    <span class="doccomment">/// Places affine coordinates of a curve over a binary field in the provided</span>
     <span class="doccomment">/// `x` and `y` `BigNum`s</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_get_affine_coordinates_GF2m`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_get_affine_coordinates_GF2m`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_get_affine_coordinates_GF2m.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_get_affine_coordinates_GF2m</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">affine_coordinates_gf2m</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">x</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">y</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">x</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">y</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_POINT_get_affine_coordinates_GF2m</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#540">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#539">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#541">x</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#542">y</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#543">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_POINT_get_affine_coordinates_GF2m</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#485">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#484">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#486">x</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#487">y</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#488">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
     <span class="doccomment">/// Checks if point is infinity</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_is_at_infinity`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_is_at_infinity`]: https://www.openssl.org/docs/man1.1.0/man3/EC_POINT_is_at_infinity.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_infinity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_is_at_infinity</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_infinity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">ffi::EC_POINT_is_at_infinity</span>(<a class="ident" href="../../src/openssl/ec.rs.html#562">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="self" href="../../src/openssl/ec.rs.html#562">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <a class="ident" href="../../src/openssl/ec.rs.html#564">res</a> <span class="op">==</span> <span class="number">1</span>
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">ffi::EC_POINT_is_at_infinity</span>(<a class="ident" href="../../src/openssl/ec.rs.html#504">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="self" href="../../src/openssl/ec.rs.html#504">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <a class="ident" href="../../src/openssl/ec.rs.html#506">res</a> <span class="op">==</span> <span class="number">1</span>
         }
     }
 
     <span class="doccomment">/// Checks if point is on a given curve</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_is_on_curve`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_is_on_curve`]: https://www.openssl.org/docs/man1.1.0/man3/EC_POINT_is_on_curve.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_is_on_curve</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_on_curve</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#188">cvt_n</a>(<span class="ident">ffi::EC_POINT_is_on_curve</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#576">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ec.rs.html#575">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#577">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>(<span class="ident">ffi::EC_POINT_is_on_curve</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#515">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ec.rs.html#514">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#516">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/ec.rs.html#580">res</a> <span class="op">==</span> <span class="number">1</span>)
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/ec.rs.html#519">res</a> <span class="op">==</span> <span class="number">1</span>)
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPoint</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPoint</a> {
     <span class="doccomment">/// Creates a new point on the specified curve.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_new`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_new`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_new.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPoint</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::EC_POINT_new</span>(<a class="ident" href="../../src/openssl/ec.rs.html#596">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPoint</a>) }
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_new</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPoint</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EC_POINT_new</span>(<a class="ident" href="../../src/openssl/ec.rs.html#532">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPoint</a>) }
     }
 
     <span class="doccomment">/// Creates point from a binary representation</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_POINT_oct2point`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_POINT_oct2point`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_POINT_oct2point.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_POINT_oct2point</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#81-97">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPoint</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">point</span> <span class="op">=</span> <span class="ident">EcPoint::new</span>(<a class="ident" href="../../src/openssl/ec.rs.html#606">group</a>)<span class="question-mark">?</span>;
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/bn.rs.html#82-98">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPoint</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">point</span> <span class="op">=</span> <span class="ident">EcPoint::new</span>(<a class="ident" href="../../src/openssl/ec.rs.html#539">group</a>)<span class="question-mark">?</span>;
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_POINT_oct2point</span>(
-                <a class="ident" href="../../src/openssl/ec.rs.html#606">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#610">point</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#607">buf</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#607">buf</a>.<span class="ident">len</span>(),
-                <a class="ident" href="../../src/openssl/ec.rs.html#608">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_POINT_oct2point</span>(
+                <a class="ident" href="../../src/openssl/ec.rs.html#539">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#543">point</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#540">buf</a>.<span class="ident">as_ptr</span>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#540">buf</a>.<span class="ident">len</span>(),
+                <a class="ident" href="../../src/openssl/ec.rs.html#541">ctx</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/ec.rs.html#610">point</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/ec.rs.html#543">point</a>)
     }
 }
 
 <span class="macro">generic_foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/ossl_typ/enum.EC_KEY.html">ffi::EC_KEY</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EC_KEY.html">ffi::EC_KEY</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::EC_KEY_free</span>;
 
-    <span class="doccomment">/// Public and optional Private key on the given curve</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_KEY_new`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_KEY_new`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_KEY_new.html</span>
+    <span class="doccomment">/// Public and optional private key on the given curve.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-
-    <span class="doccomment">/// Reference to [`EcKey`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EcKey`]: struct.EcKey.html</span>
+    <span class="doccomment">/// A reference to an [`EcKey`].</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EcKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">EcKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>,
+    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
 {
     <span class="macro">private_key_to_pem!</span> {
         <span class="doccomment">/// Serializes the private key to a PEM-encoded ECPrivateKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The output will have a header of `-----BEGIN EC PRIVATE KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_write_bio_ECPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_ECPrivateKey`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_write_bio_ECPrivateKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_ECPrivateKey</span>)]</span>
         <span class="ident">private_key_to_pem</span>,
         <span class="doccomment">/// Serializes the private key to a PEM-encoded encrypted ECPrivateKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The output will have a header of `-----BEGIN EC PRIVATE KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_write_bio_ECPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_ECPrivateKey`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_write_bio_ECPrivateKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_ECPrivateKey</span>)]</span>
         <span class="ident">private_key_to_pem_passphrase</span>,
         <span class="ident">ffi::PEM_write_bio_ECPrivateKey</span>
     }
 
     <span class="macro">to_der!</span> {
         <span class="doccomment">/// Serializes the private key into a DER-encoded ECPrivateKey structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`i2d_ECPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`i2d_ECPrivateKey`]: https://www.openssl.org/docs/man1.0.2/crypto/d2i_ECPrivate_key.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_ECPrivateKey</span>)]</span>
         <span class="ident">private_key_to_der</span>,
         <span class="ident">ffi::i2d_ECPrivateKey</span>
     }
 
-    <span class="doccomment">/// Return [`EcPoint`] associated with the private key</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_KEY_get0_private_key`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_KEY_get0_private_key`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_KEY_get0_private_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">private_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a> {
+    <span class="doccomment">/// Returns the private key value.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_KEY_get0_private_key</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">private_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EC_KEY_get0_private_key</span>(<a class="self" href="../../src/openssl/ec.rs.html#680">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#682">ptr</a>)
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EC_KEY_get0_private_key</span>(<a class="self" href="../../src/openssl/ec.rs.html#594">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#596">ptr</a>)
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">EcKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#111">HasPublic</a>,
+    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
 {
     <span class="doccomment">/// Returns the public key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_KEY_get0_public_key`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_KEY_get0_public_key`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_KEY_get0_public_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">public_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPointRef</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_KEY_get0_public_key</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">public_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPointRef</a> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EC_KEY_get0_public_key</span>(<a class="self" href="../../src/openssl/ec.rs.html#697">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="ident">EcPointRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#699">ptr</a>)
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EC_KEY_get0_public_key</span>(<a class="self" href="../../src/openssl/ec.rs.html#608">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="ident">EcPointRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#610">ptr</a>)
         }
     }
 
     <span class="macro">to_pem!</span> {
-        <span class="doccomment">/// Serialies the public key into a PEM-encoded SubjectPublicKeyInfo structure.</span>
+        <span class="doccomment">/// Serializes the public key into a PEM-encoded SubjectPublicKeyInfo structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The output will have a header of `-----BEGIN PUBLIC KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_write_bio_EC_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_EC_PUBKEY`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_write_bio_EC_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_EC_PUBKEY</span>)]</span>
         <span class="ident">public_key_to_pem</span>,
         <span class="ident">ffi::PEM_write_bio_EC_PUBKEY</span>
     }
 
     <span class="macro">to_der!</span> {
         <span class="doccomment">/// Serializes the public key into a DER-encoded SubjectPublicKeyInfo structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`i2d_EC_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`i2d_EC_PUBKEY`]: https://www.openssl.org/docs/man1.1.0/crypto/i2d_EC_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_EC_PUBKEY</span>)]</span>
         <span class="ident">public_key_to_der</span>,
         <span class="ident">ffi::i2d_EC_PUBKEY</span>
     }
@@ -1917,27 +1707,21 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">EcKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#104">HasParams</a>,
+    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#112">HasParams</a>,
 {
-    <span class="doccomment">/// Return [`EcGroup`] of the `EcKey`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_KEY_get0_group`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_KEY_get0_group`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_KEY_get0_group.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a> {
+    <span class="doccomment">/// Returns the key&#39;s group.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_KEY_get0_group</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EC_KEY_get0_group</span>(<a class="self" href="../../src/openssl/ec.rs.html#736">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="ident">EcGroupRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#738">ptr</a>)
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EC_KEY_get0_group</span>(<a class="self" href="../../src/openssl/ec.rs.html#638">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="ident">EcGroupRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#640">ptr</a>)
         }
     }
 
     <span class="doccomment">/// Checks the key for validity.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_KEY_check_key`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_KEY_check_key`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_KEY_check_key.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_KEY_check_key</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_check_key</span>(<a class="self" href="../../src/openssl/ec.rs.html#748">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()) }
+        <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_check_key</span>(<a class="self" href="../../src/openssl/ec.rs.html#647">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()) }
     }
 }
 
@@ -1946,46 +1730,40 @@
 
     <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::EC_KEY_up_ref</span>(<a class="self" href="../../src/openssl/ec.rs.html#756">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/ec.rs.html#758">r</a> <span class="op">==</span> <span class="number">1</span>);
-            <span class="ident">EcKey::from_ptr</span>(<a class="self" href="../../src/openssl/ec.rs.html#756">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())
+            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::EC_KEY_up_ref</span>(<a class="self" href="../../src/openssl/ec.rs.html#655">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/ec.rs.html#657">r</a> <span class="op">==</span> <span class="number">1</span>);
+            <span class="ident">EcKey::from_ptr</span>(<a class="self" href="../../src/openssl/ec.rs.html#655">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#63">Params</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Constructs an `EcKey` corresponding to a known curve.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It will not have an associated public or private key. This kind of key is primarily useful</span>
     <span class="doccomment">/// to be provided to the `set_tmp_ecdh` methods on `Ssl` and `SslContextBuilder`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`EC_KEY_new_by_curve_name`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_KEY_new_by_curve_name`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_KEY_new_by_curve_name.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_curve_name</span>(<span class="ident">nid</span>: <a class="ident" href="../../src/openssl/nid.rs.html#47">Nid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#63">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_KEY_new_by_curve_name</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_curve_name</span>(<span class="ident">nid</span>: <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <a class="ident" href="../../openssl/fn.init.html">init</a>();
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::EC_KEY_new_by_curve_name</span>(<a class="ident" href="../../src/openssl/ec.rs.html#774">nid</a>.<a class="ident" href="../../src/openssl/nid.rs.html#58">as_raw</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#777">p</a>))
+            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EC_KEY_new_by_curve_name</span>(<a class="ident" href="../../src/openssl/ec.rs.html#670">nid</a>.<a class="ident" href="../../src/openssl/nid.rs.html#60">as_raw</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#673">p</a>))
         }
     }
 
     <span class="doccomment">/// Constructs an `EcKey` corresponding to a curve.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`EC_KEY_set_group`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EC_KEY_set_group`]: https://www.openssl.org/docs/man1.1.0/crypto/EC_KEY_new.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_group</span>(<span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#63">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_KEY_set_group</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_group</span>(<span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#67">Params</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::EC_KEY_new</span>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#789">p</a>))
+            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EC_KEY_new</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#682">p</a>))
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_set_group</span>(<a class="ident" href="../../src/openssl/ec.rs.html#790">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#786">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#790">key</a>)
+                    <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_set_group</span>(<a class="ident" href="../../src/openssl/ec.rs.html#683">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#679">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#683">key</a>)
                 })
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Constructs an `EcKey` from the specified group with the associated `EcPoint`, public_key.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will only have the associated public_key.</span>
@@ -2007,45 +1785,47 @@
     <span class="doccomment">/// let point = EcPoint::from_bytes(&amp;group, &amp;public_key, &amp;mut ctx).unwrap();</span>
     <span class="doccomment">/// let key = EcKey::from_public_key(&amp;group, &amp;point);</span>
     <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_KEY_set_public_key</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_public_key</span>(
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">public_key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPointRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">public_key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPointRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::EC_KEY_new</span>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#825">p</a>))
+            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EC_KEY_new</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#719">p</a>))
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_set_group</span>(<a class="ident" href="../../src/openssl/ec.rs.html#826">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#820">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#826">key</a>)
+                    <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_set_group</span>(<a class="ident" href="../../src/openssl/ec.rs.html#720">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#714">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#720">key</a>)
                 })
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_set_public_key</span>(
-                        <a class="ident" href="../../src/openssl/ec.rs.html#829">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                        <a class="ident" href="../../src/openssl/ec.rs.html#821">public_key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                    <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_set_public_key</span>(
+                        <a class="ident" href="../../src/openssl/ec.rs.html#723">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+                        <a class="ident" href="../../src/openssl/ec.rs.html#715">public_key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                     ))
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#829">key</a>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#723">key</a>)
                 })
         }
     }
 
     <span class="doccomment">/// Constructs a public key from its affine coordinates.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_KEY_set_public_key_affine_coordinates</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_public_key_affine_coordinates</span>(
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">x</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">y</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">x</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">y</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::EC_KEY_new</span>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#847">p</a>))
+            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EC_KEY_new</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#742">p</a>))
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_set_group</span>(<a class="ident" href="../../src/openssl/ec.rs.html#848">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#841">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#848">key</a>)
+                    <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_set_group</span>(<a class="ident" href="../../src/openssl/ec.rs.html#743">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#736">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#743">key</a>)
                 })
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_set_public_key_affine_coordinates</span>(
-                        <a class="ident" href="../../src/openssl/ec.rs.html#851">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                        <a class="ident" href="../../src/openssl/ec.rs.html#842">x</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                        <a class="ident" href="../../src/openssl/ec.rs.html#843">y</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                    <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_set_public_key_affine_coordinates</span>(
+                        <a class="ident" href="../../src/openssl/ec.rs.html#746">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+                        <a class="ident" href="../../src/openssl/ec.rs.html#737">x</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                        <a class="ident" href="../../src/openssl/ec.rs.html#738">y</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                     ))
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#851">key</a>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#746">key</a>)
                 })
         }
     }
@@ -2054,65 +1834,61 @@
         <span class="doccomment">/// Decodes a PEM-encoded SubjectPublicKeyInfo structure containing a EC key.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The input should have a header of `-----BEGIN PUBLIC KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_read_bio_EC_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_read_bio_EC_PUBKEY`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_read_bio_EC_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_EC_PUBKEY</span>)]</span>
         <span class="ident">public_key_from_pem</span>,
-        <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>,
+        <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>,
         <span class="ident">ffi::PEM_read_bio_EC_PUBKEY</span>
     }
 
     <span class="macro">from_der!</span> {
         <span class="doccomment">/// Decodes a DER-encoded SubjectPublicKeyInfo structure containing a EC key.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`d2i_EC_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`d2i_EC_PUBKEY`]: https://www.openssl.org/docs/man1.1.0/crypto/d2i_EC_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_EC_PUBKEY</span>)]</span>
         <span class="ident">public_key_from_der</span>,
-        <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>,
+        <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>,
         <span class="ident">ffi::d2i_EC_PUBKEY</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Generates a new public/private key pair on the specified curve.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate</span>(<span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_KEY_generate_key</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate</span>(<span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::EC_KEY_new</span>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#892">p</a>))
+            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EC_KEY_new</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#782">p</a>))
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_set_group</span>(<a class="ident" href="../../src/openssl/ec.rs.html#893">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#889">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#893">key</a>)
+                    <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_set_group</span>(<a class="ident" href="../../src/openssl/ec.rs.html#783">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#779">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#783">key</a>)
                 })
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_generate_key</span>(<a class="ident" href="../../src/openssl/ec.rs.html#896">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#896">key</a>))
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_generate_key</span>(<a class="ident" href="../../src/openssl/ec.rs.html#786">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#786">key</a>))
         }
     }
 
     <span class="doccomment">/// Constructs an public/private key pair given a curve, a private key and a public key point.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EC_KEY_set_private_key</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_private_components</span>(
-        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#89-114">EcGroupRef</a>,
-        <span class="ident">private_number</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>,
-        <span class="ident">public_key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#283-297">EcPointRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#90-115">EcGroupRef</a>,
+        <span class="ident">private_number</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>,
+        <span class="ident">public_key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ec.rs.html#258-266">EcPointRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::EC_KEY_new</span>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#908">p</a>))
+            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::EC_KEY_new</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">EcKey::from_ptr</span>(<a class="ident" href="../../src/openssl/ec.rs.html#799">p</a>))
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_set_group</span>(<a class="ident" href="../../src/openssl/ec.rs.html#909">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#902">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#909">key</a>)
+                    <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_set_group</span>(<a class="ident" href="../../src/openssl/ec.rs.html#800">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ec.rs.html#793">group</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#800">key</a>)
                 })
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_set_private_key</span>(
-                        <a class="ident" href="../../src/openssl/ec.rs.html#912">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                        <a class="ident" href="../../src/openssl/ec.rs.html#903">private_number</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                    <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_set_private_key</span>(
+                        <a class="ident" href="../../src/openssl/ec.rs.html#803">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+                        <a class="ident" href="../../src/openssl/ec.rs.html#794">private_number</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                     ))
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#912">key</a>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#803">key</a>)
                 })
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EC_KEY_set_public_key</span>(
-                        <a class="ident" href="../../src/openssl/ec.rs.html#919">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                        <a class="ident" href="../../src/openssl/ec.rs.html#904">public_key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                    <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EC_KEY_set_public_key</span>(
+                        <a class="ident" href="../../src/openssl/ec.rs.html#810">key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+                        <a class="ident" href="../../src/openssl/ec.rs.html#795">public_key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                     ))
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#919">key</a>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ec.rs.html#810">key</a>)
                 })
         }
     }
@@ -2121,15 +1897,13 @@
         <span class="doccomment">/// Deserializes a private key from a PEM-encoded ECPrivateKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The input should have a header of `-----BEGIN EC PRIVATE KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to `PEM_read_bio_ECPrivateKey`.</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_ECPrivateKey</span>)]</span>
         <span class="ident">private_key_from_pem</span>,
 
         <span class="doccomment">/// Deserializes a private key from a PEM-encoded encrypted ECPrivateKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The input should have a header of `-----BEGIN EC PRIVATE KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to `PEM_read_bio_ECPrivateKey`.</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_ECPrivateKey</span>)]</span>
         <span class="ident">private_key_from_pem_passphrase</span>,
 
         <span class="doccomment">/// Deserializes a private key from a PEM-encoded encrypted ECPrivateKey structure.</span>
@@ -2137,34 +1911,30 @@
         <span class="doccomment">/// The callback should fill the password into the provided buffer and return its length.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The input should have a header of `-----BEGIN EC PRIVATE KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to `PEM_read_bio_ECPrivateKey`.</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_ECPrivateKey</span>)]</span>
         <span class="ident">private_key_from_pem_callback</span>,
-        <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>,
+        <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>,
         <span class="ident">ffi::PEM_read_bio_ECPrivateKey</span>
     }
 
     <span class="macro">from_der!</span> {
         <span class="doccomment">/// Decodes a DER-encoded elliptic curve private key structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`d2i_ECPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`d2i_ECPrivateKey`]: https://www.openssl.org/docs/man1.0.2/crypto/d2i_ECPrivate_key.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_ECPrivateKey</span>)]</span>
         <span class="ident">private_key_from_der</span>,
-        <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>,
+        <span class="ident">EcKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>,
         <span class="ident">ffi::d2i_ECPrivateKey</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/openssl/ec.rs.html#969">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/openssl/ec.rs.html#854">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">EcKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../src/openssl/ec.rs.html#975">f</a>, <span class="string">&quot;EcKey&quot;</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../src/openssl/ec.rs.html#860">f</a>, <span class="string">&quot;EcKey&quot;</span>)
     }
 }
 
@@ -2376,5 +2146,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

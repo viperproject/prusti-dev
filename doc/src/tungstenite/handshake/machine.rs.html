@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.11.1/src/handshake/machine.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>machine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/handshake/machine.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>machine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -125,113 +125,87 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">bytes::Buf</a>;
 <span class="kw">use</span> <a class="ident" href="../../../log/index.html">log</a>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../../src/tungstenite/error.rs.html#27-70">Error</a>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <a class="ident" href="../../../src/tungstenite/util.rs.html#35-40"><span class="kw">crate</span>::util::NonBlockingResult</a>;
-<span class="kw">use</span> <span class="ident">input_buffer</span>::{<a class="ident" href="../../../input_buffer/struct.InputBuffer.html">InputBuffer</a>, <a class="ident" href="../../../input_buffer/constant.MIN_READ.html">MIN_READ</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">error</span>::{<a class="ident" href="../../../src/tungstenite/error.rs.html#14-70">Error</a>, <a class="ident" href="../../../src/tungstenite/error.rs.html#142-218">ProtocolError</a>, <span class="prelude-ty">Result</span>},
+    <a class="ident" href="../../../src/tungstenite/util.rs.html#37-42">util::NonBlockingResult</a>,
+    <a class="ident" href="../../../src/tungstenite/lib.rs.html#27">ReadBuffer</a>,
+};
 
 <span class="doccomment">/// A generic handshake state machine.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HandshakeMachine</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span> {
     <span class="ident">stream</span>: <span class="ident">Stream</span>,
-    <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#132-137">HandshakeState</a>,
+    <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#117-122">HandshakeState</a>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span> <span class="ident">HandshakeMachine</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Start reading data from the peer.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_read</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#11-14">HandshakeMachine</a> {
-            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#18">stream</a>,
-            <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#134">HandshakeState::Reading</a>(<span class="ident">InputBuffer::with_capacity</span>(<a class="ident" href="../../../input_buffer/constant.MIN_READ.html">MIN_READ</a>)),
-        }
+        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#13-16">HandshakeMachine</a> { <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#20">stream</a>, <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#119">HandshakeState::Reading</a>(<span class="ident">ReadBuffer::new</span>()) }
     }
     <span class="doccomment">/// Start writing data to the peer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_write</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>, <span class="ident">data</span>: <span class="ident">D</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#11-14">HandshakeMachine</a> {
-            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#25">stream</a>,
-            <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#136">HandshakeState::Writing</a>(<span class="ident">Cursor::new</span>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#25">data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_write</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>, <span class="ident">data</span>: <span class="ident">D</span>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#13-16">HandshakeMachine</a> { <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#24">stream</a>, <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#121">HandshakeState::Writing</a>(<span class="ident">Cursor::new</span>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#24">data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())) }
     }
     <span class="doccomment">/// Returns a shared reference to the inner stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Stream</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#32">self</a>.<span class="ident">stream</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#28">self</a>.<span class="ident">stream</span>
     }
     <span class="doccomment">/// Returns a mutable reference to the inner stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Stream</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#36">self</a>.<span class="ident">stream</span>
+        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#32">self</a>.<span class="ident">stream</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Stream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a><span class="op">&gt;</span> <span class="ident">HandshakeMachine</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Perform a single handshake round.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">single_round</span><span class="op">&lt;</span><span class="ident">Obj</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#125-128">TryParse</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RoundResult</span><span class="op">&lt;</span><span class="ident">Obj</span>, <span class="ident">Stream</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">single_round</span><span class="op">&lt;</span><span class="ident">Obj</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#110-113">TryParse</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RoundResult</span><span class="op">&lt;</span><span class="ident">Obj</span>, <span class="ident">Stream</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="macro">trace!</span>(<span class="string">&quot;Doing handshake round.&quot;</span>);
-        <span class="kw">match</span> <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#43">self</a>.<span class="ident">state</span> {
-            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#134">HandshakeState::Reading</a>(<span class="kw-2">mut</span> <span class="ident">buf</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#46">buf</a>
-                    .<span class="ident">prepare_reserve</span>(<a class="ident" href="../../../input_buffer/constant.MIN_READ.html">MIN_READ</a>)
-                    .<span class="ident">with_limit</span>(<span class="ident">usize::max_value</span>()) <span class="comment">// TODO limit size</span>
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/error.rs.html#57">Error::Capacity</a>(<span class="string">&quot;Header too long&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))<span class="question-mark">?</span>
-                    .<span class="ident">read_from</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#43">self</a>.<span class="ident">stream</span>)
-                    .<a class="ident" href="../../../src/tungstenite/util.rs.html#39">no_block</a>()<span class="question-mark">?</span>;
-                <span class="kw">match</span> <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#47">read</a> {
-                    <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#59">Error::Protocol</a>(<span class="string">&quot;Handshake not finished&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
-                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">size</span>, <span class="ident">obj</span>)) <span class="op">=</span> <span class="ident">Obj::try_parse</span>(<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf::bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#46">buf</a>))<span class="question-mark">?</span> {
-                            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#46">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#56">size</a>);
-                            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#108">RoundResult::StageFinished</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#115-119">StageResult::DoneReading</a> {
-                                <span class="ident">result</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#56">obj</a>,
-                                <span class="ident">stream</span>: <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#43">self</a>.<span class="ident">stream</span>,
-                                <span class="ident">tail</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#46">buf</a>.<span class="ident">into_vec</span>(),
-                            })
-                        } <span class="kw">else</span> {
-                            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#106">RoundResult::Incomplete</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#11-14">HandshakeMachine</a> {
-                                <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#134">HandshakeState::Reading</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#46">buf</a>),
-                                ..<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#43">self</a>
-                            })
-                        },
-                    ),
-                    <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#104">RoundResult::WouldBlock</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#11-14">HandshakeMachine</a> {
-                        <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#134">HandshakeState::Reading</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#46">buf</a>),
-                        ..<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#43">self</a>
+        <span class="kw">match</span> <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>.<span class="ident">state</span> {
+            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#119">HandshakeState::Reading</a>(<span class="kw-2">mut</span> <span class="ident">buf</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#42">buf</a>.<a class="ident" href="../../../src/tungstenite/buffer.rs.html#55">read_from</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>.<span class="ident">stream</span>).<a class="ident" href="../../../src/tungstenite/util.rs.html#41">no_block</a>()<span class="question-mark">?</span>;
+                <span class="kw">match</span> <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#43">read</a> {
+                    <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#54">Error::Protocol</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#172">ProtocolError::HandshakeIncomplete</a>)),
+                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">size</span>, <span class="ident">obj</span>)) <span class="op">=</span> <span class="ident">Obj::try_parse</span>(<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf::chunk</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#42">buf</a>))<span class="question-mark">?</span> {
+                        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#42">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#46">size</a>);
+                        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#97">RoundResult::StageFinished</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#104">StageResult::DoneReading</a> {
+                            <span class="ident">result</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#46">obj</a>,
+                            <span class="ident">stream</span>: <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>.<span class="ident">stream</span>,
+                            <span class="ident">tail</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#42">buf</a>.<a class="ident" href="../../../src/tungstenite/buffer.rs.html#45">into_vec</a>(),
+                        })
+                    } <span class="kw">else</span> {
+                        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#95">RoundResult::Incomplete</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#13-16">HandshakeMachine</a> {
+                            <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#119">HandshakeState::Reading</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#42">buf</a>),
+                            ..<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>
+                        })
+                    }),
+                    <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#93">RoundResult::WouldBlock</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#13-16">HandshakeMachine</a> {
+                        <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#119">HandshakeState::Reading</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#42">buf</a>),
+                        ..<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>
                     })),
                 }
             }
-            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#136">HandshakeState::Writing</a>(<span class="kw-2">mut</span> <span class="ident">buf</span>) =&gt; {
-                <span class="macro">assert!</span>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#76">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">has_remaining</a>());
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>) <span class="op">=</span> <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#43">self</a>.<span class="ident">stream</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf::bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#76">buf</a>)).<a class="ident" href="../../../src/tungstenite/util.rs.html#39">no_block</a>()<span class="question-mark">?</span> {
-                    <span class="macro">assert!</span>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#78">size</a> <span class="op">&gt;</span> <span class="number">0</span>);
-                    <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#76">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#78">size</a>);
-                    <span class="prelude-val">Ok</span>(<span class="kw">if</span> <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#76">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">has_remaining</a>() {
-                        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#106">RoundResult::Incomplete</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#11-14">HandshakeMachine</a> {
-                            <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#136">HandshakeState::Writing</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#76">buf</a>),
-                            ..<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#43">self</a>
+            <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#121">HandshakeState::Writing</a>(<span class="kw-2">mut</span> <span class="ident">buf</span>) =&gt; {
+                <span class="macro">assert!</span>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#65">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">has_remaining</a>());
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>) <span class="op">=</span> <a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>.<span class="ident">stream</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf::chunk</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#65">buf</a>)).<a class="ident" href="../../../src/tungstenite/util.rs.html#41">no_block</a>()<span class="question-mark">?</span> {
+                    <span class="macro">assert!</span>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#67">size</a> <span class="op">&gt;</span> <span class="number">0</span>);
+                    <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#65">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#67">size</a>);
+                    <span class="prelude-val">Ok</span>(<span class="kw">if</span> <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#65">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">has_remaining</a>() {
+                        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#95">RoundResult::Incomplete</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#13-16">HandshakeMachine</a> {
+                            <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#121">HandshakeState::Writing</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#65">buf</a>),
+                            ..<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>
                         })
                     } <span class="kw">else</span> {
-                        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#108">RoundResult::StageFinished</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#121">StageResult::DoneWriting</a>(<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#43">self</a>.<span class="ident">stream</span>))
+                        <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#97">RoundResult::StageFinished</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#106">StageResult::DoneWriting</a>(<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>.<span class="ident">stream</span>))
                     })
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#104">RoundResult::WouldBlock</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#11-14">HandshakeMachine</a> {
-                        <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#136">HandshakeState::Writing</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#76">buf</a>),
-                        ..<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#43">self</a>
+                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#93">RoundResult::WouldBlock</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#13-16">HandshakeMachine</a> {
+                        <span class="ident">state</span>: <a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#121">HandshakeState::Writing</a>(<a class="ident" href="../../../src/tungstenite/handshake/machine.rs.html#65">buf</a>),
+                        ..<a class="self" href="../../../src/tungstenite/handshake/machine.rs.html#39">self</a>
                     }))
                 }
             }
@@ -254,11 +228,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StageResult</span><span class="op">&lt;</span><span class="ident">Obj</span>, <span class="ident">Stream</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Reading round finished.</span>
-    <span class="ident">DoneReading</span> {
-        <span class="ident">result</span>: <span class="ident">Obj</span>,
-        <span class="ident">stream</span>: <span class="ident">Stream</span>,
-        <span class="ident">tail</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
-    },
+    <span class="ident">DoneReading</span> { <span class="ident">result</span>: <span class="ident">Obj</span>, <span class="ident">stream</span>: <span class="ident">Stream</span>, <span class="ident">tail</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> },
     <span class="doccomment">/// Writing round finished.</span>
     <span class="ident">DoneWriting</span>(<span class="ident">Stream</span>),
 }
@@ -273,10 +243,10 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">HandshakeState</span> {
     <span class="doccomment">/// Reading data from the peer.</span>
-    <span class="ident">Reading</span>(<a class="ident" href="../../../input_buffer/struct.InputBuffer.html">InputBuffer</a>),
+    <span class="ident">Reading</span>(<a class="ident" href="../../../src/tungstenite/lib.rs.html#27">ReadBuffer</a>),
     <span class="doccomment">/// Sending data to the peer.</span>
     <span class="ident">Writing</span>(<span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span>),
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

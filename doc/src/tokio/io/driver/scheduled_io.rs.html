@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.17.0/src/io/driver/scheduled_io.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scheduled_io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.18.2/src/io/driver/scheduled_io.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scheduled_io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -536,7 +536,7 @@
 <span id="531">531</span>
 <span id="532">532</span>
 <span id="533">533</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#55-58">ReadyEvent</a>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#85-88">Tick</a>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#91-94">Tick</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/util/mod.rs.html#2"><span class="kw">crate</span>::util::bit</a>;
@@ -546,16 +546,16 @@
 <span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering</span>::{<span class="ident">AcqRel</span>, <span class="ident">Acquire</span>, <span class="ident">Release</span>};
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#80-83"><span class="kw">super</span>::Direction</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#86-89"><span class="kw">super</span>::Direction</a>;
 
 <span class="macro">cfg_io_readiness!</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::linked_list</span>::{<span class="self">self</span>, <span class="ident">LinkedList</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::linked_list</span>::{<a class="self" href="../../../../src/tokio/util/mod.rs.html#41">self</a>, <a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#19-28">LinkedList</a>};
 
-    <span class="kw">use</span> <span class="ident">std::cell::UnsafeCell</span>;
-    <span class="kw">use</span> <span class="ident">std::future::Future</span>;
+    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
+    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
     <span class="kw">use</span> <span class="ident">std::marker::PhantomPinned</span>;
-    <span class="kw">use</span> <span class="ident">std::pin::Pin</span>;
-    <span class="kw">use</span> <span class="ident">std::ptr::NonNull</span>;
+    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
+    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
 }
 
 <span class="doccomment">/// Stored in the I/O driver resource slab.</span>
@@ -568,14 +568,14 @@
 }
 
 <span class="macro">cfg_io_readiness!</span> {
-    <span class="kw">type</span> <span class="ident">WaitList</span> <span class="op">=</span> <span class="ident">LinkedList</span><span class="op">&lt;</span><span class="ident">Waiter</span>, <span class="op">&lt;</span><span class="ident">Waiter</span> <span class="kw">as</span> <span class="ident">linked_list::Link</span><span class="op">&gt;</span><span class="ident">::Target</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">WaitList</span> <span class="op">=</span> <span class="ident">LinkedList</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a>, <span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a> <span class="kw">as</span> <span class="ident">linked_list::Link</span><span class="op">&gt;</span><span class="ident">::Target</span><span class="op">&gt;</span>;
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Waiters</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
     <span class="doccomment">/// List of all current waiters.</span>
-    <span class="ident">list</span>: <span class="ident">WaitList</span>,
+    <span class="ident">list</span>: <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#33">WaitList</a>,
 
     <span class="doccomment">/// Waker used for AsyncRead.</span>
     <span class="ident">reader</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>,
@@ -590,28 +590,28 @@
 <span class="macro">cfg_io_readiness!</span> {
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="kw">struct</span> <span class="ident">Waiter</span> {
-        <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>,
+        <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a><span class="op">&gt;</span>,
 
         <span class="doccomment">/// The waker for this task.</span>
-        <span class="ident">waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span>,
+        <span class="ident">waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>,
 
         <span class="doccomment">/// The interest this waiter is waiting on.</span>
-        <span class="ident">interest</span>: <span class="ident">Interest</span>,
+        <span class="ident">interest</span>: <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>,
 
-        <span class="ident">is_ready</span>: <span class="ident">bool</span>,
+        <span class="ident">is_ready</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 
         <span class="doccomment">/// Should never be `!Unpin`.</span>
-        <span class="ident">_p</span>: <span class="ident">PhantomPinned</span>,
+        <span class="ident">_p</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
     }
 
     <span class="doccomment">/// Future returned by `readiness()`.</span>
     <span class="kw">struct</span> <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">scheduled_io</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ScheduledIo</span>,
+        <span class="ident">scheduled_io</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#25-30">ScheduledIo</a>,
 
-        <span class="ident">state</span>: <span class="ident">State</span>,
+        <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#79-83">State</a>,
 
         <span class="doccomment">/// Entry in the waiter `LinkedList`.</span>
-        <span class="ident">waiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>,
+        <span class="ident">waiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a><span class="op">&gt;</span>,
     }
 
     <span class="kw">enum</span> <span class="ident">State</span> {
@@ -690,8 +690,8 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_readiness</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-        <span class="ident">tick</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#85-88">Tick</a>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Ready</span>) -&gt; <span class="ident">Ready</span>,
+        <span class="ident">tick</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#91-94">Tick</a>,
+        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>) -&gt; <a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#153">self</a>.<span class="ident">readiness</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
 
@@ -712,8 +712,8 @@
             <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#156">f</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#173">current_readiness</a>);
 
             <span class="kw">let</span> <span class="ident">packed</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#155">tick</a> {
-                <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#86">Tick::Set</a>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#94">TICK</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#35">pack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#177">t</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#174">new</a>.<a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#172">as_usize</a>()),
-                <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#87">Tick::Clear</a>(<span class="ident">t</span>) =&gt; {
+                <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#92">Tick::Set</a>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#94">TICK</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#35">pack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#177">t</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#174">new</a>.<a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#172">as_usize</a>()),
+                <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#93">Tick::Clear</a>(<span class="ident">t</span>) =&gt; {
                     <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#94">TICK</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#158">current</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#178">t</a> {
                         <span class="comment">// Trying to clear readiness with an old event!</span>
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(());
@@ -773,16 +773,16 @@
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">waiters</span>.<span class="ident">list</span>.<span class="ident">drain_filter</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">ready</span>.<span class="ident">satisfies</span>(<span class="ident">w</span>.<span class="ident">interest</span>));
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#218">waiters</a>.<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#257-259">drain_filter</a>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#215">ready</a>.<a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#201">satisfies</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#238">w</a>.<span class="ident">interest</span>));
 
-            <span class="kw">while</span> <span class="ident">wakers</span>.<span class="ident">can_push</span>() {
-                <span class="kw">match</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
+            <span class="kw">while</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#216">wakers</a>.<a class="ident" href="../../../../src/tokio/util/wake_list.rs.html#27">can_push</a>() {
+                <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#238">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
                     <span class="prelude-val">Some</span>(<span class="ident">waiter</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">waiter</span>.<span class="ident">as_ptr</span>() };
+                        <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#242">waiter</a>.<span class="ident">as_ptr</span>() };
 
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <span class="ident">waiter</span>.<span class="ident">waker</span>.<span class="ident">take</span>() {
-                            <span class="ident">waiter</span>.<span class="ident">is_ready</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                            <span class="ident">wakers</span>.<span class="ident">push</span>(<span class="ident">waker</span>);
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#243">waiter</a>.<span class="ident">waker</span>.<span class="ident">take</span>() {
+                            <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#243">waiter</a>.<span class="ident">is_ready</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#216">wakers</a>.<a class="ident" href="../../../../src/tokio/util/wake_list.rs.html#31">push</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#245">waker</a>);
                         }
                     }
                     <span class="prelude-val">None</span> =&gt; {
@@ -791,12 +791,12 @@
                 }
             }
 
-            <span class="ident">drop</span>(<span class="ident">waiters</span>);
+            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#218">waiters</a>);
 
-            <span class="ident">wakers</span>.<span class="ident">wake_all</span>();
+            <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#216">wakers</a>.<a class="ident" href="../../../../src/tokio/util/wake_list.rs.html#38">wake_all</a>();
 
             <span class="comment">// Acquire the lock again.</span>
-            <span class="ident">waiters</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">waiters</span>.<span class="ident">lock</span>();
+            <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#218">waiters</a> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#215">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
         }
 
         <span class="comment">// Release the lock before notifying</span>
@@ -805,10 +805,10 @@
         <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#216">wakers</a>.<a class="ident" href="../../../../src/tokio/util/wake_list.rs.html#38">wake_all</a>();
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ready_event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#55-58">ReadyEvent</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ready_event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a> {
         <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#270">self</a>.<span class="ident">readiness</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
 
-        <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#55-58">ReadyEvent</a> {
+        <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a> {
             <span class="ident">tick</span>: <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#94">TICK</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#271">curr</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
             <span class="ident">ready</span>: <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#270">interest</a>.<a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#103">mask</a>() <span class="op">&amp;</span> <span class="ident">Ready::from_usize</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#92">READINESS</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#271">curr</a>)),
         }
@@ -822,18 +822,18 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">poll_readiness</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">direction</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#80-83">Direction</a>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#55-58">ReadyEvent</a><span class="op">&gt;</span> {
+        <span class="ident">direction</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#86-89">Direction</a>,
+    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#285">self</a>.<span class="ident">readiness</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
 
-        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#287">direction</a>.<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#348">mask</a>() <span class="op">&amp;</span> <span class="ident">Ready::from_usize</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#92">READINESS</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#289">curr</a>));
+        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#287">direction</a>.<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#380">mask</a>() <span class="op">&amp;</span> <span class="ident">Ready::from_usize</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#92">READINESS</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#289">curr</a>));
 
         <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#291">ready</a>.<a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#81">is_empty</a>() {
             <span class="comment">// Update the task info</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#285">self</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
             <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#287">direction</a> {
-                <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#81">Direction::Read</a> =&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#295">waiters</a>.<span class="ident">reader</span>,
-                <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#82">Direction::Write</a> =&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#295">waiters</a>.<span class="ident">writer</span>,
+                <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#87">Direction::Read</a> =&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#295">waiters</a>.<span class="ident">reader</span>,
+                <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#88">Direction::Write</a> =&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#295">waiters</a>.<span class="ident">writer</span>,
             };
 
             <span class="comment">// Avoid cloning the waker if one is already stored that matches the</span>
@@ -852,35 +852,35 @@
             <span class="comment">// Try again, in case the readiness was changed while we were</span>
             <span class="comment">// taking the waiters lock</span>
             <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#285">self</a>.<span class="ident">readiness</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
-            <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#287">direction</a>.<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#348">mask</a>() <span class="op">&amp;</span> <span class="ident">Ready::from_usize</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#92">READINESS</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#316">curr</a>));
+            <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#287">direction</a>.<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#380">mask</a>() <span class="op">&amp;</span> <span class="ident">Ready::from_usize</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#92">READINESS</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#316">curr</a>));
             <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#295">waiters</a>.<span class="ident">is_shutdown</span> {
-                <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#55-58">ReadyEvent</a> {
+                <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a> {
                     <span class="ident">tick</span>: <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#94">TICK</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#316">curr</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
-                    <span class="ident">ready</span>: <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#287">direction</a>.<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#348">mask</a>(),
+                    <span class="ident">ready</span>: <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#287">direction</a>.<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#380">mask</a>(),
                 })
             } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#317">ready</a>.<a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#81">is_empty</a>() {
                 <span class="ident">Poll::Pending</span>
             } <span class="kw">else</span> {
-                <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#55-58">ReadyEvent</a> {
+                <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a> {
                     <span class="ident">tick</span>: <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#94">TICK</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#316">curr</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
                     <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#317">ready</a>,
                 })
             }
         } <span class="kw">else</span> {
-            <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#55-58">ReadyEvent</a> {
+            <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a> {
                 <span class="ident">tick</span>: <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#94">TICK</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#289">curr</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>,
                 <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#291">ready</a>,
             })
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear_readiness</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#55-58">ReadyEvent</a>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear_readiness</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a>) {
         <span class="comment">// This consumes the current readiness state **except** for closed</span>
         <span class="comment">// states. Closed states are excluded because they are final states.</span>
         <span class="kw">let</span> <span class="ident">mask_no_closed</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#339">event</a>.<span class="ident">ready</span> <span class="op">-</span> <span class="ident">Ready::READ_CLOSED</span> <span class="op">-</span> <span class="ident">Ready::WRITE_CLOSED</span>;
 
         <span class="comment">// result isn&#39;t important</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#339">self</a>.<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#152-157">set_readiness</a>(<span class="prelude-val">None</span>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#87">Tick::Clear</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#339">event</a>.<span class="ident">tick</span>), <span class="op">|</span><span class="ident">curr</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#345">curr</a> <span class="op">-</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#342">mask_no_closed</a>);
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#339">self</a>.<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#152-157">set_readiness</a>(<span class="prelude-val">None</span>, <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#93">Tick::Clear</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#339">event</a>.<span class="ident">tick</span>), <span class="op">|</span><span class="ident">curr</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#345">curr</a> <span class="op">-</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#342">mask_no_closed</a>);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear_wakers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
@@ -900,131 +900,131 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#25-30">ScheduledIo</a> {}
 
 <span class="macro">cfg_io_readiness!</span> {
-    <span class="kw">impl</span> <span class="ident">ScheduledIo</span> {
+    <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#25-30">ScheduledIo</a> {
         <span class="doccomment">/// An async version of `poll_readiness` which uses a linked list of wakers.</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">readiness</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <span class="ident">Interest</span>) -&gt; <span class="ident">ReadyEvent</span> {
-            <span class="self">self</span>.<span class="ident">readiness_fut</span>(<span class="ident">interest</span>).<span class="kw">await</span>
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">readiness</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a> {
+            <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#367">self</a>.<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#375">readiness_fut</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#367">interest</a>).<span class="kw">await</span>
         }
 
         <span class="comment">// This is in a separate function so that the borrow checker doesn&#39;t think</span>
         <span class="comment">// we are borrowing the `UnsafeCell` possibly over await boundaries.</span>
         <span class="comment">//</span>
         <span class="comment">// Go figure.</span>
-        <span class="kw">fn</span> <span class="ident">readiness_fut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <span class="ident">Interest</span>) -&gt; <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-            <span class="ident">Readiness</span> {
-                <span class="ident">scheduled_io</span>: <span class="self">self</span>,
-                <span class="ident">state</span>: <span class="ident">State::Init</span>,
-                <span class="ident">waiter</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">Waiter</span> {
+        <span class="kw">fn</span> <span class="ident">readiness_fut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interest</span>: <a class="ident" href="../../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>) -&gt; <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#70-77">Readiness</a> {
+                <span class="ident">scheduled_io</span>: <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#375">self</a>,
+                <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#80">State::Init</a>,
+                <span class="ident">waiter</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a> {
                     <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers::new</span>(),
                     <span class="ident">waker</span>: <span class="prelude-val">None</span>,
                     <span class="ident">is_ready</span>: <span class="bool-val">false</span>,
-                    <span class="ident">interest</span>,
+                    <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#375">interest</a>,
                     <span class="ident">_p</span>: <span class="ident">PhantomPinned</span>,
                 }),
             }
         }
     }
 
-    <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">linked_list::Link</span> <span class="kw">for</span> <span class="ident">Waiter</span> {
-        <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>;
-        <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">Waiter</span>;
+    <span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#43-68">linked_list::Link</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a> {
+        <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a><span class="op">&gt;</span>;
+        <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a>;
 
-        <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
-            <span class="kw-2">*</span><span class="ident">handle</span>
+        <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a><span class="op">&gt;</span> {
+            <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#394">handle</a>
         }
 
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
-            <span class="ident">ptr</span>
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a><span class="op">&gt;</span> {
+            <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#398">ptr</a>
         }
 
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="ident">NonNull::from</span>(<span class="kw-2">&amp;mut</span> <span class="ident">target</span>.<span class="ident">as_mut</span>().<span class="ident">pointers</span>)
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#54-67">Waiter</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="ident">NonNull::from</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#402">target</a>.<span class="ident">as_mut</span>().<span class="ident">pointers</span>)
         }
     }
 
     <span class="comment">// ===== impl Readiness =====</span>
 
-    <span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ReadyEvent</span>;
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a>;
 
         <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
             <span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering::SeqCst</span>;
 
             <span class="kw">let</span> (<span class="ident">scheduled_io</span>, <span class="ident">state</span>, <span class="ident">waiter</span>) <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_unchecked_mut</span>();
-                (<span class="kw-2">&amp;</span><span class="ident">me</span>.<span class="ident">scheduled_io</span>, <span class="kw-2">&amp;mut</span> <span class="ident">me</span>.<span class="ident">state</span>, <span class="kw-2">&amp;</span><span class="ident">me</span>.<span class="ident">waiter</span>)
+                <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#412">self</a>.<span class="ident">get_unchecked_mut</span>();
+                (<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#416">me</a>.<span class="ident">scheduled_io</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#416">me</a>.<span class="ident">state</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#416">me</a>.<span class="ident">waiter</span>)
             };
 
             <span class="kw">loop</span> {
-                <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">state</span> {
-                    <span class="ident">State::Init</span> =&gt; {
+                <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">state</a> {
+                    <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#80">State::Init</a> =&gt; {
                         <span class="comment">// Optimistically check existing readiness</span>
-                        <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">scheduled_io</span>.<span class="ident">readiness</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
-                        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <span class="ident">Ready::from_usize</span>(<span class="ident">READINESS</span>.<span class="ident">unpack</span>(<span class="ident">curr</span>));
+                        <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">scheduled_io</a>.<span class="ident">readiness</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
+                        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <span class="ident">Ready::from_usize</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#92">READINESS</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#424">curr</a>));
 
                         <span class="comment">// Safety: `waiter.interest` never changes</span>
-                        <span class="kw">let</span> <span class="ident">interest</span> <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><span class="ident">waiter</span>.<span class="ident">get</span>()).<span class="ident">interest</span> };
-                        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <span class="ident">ready</span>.<span class="ident">intersection</span>(<span class="ident">interest</span>);
+                        <span class="kw">let</span> <span class="ident">interest</span> <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">waiter</a>.<span class="ident">get</span>()).<span class="ident">interest</span> };
+                        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#425">ready</a>.<a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#197">intersection</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#428">interest</a>);
 
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">ready</span>.<span class="ident">is_empty</span>() {
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#429">ready</a>.<a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#81">is_empty</a>() {
                             <span class="comment">// Currently ready!</span>
-                            <span class="kw">let</span> <span class="ident">tick</span> <span class="op">=</span> <span class="ident">TICK</span>.<span class="ident">unpack</span>(<span class="ident">curr</span>) <span class="kw">as</span> <span class="ident">u8</span>;
-                            <span class="kw-2">*</span><span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Done</span>;
-                            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">ReadyEvent</span> { <span class="ident">tick</span>, <span class="ident">ready</span> });
+                            <span class="kw">let</span> <span class="ident">tick</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#94">TICK</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#424">curr</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+                            <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">state</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#82">State::Done</a>;
+                            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a> { <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#433">tick</a>, <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#429">ready</a> });
                         }
 
                         <span class="comment">// Wasn&#39;t ready, take the lock (and check again while locked).</span>
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <span class="ident">scheduled_io</span>.<span class="ident">waiters</span>.<span class="ident">lock</span>();
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">scheduled_io</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
-                        <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">scheduled_io</span>.<span class="ident">readiness</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ready</span> <span class="op">=</span> <span class="ident">Ready::from_usize</span>(<span class="ident">READINESS</span>.<span class="ident">unpack</span>(<span class="ident">curr</span>));
+                        <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">scheduled_io</a>.<span class="ident">readiness</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ready</span> <span class="op">=</span> <span class="ident">Ready::from_usize</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#92">READINESS</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#441">curr</a>));
 
-                        <span class="kw">if</span> <span class="ident">waiters</span>.<span class="ident">is_shutdown</span> {
-                            <span class="ident">ready</span> <span class="op">=</span> <span class="ident">Ready::ALL</span>;
+                        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#439">waiters</a>.<span class="ident">is_shutdown</span> {
+                            <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#442">ready</a> <span class="op">=</span> <span class="ident">Ready::ALL</span>;
                         }
 
-                        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <span class="ident">ready</span>.<span class="ident">intersection</span>(<span class="ident">interest</span>);
+                        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#442">ready</a>.<a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#197">intersection</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#428">interest</a>);
 
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">ready</span>.<span class="ident">is_empty</span>() {
+                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#448">ready</a>.<a class="ident" href="../../../../src/tokio/io/driver/ready.rs.html#81">is_empty</a>() {
                             <span class="comment">// Currently ready!</span>
-                            <span class="kw">let</span> <span class="ident">tick</span> <span class="op">=</span> <span class="ident">TICK</span>.<span class="ident">unpack</span>(<span class="ident">curr</span>) <span class="kw">as</span> <span class="ident">u8</span>;
-                            <span class="kw-2">*</span><span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Done</span>;
-                            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">ReadyEvent</span> { <span class="ident">tick</span>, <span class="ident">ready</span> });
+                            <span class="kw">let</span> <span class="ident">tick</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#94">TICK</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#441">curr</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+                            <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">state</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#82">State::Done</a>;
+                            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a> { <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#452">tick</a>, <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#448">ready</a> });
                         }
 
                         <span class="comment">// Not ready even after locked, insert into list...</span>
 
                         <span class="comment">// Safety: called while locked</span>
                         <span class="kw">unsafe</span> {
-                            (<span class="kw-2">*</span><span class="ident">waiter</span>.<span class="ident">get</span>()).<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">cx</span>.<span class="ident">waker</span>().<span class="ident">clone</span>());
+                            (<span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">waiter</a>.<span class="ident">get</span>()).<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#412">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                         }
 
                         <span class="comment">// Insert the waiter into the linked list</span>
                         <span class="comment">//</span>
                         <span class="comment">// safety: pointers from `UnsafeCell` are never null.</span>
-                        <span class="ident">waiters</span>
+                        <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#439">waiters</a>
                             .<span class="ident">list</span>
-                            .<span class="ident">push_front</span>(<span class="kw">unsafe</span> { <span class="ident">NonNull::new_unchecked</span>(<span class="ident">waiter</span>.<span class="ident">get</span>()) });
-                        <span class="kw-2">*</span><span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Waiting</span>;
+                            .<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<span class="kw">unsafe</span> { <span class="ident">NonNull::new_unchecked</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">waiter</a>.<span class="ident">get</span>()) });
+                        <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">state</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#81">State::Waiting</a>;
                     }
-                    <span class="ident">State::Waiting</span> =&gt; {
+                    <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#81">State::Waiting</a> =&gt; {
                         <span class="comment">// Currently in the &quot;Waiting&quot; state, implying the caller has</span>
                         <span class="comment">// a waiter stored in the waiter list (guarded by</span>
                         <span class="comment">// `notify.waiters`). In order to access the waker fields,</span>
                         <span class="comment">// we must hold the lock.</span>
 
-                        <span class="kw">let</span> <span class="ident">waiters</span> <span class="op">=</span> <span class="ident">scheduled_io</span>.<span class="ident">waiters</span>.<span class="ident">lock</span>();
+                        <span class="kw">let</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">scheduled_io</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
                         <span class="comment">// Safety: called while locked</span>
-                        <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">waiter</span>.<span class="ident">get</span>() };
+                        <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">waiter</a>.<span class="ident">get</span>() };
 
-                        <span class="kw">if</span> <span class="ident">w</span>.<span class="ident">is_ready</span> {
+                        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#481">w</a>.<span class="ident">is_ready</span> {
                             <span class="comment">// Our waker has been notified.</span>
-                            <span class="kw-2">*</span><span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Done</span>;
+                            <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">state</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#82">State::Done</a>;
                         } <span class="kw">else</span> {
                             <span class="comment">// Update the waker, if necessary.</span>
-                            <span class="kw">if</span> <span class="op">!</span><span class="ident">w</span>.<span class="ident">waker</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">will_wake</span>(<span class="ident">cx</span>.<span class="ident">waker</span>()) {
-                                <span class="ident">w</span>.<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">cx</span>.<span class="ident">waker</span>().<span class="ident">clone</span>());
+                            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#481">w</a>.<span class="ident">waker</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">will_wake</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#412">cx</a>.<span class="ident">waker</span>()) {
+                                <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#481">w</a>.<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#412">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                             }
 
                             <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
@@ -1035,17 +1035,17 @@
                         <span class="comment">// ensure safe access to fields not held within the lock, it</span>
                         <span class="comment">// is helpful to visualize the scope of the critical</span>
                         <span class="comment">// section.</span>
-                        <span class="ident">drop</span>(<span class="ident">waiters</span>);
+                        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#478">waiters</a>);
                     }
-                    <span class="ident">State::Done</span> =&gt; {
-                        <span class="kw">let</span> <span class="ident">tick</span> <span class="op">=</span> <span class="ident">TICK</span>.<span class="ident">unpack</span>(<span class="ident">scheduled_io</span>.<span class="ident">readiness</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>)) <span class="kw">as</span> <span class="ident">u8</span>;
+                    <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#82">State::Done</a> =&gt; {
+                        <span class="kw">let</span> <span class="ident">tick</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#94">TICK</a>.<a class="ident" href="../../../../src/tokio/util/bit.rs.html#48">unpack</a>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">scheduled_io</a>.<span class="ident">readiness</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>)) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
 
                         <span class="comment">// Safety: State::Done means it is no longer shared</span>
-                        <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">waiter</span>.<span class="ident">get</span>() };
+                        <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#415">waiter</a>.<span class="ident">get</span>() };
 
-                        <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">ReadyEvent</span> {
-                            <span class="ident">tick</span>,
-                            <span class="ident">ready</span>: <span class="ident">Ready::from_interest</span>(<span class="ident">w</span>.<span class="ident">interest</span>),
+                        <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/tokio/io/driver/mod.rs.html#59-62">ReadyEvent</a> {
+                            <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#503">tick</a>,
+                            <span class="ident">ready</span>: <span class="ident">Ready::from_interest</span>(<a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#506">w</a>.<span class="ident">interest</span>),
                         });
                     }
                 }
@@ -1053,22 +1053,22 @@
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scheduled_io</span>.<span class="ident">waiters</span>.<span class="ident">lock</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#519">self</a>.<span class="ident">scheduled_io</span>.<span class="ident">waiters</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
             <span class="comment">// Safety: `waiter` is only ever stored in `waiters`</span>
             <span class="kw">unsafe</span> {
-                <span class="ident">waiters</span>
+                <a class="ident" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#520">waiters</a>
                     .<span class="ident">list</span>
-                    .<span class="ident">remove</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="self">self</span>.<span class="ident">waiter</span>.<span class="ident">get</span>()))
+                    .<a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#183">remove</a>(<span class="ident">NonNull::new_unchecked</span>(<a class="self" href="../../../../src/tokio/io/driver/scheduled_io.rs.html#519">self</a>.<span class="ident">waiter</span>.<span class="ident">get</span>()))
             };
         }
     }
 
-    <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {}
-    <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {}
+    <span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {}
+    <span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <span class="ident">Readiness</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {}
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.38/src/stack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stack.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/stack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stack.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -395,14 +395,14 @@
 <span class="kw">use</span> <span class="ident">std::ops</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index/trait.IndexMut.html">IndexMut</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">Range</a>};
 
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#70-78"><span class="kw">crate</span>::util::ForeignTypeExt</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#69-77"><span class="kw">crate</span>::util::ForeignTypeExt</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
         <span class="kw">use</span> <span class="ident">ffi</span>::{
-            <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_pop.html">OPENSSL_sk_pop</a>, <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_free.html">OPENSSL_sk_free</a>, <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_num.html">OPENSSL_sk_num</a>, <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>, <a class="ident" href="../../openssl_sys/stack/enum.OPENSSL_STACK.html">OPENSSL_STACK</a>,
-            <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_new_null.html">OPENSSL_sk_new_null</a>, <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_push.html">OPENSSL_sk_push</a>,
+            <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_pop.html">OPENSSL_sk_pop</a>, <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_free.html">OPENSSL_sk_free</a>, <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_num.html">OPENSSL_sk_num</a>, <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>, <a class="ident" href="../../openssl_sys/handwritten/stack/enum.OPENSSL_STACK.html">OPENSSL_STACK</a>,
+            <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_new_null.html">OPENSSL_sk_new_null</a>, <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_push.html">OPENSSL_sk_push</a>,
         };
     } <span class="kw">else</span> {
         <span class="kw">use</span> <span class="ident">ffi</span>::{
@@ -443,7 +443,7 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> {
             <span class="kw">while</span> <a class="self" href="../../src/openssl/stack.rs.html#58">self</a>.<a class="ident" href="../../src/openssl/stack.rs.html#252">pop</a>().<span class="ident">is_some</span>() {}
-            <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_free.html">OPENSSL_sk_free</a>(<a class="self" href="../../src/openssl/stack.rs.html#58">self</a>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
+            <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_free.html">OPENSSL_sk_free</a>(<a class="self" href="../../src/openssl/stack.rs.html#58">self</a>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
         }
     }
 }
@@ -452,7 +452,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Stack</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_new_null.html">OPENSSL_sk_new_null</a>())<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_new_null.html">OPENSSL_sk_new_null</a>())<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/stack.rs.html#43">Stack</a>(<a class="ident" href="../../src/openssl/stack.rs.html#70">ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
         }
     }
@@ -529,7 +529,7 @@
             <span class="comment">// https://github.com/rust-lang/rust-clippy/issues/7510</span>
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::while_let_on_iterator</span>)]</span>
             <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span> <a class="self" href="../../src/openssl/stack.rs.html#142">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {}
-            <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_free.html">OPENSSL_sk_free</a>(<a class="self" href="../../src/openssl/stack.rs.html#142">self</a>.<span class="ident">stack</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
+            <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_free.html">OPENSSL_sk_free</a>(<a class="self" href="../../src/openssl/stack.rs.html#142">self</a>.<span class="ident">stack</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
         }
     }
 }
@@ -541,7 +541,7 @@
         <span class="kw">unsafe</span> {
             <a class="self" href="../../src/openssl/stack.rs.html#155">self</a>.<span class="ident">idxs</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::from_ptr</span>(<a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#155">self</a>.<span class="ident">stack</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <a class="ident" href="../../src/openssl/stack.rs.html#159">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::from_ptr</span>(<a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#155">self</a>.<span class="ident">stack</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <a class="ident" href="../../src/openssl/stack.rs.html#159">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
         }
     }
 
@@ -555,7 +555,7 @@
         <span class="kw">unsafe</span> {
             <a class="self" href="../../src/openssl/stack.rs.html#169">self</a>.<span class="ident">idxs</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::from_ptr</span>(<a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#169">self</a>.<span class="ident">stack</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <a class="ident" href="../../src/openssl/stack.rs.html#173">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::from_ptr</span>(<a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#169">self</a>.<span class="ident">stack</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <a class="ident" href="../../src/openssl/stack.rs.html#173">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
         }
     }
 }
@@ -572,13 +572,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/openssl/stack.rs.html#34-40">Stackable</a><span class="op">&gt;</span> <span class="ident">StackRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_stack</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/stack/enum.OPENSSL_STACK.html">OPENSSL_STACK</a> {
+    <span class="kw">fn</span> <span class="ident">as_stack</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/stack/enum.OPENSSL_STACK.html">OPENSSL_STACK</a> {
         <a class="self" href="../../src/openssl/stack.rs.html#190">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
     }
 
     <span class="doccomment">/// Returns the number of items in the stack.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_num.html">OPENSSL_sk_num</a>(<a class="self" href="../../src/openssl/stack.rs.html#195">self</a>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe</span> { <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_num.html">OPENSSL_sk_num</a>(<a class="self" href="../../src/openssl/stack.rs.html#195">self</a>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Determines if the stack is empty.</span>
@@ -627,7 +627,7 @@
     <span class="doccomment">/// Pushes a value onto the top of the stack.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_push.html">OPENSSL_sk_push</a>(<a class="self" href="../../src/openssl/stack.rs.html#243">self</a>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#243">data</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))<span class="question-mark">?</span>;
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_push.html">OPENSSL_sk_push</a>(<a class="self" href="../../src/openssl/stack.rs.html#243">self</a>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#243">data</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))<span class="question-mark">?</span>;
             <span class="ident">mem::forget</span>(<a class="ident" href="../../src/openssl/stack.rs.html#243">data</a>);
             <span class="prelude-val">Ok</span>(())
         }
@@ -636,13 +636,13 @@
     <span class="doccomment">/// Removes the last element from the stack and returns it.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_pop.html">OPENSSL_sk_pop</a>(<a class="self" href="../../src/openssl/stack.rs.html#252">self</a>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>());
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_pop.html">OPENSSL_sk_pop</a>(<a class="self" href="../../src/openssl/stack.rs.html#252">self</a>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>());
             <span class="ident">T::from_ptr_opt</span>(<a class="ident" href="../../src/openssl/stack.rs.html#254">ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
         }
     }
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">_get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">*mut</span> <span class="ident">T::CType</span> {
-        <a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#259">self</a>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#259">idx</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
+        <a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#259">self</a>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#259">idx</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
     }
 }
 
@@ -709,7 +709,7 @@
         <span class="kw">unsafe</span> {
             <a class="self" href="../../src/openssl/stack.rs.html#323">self</a>.<span class="ident">idxs</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::Ref::from_ptr</span>(<a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#323">self</a>.<span class="ident">stack</span>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#327">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::Ref::from_ptr</span>(<a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#323">self</a>.<span class="ident">stack</span>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#327">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
         }
     }
 
@@ -723,7 +723,7 @@
         <span class="kw">unsafe</span> {
             <a class="self" href="../../src/openssl/stack.rs.html#337">self</a>.<span class="ident">idxs</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::Ref::from_ptr</span>(<a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#337">self</a>.<span class="ident">stack</span>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#341">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::Ref::from_ptr</span>(<a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#337">self</a>.<span class="ident">stack</span>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#341">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
         }
     }
 }
@@ -743,7 +743,7 @@
         <span class="kw">unsafe</span> {
             <a class="self" href="../../src/openssl/stack.rs.html#357">self</a>.<span class="ident">idxs</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::Ref::from_ptr_mut</span>(<a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#357">self</a>.<span class="ident">stack</span>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#361">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::Ref::from_ptr_mut</span>(<a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#357">self</a>.<span class="ident">stack</span>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#361">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
         }
     }
 
@@ -757,12 +757,12 @@
         <span class="kw">unsafe</span> {
             <a class="self" href="../../src/openssl/stack.rs.html#371">self</a>.<span class="ident">idxs</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::Ref::from_ptr_mut</span>(<a class="ident" href="../../openssl_sys/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#371">self</a>.<span class="ident">stack</span>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#375">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">T::Ref::from_ptr_mut</span>(<a class="ident" href="../../openssl_sys/handwritten/stack/fn.OPENSSL_sk_value.html">OPENSSL_sk_value</a>(<a class="self" href="../../src/openssl/stack.rs.html#371">self</a>.<span class="ident">stack</span>.<a class="ident" href="../../src/openssl/stack.rs.html#190">as_stack</a>(), <a class="ident" href="../../src/openssl/stack.rs.html#375">i</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>))
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="../../src/openssl/stack.rs.html#34-40">Stackable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

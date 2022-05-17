@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.38/src/pkcs12.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs12.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/pkcs12.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs12.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -285,42 +285,68 @@
 <span id="280">280</span>
 <span id="281">281</span>
 <span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
 </pre><pre class="rust"><code><span class="doccomment">//! PKCS #12 archives.</span>
 
 <span class="kw">use</span> <span class="ident">foreign_types</span>::{<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
 <span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/type.CString.html">std::ffi::CString</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/nid.rs.html#47"><span class="kw">crate</span>::nid::Nid</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#122-130">PKey</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#122-130">PKeyRef</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#130-138">PKey</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/stack.rs.html#43"><span class="kw">crate</span>::stack::Stack</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#70-78"><span class="kw">crate</span>::util::ForeignTypeExt</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509Ref</a>, <a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#69-77"><span class="kw">crate</span>::util::ForeignTypeExt</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509Ref</a>, <a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use</span> <span class="ident">openssl_macros::corresponds</span>;
 
 <span class="macro">foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/pkcs12/enum.PKCS12.html">ffi::PKCS12</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/pkcs12/enum.PKCS12.html">ffi::PKCS12</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::PKCS12_free</span>;
 
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pkcs12</span>;
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pkcs12Ref</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#16-22">Pkcs12Ref</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#18-24">Pkcs12Ref</a> {
     <span class="macro">to_der!</span> {
         <span class="doccomment">/// Serializes the `Pkcs12` to its standard DER encoding.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`i2d_PKCS12`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`i2d_PKCS12`]: https://www.openssl.org/docs/manmaster/man3/i2d_PKCS12.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_PKCS12</span>)]</span>
         <span class="ident">to_der</span>,
         <span class="ident">ffi::i2d_PKCS12</span>
     }
 
     <span class="doccomment">/// Extracts the contents of the `Pkcs12`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pass</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkcs12.rs.html#95-99">ParsedPkcs12</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PKCS12_parse</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pass</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkcs12.rs.html#94-98">ParsedPkcs12</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">pass</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#36">pass</a>.<span class="ident">as_bytes</span>()).<span class="ident">unwrap</span>();
 
@@ -328,7 +354,7 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cert</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chain</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
 
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::PKCS12_parse</span>(
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::PKCS12_parse</span>(
                 <a class="self" href="../../src/openssl/pkcs12.rs.html#36">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a class="ident" href="../../src/openssl/pkcs12.rs.html#38">pass</a>.<span class="ident">as_ptr</span>(),
                 <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#40">pkey</a>,
@@ -341,20 +367,17 @@
 
             <span class="kw">let</span> <span class="ident">chain</span> <span class="op">=</span> <span class="ident">Stack::from_ptr_opt</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#42">chain</a>);
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#95-99">ParsedPkcs12</a> { <a class="ident" href="../../src/openssl/pkcs12.rs.html#52">pkey</a>, <a class="ident" href="../../src/openssl/pkcs12.rs.html#53">cert</a>, <a class="ident" href="../../src/openssl/pkcs12.rs.html#55">chain</a> })
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#94-98">ParsedPkcs12</a> { <a class="ident" href="../../src/openssl/pkcs12.rs.html#52">pkey</a>, <a class="ident" href="../../src/openssl/pkcs12.rs.html#53">cert</a>, <a class="ident" href="../../src/openssl/pkcs12.rs.html#55">chain</a> })
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#16-22">Pkcs12</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#18-24">Pkcs12</a> {
     <span class="macro">from_der!</span> {
         <span class="doccomment">/// Deserializes a DER-encoded PKCS#12 archive.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`d2i_PKCS12`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`d2i_PKCS12`]: https://www.openssl.org/docs/man1.1.0/crypto/d2i_PKCS12.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_PKCS12</span>)]</span>
         <span class="ident">from_der</span>,
-        <a class="ident" href="../../src/openssl/pkcs12.rs.html#16-22">Pkcs12</a>,
+        <a class="ident" href="../../src/openssl/pkcs12.rs.html#18-24">Pkcs12</a>,
         <span class="ident">ffi::d2i_PKCS12</span>
     }
 
@@ -362,46 +385,49 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This uses the defaults from the OpenSSL library:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// * `nid_key` - `nid::PBE_WITHSHA1AND3_KEY_TRIPLEDES_CBC`</span>
-    <span class="doccomment">/// * `nid_cert` - `nid::PBE_WITHSHA1AND40BITRC2_CBC`</span>
+    <span class="doccomment">/// * `nid_key` - `AES_256_CBC` (3.0.0+) or `PBE_WITHSHA1AND3_KEY_TRIPLEDES_CBC`</span>
+    <span class="doccomment">/// * `nid_cert` - `AES_256_CBC` (3.0.0+) or `PBE_WITHSHA1AND40BITRC2_CBC`</span>
     <span class="doccomment">/// * `iter` - `2048`</span>
     <span class="doccomment">/// * `mac_iter` - `2048`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <a class="ident" href="../../src/openssl/pkcs12.rs.html#101-107">Pkcs12Builder</a> {
+    <span class="doccomment">/// * `mac_md` - `SHA-256` (3.0.0+) or `SHA-1`</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <a class="ident" href="../../src/openssl/pkcs12.rs.html#100-107">Pkcs12Builder</a> {
         <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
 
-        <a class="ident" href="../../src/openssl/pkcs12.rs.html#101-107">Pkcs12Builder</a> {
-            <span class="ident">nid_key</span>: <span class="ident">Nid::UNDEF</span>,  <span class="comment">//nid::PBE_WITHSHA1AND3_KEY_TRIPLEDES_CBC,</span>
-            <span class="ident">nid_cert</span>: <span class="ident">Nid::UNDEF</span>, <span class="comment">//nid::PBE_WITHSHA1AND40BITRC2_CBC,</span>
+        <a class="ident" href="../../src/openssl/pkcs12.rs.html#100-107">Pkcs12Builder</a> {
+            <span class="ident">nid_key</span>: <span class="ident">Nid::UNDEF</span>,
+            <span class="ident">nid_cert</span>: <span class="ident">Nid::UNDEF</span>,
             <span class="ident">iter</span>: <span class="ident">ffi::PKCS12_DEFAULT_ITER</span>,
             <span class="ident">mac_iter</span>: <span class="ident">ffi::PKCS12_DEFAULT_ITER</span>,
+            <span class="ident">mac_md</span>: <span class="prelude-val">None</span>,
             <span class="ident">ca</span>: <span class="prelude-val">None</span>,
         }
     }
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParsedPkcs12</span> {
-    <span class="kw">pub</span> <span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">cert</span>: <a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a>,
-    <span class="kw">pub</span> <span class="ident">chain</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Stack</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">pkey</span>: <span class="ident">PKey</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">cert</span>: <a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a>,
+    <span class="kw">pub</span> <span class="ident">chain</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Stack</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pkcs12Builder</span> {
-    <span class="ident">nid_key</span>: <a class="ident" href="../../src/openssl/nid.rs.html#47">Nid</a>,
-    <span class="ident">nid_cert</span>: <a class="ident" href="../../src/openssl/nid.rs.html#47">Nid</a>,
+    <span class="ident">nid_key</span>: <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a>,
+    <span class="ident">nid_cert</span>: <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a>,
     <span class="ident">iter</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
     <span class="ident">mac_iter</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-    <span class="ident">ca</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Stack</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">mac_md</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a><span class="op">&gt;</span>,
+    <span class="ident">ca</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Stack</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#101-107">Pkcs12Builder</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#100-107">Pkcs12Builder</a> {
     <span class="doccomment">/// The encryption algorithm that should be used for the key</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_algorithm</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nid</span>: <a class="ident" href="../../src/openssl/nid.rs.html#47">Nid</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_algorithm</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nid</span>: <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
         <a class="self" href="../../src/openssl/pkcs12.rs.html#111">self</a>.<span class="ident">nid_key</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#111">nid</a>;
         <a class="self" href="../../src/openssl/pkcs12.rs.html#111">self</a>
     }
 
     <span class="doccomment">/// The encryption algorithm that should be used for the cert</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cert_algorithm</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nid</span>: <a class="ident" href="../../src/openssl/nid.rs.html#47">Nid</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cert_algorithm</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nid</span>: <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
         <a class="self" href="../../src/openssl/pkcs12.rs.html#117">self</a>.<span class="ident">nid_cert</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#117">nid</a>;
         <a class="self" href="../../src/openssl/pkcs12.rs.html#117">self</a>
     }
@@ -421,11 +447,17 @@
         <a class="self" href="../../src/openssl/pkcs12.rs.html#132">self</a>
     }
 
+    <span class="doccomment">/// MAC message digest type</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mac_md</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">md</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
+        <a class="self" href="../../src/openssl/pkcs12.rs.html#138">self</a>.<span class="ident">mac_md</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#138">md</a>);
+        <a class="self" href="../../src/openssl/pkcs12.rs.html#138">self</a>
+    }
+
     <span class="doccomment">/// An additional set of certificates to include in the archive beyond the one provided to</span>
     <span class="doccomment">/// `build`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ca</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ca</span>: <span class="ident">Stack</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../src/openssl/pkcs12.rs.html#139">self</a>.<span class="ident">ca</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#139">ca</a>);
-        <a class="self" href="../../src/openssl/pkcs12.rs.html#139">self</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ca</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ca</span>: <span class="ident">Stack</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
+        <a class="self" href="../../src/openssl/pkcs12.rs.html#145">self</a>.<span class="ident">ca</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#145">ca</a>);
+        <a class="self" href="../../src/openssl/pkcs12.rs.html#145">self</a>
     }
 
     <span class="doccomment">/// Builds the PKCS #12 object</span>
@@ -436,47 +468,64 @@
     <span class="doccomment">/// * `friendly_name` - user defined name for the certificate</span>
     <span class="doccomment">/// * `pkey` - key to store</span>
     <span class="doccomment">/// * `cert` - certificate to store</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PKCS12_create</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">password</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
         <span class="ident">friendly_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
         <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">cert</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509Ref</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkcs12.rs.html#16-22">Pkcs12</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
+        <span class="ident">cert</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509Ref</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkcs12.rs.html#18-24">Pkcs12</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>,
+        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">pass</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#154">password</a>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">friendly_name</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#155">friendly_name</a>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#156">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
-            <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#157">cert</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
-            <span class="kw">let</span> <span class="ident">ca</span> <span class="op">=</span> <a class="self" href="../../src/openssl/pkcs12.rs.html#153">self</a>
+            <span class="kw">let</span> <span class="ident">pass</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#161">password</a>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">friendly_name</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#162">friendly_name</a>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#163">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
+            <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#164">cert</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
+            <span class="kw">let</span> <span class="ident">ca</span> <span class="op">=</span> <a class="self" href="../../src/openssl/pkcs12.rs.html#160">self</a>
                 .<span class="ident">ca</span>
                 .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ca</span><span class="op">|</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#170">ca</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ca</span><span class="op">|</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#177">ca</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>())
                 .<span class="ident">unwrap_or</span>(<span class="ident">ptr::null_mut</span>());
-            <span class="kw">let</span> <span class="ident">nid_key</span> <span class="op">=</span> <a class="self" href="../../src/openssl/pkcs12.rs.html#153">self</a>.<span class="ident">nid_key</span>.<a class="ident" href="../../src/openssl/nid.rs.html#58">as_raw</a>();
-            <span class="kw">let</span> <span class="ident">nid_cert</span> <span class="op">=</span> <a class="self" href="../../src/openssl/pkcs12.rs.html#153">self</a>.<span class="ident">nid_cert</span>.<a class="ident" href="../../src/openssl/nid.rs.html#58">as_raw</a>();
+            <span class="kw">let</span> <span class="ident">nid_key</span> <span class="op">=</span> <a class="self" href="../../src/openssl/pkcs12.rs.html#160">self</a>.<span class="ident">nid_key</span>.<a class="ident" href="../../src/openssl/nid.rs.html#60">as_raw</a>();
+            <span class="kw">let</span> <span class="ident">nid_cert</span> <span class="op">=</span> <a class="self" href="../../src/openssl/pkcs12.rs.html#160">self</a>.<span class="ident">nid_cert</span>.<a class="ident" href="../../src/openssl/nid.rs.html#60">as_raw</a>();
+            <span class="kw">let</span> <span class="ident">md_type</span> <span class="op">=</span> <a class="self" href="../../src/openssl/pkcs12.rs.html#160">self</a>
+                .<span class="ident">mac_md</span>
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">md_type</span><span class="op">|</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#183">md_type</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>())
+                .<span class="ident">unwrap_or</span>(<span class="ident">ptr::null</span>());
 
             <span class="comment">// According to the OpenSSL docs, keytype is a non-standard extension for MSIE,</span>
             <span class="comment">// It&#39;s values are KEY_SIG or KEY_EX, see the OpenSSL docs for more information:</span>
             <span class="comment">// https://www.openssl.org/docs/man1.0.2/crypto/PKCS12_create.html</span>
             <span class="kw">let</span> <span class="ident">keytype</span> <span class="op">=</span> <span class="number">0</span>;
 
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::PKCS12_create</span>(
-                <a class="ident" href="../../src/openssl/pkcs12.rs.html#163">pass</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                <a class="ident" href="../../src/openssl/pkcs12.rs.html#164">friendly_name</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                <a class="ident" href="../../src/openssl/pkcs12.rs.html#165">pkey</a>,
-                <a class="ident" href="../../src/openssl/pkcs12.rs.html#166">cert</a>,
-                <a class="ident" href="../../src/openssl/pkcs12.rs.html#167">ca</a>,
-                <a class="ident" href="../../src/openssl/pkcs12.rs.html#172">nid_key</a>,
-                <a class="ident" href="../../src/openssl/pkcs12.rs.html#173">nid_cert</a>,
-                <a class="self" href="../../src/openssl/pkcs12.rs.html#153">self</a>.<span class="ident">iter</span>,
-                <a class="self" href="../../src/openssl/pkcs12.rs.html#153">self</a>.<span class="ident">mac_iter</span>,
-                <a class="ident" href="../../src/openssl/pkcs12.rs.html#178">keytype</a>,
+            <span class="kw">let</span> <span class="ident">pkcs12</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::PKCS12_create</span>(
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#170">pass</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#171">friendly_name</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#172">pkey</a>,
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#173">cert</a>,
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#174">ca</a>,
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#179">nid_key</a>,
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#180">nid_cert</a>,
+                <a class="self" href="../../src/openssl/pkcs12.rs.html#160">self</a>.<span class="ident">iter</span>,
+                <span class="op">-</span><span class="number">1</span>,
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#189">keytype</a>,
             ))
-            .<span class="ident">map</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#16-22">Pkcs12</a>)
+            .<span class="ident">map</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#18-24">Pkcs12</a>)<span class="question-mark">?</span>;
+
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::PKCS12_set_mac</span>(
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#191">pkcs12</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#170">pass</a>.<span class="ident">as_ptr</span>(),
+                <span class="op">-</span><span class="number">1</span>,
+                <span class="ident">ptr::null_mut</span>(),
+                <span class="number">0</span>,
+                <a class="self" href="../../src/openssl/pkcs12.rs.html#160">self</a>.<span class="ident">mac_iter</span>,
+                <a class="ident" href="../../src/openssl/pkcs12.rs.html#181">md_type</a>,
+            ))<span class="question-mark">?</span>;
+
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkcs12.rs.html#191">pkcs12</a>)
         }
     }
 }
@@ -494,8 +543,10 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">ossl300</span>, <span class="ident">ignore</span>)]</span> <span class="comment">// https://github.com/openssl/openssl/issues/11672</span>
     <span class="kw">fn</span> <span class="ident">parse</span>() {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
+        <span class="kw">let</span> <span class="ident">_provider</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::provider::Provider::try_load</span>(<span class="prelude-val">None</span>, <span class="string">&quot;legacy&quot;</span>, <span class="bool-val">true</span>).<span class="ident">unwrap</span>();
+
         <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/identity.p12&quot;</span>);
         <span class="kw">let</span> <span class="ident">pkcs12</span> <span class="op">=</span> <span class="ident">Pkcs12::from_der</span>(<span class="ident">der</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">pkcs12</span>.<span class="ident">parse</span>(<span class="string">&quot;mypass&quot;</span>).<span class="ident">unwrap</span>();
@@ -514,8 +565,10 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">ossl300</span>, <span class="ident">ignore</span>)]</span> <span class="comment">// https://github.com/openssl/openssl/issues/11672</span>
     <span class="kw">fn</span> <span class="ident">parse_empty_chain</span>() {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
+        <span class="kw">let</span> <span class="ident">_provider</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::provider::Provider::try_load</span>(<span class="prelude-val">None</span>, <span class="string">&quot;legacy&quot;</span>, <span class="bool-val">true</span>).<span class="ident">unwrap</span>();
+
         <span class="kw">let</span> <span class="ident">der</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/keystore-empty-chain.p12&quot;</span>);
         <span class="kw">let</span> <span class="ident">pkcs12</span> <span class="op">=</span> <span class="ident">Pkcs12::from_der</span>(<span class="ident">der</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">pkcs12</span>.<span class="ident">parse</span>(<span class="string">&quot;cassandra&quot;</span>).<span class="ident">unwrap</span>();
@@ -523,7 +576,6 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">ossl300</span>, <span class="ident">ignore</span>)]</span> <span class="comment">// https://github.com/openssl/openssl/issues/11672</span>
     <span class="kw">fn</span> <span class="ident">create</span>() {
         <span class="kw">let</span> <span class="ident">subject_name</span> <span class="op">=</span> <span class="string">&quot;ns.example.com&quot;</span>;
         <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <span class="ident">Rsa::generate</span>(<span class="number">2048</span>).<span class="ident">unwrap</span>();
@@ -568,5 +620,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

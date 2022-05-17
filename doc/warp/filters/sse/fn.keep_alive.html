@@ -4,7 +4,7 @@
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><div class="sidebar-elems"><h2 class="location"><a href="index.html">In warp::filters::sse</a></h2><div id="sidebar-vars" data-name="keep_alive" data-ty="fn" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Function <a href="../../index.html">warp</a>::<wbr><a href="../index.html">filters</a>::<wbr><a href="index.html">sse</a>::<wbr><a class="fn" href="#">keep_alive</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../../src/warp/filters/sse.rs.html#559-564">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><div class="docblock item-decl"><pre class="rust fn"><code>pub fn keep_alive() -&gt; <a class="struct" href="struct.KeepAlive.html" title="struct warp::filters::sse::KeepAlive">KeepAlive</a></code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Keeps event source connection alive when no events sent over a some time.</p>
+    <h1 class="fqn"><span class="in-band">Function <a href="../../index.html">warp</a>::<wbr><a href="../index.html">filters</a>::<wbr><a href="index.html">sse</a>::<wbr><a class="fn" href="#">keep_alive</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../../src/warp/filters/sse.rs.html#454-459">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><div class="docblock item-decl"><pre class="rust fn"><code>pub fn keep_alive() -&gt; <a class="struct" href="struct.KeepAlive.html" title="struct warp::filters::sse::KeepAlive">KeepAlive</a></code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Keeps event source connection alive when no events sent over a some time.</p>
 <p>Some proxy servers may drop HTTP connection after a some timeout of inactivity.
 This function helps to prevent such behavior by sending comment events every
 <code>keep_interval</code> of inactivity.</p>
@@ -14,13 +14,14 @@ as shown below.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 <span class="kw">use</span> <span class="ident">std::convert::Infallible</span>;
-<span class="kw">use</span> <span class="ident">futures::StreamExt</span>;
+<span class="kw">use</span> <span class="ident">futures_util::StreamExt</span>;
 <span class="kw">use</span> <span class="ident">tokio::time::interval</span>;
-<span class="kw">use</span> <span class="ident">warp</span>::{<span class="ident">Filter</span>, <span class="ident">Stream</span>, <span class="ident">sse::ServerSentEvent</span>};
+<span class="kw">use</span> <span class="ident">tokio_stream::wrappers::IntervalStream</span>;
+<span class="kw">use</span> <span class="ident">warp</span>::{<span class="ident">Filter</span>, <span class="ident">Stream</span>, <span class="ident">sse::Event</span>};
 
 <span class="comment">// create server-sent event</span>
-<span class="kw">fn</span> <span class="ident">sse_counter</span>(<span class="ident">counter</span>: <span class="ident">u64</span>) -&gt;  <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">ServerSentEvent</span>, <span class="ident">Infallible</span><span class="op">&gt;</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">warp::sse::data</span>(<span class="ident">counter</span>))
+<span class="kw">fn</span> <span class="ident">sse_counter</span>(<span class="ident">counter</span>: <span class="ident">u64</span>) -&gt;  <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Event</span>, <span class="ident">Infallible</span><span class="op">&gt;</span> {
+    <span class="prelude-val">Ok</span>(<span class="ident">Event::default</span>().<span class="ident">data</span>(<span class="ident">counter</span>.<span class="ident">to_string</span>()))
 }
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
@@ -28,7 +29,9 @@ as shown below.</p>
         .<span class="ident">and</span>(<span class="ident">warp::get</span>())
         .<span class="ident">map</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">counter</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="kw">let</span> <span class="ident">event_stream</span> <span class="op">=</span> <span class="ident">interval</span>(<span class="ident">Duration::from_secs</span>(<span class="number">15</span>)).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">interval</span> <span class="op">=</span> <span class="ident">interval</span>(<span class="ident">Duration::from_secs</span>(<span class="number">15</span>));
+            <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">IntervalStream::new</span>(<span class="ident">interval</span>);
+            <span class="kw">let</span> <span class="ident">event_stream</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                 <span class="ident">counter</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="ident">sse_counter</span>(<span class="ident">counter</span>)
             });
@@ -41,5 +44,5 @@ as shown below.</p>
         });
 }</code></pre></div>
 <p>See <a href="https://www.w3.org/TR/2009/WD-eventsource-20090421/#notes">notes</a>.</p>
-</div></details></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</div></details></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

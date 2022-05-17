@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.13.10/src/body/aggregate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aggregate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.18/src/body/aggregate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aggregate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -28,6 +28,12 @@
 <span id="23">23</span>
 <span id="24">24</span>
 <span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../hyper/body/trait.Buf.html">bytes::Buf</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../../hyper/body/trait.HttpBody.html"><span class="kw">super</span>::HttpBody</a>;
@@ -37,6 +43,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// The returned `impl Buf` groups the `Buf`s from the `HttpBody` without</span>
 <span class="doccomment">/// copying them. This is ideal if you don&#39;t require a contiguous buffer.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Note</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Care needs to be taken if the remote is untrusted. The function doesn&#39;t implement any length</span>
+<span class="doccomment">/// checks and an malicious peer might make it consume arbitrary amounts of memory. Checking the</span>
+<span class="doccomment">/// `Content-Length` is a possibility, but it is not strictly mandated to be present.</span>
 <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">aggregate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">body</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">impl</span> <a class="ident" href="../../../hyper/body/trait.Buf.html">Buf</a>, <span class="ident">T::Error</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="../../../hyper/body/trait.HttpBody.html">HttpBody</a>,
@@ -44,15 +56,15 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bufs</span> <span class="op">=</span> <span class="ident">BufList::new</span>();
 
     <span class="macro">futures_util::pin_mut!</span>(<span class="ident">body</span>);
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">buf</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/aggregate.rs.html#16">body</a>.<a class="ident" href="../../../hyper/body/trait.HttpBody.html">data</a>().<span class="kw">await</span> {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/aggregate.rs.html#17">buf</a><span class="question-mark">?</span>;
-        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/body/aggregate.rs.html#18">buf</a>.<a class="ident" href="../../../hyper/body/trait.Buf.html">has_remaining</a>() {
-            <a class="ident" href="../../../src/hyper/body/aggregate.rs.html#14">bufs</a>.<a class="ident" href="../../../src/hyper/common/buf.rs.html#18">push</a>(<a class="ident" href="../../../src/hyper/body/aggregate.rs.html#18">buf</a>);
+    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">buf</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/aggregate.rs.html#22">body</a>.<a class="ident" href="../../../hyper/body/trait.HttpBody.html">data</a>().<span class="kw">await</span> {
+        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/body/aggregate.rs.html#23">buf</a><span class="question-mark">?</span>;
+        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/body/aggregate.rs.html#24">buf</a>.<a class="ident" href="../../../hyper/body/trait.Buf.html">has_remaining</a>() {
+            <a class="ident" href="../../../src/hyper/body/aggregate.rs.html#20">bufs</a>.<a class="ident" href="../../../src/hyper/common/buf.rs.html#18">push</a>(<a class="ident" href="../../../src/hyper/body/aggregate.rs.html#24">buf</a>);
         }
     }
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/body/aggregate.rs.html#14">bufs</a>)
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/body/aggregate.rs.html#20">bufs</a>)
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

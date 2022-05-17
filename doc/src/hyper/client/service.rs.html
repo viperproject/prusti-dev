@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.13.10/src/client/service.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>service.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.18/src/client/service.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>service.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -90,6 +90,8 @@
 <span id="85">85</span>
 <span id="86">86</span>
 <span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Utilities used to interact with the Tower ecosystem.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module provides `Connect` which hook-ins into the Tower ecosystem.</span>
@@ -98,10 +100,12 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::conn</span>::{<a class="ident" href="../../../src/hyper/client/conn.rs.html#76-84">Builder</a>, <a class="ident" href="../../../src/hyper/client/conn.rs.html#55-57">SendRequest</a>};
+<span class="kw">use</span> <span class="ident">tracing::debug</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::conn</span>::{<a class="ident" href="../../../src/hyper/client/conn.rs.html#152-166">Builder</a>, <a class="ident" href="../../../src/hyper/client/conn.rs.html#131-133">SendRequest</a>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <a class="ident" href="../../../hyper/body/trait.HttpBody.html">body::HttpBody</a>,
-    <span class="ident">common</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#18">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>},
+    <span class="ident">common</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>},
     <span class="ident">service</span>::{<a class="ident" href="../../../src/hyper/service/make.rs.html#12-19">MakeConnection</a>, <a class="ident" href="../../../hyper/service/trait.Service.html">Service</a>},
 };
 
@@ -113,17 +117,17 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Connect</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">inner</span>: <span class="ident">C</span>,
-    <span class="ident">builder</span>: <a class="ident" href="../../../src/hyper/client/conn.rs.html#76-84">Builder</a>,
+    <span class="ident">builder</span>: <a class="ident" href="../../../src/hyper/client/conn.rs.html#152-166">Builder</a>,
     <span class="ident">_pd</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw">fn</span>(<span class="ident">T</span>, <span class="ident">B</span>)<span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Connect</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Create a new `Connect` with some inner connector `C` and a connection</span>
     <span class="doccomment">/// builder.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">C</span>, <span class="ident">builder</span>: <a class="ident" href="../../../src/hyper/client/conn.rs.html#76-84">Builder</a>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">C</span>, <span class="ident">builder</span>: <a class="ident" href="../../../src/hyper/client/conn.rs.html#152-166">Builder</a>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <a class="ident" href="../../../src/hyper/client/service.rs.html#31">inner</a>,
-            <a class="ident" href="../../../src/hyper/client/service.rs.html#31">builder</a>,
+            <a class="ident" href="../../../src/hyper/client/service.rs.html#33">inner</a>,
+            <a class="ident" href="../../../src/hyper/client/service.rs.html#33">builder</a>,
             <span class="ident">_pd</span>: <span class="ident">PhantomData</span>,
         }
     }
@@ -140,43 +144,43 @@
     <span class="ident">B::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">SendRequest</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/error.rs.html#12-14"><span class="kw">crate</span>::Error</a>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/error.rs.html#11-13"><span class="kw">crate</span>::Error</a>;
     <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span>
         <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Response</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/hyper/client/service.rs.html#55">self</a>.<span class="ident">inner</span>
-            .<a class="ident" href="../../../src/hyper/service/make.rs.html#17">poll_ready</a>(<a class="ident" href="../../../src/hyper/client/service.rs.html#55">cx</a>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/hyper/error.rs.html#36"><span class="kw">crate</span>::error::Kind::Connect</a>).<a class="ident" href="../../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../../src/hyper/client/service.rs.html#58">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+        <a class="self" href="../../../src/hyper/client/service.rs.html#57">self</a>.<span class="ident">inner</span>
+            .<a class="ident" href="../../../src/hyper/service/make.rs.html#17">poll_ready</a>(<a class="ident" href="../../../src/hyper/client/service.rs.html#57">cx</a>)
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/hyper/error.rs.html#39"><span class="kw">crate</span>::error::Kind::Connect</a>).<a class="ident" href="../../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../../src/hyper/client/service.rs.html#60">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
     }
 
     <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">T</span>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/service.rs.html#61">self</a>.<span class="ident">builder</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/service.rs.html#61">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/hyper/service/make.rs.html#18">make_connection</a>(<a class="ident" href="../../../src/hyper/client/service.rs.html#61">req</a>);
+        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/service.rs.html#63">self</a>.<span class="ident">builder</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/service.rs.html#63">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/hyper/service/make.rs.html#18">make_connection</a>(<a class="ident" href="../../../src/hyper/client/service.rs.html#63">req</a>);
 
         <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
-            <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/service.rs.html#63">io</a>.<span class="kw">await</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">io</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/service.rs.html#62">builder</a>.<a class="ident" href="../../../src/hyper/client/conn.rs.html#594-602">handshake</a>(<a class="ident" href="../../../src/hyper/client/service.rs.html#67">io</a>).<span class="kw">await</span> {
+            <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/service.rs.html#65">io</a>.<span class="kw">await</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">io</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/service.rs.html#64">builder</a>.<a class="ident" href="../../../src/hyper/client/conn.rs.html#920-928">handshake</a>(<a class="ident" href="../../../src/hyper/client/service.rs.html#69">io</a>).<span class="kw">await</span> {
                     <span class="prelude-val">Ok</span>((<span class="ident">sr</span>, <span class="ident">conn</span>)) =&gt; {
-                        <a class="ident" href="../../../src/hyper/client/service.rs.html#62">builder</a>.<span class="ident">exec</span>.<a class="ident" href="../../../src/hyper/common/exec.rs.html#38-40">execute</a>(<span class="kw">async</span> <span class="kw">move</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/service.rs.html#68">conn</a>.<span class="kw">await</span> {
-                                <span class="macro">debug!</span>(<span class="string">&quot;connection error: {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/service.rs.html#70">e</a>);
+                        <a class="ident" href="../../../src/hyper/client/service.rs.html#64">builder</a>.<span class="ident">exec</span>.<a class="ident" href="../../../src/hyper/common/exec.rs.html#41-43">execute</a>(<span class="kw">async</span> <span class="kw">move</span> {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/service.rs.html#70">conn</a>.<span class="kw">await</span> {
+                                <span class="macro">debug!</span>(<span class="string">&quot;connection error: {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/service.rs.html#72">e</a>);
                             }
                         });
-                        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/client/service.rs.html#68">sr</a>)
+                        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/client/service.rs.html#70">sr</a>)
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/service.rs.html#76">e</a>),
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/service.rs.html#78">e</a>),
                 },
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/hyper/error.rs.html#36"><span class="kw">crate</span>::error::Kind::Connect</a>).<a class="ident" href="../../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../../src/hyper/client/service.rs.html#78">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/service.rs.html#79">err</a>)
+                    <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/hyper/error.rs.html#39"><span class="kw">crate</span>::error::Kind::Connect</a>).<a class="ident" href="../../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../../src/hyper/client/service.rs.html#80">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/service.rs.html#81">err</a>)
                 }
             }
         };
 
-        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/hyper/client/service.rs.html#65">fut</a>)
+        <span class="ident">Box::pin</span>(<a class="ident" href="../../../src/hyper/client/service.rs.html#67">fut</a>)
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

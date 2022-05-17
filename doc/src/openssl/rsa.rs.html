@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.38/src/rsa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rsa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/rsa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rsa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -844,88 +844,6 @@
 <span id="839">839</span>
 <span id="840">840</span>
 <span id="841">841</span>
-<span id="842">842</span>
-<span id="843">843</span>
-<span id="844">844</span>
-<span id="845">845</span>
-<span id="846">846</span>
-<span id="847">847</span>
-<span id="848">848</span>
-<span id="849">849</span>
-<span id="850">850</span>
-<span id="851">851</span>
-<span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
-<span id="856">856</span>
-<span id="857">857</span>
-<span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
-<span id="862">862</span>
-<span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
-<span id="871">871</span>
-<span id="872">872</span>
-<span id="873">873</span>
-<span id="874">874</span>
-<span id="875">875</span>
-<span id="876">876</span>
-<span id="877">877</span>
-<span id="878">878</span>
-<span id="879">879</span>
-<span id="880">880</span>
-<span id="881">881</span>
-<span id="882">882</span>
-<span id="883">883</span>
-<span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
-<span id="898">898</span>
-<span id="899">899</span>
-<span id="900">900</span>
-<span id="901">901</span>
-<span id="902">902</span>
-<span id="903">903</span>
-<span id="904">904</span>
-<span id="905">905</span>
-<span id="906">906</span>
-<span id="907">907</span>
-<span id="908">908</span>
-<span id="909">909</span>
-<span id="910">910</span>
-<span id="911">911</span>
-<span id="912">912</span>
-<span id="913">913</span>
-<span id="914">914</span>
-<span id="915">915</span>
-<span id="916">916</span>
-<span id="917">917</span>
-<span id="918">918</span>
-<span id="919">919</span>
-<span id="920">920</span>
-<span id="921">921</span>
-<span id="922">922</span>
-<span id="923">923</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Rivest–Shamir–Adleman cryptosystem</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! RSA is one of the earliest asymmetric public key encryption schemes.</span>
@@ -958,11 +876,12 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bn</span>::{<a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>, <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bn</span>::{<a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#111">HasPublic</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#81-93"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#188">cvt_n</a>, <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#80-92"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use</span> <span class="ident">openssl_macros::corresponds</span>;
 
 <span class="doccomment">/// Type of encryption padding to use.</span>
 <span class="doccomment">///</span>
@@ -972,26 +891,26 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Padding</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NONE</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a>(<span class="ident">ffi::RSA_NO_PADDING</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PKCS1</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a>(<span class="ident">ffi::RSA_PKCS1_PADDING</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PKCS1_OAEP</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a>(<span class="ident">ffi::RSA_PKCS1_OAEP_PADDING</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PKCS1_PSS</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a>(<span class="ident">ffi::RSA_PKCS1_PSS_PADDING</span>);
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NONE</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>(<span class="ident">ffi::RSA_NO_PADDING</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PKCS1</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>(<span class="ident">ffi::RSA_PKCS1_PADDING</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PKCS1_OAEP</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>(<span class="ident">ffi::RSA_PKCS1_OAEP_PADDING</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PKCS1_PSS</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>(<span class="ident">ffi::RSA_PKCS1_PSS_PADDING</span>);
 
     <span class="doccomment">/// Creates a `Padding` from an integer representation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">value</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a> {
-        <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a>(<a class="ident" href="../../src/openssl/rsa.rs.html#54">value</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">value</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a> {
+        <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>(<a class="ident" href="../../src/openssl/rsa.rs.html#55">value</a>)
     }
 
     <span class="doccomment">/// Returns the integer representation of `Padding`.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <a class="self" href="../../src/openssl/rsa.rs.html#60">self</a>.<span class="number">0</span>
+        <a class="self" href="../../src/openssl/rsa.rs.html#61">self</a>.<span class="number">0</span>
     }
 }
 
 <span class="macro">generic_foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/ossl_typ/enum.RSA.html">ffi::RSA</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.RSA.html">ffi::RSA</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::RSA_free</span>;
 
     <span class="doccomment">/// An RSA key.</span>
@@ -1003,7 +922,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/openssl/rsa.rs.html#77">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/openssl/rsa.rs.html#78">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
     }
 }
 
@@ -1012,42 +931,33 @@
 
     <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="ident">ffi::RSA_up_ref</span>(<a class="self" href="../../src/openssl/rsa.rs.html#85">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="ident">Rsa::from_ptr</span>(<a class="self" href="../../src/openssl/rsa.rs.html#85">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())
+            <span class="ident">ffi::RSA_up_ref</span>(<a class="self" href="../../src/openssl/rsa.rs.html#86">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="ident">Rsa::from_ptr</span>(<a class="self" href="../../src/openssl/rsa.rs.html#86">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">RsaRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>,
+    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
 {
     <span class="macro">private_key_to_pem!</span> {
         <span class="doccomment">/// Serializes the private key to a PEM-encoded PKCS#1 RSAPrivateKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The output will have a header of `-----BEGIN RSA PRIVATE KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_write_bio_RSAPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_RSAPrivateKey`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_write_bio_RSAPrivateKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_RSAPrivateKey</span>)]</span>
         <span class="ident">private_key_to_pem</span>,
         <span class="doccomment">/// Serializes the private key to a PEM-encoded encrypted PKCS#1 RSAPrivateKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The output will have a header of `-----BEGIN RSA PRIVATE KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_write_bio_RSAPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_RSAPrivateKey`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_write_bio_RSAPrivateKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_RSAPrivateKey</span>)]</span>
         <span class="ident">private_key_to_pem_passphrase</span>,
         <span class="ident">ffi::PEM_write_bio_RSAPrivateKey</span>
     }
 
     <span class="macro">to_der!</span> {
         <span class="doccomment">/// Serializes the private key to a DER-encoded PKCS#1 RSAPrivateKey structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`i2d_RSAPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`i2d_RSAPrivateKey`]: https://www.openssl.org/docs/man1.0.2/crypto/i2d_RSAPrivateKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_RSAPrivateKey</span>)]</span>
         <span class="ident">private_key_to_der</span>,
         <span class="ident">ffi::i2d_RSAPrivateKey</span>
     }
@@ -1058,24 +968,25 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if `self` has no private components, or if `to` is smaller</span>
     <span class="doccomment">/// than `self.size()`.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_private_decrypt</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">private_decrypt</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">from</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="ident">to</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a>,
+        <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#135">from</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i32::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#136">to</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../src/openssl/rsa.rs.html#134">self</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#329">size</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#128">from</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i32::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#129">to</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../src/openssl/rsa.rs.html#127">self</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#287">size</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#188">cvt_n</a>(<span class="ident">ffi::RSA_private_decrypt</span>(
-                <a class="ident" href="../../src/openssl/rsa.rs.html#135">from</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a class="ident" href="../../src/openssl/rsa.rs.html#135">from</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#136">to</a>.<span class="ident">as_mut_ptr</span>(),
-                <a class="self" href="../../src/openssl/rsa.rs.html#134">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#137">padding</a>.<span class="number">0</span>,
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>(<span class="ident">ffi::RSA_private_decrypt</span>(
+                <a class="ident" href="../../src/openssl/rsa.rs.html#128">from</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a class="ident" href="../../src/openssl/rsa.rs.html#128">from</a>.<span class="ident">as_ptr</span>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#129">to</a>.<span class="ident">as_mut_ptr</span>(),
+                <a class="self" href="../../src/openssl/rsa.rs.html#127">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#130">padding</a>.<span class="number">0</span>,
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#143">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#136">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         }
     }
 
@@ -1085,117 +996,97 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if `self` has no private components, or if `to` is smaller</span>
     <span class="doccomment">/// than `self.size()`.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_private_encrypt</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">private_encrypt</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">from</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="ident">to</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a>,
+        <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#162">from</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i32::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#163">to</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../src/openssl/rsa.rs.html#161">self</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#329">size</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#156">from</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i32::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#157">to</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../src/openssl/rsa.rs.html#155">self</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#287">size</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#188">cvt_n</a>(<span class="ident">ffi::RSA_private_encrypt</span>(
-                <a class="ident" href="../../src/openssl/rsa.rs.html#162">from</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a class="ident" href="../../src/openssl/rsa.rs.html#162">from</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#163">to</a>.<span class="ident">as_mut_ptr</span>(),
-                <a class="self" href="../../src/openssl/rsa.rs.html#161">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#164">padding</a>.<span class="number">0</span>,
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>(<span class="ident">ffi::RSA_private_encrypt</span>(
+                <a class="ident" href="../../src/openssl/rsa.rs.html#156">from</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a class="ident" href="../../src/openssl/rsa.rs.html#156">from</a>.<span class="ident">as_ptr</span>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#157">to</a>.<span class="ident">as_mut_ptr</span>(),
+                <a class="self" href="../../src/openssl/rsa.rs.html#155">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#158">padding</a>.<span class="number">0</span>,
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#170">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#164">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         }
     }
 
     <span class="doccomment">/// Returns a reference to the private exponent of the key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_get0_key`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_get0_key`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_get0_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_get0_key</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_key.html">RSA_get0_key</a>(<a class="self" href="../../src/openssl/rsa.rs.html#186">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#188">d</a>);
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#188">d</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_key.html">RSA_get0_key</a>(<a class="self" href="../../src/openssl/rsa.rs.html#177">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#179">d</a>);
+            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#179">d</a>)
         }
     }
 
     <span class="doccomment">/// Returns a reference to the first factor of the exponent of the key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_get0_factors`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_get0_factors`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_get0_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_get0_factors</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_factors.html">RSA_get0_factors</a>(<a class="self" href="../../src/openssl/rsa.rs.html#199">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#201">p</a>, <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#201">p</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_factors.html">RSA_get0_factors</a>(<a class="self" href="../../src/openssl/rsa.rs.html#187">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#189">p</a>, <span class="ident">ptr::null_mut</span>());
+            <span class="ident">BigNumRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#189">p</a>)
         }
     }
 
     <span class="doccomment">/// Returns a reference to the second factor of the exponent of the key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_get0_factors`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_get0_factors`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_get0_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">q</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_get0_factors</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">q</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_factors.html">RSA_get0_factors</a>(<a class="self" href="../../src/openssl/rsa.rs.html#212">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#214">q</a>);
-            <span class="ident">BigNumRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#214">q</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_factors.html">RSA_get0_factors</a>(<a class="self" href="../../src/openssl/rsa.rs.html#197">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#199">q</a>);
+            <span class="ident">BigNumRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#199">q</a>)
         }
     }
 
     <span class="doccomment">/// Returns a reference to the first exponent used for CRT calculations.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_get0_crt_params`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_get0_crt_params`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_get0_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dmp1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_get0_crt_params</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dmp1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dp</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_crt_params.html">RSA_get0_crt_params</a>(<a class="self" href="../../src/openssl/rsa.rs.html#225">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#227">dp</a>, <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#227">dp</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_crt_params.html">RSA_get0_crt_params</a>(<a class="self" href="../../src/openssl/rsa.rs.html#207">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#209">dp</a>, <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>());
+            <span class="ident">BigNumRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#209">dp</a>)
         }
     }
 
     <span class="doccomment">/// Returns a reference to the second exponent used for CRT calculations.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_get0_crt_params`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_get0_crt_params`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_get0_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dmq1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_get0_crt_params</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dmq1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dq</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_crt_params.html">RSA_get0_crt_params</a>(<a class="self" href="../../src/openssl/rsa.rs.html#238">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#240">dq</a>, <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#240">dq</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_crt_params.html">RSA_get0_crt_params</a>(<a class="self" href="../../src/openssl/rsa.rs.html#217">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#219">dq</a>, <span class="ident">ptr::null_mut</span>());
+            <span class="ident">BigNumRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#219">dq</a>)
         }
     }
 
     <span class="doccomment">/// Returns a reference to the coefficient used for CRT calculations.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_get0_crt_params`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_get0_crt_params`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_get0_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iqmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_get0_crt_params</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iqmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">qi</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_crt_params.html">RSA_get0_crt_params</a>(<a class="self" href="../../src/openssl/rsa.rs.html#251">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#253">qi</a>);
-            <span class="ident">BigNumRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#253">qi</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_crt_params.html">RSA_get0_crt_params</a>(<a class="self" href="../../src/openssl/rsa.rs.html#227">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#229">qi</a>);
+            <span class="ident">BigNumRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#229">qi</a>)
         }
     }
 
     <span class="doccomment">/// Validates RSA parameters for correctness</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_check_key`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_check_key`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_check_key.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_check_key</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ffi::RSA_check_key</span>(<a class="self" href="../../src/openssl/rsa.rs.html#264">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
-            <span class="kw">if</span> <a class="ident" href="../../src/openssl/rsa.rs.html#266">result</a> <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ffi::RSA_check_key</span>(<a class="self" href="../../src/openssl/rsa.rs.html#237">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>;
+            <span class="kw">if</span> <a class="ident" href="../../src/openssl/rsa.rs.html#239">result</a> <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>())
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#266">result</a> <span class="op">==</span> <span class="number">1</span>)
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#239">result</a> <span class="op">==</span> <span class="number">1</span>)
             }
         }
     }
@@ -1203,26 +1094,20 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">RsaRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#111">HasPublic</a>,
+    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
 {
     <span class="macro">to_pem!</span> {
         <span class="doccomment">/// Serializes the public key into a PEM-encoded SubjectPublicKeyInfo structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The output will have a header of `-----BEGIN PUBLIC KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_write_bio_RSA_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_RSA_PUBKEY`]: https://www.openssl.org/docs/man1.0.2/crypto/pem.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_RSA_PUBKEY</span>)]</span>
         <span class="ident">public_key_to_pem</span>,
         <span class="ident">ffi::PEM_write_bio_RSA_PUBKEY</span>
     }
 
     <span class="macro">to_der!</span> {
         <span class="doccomment">/// Serializes the public key into a DER-encoded SubjectPublicKeyInfo structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`i2d_RSA_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`i2d_RSA_PUBKEY`]: https://www.openssl.org/docs/man1.1.0/crypto/i2d_RSA_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_RSA_PUBKEY</span>)]</span>
         <span class="ident">public_key_to_der</span>,
         <span class="ident">ffi::i2d_RSA_PUBKEY</span>
     }
@@ -1231,31 +1116,22 @@
         <span class="doccomment">/// Serializes the public key into a PEM-encoded PKCS#1 RSAPublicKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The output will have a header of `-----BEGIN RSA PUBLIC KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_write_bio_RSAPublicKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_RSAPublicKey`]: https://www.openssl.org/docs/man1.0.2/crypto/pem.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_RSAPublicKey</span>)]</span>
         <span class="ident">public_key_to_pem_pkcs1</span>,
         <span class="ident">ffi::PEM_write_bio_RSAPublicKey</span>
     }
 
     <span class="macro">to_der!</span> {
         <span class="doccomment">/// Serializes the public key into a DER-encoded PKCS#1 RSAPublicKey structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`i2d_RSAPublicKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`i2d_RSAPublicKey`]: https://www.openssl.org/docs/man1.0.2/crypto/i2d_RSAPublicKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_RSAPublicKey</span>)]</span>
         <span class="ident">public_key_to_der_pkcs1</span>,
         <span class="ident">ffi::i2d_RSAPublicKey</span>
     }
 
     <span class="doccomment">/// Returns the size of the modulus in bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_size`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_size`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_size.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_size</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">unsafe</span> { <span class="ident">ffi::RSA_size</span>(<a class="self" href="../../src/openssl/rsa.rs.html#329">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
+        <span class="kw">unsafe</span> { <span class="ident">ffi::RSA_size</span>(<a class="self" href="../../src/openssl/rsa.rs.html#287">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
     }
 
     <span class="doccomment">/// Decrypts data using the public key, returning the number of decrypted bytes.</span>
@@ -1263,24 +1139,25 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if `to` is smaller than `self.size()`.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_public_decrypt</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">public_decrypt</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">from</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="ident">to</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a>,
+        <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#340">from</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i32::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#341">to</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../src/openssl/rsa.rs.html#339">self</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#329">size</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#299">from</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i32::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#300">to</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../src/openssl/rsa.rs.html#298">self</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#287">size</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#188">cvt_n</a>(<span class="ident">ffi::RSA_public_decrypt</span>(
-                <a class="ident" href="../../src/openssl/rsa.rs.html#340">from</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a class="ident" href="../../src/openssl/rsa.rs.html#340">from</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#341">to</a>.<span class="ident">as_mut_ptr</span>(),
-                <a class="self" href="../../src/openssl/rsa.rs.html#339">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#342">padding</a>.<span class="number">0</span>,
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>(<span class="ident">ffi::RSA_public_decrypt</span>(
+                <a class="ident" href="../../src/openssl/rsa.rs.html#299">from</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a class="ident" href="../../src/openssl/rsa.rs.html#299">from</a>.<span class="ident">as_ptr</span>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#300">to</a>.<span class="ident">as_mut_ptr</span>(),
+                <a class="self" href="../../src/openssl/rsa.rs.html#298">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#301">padding</a>.<span class="number">0</span>,
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#348">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#307">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         }
     }
 
@@ -1289,55 +1166,50 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if `to` is smaller than `self.size()`.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_public_encrypt</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">public_encrypt</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">from</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         <span class="ident">to</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#45">Padding</a>,
+        <span class="ident">padding</span>: <a class="ident" href="../../src/openssl/rsa.rs.html#46">Padding</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#366">from</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i32::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#367">to</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../src/openssl/rsa.rs.html#365">self</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#329">size</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#326">from</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i32::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#327">to</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="self" href="../../src/openssl/rsa.rs.html#325">self</a>.<a class="ident" href="../../src/openssl/rsa.rs.html#287">size</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#188">cvt_n</a>(<span class="ident">ffi::RSA_public_encrypt</span>(
-                <a class="ident" href="../../src/openssl/rsa.rs.html#366">from</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a class="ident" href="../../src/openssl/rsa.rs.html#366">from</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#367">to</a>.<span class="ident">as_mut_ptr</span>(),
-                <a class="self" href="../../src/openssl/rsa.rs.html#365">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#368">padding</a>.<span class="number">0</span>,
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>(<span class="ident">ffi::RSA_public_encrypt</span>(
+                <a class="ident" href="../../src/openssl/rsa.rs.html#326">from</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a class="ident" href="../../src/openssl/rsa.rs.html#326">from</a>.<span class="ident">as_ptr</span>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#327">to</a>.<span class="ident">as_mut_ptr</span>(),
+                <a class="self" href="../../src/openssl/rsa.rs.html#325">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#328">padding</a>.<span class="number">0</span>,
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#374">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#334">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         }
     }
 
     <span class="doccomment">/// Returns a reference to the modulus of the key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_get0_key`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_get0_key`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_get0_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">n</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_get0_key</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">n</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_key.html">RSA_get0_key</a>(<a class="self" href="../../src/openssl/rsa.rs.html#390">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#392">n</a>, <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#392">n</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_key.html">RSA_get0_key</a>(<a class="self" href="../../src/openssl/rsa.rs.html#347">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#349">n</a>, <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>());
+            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#349">n</a>)
         }
     }
 
     <span class="doccomment">/// Returns a reference to the public exponent of the key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_get0_key`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_get0_key`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_get0_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">e</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_get0_key</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">e</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_key.html">RSA_get0_key</a>(<a class="self" href="../../src/openssl/rsa.rs.html#403">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#405">e</a>, <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#405">e</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_key.html">RSA_get0_key</a>(<a class="self" href="../../src/openssl/rsa.rs.html#357">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/rsa.rs.html#359">e</a>, <span class="ident">ptr::null_mut</span>());
+            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#359">e</a>)
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates a new RSA key with only public components.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `n` is the modulus common to both public and private key.</span>
@@ -1345,14 +1217,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This corresponds to [`RSA_new`] and uses [`RSA_set0_key`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_new`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_new.html</span>
-    <span class="doccomment">/// [`RSA_set0_key`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_set0_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_public_components</span>(<span class="ident">n</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>, <span class="ident">e</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="doccomment">/// [`RSA_new`]: https://www.openssl.org/docs/manmaster/crypto/RSA_new.html</span>
+    <span class="doccomment">/// [`RSA_set0_key`]: https://www.openssl.org/docs/manmaster/crypto/RSA_set0_key.html</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_public_components</span>(<span class="ident">n</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <span class="ident">e</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::RSA_new</span>())<span class="question-mark">?</span>;
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_set0_key.html">RSA_set0_key</a>(<a class="ident" href="../../src/openssl/rsa.rs.html#424">rsa</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#422">n</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/rsa.rs.html#422">e</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>());
-            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/rsa.rs.html#422">n</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#422">e</a>));
-            <span class="prelude-val">Ok</span>(<span class="ident">Rsa::from_ptr</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#424">rsa</a>))
+            <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::RSA_new</span>())<span class="question-mark">?</span>;
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_set0_key.html">RSA_set0_key</a>(<a class="ident" href="../../src/openssl/rsa.rs.html#378">rsa</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#376">n</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/rsa.rs.html#376">e</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>());
+            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/rsa.rs.html#376">n</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#376">e</a>));
+            <span class="prelude-val">Ok</span>(<span class="ident">Rsa::from_ptr</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#378">rsa</a>))
         }
     }
 
@@ -1360,12 +1232,9 @@
         <span class="doccomment">/// Decodes a PEM-encoded SubjectPublicKeyInfo structure containing an RSA key.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The input should have a header of `-----BEGIN PUBLIC KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_read_bio_RSA_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_read_bio_RSA_PUBKEY`]: https://www.openssl.org/docs/man1.0.2/crypto/PEM_read_bio_RSA_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_RSA_PUBKEY</span>)]</span>
         <span class="ident">public_key_from_pem</span>,
-        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>,
+        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>,
         <span class="ident">ffi::PEM_read_bio_RSA_PUBKEY</span>
     }
 
@@ -1373,43 +1242,34 @@
         <span class="doccomment">/// Decodes a PEM-encoded PKCS#1 RSAPublicKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The input should have a header of `-----BEGIN RSA PUBLIC KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_read_bio_RSAPublicKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_read_bio_RSAPublicKey`]: https://www.openssl.org/docs/man1.0.2/crypto/PEM_read_bio_RSAPublicKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_RSAPublicKey</span>)]</span>
         <span class="ident">public_key_from_pem_pkcs1</span>,
-        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>,
+        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>,
         <span class="ident">ffi::PEM_read_bio_RSAPublicKey</span>
     }
 
     <span class="macro">from_der!</span> {
         <span class="doccomment">/// Decodes a DER-encoded SubjectPublicKeyInfo structure containing an RSA key.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`d2i_RSA_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`d2i_RSA_PUBKEY`]: https://www.openssl.org/docs/man1.0.2/crypto/d2i_RSA_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_RSA_PUBKEY</span>)]</span>
         <span class="ident">public_key_from_der</span>,
-        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>,
+        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>,
         <span class="ident">ffi::d2i_RSA_PUBKEY</span>
     }
 
     <span class="macro">from_der!</span> {
         <span class="doccomment">/// Decodes a DER-encoded PKCS#1 RSAPublicKey structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`d2i_RSAPublicKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`d2i_RSAPublicKey`]: https://www.openssl.org/docs/man1.0.2/crypto/d2i_RSA_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_RSAPublicKey</span>)]</span>
         <span class="ident">public_key_from_der_pkcs1</span>,
-        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>,
+        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>,
         <span class="ident">ffi::d2i_RSAPublicKey</span>
     }
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RsaPrivateKeyBuilder</span> {
-    <span class="ident">rsa</span>: <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>,
+    <span class="ident">rsa</span>: <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/rsa.rs.html#480-482">RsaPrivateKeyBuilder</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/rsa.rs.html#422-424">RsaPrivateKeyBuilder</a> {
     <span class="doccomment">/// Creates a new `RsaPrivateKeyBuilder`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `n` is the modulus common to both public and private key.</span>
@@ -1417,15 +1277,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This corresponds to [`RSA_new`] and uses [`RSA_set0_key`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_new`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_new.html</span>
-    <span class="doccomment">/// [`RSA_set0_key`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_set0_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">n</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>, <span class="ident">e</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>, <span class="ident">d</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/rsa.rs.html#480-482">RsaPrivateKeyBuilder</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="doccomment">/// [`RSA_new`]: https://www.openssl.org/docs/manmaster/crypto/RSA_new.html</span>
+    <span class="doccomment">/// [`RSA_set0_key`]: https://www.openssl.org/docs/manmaster/crypto/RSA_set0_key.html</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">n</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <span class="ident">e</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <span class="ident">d</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/rsa.rs.html#422-424">RsaPrivateKeyBuilder</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::RSA_new</span>())<span class="question-mark">?</span>;
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_set0_key.html">RSA_set0_key</a>(<a class="ident" href="../../src/openssl/rsa.rs.html#496">rsa</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#494">n</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/rsa.rs.html#494">e</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/rsa.rs.html#494">d</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>());
-            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/rsa.rs.html#494">n</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#494">e</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#494">d</a>));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#480-482">RsaPrivateKeyBuilder</a> {
-                <span class="ident">rsa</span>: <span class="ident">Rsa::from_ptr</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#496">rsa</a>),
+            <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::RSA_new</span>())<span class="question-mark">?</span>;
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_set0_key.html">RSA_set0_key</a>(<a class="ident" href="../../src/openssl/rsa.rs.html#438">rsa</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#436">n</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/rsa.rs.html#436">e</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/rsa.rs.html#436">d</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>());
+            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/rsa.rs.html#436">n</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#436">e</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#436">d</a>));
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#422-424">RsaPrivateKeyBuilder</a> {
+                <span class="ident">rsa</span>: <span class="ident">Rsa::from_ptr</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#438">rsa</a>),
             })
         }
     }
@@ -1433,157 +1293,133 @@
     <span class="doccomment">/// Sets the factors of the Rsa key.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `p` and `q` are the first and second factors of `n`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This correspond to [`RSA_set0_factors`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_set0_factors`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_set0_factors.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_set0_factors</span>)]</span>
     <span class="comment">// FIXME should be infallible</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_factors</span>(<span class="self">self</span>, <span class="ident">p</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>, <span class="ident">q</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/rsa.rs.html#480-482">RsaPrivateKeyBuilder</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_factors</span>(<span class="self">self</span>, <span class="ident">p</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <span class="ident">q</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/rsa.rs.html#422-424">RsaPrivateKeyBuilder</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_set0_factors.html">RSA_set0_factors</a>(<a class="self" href="../../src/openssl/rsa.rs.html#513">self</a>.<span class="ident">rsa</span>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/rsa.rs.html#513">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/rsa.rs.html#513">q</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>());
-            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/rsa.rs.html#513">p</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#513">q</a>));
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_set0_factors.html">RSA_set0_factors</a>(<a class="self" href="../../src/openssl/rsa.rs.html#452">self</a>.<span class="ident">rsa</span>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/rsa.rs.html#452">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/rsa.rs.html#452">q</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>());
+            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/rsa.rs.html#452">p</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#452">q</a>));
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/openssl/rsa.rs.html#513">self</a>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/openssl/rsa.rs.html#452">self</a>)
     }
 
     <span class="doccomment">/// Sets the Chinese Remainder Theorem params of the Rsa key.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `dmp1`, `dmq1`, and `iqmp` are the exponents and coefficient for</span>
     <span class="doccomment">/// CRT calculations which is used to speed up RSA operations.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This correspond to [`RSA_set0_crt_params`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_set0_crt_params`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_set0_crt_params.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_set0_crt_params</span>)]</span>
     <span class="comment">// FIXME should be infallible</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_crt_params</span>(
         <span class="self">self</span>,
-        <span class="ident">dmp1</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">dmq1</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">iqmp</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/rsa.rs.html#480-482">RsaPrivateKeyBuilder</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="ident">dmp1</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">dmq1</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">iqmp</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/rsa.rs.html#422-424">RsaPrivateKeyBuilder</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_set0_crt_params.html">RSA_set0_crt_params</a>(
-                <a class="self" href="../../src/openssl/rsa.rs.html#531">self</a>.<span class="ident">rsa</span>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#532">dmp1</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#533">dmq1</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/rsa.rs.html#534">iqmp</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_set0_crt_params.html">RSA_set0_crt_params</a>(
+                <a class="self" href="../../src/openssl/rsa.rs.html#467">self</a>.<span class="ident">rsa</span>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#468">dmp1</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#469">dmq1</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/rsa.rs.html#470">iqmp</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(),
             );
-            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/rsa.rs.html#532">dmp1</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#533">dmq1</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#534">iqmp</a>));
+            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/rsa.rs.html#468">dmp1</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#469">dmq1</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#470">iqmp</a>));
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/openssl/rsa.rs.html#531">self</a>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/openssl/rsa.rs.html#467">self</a>)
     }
 
     <span class="doccomment">/// Returns the Rsa key.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/openssl/rsa.rs.html#549">self</a>.<span class="ident">rsa</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/openssl/rsa.rs.html#485">self</a>.<span class="ident">rsa</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates a new RSA key with private components (public components are assumed).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This a convenience method over</span>
     <span class="doccomment">/// `Rsa::build(n, e, d)?.set_factors(p, q)?.set_crt_params(dmp1, dmq1, iqmp)?.build()`</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>, <span class="ident">clippy::many_single_char_names</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_private_components</span>(
-        <span class="ident">n</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">e</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">d</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">p</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">q</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">dmp1</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">dmq1</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">iqmp</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">RsaPrivateKeyBuilder::new</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#561">n</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#562">e</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#563">d</a>)<span class="question-mark">?</span>
-            .<a class="ident" href="../../src/openssl/rsa.rs.html#513">set_factors</a>(<a class="ident" href="../../src/openssl/rsa.rs.html#564">p</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#565">q</a>)<span class="question-mark">?</span>
-            .<a class="ident" href="../../src/openssl/rsa.rs.html#530-535">set_crt_params</a>(<a class="ident" href="../../src/openssl/rsa.rs.html#566">dmp1</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#567">dmq1</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#568">iqmp</a>)<span class="question-mark">?</span>
-            .<a class="ident" href="../../src/openssl/rsa.rs.html#549">build</a>())
+        <span class="ident">n</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">e</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">d</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">p</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">q</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">dmp1</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">dmq1</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">iqmp</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">RsaPrivateKeyBuilder::new</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#497">n</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#498">e</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#499">d</a>)<span class="question-mark">?</span>
+            .<a class="ident" href="../../src/openssl/rsa.rs.html#452">set_factors</a>(<a class="ident" href="../../src/openssl/rsa.rs.html#500">p</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#501">q</a>)<span class="question-mark">?</span>
+            .<a class="ident" href="../../src/openssl/rsa.rs.html#466-471">set_crt_params</a>(<a class="ident" href="../../src/openssl/rsa.rs.html#502">dmp1</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#503">dmq1</a>, <a class="ident" href="../../src/openssl/rsa.rs.html#504">iqmp</a>)<span class="question-mark">?</span>
+            .<a class="ident" href="../../src/openssl/rsa.rs.html#485">build</a>())
     }
 
     <span class="doccomment">/// Generates a public/private key pair with the specified size.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The public exponent will be 65537.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_generate_key_ex`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_generate_key_ex`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_generate_key_ex.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate</span>(<span class="ident">bits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_generate_key_ex</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate</span>(<span class="ident">bits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">BigNum::from_u32</span>(<span class="ident">ffi::RSA_F4</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)<span class="question-mark">?</span>;
-        <span class="ident">Rsa::generate_with_e</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#583">bits</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/rsa.rs.html#584">e</a>)
+        <span class="ident">Rsa::generate_with_e</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#516">bits</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/rsa.rs.html#517">e</a>)
     }
 
     <span class="doccomment">/// Generates a public/private key pair with the specified size and a custom exponent.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Unless you have specific needs and know what you&#39;re doing, use `Rsa::generate` instead.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This corresponds to [`RSA_generate_key_ex`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`RSA_generate_key_ex`]: https://www.openssl.org/docs/man1.1.0/crypto/RSA_generate_key_ex.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_with_e</span>(<span class="ident">bits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">e</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">RSA_generate_key_ex</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_with_e</span>(<span class="ident">bits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">e</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <span class="ident">Rsa::from_ptr</span>(<a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::RSA_new</span>())<span class="question-mark">?</span>);
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::RSA_generate_key_ex</span>(
-                <a class="ident" href="../../src/openssl/rsa.rs.html#597">rsa</a>.<span class="number">0</span>,
-                <a class="ident" href="../../src/openssl/rsa.rs.html#595">bits</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a class="ident" href="../../src/openssl/rsa.rs.html#595">e</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <span class="kw">let</span> <span class="ident">rsa</span> <span class="op">=</span> <span class="ident">Rsa::from_ptr</span>(<a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::RSA_new</span>())<span class="question-mark">?</span>);
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::RSA_generate_key_ex</span>(
+                <a class="ident" href="../../src/openssl/rsa.rs.html#527">rsa</a>.<span class="number">0</span>,
+                <a class="ident" href="../../src/openssl/rsa.rs.html#525">bits</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a class="ident" href="../../src/openssl/rsa.rs.html#525">e</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <span class="ident">ptr::null_mut</span>(),
             ))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#597">rsa</a>)
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#527">rsa</a>)
         }
     }
 
     <span class="comment">// FIXME these need to identify input formats</span>
     <span class="macro">private_key_from_pem!</span> {
         <span class="doccomment">/// Deserializes a private key from a PEM-encoded PKCS#1 RSAPrivateKey structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_read_bio_RSAPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_read_bio_RSAPrivateKey`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_read_bio_RSAPrivateKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_RSAPrivateKey</span>)]</span>
         <span class="ident">private_key_from_pem</span>,
 
         <span class="doccomment">/// Deserializes a private key from a PEM-encoded encrypted PKCS#1 RSAPrivateKey structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_read_bio_RSAPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_read_bio_RSAPrivateKey`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_read_bio_RSAPrivateKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_RSAPrivateKey</span>)]</span>
         <span class="ident">private_key_from_pem_passphrase</span>,
 
         <span class="doccomment">/// Deserializes a private key from a PEM-encoded encrypted PKCS#1 RSAPrivateKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The callback should fill the password into the provided buffer and return its length.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_read_bio_RSAPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_read_bio_RSAPrivateKey`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_read_bio_RSAPrivateKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_RSAPrivateKey</span>)]</span>
         <span class="ident">private_key_from_pem_callback</span>,
-        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>,
+        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>,
         <span class="ident">ffi::PEM_read_bio_RSAPrivateKey</span>
     }
 
     <span class="macro">from_der!</span> {
         <span class="doccomment">/// Decodes a DER-encoded PKCS#1 RSAPrivateKey structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`d2i_RSAPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`d2i_RSAPrivateKey`]: https://www.openssl.org/docs/man1.0.2/crypto/d2i_RSA_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_RSAPrivateKey</span>)]</span>
         <span class="ident">private_key_from_der</span>,
-        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>,
+        <span class="ident">Rsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>,
         <span class="ident">ffi::d2i_RSAPrivateKey</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Rsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#649">f</a>, <span class="string">&quot;Rsa&quot;</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../src/openssl/rsa.rs.html#567">f</a>, <span class="string">&quot;Rsa&quot;</span>)
     }
 }
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span> {
         <span class="kw">use</span> <span class="ident">ffi</span>::{
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_key.html">RSA_get0_key</a>, <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_factors.html">RSA_get0_factors</a>, <a class="ident" href="../../openssl_sys/rsa/fn.RSA_get0_crt_params.html">RSA_get0_crt_params</a>, <a class="ident" href="../../openssl_sys/rsa/fn.RSA_set0_key.html">RSA_set0_key</a>, <a class="ident" href="../../openssl_sys/rsa/fn.RSA_set0_factors.html">RSA_set0_factors</a>,
-            <a class="ident" href="../../openssl_sys/rsa/fn.RSA_set0_crt_params.html">RSA_set0_crt_params</a>,
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_key.html">RSA_get0_key</a>, <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_factors.html">RSA_get0_factors</a>, <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_get0_crt_params.html">RSA_get0_crt_params</a>, <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_set0_key.html">RSA_set0_key</a>, <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_set0_factors.html">RSA_set0_factors</a>,
+            <a class="ident" href="../../openssl_sys/handwritten/rsa/fn.RSA_set0_crt_params.html">RSA_set0_crt_params</a>,
         };
     } <span class="kw">else</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
@@ -1850,5 +1686,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

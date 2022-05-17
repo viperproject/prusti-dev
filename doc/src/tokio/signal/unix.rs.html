@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.17.0/src/signal/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.18.2/src/signal/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -480,6 +480,50 @@
 <span id="475">475</span>
 <span id="476">476</span>
 <span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Unix-specific types for signal handling.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is only defined on Unix platforms and contains the primary</span>
@@ -502,28 +546,32 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#1-207">driver</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#35-37"><span class="self">self</span>::driver::Handle</a>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">OsStorage</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#193-197">SignalInfo</a><span class="op">&gt;</span>;
-
-<span class="comment">// Number of different unix signals</span>
-<span class="comment">// (FreeBSD has 33)</span>
-<span class="kw">const</span> <span class="ident">SIGNUM</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">33</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">OsStorage</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#220-224">SignalInfo</a><span class="op">&gt;</span>;
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#59-61">Init</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#23">OsStorage</a> {
     <span class="kw">fn</span> <span class="ident">init</span>() -&gt; <span class="self">Self</span> {
-        (<span class="number">0</span>..<a class="ident" href="../../../src/tokio/signal/unix.rs.html#27">SIGNUM</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">SignalInfo::default</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <span class="comment">// There are reliable signals ranging from 1 to 33 available on every Unix platform.</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">possible</span> <span class="op">=</span> <span class="number">0</span>..<span class="op">=</span><span class="number">33</span>;
+
+        <span class="comment">// On Linux, there are additional real-time signals available.</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="kw">let</span> <span class="ident">possible</span> <span class="op">=</span> <span class="number">0</span>..<span class="op">=</span><span class="ident">libc::SIGRTMAX</span>();
+
+        <a class="ident" href="../../../src/tokio/signal/unix.rs.html#33">possible</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">SignalInfo::default</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#34-42">Storage</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#23">OsStorage</a> {
     <span class="kw">fn</span> <span class="ident">event_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/registry.rs.html#17-20">EventInfo</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/signal/unix.rs.html#36">self</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#36">id</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">si</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#37">si</a>.<span class="ident">event_info</span>)
+        <a class="self" href="../../../src/tokio/signal/unix.rs.html#40">self</a>.<span class="ident">get</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#40">id</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">si</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#41">si</a>.<span class="ident">event_info</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">for_each</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>)
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#17-20">EventInfo</a>),
     {
-        <a class="self" href="../../../src/tokio/signal/unix.rs.html#40">self</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">si</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#44">si</a>.<span class="ident">event_info</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#40">f</a>)
+        <a class="self" href="../../../src/tokio/signal/unix.rs.html#44">self</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">si</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#48">si</a>.<span class="ident">event_info</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#44">f</a>)
     }
 }
 
@@ -533,19 +581,19 @@
     <span class="ident">receiver</span>: <a class="ident" href="../../../mio/net/uds/stream/struct.UnixStream.html">UnixStream</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#59-61">Init</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#49-52">OsExtraData</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#59-61">Init</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#53-56">OsExtraData</a> {
     <span class="kw">fn</span> <span class="ident">init</span>() -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> (<span class="ident">receiver</span>, <span class="ident">sender</span>) <span class="op">=</span> <span class="ident">UnixStream::pair</span>().<span class="ident">expect</span>(<span class="string">&quot;failed to create UnixStream&quot;</span>);
 
-        <span class="self">Self</span> { <a class="ident" href="../../../src/tokio/signal/unix.rs.html#56">sender</a>, <a class="ident" href="../../../src/tokio/signal/unix.rs.html#56">receiver</a> }
+        <span class="self">Self</span> { <a class="ident" href="../../../src/tokio/signal/unix.rs.html#60">sender</a>, <a class="ident" href="../../../src/tokio/signal/unix.rs.html#60">receiver</a> }
     }
 }
 
 <span class="doccomment">/// Represents the specific kind of signal to listen for.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SignalKind</span>(<a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#64">SignalKind</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a> {
     <span class="doccomment">/// Allows for listening to any valid OS signal.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// For example, this can be used for listening for platform-specific</span>
@@ -563,7 +611,18 @@
     <span class="comment">// in the future minor version.</span>
     <span class="comment">// See https://github.com/tokio-rs/tokio/issues/3767 for more.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">signum</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#83">signum</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>)
+        <span class="self">Self</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#87">signum</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>)
+    }
+
+    <span class="doccomment">/// Get the signal&#39;s numeric value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// # use tokio::signal::unix::SignalKind;</span>
+    <span class="doccomment">/// let kind = SignalKind::interrupt();</span>
+    <span class="doccomment">/// assert_eq!(kind.as_raw_value(), libc::SIGINT);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a> {
+        <a class="self" href="../../../src/tokio/signal/unix.rs.html#98">self</a>.<span class="number">0</span>
     }
 
     <span class="doccomment">/// Represents the SIGALRM signal.</span>
@@ -672,15 +731,27 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">signum</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::from_raw</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#209">signum</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">std::os::raw::c_int</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">kind</span>: <a class="ident" href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/tokio/signal/unix.rs.html#215">kind</a>.<a class="ident" href="../../../src/tokio/signal/unix.rs.html#98">as_raw_value</a>()
+    }
+}
+
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SignalInfo</span> {
     <span class="ident">event_info</span>: <a class="ident" href="../../../src/tokio/signal/registry.rs.html#17-20">EventInfo</a>,
     <span class="ident">init</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a>,
     <span class="ident">initialized</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#193-197">SignalInfo</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/tokio/signal/unix.rs.html#193-197">SignalInfo</a> {
-        <a class="ident" href="../../../src/tokio/signal/unix.rs.html#193-197">SignalInfo</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#220-224">SignalInfo</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/tokio/signal/unix.rs.html#220-224">SignalInfo</a> {
+        <a class="ident" href="../../../src/tokio/signal/unix.rs.html#220-224">SignalInfo</a> {
             <span class="ident">event_info</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
             <span class="ident">init</span>: <span class="ident">Once::new</span>(),
             <span class="ident">initialized</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
@@ -697,12 +768,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Those two operations should both be async-signal safe.</span>
 <span class="kw">fn</span> <span class="ident">action</span>(<span class="ident">globals</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#117-120">Globals</a><span class="op">&gt;</span>, <span class="ident">signal</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">libc::c_int</a>) {
-    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#217">globals</a>.<a class="ident" href="../../../src/tokio/signal/registry.rs.html#138">record_event</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#217">signal</a> <span class="kw">as</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>);
+    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#244">globals</a>.<a class="ident" href="../../../src/tokio/signal/registry.rs.html#138">record_event</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#244">signal</a> <span class="kw">as</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>);
 
     <span class="comment">// Send a wakeup, ignore any errors (anything reasonably possible is</span>
     <span class="comment">// full pipe and then it will wake up anyway).</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sender</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#217">globals</a>.<span class="ident">sender</span>;
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#222">sender</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<span class="kw-2">&amp;</span>[<span class="number">1</span>]));
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sender</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#244">globals</a>.<span class="ident">sender</span>;
+    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#249">sender</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<span class="kw-2">&amp;</span>[<span class="number">1</span>]));
 }
 
 <span class="doccomment">/// Enables this module to receive signal notifications for the `signal`</span>
@@ -710,36 +781,36 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This will register the signal handler if it hasn&#39;t already been registered,</span>
 <span class="doccomment">/// returning any error along the way if that fails.</span>
-<span class="kw">fn</span> <span class="ident">signal_enable</span>(<span class="ident">signal</span>: <a class="ident" href="../../../src/tokio/signal/unix.rs.html#64">SignalKind</a>, <span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#35-37">Handle</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">signal</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#231">signal</a>.<span class="number">0</span>;
-    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#232">signal</a> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">signal_hook_registry::FORBIDDEN</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#232">signal</a>) {
+<span class="kw">fn</span> <span class="ident">signal_enable</span>(<span class="ident">signal</span>: <a class="ident" href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a>, <span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#35-37">Handle</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">signal</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#258">signal</a>.<span class="number">0</span>;
+    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#259">signal</a> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">signal_hook_registry::FORBIDDEN</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#259">signal</a>) {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(
             <span class="ident">ErrorKind::Other</span>,
-            <span class="macro">format!</span>(<span class="string">&quot;Refusing to register signal {}&quot;</span>, <a class="ident" href="../../../src/tokio/signal/unix.rs.html#232">signal</a>),
+            <span class="macro">format!</span>(<span class="string">&quot;Refusing to register signal {}&quot;</span>, <a class="ident" href="../../../src/tokio/signal/unix.rs.html#259">signal</a>),
         ));
     }
 
     <span class="comment">// Check that we have a signal driver running</span>
-    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#231">handle</a>.<a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#169">check_inner</a>()<span class="question-mark">?</span>;
+    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#258">handle</a>.<a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#169">check_inner</a>()<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#155-158">globals</a>();
-    <span class="kw">let</span> <span class="ident">siginfo</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#243">globals</a>.<a class="ident" href="../../../src/tokio/signal/registry.rs.html#150">storage</a>().<span class="ident">get</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#232">signal</a> <span class="kw">as</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>) {
-        <span class="prelude-val">Some</span>(<span class="ident">slot</span>) =&gt; <a class="ident" href="../../../src/tokio/signal/unix.rs.html#245">slot</a>,
+    <span class="kw">let</span> <span class="ident">siginfo</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#270">globals</a>.<a class="ident" href="../../../src/tokio/signal/registry.rs.html#150">storage</a>().<span class="ident">get</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#259">signal</a> <span class="kw">as</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>) {
+        <span class="prelude-val">Some</span>(<span class="ident">slot</span>) =&gt; <a class="ident" href="../../../src/tokio/signal/unix.rs.html#272">slot</a>,
         <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="string">&quot;signal too large&quot;</span>)),
     };
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">registered</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(());
-    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#244">siginfo</a>.<span class="ident">init</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
-        <a class="ident" href="../../../src/tokio/signal/unix.rs.html#248">registered</a> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">signal_hook_registry::register</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#232">signal</a>, <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#217">action</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#243">globals</a>, <a class="ident" href="../../../src/tokio/signal/unix.rs.html#232">signal</a>)).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#271">siginfo</a>.<span class="ident">init</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
+        <a class="ident" href="../../../src/tokio/signal/unix.rs.html#275">registered</a> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">signal_hook_registry::register</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#259">signal</a>, <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#244">action</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#270">globals</a>, <a class="ident" href="../../../src/tokio/signal/unix.rs.html#259">signal</a>)).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         };
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#248">registered</a>.<span class="ident">is_ok</span>() {
-            <a class="ident" href="../../../src/tokio/signal/unix.rs.html#244">siginfo</a>.<span class="ident">initialized</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Relaxed</span>);
+        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#275">registered</a>.<span class="ident">is_ok</span>() {
+            <a class="ident" href="../../../src/tokio/signal/unix.rs.html#271">siginfo</a>.<span class="ident">initialized</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Relaxed</span>);
         }
     });
-    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#248">registered</a><span class="question-mark">?</span>;
+    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#275">registered</a><span class="question-mark">?</span>;
     <span class="comment">// If the call_once failed, it won&#39;t be retried on the next attempt to register the signal. In</span>
     <span class="comment">// such case it is not run, registered is still `Ok(())`, initialized is still `false`.</span>
-    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#244">siginfo</a>.<span class="ident">initialized</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
+    <span class="kw">if</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#271">siginfo</a>.<span class="ident">initialized</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else</span> {
         <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(
@@ -839,28 +910,34 @@
 <span class="doccomment">/// * If the previous initialization of this specific signal failed.</span>
 <span class="doccomment">/// * If the signal is one of</span>
 <span class="doccomment">///   [`signal_hook::FORBIDDEN`](fn@signal_hook_registry::register#panics)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signal</span>(<span class="ident">kind</span>: <a class="ident" href="../../../src/tokio/signal/unix.rs.html#64">SignalKind</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#334-336">Signal</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#368-371">signal_with_handle</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#360">kind</a>, <span class="kw-2">&amp;</span><span class="ident">Handle::current</span>())<span class="question-mark">?</span>;
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signal</span>(<span class="ident">kind</span>: <a class="ident" href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#361-363">Signal</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#395-398">signal_with_handle</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#387">kind</a>, <span class="kw-2">&amp;</span><span class="ident">Handle::current</span>())<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#334-336">Signal</a> {
-        <span class="ident">inner</span>: <span class="ident">RxFuture::new</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#361">rx</a>),
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#361-363">Signal</a> {
+        <span class="ident">inner</span>: <span class="ident">RxFuture::new</span>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#388">rx</a>),
     })
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">signal_with_handle</span>(
-    <span class="ident">kind</span>: <a class="ident" href="../../../src/tokio/signal/unix.rs.html#64">SignalKind</a>,
+    <span class="ident">kind</span>: <a class="ident" href="../../../src/tokio/signal/unix.rs.html#68">SignalKind</a>,
     <span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/signal/unix/driver.rs.html#35-37">Handle</a>,
 ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">watch::Receiver</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="comment">// Turn the signal delivery on once we are ready for it</span>
-    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#231">signal_enable</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#369">kind</a>, <a class="ident" href="../../../src/tokio/signal/unix.rs.html#370">handle</a>)<span class="question-mark">?</span>;
+    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#258">signal_enable</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#396">kind</a>, <a class="ident" href="../../../src/tokio/signal/unix.rs.html#397">handle</a>)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/signal/registry.rs.html#155-158">globals</a>().<a class="ident" href="../../../src/tokio/signal/registry.rs.html#132">register_listener</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#369">kind</a>.<span class="number">0</span> <span class="kw">as</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>))
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/signal/registry.rs.html#155-158">globals</a>().<a class="ident" href="../../../src/tokio/signal/registry.rs.html#132">register_listener</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#396">kind</a>.<span class="number">0</span> <span class="kw">as</span> <a class="ident" href="../../../src/tokio/signal/registry.rs.html#12">EventId</a>))
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#334-336">Signal</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#361-363">Signal</a> {
     <span class="doccomment">/// Receives the next signal notification event.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `None` is returned if no more events can be received by this stream.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Cancel safety</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method is cancel safe. If you use it as the event in a</span>
+    <span class="doccomment">/// [`tokio::select!`](crate::select) statement and some other branch</span>
+    <span class="doccomment">/// completes first, then it is guaranteed that no signal is lost.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -882,7 +959,7 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/signal/unix.rs.html#402">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/signal/mod.rs.html#86">recv</a>().<span class="kw">await</span>
+        <a class="self" href="../../../src/tokio/signal/unix.rs.html#435">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/signal/mod.rs.html#86">recv</a>().<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Polls to receive the next signal notification event, outside of an</span>
@@ -920,7 +997,7 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/signal/unix.rs.html#440">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/signal/mod.rs.html#91">poll_recv</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#440">cx</a>)
+        <a class="self" href="../../../src/tokio/signal/unix.rs.html#473">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/signal/mod.rs.html#91">poll_recv</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#473">cx</a>)
     }
 }
 
@@ -929,14 +1006,14 @@
     <span class="kw">fn</span> <span class="ident">poll_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#446-448">InternalStream</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#334-336">Signal</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#479-481">InternalStream</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/signal/unix.rs.html#361-363">Signal</a> {
     <span class="kw">fn</span> <span class="ident">poll_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/signal/unix.rs.html#451">self</a>.<a class="ident" href="../../../src/tokio/signal/unix.rs.html#440">poll_recv</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#451">cx</a>)
+        <a class="self" href="../../../src/tokio/signal/unix.rs.html#484">self</a>.<a class="ident" href="../../../src/tokio/signal/unix.rs.html#473">poll_recv</a>(<a class="ident" href="../../../src/tokio/signal/unix.rs.html#484">cx</a>)
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ctrl_c</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#334-336">Signal</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#360">signal</a>(<span class="ident">SignalKind::interrupt</span>())
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ctrl_c</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/signal/unix.rs.html#361-363">Signal</a><span class="op">&gt;</span> {
+    <a class="ident" href="../../../src/tokio/signal/unix.rs.html#387">signal</a>(<span class="ident">SignalKind::interrupt</span>())
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">not</span>(<span class="ident">loom</span>)))]</span>
@@ -956,7 +1033,18 @@
         )
         .<span class="ident">unwrap_err</span>();
     }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from_c_int</span>() {
+        <span class="macro">assert_eq!</span>(<span class="ident">SignalKind::from</span>(<span class="number">2</span>), <span class="ident">SignalKind::interrupt</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">into_c_int</span>() {
+        <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">std::os::raw::c_int</span> <span class="op">=</span> <span class="ident">SignalKind::interrupt</span>().<span class="ident">into</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">value</span>, <span class="ident">libc::SIGINT</span> <span class="kw">as</span> <span class="kw">_</span>);
+    }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

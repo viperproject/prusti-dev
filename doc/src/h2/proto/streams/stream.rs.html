@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.7/src/proto/streams/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.13/src/proto/streams/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -483,6 +483,16 @@
 <span id="478">478</span>
 <span id="479">479</span>
 <span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
@@ -506,7 +516,7 @@
     <span class="kw">pub</span> <span class="ident">id</span>: <a class="ident" href="../../../../src/h2/frame/stream_id.rs.html#14">StreamId</a>,
 
     <span class="doccomment">/// Current state of the stream</span>
-    <span class="kw">pub</span> <span class="ident">state</span>: <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#52-54">State</a>,
+    <span class="kw">pub</span> <span class="ident">state</span>: <a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#51-53">State</a>,
 
     <span class="doccomment">/// Set to `true` when the stream is counted against the connection&#39;s max</span>
     <span class="doccomment">/// concurrent streams.</span>
@@ -517,7 +527,7 @@
 
     <span class="comment">// ===== Fields related to sending =====</span>
     <span class="doccomment">/// Next node in the accept linked list</span>
-    <span class="kw">pub</span> <span class="ident">next_pending_send</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">next_pending_send</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Set to true when the stream is pending accept</span>
     <span class="kw">pub</span> <span class="ident">is_pending_send</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -530,7 +540,7 @@
 
     <span class="doccomment">/// Amount of data buffered at the prioritization layer.</span>
     <span class="doccomment">/// TODO: Technically this could be greater than the window size...</span>
-    <span class="kw">pub</span> <span class="ident">buffered_send_data</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>,
+    <span class="kw">pub</span> <span class="ident">buffered_send_data</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
     <span class="doccomment">/// Task tracking additional send capacity (i.e. window updates).</span>
     <span class="ident">send_task</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>,
@@ -540,7 +550,7 @@
 
     <span class="doccomment">/// Next node in the linked list of streams waiting for additional</span>
     <span class="doccomment">/// connection level capacity.</span>
-    <span class="kw">pub</span> <span class="ident">next_pending_send_capacity</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">next_pending_send_capacity</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// True if the stream is waiting for outbound connection capacity</span>
     <span class="kw">pub</span> <span class="ident">is_pending_send_capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -549,7 +559,7 @@
     <span class="kw">pub</span> <span class="ident">send_capacity_inc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 
     <span class="doccomment">/// Next node in the open linked list</span>
-    <span class="kw">pub</span> <span class="ident">next_open</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">next_open</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Set to true when the stream is pending to be opened</span>
     <span class="kw">pub</span> <span class="ident">is_pending_open</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -559,7 +569,7 @@
 
     <span class="comment">// ===== Fields related to receiving =====</span>
     <span class="doccomment">/// Next node in the accept linked list</span>
-    <span class="kw">pub</span> <span class="ident">next_pending_accept</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">next_pending_accept</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Set to true when the stream is pending accept</span>
     <span class="kw">pub</span> <span class="ident">is_pending_accept</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -570,7 +580,7 @@
     <span class="kw">pub</span> <span class="ident">in_flight_recv_data</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>,
 
     <span class="doccomment">/// Next node in the linked list of streams waiting to send window updates.</span>
-    <span class="kw">pub</span> <span class="ident">next_window_update</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">next_window_update</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// True if the stream is waiting to send a window update</span>
     <span class="kw">pub</span> <span class="ident">is_pending_window_update</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -579,7 +589,7 @@
     <span class="kw">pub</span> <span class="ident">reset_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Next node in list of reset streams that should expire eventually</span>
-    <span class="kw">pub</span> <span class="ident">next_reset_expire</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">next_reset_expire</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Frames pending for this stream to read</span>
     <span class="kw">pub</span> <span class="ident">pending_recv</span>: <a class="ident" href="../../../../src/h2/proto/streams/buffer.rs.html#11-13">buffer::Deque</a>,
@@ -712,7 +722,7 @@
     <span class="doccomment">/// Returns true if the stream is closed</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// The state has fully transitioned to closed.</span>
-        <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#228">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#389">is_closed</a>() <span class="op">&amp;&amp;</span>
+        <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#228">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#403">is_closed</a>() <span class="op">&amp;&amp;</span>
             <span class="comment">// Because outbound frames transition the stream state before being</span>
             <span class="comment">// buffered, we have to ensure that all frames have been flushed.</span>
             <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#228">self</a>.<span class="ident">pending_send</span>.<a class="ident" href="../../../../src/h2/proto/streams/buffer.rs.html#39">is_empty</a>() <span class="op">&amp;&amp;</span>
@@ -742,37 +752,47 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// In this case, a reset should be sent.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_canceled_interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#259">self</a>.<span class="ident">ref_count</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#259">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#389">is_closed</a>()
+        <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#259">self</a>.<span class="ident">ref_count</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#259">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/h2/proto/streams/state.rs.html#403">is_closed</a>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assign_capacity</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">capacity</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assign_capacity</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">capacity</span>: <a class="ident" href="../../../../src/h2/proto/mod.rs.html#30">WindowSize</a>, <span class="ident">max_buffer_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#263">capacity</a> <span class="op">&gt;</span> <span class="number">0</span>);
-        <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#263">self</a>.<span class="ident">send_capacity_inc</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#263">self</a>.<span class="ident">send_flow</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#81">assign_capacity</a>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#263">capacity</a>);
 
         <span class="macro">tracing::trace!</span>(
-            <span class="string">&quot;  assigned capacity to stream; available={}; buffered={}; id={:?}&quot;</span>,
+            <span class="string">&quot;  assigned capacity to stream; available={}; buffered={}; id={:?}; max_buffer_size={}&quot;</span>,
             <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#263">self</a>.<span class="ident">send_flow</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#64">available</a>(),
             <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#263">self</a>.<span class="ident">buffered_send_data</span>,
-            <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#263">self</a>.<span class="ident">id</span>
+            <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#263">self</a>.<span class="ident">id</span>,
+            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#263">max_buffer_size</a>
         );
 
+        <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#263">self</a>.<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#280">notify_if_can_buffer_more</a>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#263">max_buffer_size</a>);
+    }
+
+    <span class="doccomment">/// If the capacity was limited because of the max_send_buffer_size,</span>
+    <span class="doccomment">/// then consider waking the send task again...</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify_if_can_buffer_more</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">max_buffer_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let</span> <span class="ident">available</span> <span class="op">=</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#280">self</a>.<span class="ident">send_flow</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#64">available</a>().<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#195">as_size</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let</span> <span class="ident">buffered</span> <span class="op">=</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#280">self</a>.<span class="ident">buffered_send_data</span>;
+
         <span class="comment">// Only notify if the capacity exceeds the amount of buffered data</span>
-        <span class="kw">if</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#263">self</a>.<span class="ident">send_flow</span>.<a class="ident" href="../../../../src/h2/proto/streams/flow_control.rs.html#64">available</a>() <span class="op">&gt;</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#263">self</a>.<span class="ident">buffered_send_data</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#281">available</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#280">max_buffer_size</a>) <span class="op">&gt;</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#282">buffered</a> {
+            <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#280">self</a>.<span class="ident">send_capacity_inc</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="macro">tracing::trace!</span>(<span class="string">&quot;  notifying task&quot;</span>);
-            <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#263">self</a>.<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#308">notify_send</a>();
+            <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#280">self</a>.<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#318">notify_send</a>();
         }
     }
 
     <span class="doccomment">/// Returns `Err` when the decrement cannot be completed due to overflow.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dec_content_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#283">self</a>.<span class="ident">content_length</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#117">ContentLength::Remaining</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">rem</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#285">rem</a>.<span class="ident">checked_sub</span>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#283">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-                <span class="prelude-val">Some</span>(<span class="ident">val</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#285">rem</a> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#286">val</a>,
+        <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#293">self</a>.<span class="ident">content_length</span> {
+            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#117">ContentLength::Remaining</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">rem</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#295">rem</a>.<span class="ident">checked_sub</span>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#293">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
+                <span class="prelude-val">Some</span>(<span class="ident">val</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#295">rem</a> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#296">val</a>,
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
             },
             <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#116">ContentLength::Head</a> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#283">len</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#293">len</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 }
             }
@@ -783,7 +803,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ensure_content_length_zero</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#300">self</a>.<span class="ident">content_length</span> {
+        <span class="kw">match</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#310">self</a>.<span class="ident">content_length</span> {
             <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#117">ContentLength::Remaining</a>(<span class="number">0</span>) =&gt; <span class="prelude-val">Ok</span>(()),
             <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#117">ContentLength::Remaining</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(()),
             <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(()),
@@ -791,164 +811,164 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify_send</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#308">self</a>.<span class="ident">send_task</span>.<span class="ident">take</span>() {
-            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#309">task</a>.<span class="ident">wake</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#318">self</a>.<span class="ident">send_task</span>.<span class="ident">take</span>() {
+            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#319">task</a>.<span class="ident">wake</span>();
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait_send</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) {
-        <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#314">self</a>.<span class="ident">send_task</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#314">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#324">self</a>.<span class="ident">send_task</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#324">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#318">self</a>.<span class="ident">recv_task</span>.<span class="ident">take</span>() {
-            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#319">task</a>.<span class="ident">wake</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span> <a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#328">self</a>.<span class="ident">recv_task</span>.<span class="ident">take</span>() {
+            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#329">task</a>.<span class="ident">wake</span>();
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#44-54">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#121">NextAccept</a> {
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#326">stream</a>.<span class="ident">next_pending_accept</span>
+<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#45-55">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#121">NextAccept</a> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#336">stream</a>.<span class="ident">next_pending_accept</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>) {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#330">stream</a>.<span class="ident">next_pending_accept</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#330">key</a>;
+    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>) {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#340">stream</a>.<span class="ident">next_pending_accept</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#340">key</a>;
     }
 
-    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#334">stream</a>.<span class="ident">next_pending_accept</span>.<span class="ident">take</span>()
+    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#344">stream</a>.<span class="ident">next_pending_accept</span>.<span class="ident">take</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">is_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#338">stream</a>.<span class="ident">is_pending_accept</span>
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#348">stream</a>.<span class="ident">is_pending_accept</span>
     }
 
     <span class="kw">fn</span> <span class="ident">set_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#342">stream</a>.<span class="ident">is_pending_accept</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#342">val</a>;
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#352">stream</a>.<span class="ident">is_pending_accept</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#352">val</a>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#44-54">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#124">NextSend</a> {
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#348">stream</a>.<span class="ident">next_pending_send</span>
+<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#45-55">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#124">NextSend</a> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#358">stream</a>.<span class="ident">next_pending_send</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>) {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#352">stream</a>.<span class="ident">next_pending_send</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#352">key</a>;
+    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>) {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#362">stream</a>.<span class="ident">next_pending_send</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#362">key</a>;
     }
 
-    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#356">stream</a>.<span class="ident">next_pending_send</span>.<span class="ident">take</span>()
+    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#366">stream</a>.<span class="ident">next_pending_send</span>.<span class="ident">take</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">is_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#360">stream</a>.<span class="ident">is_pending_send</span>
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#370">stream</a>.<span class="ident">is_pending_send</span>
     }
 
     <span class="kw">fn</span> <span class="ident">set_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#364">val</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#374">val</a> {
             <span class="comment">// ensure that stream is not queued for being opened</span>
             <span class="comment">// if it&#39;s being put into queue for sending data</span>
-            <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#364">stream</a>.<span class="ident">is_pending_open</span>, <span class="bool-val">false</span>);
+            <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#374">stream</a>.<span class="ident">is_pending_open</span>, <span class="bool-val">false</span>);
         }
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#364">stream</a>.<span class="ident">is_pending_send</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#364">val</a>;
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#374">stream</a>.<span class="ident">is_pending_send</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#374">val</a>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#44-54">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#127">NextSendCapacity</a> {
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#375">stream</a>.<span class="ident">next_pending_send_capacity</span>
+<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#45-55">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#127">NextSendCapacity</a> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#385">stream</a>.<span class="ident">next_pending_send_capacity</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>) {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#379">stream</a>.<span class="ident">next_pending_send_capacity</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#379">key</a>;
+    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>) {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#389">stream</a>.<span class="ident">next_pending_send_capacity</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#389">key</a>;
     }
 
-    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#383">stream</a>.<span class="ident">next_pending_send_capacity</span>.<span class="ident">take</span>()
+    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#393">stream</a>.<span class="ident">next_pending_send_capacity</span>.<span class="ident">take</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">is_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#387">stream</a>.<span class="ident">is_pending_send_capacity</span>
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#397">stream</a>.<span class="ident">is_pending_send_capacity</span>
     }
 
     <span class="kw">fn</span> <span class="ident">set_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#391">stream</a>.<span class="ident">is_pending_send_capacity</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#391">val</a>;
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#401">stream</a>.<span class="ident">is_pending_send_capacity</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#401">val</a>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#44-54">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#130">NextWindowUpdate</a> {
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#397">stream</a>.<span class="ident">next_window_update</span>
+<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#45-55">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#130">NextWindowUpdate</a> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#407">stream</a>.<span class="ident">next_window_update</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>) {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#401">stream</a>.<span class="ident">next_window_update</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#401">key</a>;
+    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>) {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#411">stream</a>.<span class="ident">next_window_update</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#411">key</a>;
     }
 
-    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#405">stream</a>.<span class="ident">next_window_update</span>.<span class="ident">take</span>()
+    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#415">stream</a>.<span class="ident">next_window_update</span>.<span class="ident">take</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">is_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#409">stream</a>.<span class="ident">is_pending_window_update</span>
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#419">stream</a>.<span class="ident">is_pending_window_update</span>
     }
 
     <span class="kw">fn</span> <span class="ident">set_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#413">stream</a>.<span class="ident">is_pending_window_update</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#413">val</a>;
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#423">stream</a>.<span class="ident">is_pending_window_update</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#423">val</a>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#44-54">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#133">NextOpen</a> {
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#419">stream</a>.<span class="ident">next_open</span>
+<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#45-55">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#133">NextOpen</a> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#429">stream</a>.<span class="ident">next_open</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>) {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#423">stream</a>.<span class="ident">next_open</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#423">key</a>;
+    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>) {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#433">stream</a>.<span class="ident">next_open</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#433">key</a>;
     }
 
-    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#427">stream</a>.<span class="ident">next_open</span>.<span class="ident">take</span>()
+    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#437">stream</a>.<span class="ident">next_open</span>.<span class="ident">take</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">is_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#431">stream</a>.<span class="ident">is_pending_open</span>
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#441">stream</a>.<span class="ident">is_pending_open</span>
     }
 
     <span class="kw">fn</span> <span class="ident">set_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#435">val</a> {
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#445">val</a> {
             <span class="comment">// ensure that stream is not queued for being sent</span>
             <span class="comment">// if it&#39;s being put into queue for opening the stream</span>
-            <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#435">stream</a>.<span class="ident">is_pending_send</span>, <span class="bool-val">false</span>);
+            <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#445">stream</a>.<span class="ident">is_pending_send</span>, <span class="bool-val">false</span>);
         }
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#435">stream</a>.<span class="ident">is_pending_open</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#435">val</a>;
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#445">stream</a>.<span class="ident">is_pending_open</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#445">val</a>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#44-54">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#136">NextResetExpire</a> {
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#446">stream</a>.<span class="ident">next_reset_expire</span>
+<span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#45-55">store::Next</a> <span class="kw">for</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#136">NextResetExpire</a> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#456">stream</a>.<span class="ident">next_reset_expire</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span>) {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#450">stream</a>.<span class="ident">next_reset_expire</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#450">key</a>;
+    <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span>) {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#460">stream</a>.<span class="ident">next_reset_expire</span> <span class="op">=</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#460">key</a>;
     }
 
-    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#26-31">store::Key</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#454">stream</a>.<span class="ident">next_reset_expire</span>.<span class="ident">take</span>()
+    <span class="kw">fn</span> <span class="ident">take_next</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/h2/proto/streams/store.rs.html#27-32">store::Key</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#464">stream</a>.<span class="ident">next_reset_expire</span>.<span class="ident">take</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">is_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#458">stream</a>.<span class="ident">reset_at</span>.<span class="ident">is_some</span>()
+        <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#468">stream</a>.<span class="ident">reset_at</span>.<span class="ident">is_some</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">set_queued</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#19-110">Stream</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#462">val</a> {
-            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#462">stream</a>.<span class="ident">reset_at</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Instant::now</span>());
+        <span class="kw">if</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#472">val</a> {
+            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#472">stream</a>.<span class="ident">reset_at</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Instant::now</span>());
         } <span class="kw">else</span> {
-            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#462">stream</a>.<span class="ident">reset_at</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+            <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#472">stream</a>.<span class="ident">reset_at</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         }
     }
 }
@@ -957,12 +977,12 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#114-118">ContentLength</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#474">self</a> {
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/h2/proto/streams/stream.rs.html#484">self</a> {
             <a class="ident" href="../../../../src/h2/proto/streams/stream.rs.html#116">ContentLength::Head</a> =&gt; <span class="bool-val">true</span>,
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

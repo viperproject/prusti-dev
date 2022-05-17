@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.38/src/ocsp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ocsp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/ocsp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ocsp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -353,22 +353,21 @@
 <span id="348">348</span>
 <span id="349">349</span>
 <span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
 <span class="kw">use</span> <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
 <span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>, <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/asn1.rs.html#45-65"><span class="kw">crate</span>::asn1::Asn1GeneralizedTimeRef</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/asn1.rs.html#46-66"><span class="kw">crate</span>::asn1::Asn1GeneralizedTimeRef</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/stack.rs.html#180"><span class="kw">crate</span>::stack::StackRef</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#81-93"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/x509/store.rs.html#182-190"><span class="kw">crate</span>::x509::store::X509StoreRef</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509Ref</a>, <a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#80-92"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/x509/store.rs.html#173-181"><span class="kw">crate</span>::x509::store::X509StoreRef</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509Ref</a>, <a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use</span> <span class="ident">openssl_macros::corresponds</span>;
 
 <span class="macro">bitflags!</span> {
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspFlag</span>: <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a> {
@@ -389,91 +388,91 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspResponseStatus</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SUCCESSFUL</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_SUCCESSFUL</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MALFORMED_REQUEST</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_MALFORMEDREQUEST</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INTERNAL_ERROR</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_INTERNALERROR</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRY_LATER</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_TRYLATER</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIG_REQUIRED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_SIGREQUIRED</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNAUTHORIZED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_UNAUTHORIZED</span>);
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SUCCESSFUL</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_SUCCESSFUL</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MALFORMED_REQUEST</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_MALFORMEDREQUEST</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INTERNAL_ERROR</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_INTERNALERROR</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRY_LATER</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_TRYLATER</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIG_REQUIRED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_SIGREQUIRED</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNAUTHORIZED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_RESPONSE_STATUS_UNAUTHORIZED</span>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a> {
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a>(<a class="ident" href="../../src/openssl/ocsp.rs.html#49">raw</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a> {
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a>(<a class="ident" href="../../src/openssl/ocsp.rs.html#50">raw</a>)
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <a class="self" href="../../src/openssl/ocsp.rs.html#54">self</a>.<span class="number">0</span>
+        <a class="self" href="../../src/openssl/ocsp.rs.html#55">self</a>.<span class="number">0</span>
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspCertStatus</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GOOD</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a>(<span class="ident">ffi::V_OCSP_CERTSTATUS_GOOD</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REVOKED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a>(<span class="ident">ffi::V_OCSP_CERTSTATUS_REVOKED</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNKNOWN</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a>(<span class="ident">ffi::V_OCSP_CERTSTATUS_UNKNOWN</span>);
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GOOD</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a>(<span class="ident">ffi::V_OCSP_CERTSTATUS_GOOD</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REVOKED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a>(<span class="ident">ffi::V_OCSP_CERTSTATUS_REVOKED</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNKNOWN</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a>(<span class="ident">ffi::V_OCSP_CERTSTATUS_UNKNOWN</span>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a> {
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a>(<a class="ident" href="../../src/openssl/ocsp.rs.html#67">raw</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a> {
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a>(<a class="ident" href="../../src/openssl/ocsp.rs.html#68">raw</a>)
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <a class="self" href="../../src/openssl/ocsp.rs.html#72">self</a>.<span class="number">0</span>
+        <a class="self" href="../../src/openssl/ocsp.rs.html#73">self</a>.<span class="number">0</span>
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspRevokedStatus</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NO_STATUS</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_NOSTATUS</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNSPECIFIED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_UNSPECIFIED</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KEY_COMPROMISE</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_KEYCOMPROMISE</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CA_COMPROMISE</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_CACOMPROMISE</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AFFILIATION_CHANGED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_AFFILIATIONCHANGED</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STATUS_SUPERSEDED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_SUPERSEDED</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STATUS_CESSATION_OF_OPERATION</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_CESSATIONOFOPERATION</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STATUS_CERTIFICATE_HOLD</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_CERTIFICATEHOLD</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REMOVE_FROM_CRL</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> <span class="op">=</span>
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_REMOVEFROMCRL</span>);
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NO_STATUS</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> <span class="op">=</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_NOSTATUS</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNSPECIFIED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_UNSPECIFIED</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KEY_COMPROMISE</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_KEYCOMPROMISE</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CA_COMPROMISE</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_CACOMPROMISE</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AFFILIATION_CHANGED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_AFFILIATIONCHANGED</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STATUS_SUPERSEDED</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_SUPERSEDED</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STATUS_CESSATION_OF_OPERATION</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_CESSATIONOFOPERATION</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STATUS_CERTIFICATE_HOLD</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_CERTIFICATEHOLD</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REMOVE_FROM_CRL</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> <span class="op">=</span>
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<span class="ident">ffi::OCSP_REVOKED_STATUS_REMOVEFROMCRL</span>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a> {
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<a class="ident" href="../../src/openssl/ocsp.rs.html#99">raw</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a> {
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<a class="ident" href="../../src/openssl/ocsp.rs.html#100">raw</a>)
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <a class="self" href="../../src/openssl/ocsp.rs.html#104">self</a>.<span class="number">0</span>
+        <a class="self" href="../../src/openssl/ocsp.rs.html#105">self</a>.<span class="number">0</span>
     }
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspStatus</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The overall status of the response.</span>
-    <span class="kw">pub</span> <span class="ident">status</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a>,
+    <span class="kw">pub</span> <span class="ident">status</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a>,
     <span class="doccomment">/// If `status` is `CERT_STATUS_REVOKED`, the reason for the revocation.</span>
-    <span class="kw">pub</span> <span class="ident">reason</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>,
+    <span class="kw">pub</span> <span class="ident">reason</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>,
     <span class="doccomment">/// If `status` is `CERT_STATUS_REVOKED`, the time at which the certificate was revoked.</span>
-    <span class="kw">pub</span> <span class="ident">revocation_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/openssl/asn1.rs.html#45-65">Asn1GeneralizedTimeRef</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">revocation_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/openssl/asn1.rs.html#46-66">Asn1GeneralizedTimeRef</a><span class="op">&gt;</span>,
     <span class="doccomment">/// The time that this revocation check was performed.</span>
-    <span class="kw">pub</span> <span class="ident">this_update</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/openssl/asn1.rs.html#45-65">Asn1GeneralizedTimeRef</a>,
+    <span class="kw">pub</span> <span class="ident">this_update</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/openssl/asn1.rs.html#46-66">Asn1GeneralizedTimeRef</a>,
     <span class="doccomment">/// The time at which this revocation check expires.</span>
-    <span class="kw">pub</span> <span class="ident">next_update</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/openssl/asn1.rs.html#45-65">Asn1GeneralizedTimeRef</a>,
+    <span class="kw">pub</span> <span class="ident">next_update</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/openssl/asn1.rs.html#46-66">Asn1GeneralizedTimeRef</a>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">OcspStatus</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -484,13 +483,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `maxsec` parameter limits the maximum age of the `this_update` parameter to prohibit</span>
     <span class="doccomment">/// very old responses.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">OCSP_check_validity</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_validity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nsec</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">maxsec</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::OCSP_check_validity</span>(
-                <a class="self" href="../../src/openssl/ocsp.rs.html#130">self</a>.<span class="ident">this_update</span>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="self" href="../../src/openssl/ocsp.rs.html#130">self</a>.<span class="ident">next_update</span>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#130">nsec</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#130">maxsec</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#136">n</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>).<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::OCSP_check_validity</span>(
+                <a class="self" href="../../src/openssl/ocsp.rs.html#132">self</a>.<span class="ident">this_update</span>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="../../src/openssl/ocsp.rs.html#132">self</a>.<span class="ident">next_update</span>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#132">nsec</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#132">maxsec</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#138">n</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>).<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
@@ -498,37 +498,39 @@
 }
 
 <span class="macro">foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/ocsp/enum.OCSP_BASICRESP.html">ffi::OCSP_BASICRESP</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/ocsp/enum.OCSP_BASICRESP.html">ffi::OCSP_BASICRESP</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::OCSP_BASICRESP_free</span>;
 
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspBasicResponse</span>;
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspBasicResponseRef</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#143-149">OcspBasicResponseRef</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#145-151">OcspBasicResponseRef</a> {
     <span class="doccomment">/// Verifies the validity of the response.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `certs` parameter contains a set of certificates that will be searched when locating the</span>
     <span class="doccomment">/// OCSP response signing certificate. Some responders do not include this in the response.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">OCSP_basic_verify</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">certs</span>: <span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a><span class="op">&gt;</span>,
-        <span class="ident">store</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/store.rs.html#182-190">X509StoreRef</a>,
-        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#16-30">OcspFlag</a>,
+        <span class="ident">certs</span>: <span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a><span class="op">&gt;</span>,
+        <span class="ident">store</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/store.rs.html#173-181">X509StoreRef</a>,
+        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#17-31">OcspFlag</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::OCSP_basic_verify</span>(
-                <a class="self" href="../../src/openssl/ocsp.rs.html#157">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#158">certs</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#159">store</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#160">flags</a>.<a class="ident" href="../../src/openssl/ocsp.rs.html#16-30">bits</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::OCSP_basic_verify</span>(
+                <a class="self" href="../../src/openssl/ocsp.rs.html#160">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#161">certs</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#162">store</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#163">flags</a>.<a class="ident" href="../../src/openssl/ocsp.rs.html#17-31">bits</a>(),
             ))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
         }
     }
 
     <span class="doccomment">/// Looks up the status for the specified certificate ID.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_status</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#208-214">OcspCertIdRef</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OcspStatus</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">OCSP_resp_find_status</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_status</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#212-218">OcspCertIdRef</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OcspStatus</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">ffi::V_OCSP_CERTSTATUS_UNKNOWN</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reason</span> <span class="op">=</span> <span class="ident">ffi::OCSP_REVOKED_STATUS_NOSTATUS</span>;
@@ -537,23 +539,23 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_update</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
 
             <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::OCSP_resp_find_status</span>(
-                <a class="self" href="../../src/openssl/ocsp.rs.html#174">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#174">id</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#176">status</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#177">reason</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#178">revocation_time</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#179">this_update</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#180">next_update</a>,
+                <a class="self" href="../../src/openssl/ocsp.rs.html#178">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#178">id</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#180">status</a>,
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#181">reason</a>,
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#182">revocation_time</a>,
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#183">this_update</a>,
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#184">next_update</a>,
             );
-            <span class="kw">if</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#182">r</a> <span class="op">==</span> <span class="number">1</span> {
-                <span class="kw">let</span> <span class="ident">revocation_time</span> <span class="op">=</span> <span class="ident">Asn1GeneralizedTimeRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#178">revocation_time</a>);
+            <span class="kw">if</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#186">r</a> <span class="op">==</span> <span class="number">1</span> {
+                <span class="kw">let</span> <span class="ident">revocation_time</span> <span class="op">=</span> <span class="ident">Asn1GeneralizedTimeRef::from_const_ptr_opt</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#182">revocation_time</a>);
 
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#109-120">OcspStatus</a> {
-                    <span class="ident">status</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#60">OcspCertStatus</a>(<a class="ident" href="../../src/openssl/ocsp.rs.html#176">status</a>),
-                    <span class="ident">reason</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#78">OcspRevokedStatus</a>(<a class="ident" href="../../src/openssl/ocsp.rs.html#176">status</a>),
-                    <a class="ident" href="../../src/openssl/ocsp.rs.html#192">revocation_time</a>,
-                    <span class="ident">this_update</span>: <span class="ident">Asn1GeneralizedTimeRef::from_ptr</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#179">this_update</a>),
-                    <span class="ident">next_update</span>: <span class="ident">Asn1GeneralizedTimeRef::from_ptr</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#180">next_update</a>),
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#110-121">OcspStatus</a> {
+                    <span class="ident">status</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#61">OcspCertStatus</a>(<a class="ident" href="../../src/openssl/ocsp.rs.html#180">status</a>),
+                    <span class="ident">reason</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#79">OcspRevokedStatus</a>(<a class="ident" href="../../src/openssl/ocsp.rs.html#180">status</a>),
+                    <a class="ident" href="../../src/openssl/ocsp.rs.html#196">revocation_time</a>,
+                    <span class="ident">this_update</span>: <span class="ident">Asn1GeneralizedTimeRef::from_ptr</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#183">this_update</a>),
+                    <span class="ident">next_update</span>: <span class="ident">Asn1GeneralizedTimeRef::from_ptr</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#184">next_update</a>),
                 })
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
@@ -563,150 +565,144 @@
 }
 
 <span class="macro">foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/ocsp/enum.OCSP_CERTID.html">ffi::OCSP_CERTID</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/ocsp/enum.OCSP_CERTID.html">ffi::OCSP_CERTID</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::OCSP_CERTID_free</span>;
 
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspCertId</span>;
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspCertIdRef</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#208-214">OcspCertId</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#212-218">OcspCertId</a> {
     <span class="doccomment">/// Constructs a certificate ID for certificate `subject`.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">OCSP_cert_to_id</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_cert</span>(
         <span class="ident">digest</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>,
-        <span class="ident">subject</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509Ref</a>,
-        <span class="ident">issuer</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509Ref</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#208-214">OcspCertId</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="ident">subject</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509Ref</a>,
+        <span class="ident">issuer</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509Ref</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#212-218">OcspCertId</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::OCSP_cert_to_id</span>(
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#219">digest</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#220">subject</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#221">issuer</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::OCSP_cert_to_id</span>(
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#224">digest</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#225">subject</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#226">issuer</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
-            .<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#208-214">OcspCertId</a>)
+            .<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#212-218">OcspCertId</a>)
         }
     }
 }
 
 <span class="macro">foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/ossl_typ/enum.OCSP_RESPONSE.html">ffi::OCSP_RESPONSE</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.OCSP_RESPONSE.html">ffi::OCSP_RESPONSE</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::OCSP_RESPONSE_free</span>;
 
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspResponse</span>;
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspResponseRef</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#234-240">OcspResponse</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#239-245">OcspResponse</a> {
     <span class="doccomment">/// Creates an OCSP response from the status and optional body.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A body should only be provided if `status` is `RESPONSE_STATUS_SUCCESSFUL`.</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">OCSP_response_create</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(
-        <span class="ident">status</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a>,
-        <span class="ident">body</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#143-149">OcspBasicResponseRef</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#234-240">OcspResponse</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="ident">status</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a>,
+        <span class="ident">body</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#145-151">OcspBasicResponseRef</a><span class="op">&gt;</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#239-245">OcspResponse</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
 
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::OCSP_response_create</span>(
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#247">status</a>.<a class="ident" href="../../src/openssl/ocsp.rs.html#54">as_raw</a>(),
-                <a class="ident" href="../../src/openssl/ocsp.rs.html#248">body</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#255">r</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).<span class="ident">unwrap_or</span>(<span class="ident">ptr::null_mut</span>()),
+            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::OCSP_response_create</span>(
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#253">status</a>.<a class="ident" href="../../src/openssl/ocsp.rs.html#55">as_raw</a>(),
+                <a class="ident" href="../../src/openssl/ocsp.rs.html#254">body</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#261">r</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).<span class="ident">unwrap_or</span>(<span class="ident">ptr::null_mut</span>()),
             ))
-            .<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#234-240">OcspResponse</a>)
+            .<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#239-245">OcspResponse</a>)
         }
     }
 
     <span class="macro">from_der!</span> {
         <span class="doccomment">/// Deserializes a DER-encoded OCSP response.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`d2i_OCSP_RESPONSE`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`d2i_OCSP_RESPONSE`]: https://www.openssl.org/docs/man1.1.0/crypto/d2i_OCSP_RESPONSE.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_OCSP_RESPONSE</span>)]</span>
         <span class="ident">from_der</span>,
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#234-240">OcspResponse</a>,
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#239-245">OcspResponse</a>,
         <span class="ident">ffi::d2i_OCSP_RESPONSE</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#234-240">OcspResponseRef</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#239-245">OcspResponseRef</a> {
     <span class="macro">to_der!</span> {
         <span class="doccomment">/// Serializes the response to its standard DER encoding.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`i2d_OCSP_RESPONSE`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`i2d_OCSP_RESPONSE`]: https://www.openssl.org/docs/man1.1.0/crypto/i2d_OCSP_RESPONSE.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_OCSP_RESPONSE</span>)]</span>
         <span class="ident">to_der</span>,
         <span class="ident">ffi::i2d_OCSP_RESPONSE</span>
     }
 
     <span class="doccomment">/// Returns the status of the response.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/ocsp.rs.html#33">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_response_status</span>(<a class="self" href="../../src/openssl/ocsp.rs.html#285">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())) }
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">OCSP_response_status</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a> {
+        <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/ocsp.rs.html#34">OcspResponseStatus</a>(<span class="ident">ffi::OCSP_response_status</span>(<a class="self" href="../../src/openssl/ocsp.rs.html#286">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())) }
     }
 
     <span class="doccomment">/// Returns the basic response.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will only succeed if `status()` returns `RESPONSE_STATUS_SUCCESSFUL`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">basic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#143-149">OcspBasicResponse</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::OCSP_response_get1_basic</span>(<a class="self" href="../../src/openssl/ocsp.rs.html#292">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#143-149">OcspBasicResponse</a>) }
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">OCSP_response_get1_basic</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">basic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#145-151">OcspBasicResponse</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::OCSP_response_get1_basic</span>(<a class="self" href="../../src/openssl/ocsp.rs.html#294">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#145-151">OcspBasicResponse</a>) }
     }
 }
 
 <span class="macro">foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/ocsp/enum.OCSP_REQUEST.html">ffi::OCSP_REQUEST</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/ocsp/enum.OCSP_REQUEST.html">ffi::OCSP_REQUEST</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::OCSP_REQUEST_free</span>;
 
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspRequest</span>;
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspRequestRef</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#297-303">OcspRequest</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#297-303">OcspRequest</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#299-305">OcspRequest</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">OCSP_REQUEST_new</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ocsp.rs.html#299-305">OcspRequest</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
 
-            <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::OCSP_REQUEST_new</span>()).<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#297-303">OcspRequest</a>)
+            <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::OCSP_REQUEST_new</span>()).<span class="ident">map</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#299-305">OcspRequest</a>)
         }
     }
 
     <span class="macro">from_der!</span> {
         <span class="doccomment">/// Deserializes a DER-encoded OCSP request.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`d2i_OCSP_REQUEST`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`d2i_OCSP_REQUEST`]: https://www.openssl.org/docs/man1.1.0/crypto/d2i_OCSP_REQUEST.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_OCSP_REQUEST</span>)]</span>
         <span class="ident">from_der</span>,
-        <a class="ident" href="../../src/openssl/ocsp.rs.html#297-303">OcspRequest</a>,
+        <a class="ident" href="../../src/openssl/ocsp.rs.html#299-305">OcspRequest</a>,
         <span class="ident">ffi::d2i_OCSP_REQUEST</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#297-303">OcspRequestRef</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#299-305">OcspRequestRef</a> {
     <span class="macro">to_der!</span> {
         <span class="doccomment">/// Serializes the request to its standard DER encoding.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`i2d_OCSP_REQUEST`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`i2d_OCSP_REQUEST`]: https://www.openssl.org/docs/man1.1.0/crypto/i2d_OCSP_REQUEST.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_OCSP_REQUEST</span>)]</span>
         <span class="ident">to_der</span>,
         <span class="ident">ffi::i2d_OCSP_REQUEST</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_id</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#208-214">OcspCertId</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#346-352">OcspOneReqRef</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">OCSP_request_add0_id</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_id</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/openssl/ocsp.rs.html#212-218">OcspCertId</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#344-350">OcspOneReqRef</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::OCSP_request_add0_id</span>(<a class="self" href="../../src/openssl/ocsp.rs.html#337">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ocsp.rs.html#337">id</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#337">id</a>);
-            <span class="prelude-val">Ok</span>(<span class="ident">OcspOneReqRef::from_ptr_mut</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#339">ptr</a>))
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::OCSP_request_add0_id</span>(<a class="self" href="../../src/openssl/ocsp.rs.html#335">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ocsp.rs.html#335">id</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()))<span class="question-mark">?</span>;
+            <span class="ident">mem::forget</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#335">id</a>);
+            <span class="prelude-val">Ok</span>(<span class="ident">OcspOneReqRef::from_ptr_mut</span>(<a class="ident" href="../../src/openssl/ocsp.rs.html#337">ptr</a>))
         }
     }
 }
 
 <span class="macro">foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/ocsp/enum.OCSP_ONEREQ.html">ffi::OCSP_ONEREQ</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/ocsp/enum.OCSP_ONEREQ.html">ffi::OCSP_ONEREQ</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::OCSP_ONEREQ_free</span>;
 
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspOneReq</span>;
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OcspOneReqRef</span>;
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

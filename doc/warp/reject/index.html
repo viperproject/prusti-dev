@@ -4,7 +4,7 @@
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"><a href="#">Module reject</a></h2><div class="sidebar-elems"><section><div class="block"><ul><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div></section><div id="sidebar-vars" data-name="reject" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Module <a href="../index.html">warp</a>::<wbr><a class="mod" href="#">reject</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/warp/reject.rs.html#1-810">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Rejections</p>
+    <h1 class="fqn"><span class="in-band">Module <a href="../index.html">warp</a>::<wbr><a class="mod" href="#">reject</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/warp/reject.rs.html#1-849">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Rejections</p>
 <p>Part of the power of the <a href="../trait.Filter.html"><code>Filter</code></a> system is being able to
 reject a request from a filter chain. This allows for filters to be
 combined with <code>or</code>, so that if one side of the chain finds that a request
@@ -14,18 +14,50 @@ the request.</p>
 the request with an appropriate rejection. However, you can also build
 new custom <a href="../trait.Filter.html"><code>Filter</code></a>s and still want other routes to be
 matchable in the case a predicate doesn’t hold.</p>
+<p>As a request is processed by a Filter chain, the rejections are accumulated into
+a list contained by the <a href="struct.Rejection.html"><code>Rejection</code></a> type. Rejections from
+filters can be handled using <a href="../trait.Filter.html#method.recover"><code>Filter::recover</code></a>.
+This is a convenient way to map rejections into a <a href="../reply/trait.Reply.html"><code>Reply</code></a>.</p>
+<p>For a more complete example see the
+<a href="https://github.com/seanmonstar/warp/blob/master/examples/rejections.rs">Rejection Example</a>
+from the repository.</p>
 <h2 id="example"><a href="#example">Example</a></h2>
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">warp::Filter</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">warp</span>::{<span class="ident">reply</span>, <span class="ident">Reply</span>, <span class="ident">Filter</span>, <span class="ident">reject</span>, <span class="ident">Rejection</span>, <span class="ident">http::StatusCode</span>};
 
-<span class="comment">// Filter on `/:id`, but reject with 404 if the `id` is `0`.</span>
-<span class="kw">let</span> <span class="ident">route</span> <span class="op">=</span> <span class="ident">warp::path::param</span>()
-    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">id</span>: <span class="ident">u32</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-        <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">warp::reject::not_found</span>())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="string">&quot;something since id is valid&quot;</span>)
-        }
-    });</code></pre></div>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">struct</span> <span class="ident">InvalidParameter</span>;
+
+<span class="kw">impl</span> <span class="ident">reject::Reject</span> <span class="kw">for</span> <span class="ident">InvalidParameter</span> {};
+
+<span class="comment">// Custom rejection handler that maps rejections into responses.</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_rejection</span>(<span class="ident">err</span>: <span class="ident">Rejection</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">Reply</span>, <span class="ident">std::convert::Infallible</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">is_not_found</span>() {
+        <span class="prelude-val">Ok</span>(<span class="ident">reply::with_status</span>(<span class="string">&quot;NOT_FOUND&quot;</span>, <span class="ident">StatusCode::NOT_FOUND</span>))
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">err</span>.<span class="ident">find</span>::<span class="op">&lt;</span><span class="ident">InvalidParameter</span><span class="op">&gt;</span>() {
+        <span class="prelude-val">Ok</span>(<span class="ident">reply::with_status</span>(<span class="string">&quot;BAD_REQUEST&quot;</span>, <span class="ident">StatusCode::BAD_REQUEST</span>))
+    } <span class="kw">else</span> {
+        <span class="macro">eprintln!</span>(<span class="string">&quot;unhandled rejection: {:?}&quot;</span>, <span class="ident">err</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">reply::with_status</span>(<span class="string">&quot;INTERNAL_SERVER_ERROR&quot;</span>, <span class="ident">StatusCode::INTERNAL_SERVER_ERROR</span>))
+    }
+}
+
+<span class="attribute">#[<span class="ident">tokio::main</span>]</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">main</span>() {
+
+    <span class="comment">// Filter on `/:id`, but reject with InvalidParameter if the `id` is `0`.</span>
+    <span class="comment">// Recover from this rejection using a custom rejection handler.</span>
+    <span class="kw">let</span> <span class="ident">route</span> <span class="op">=</span> <span class="ident">warp::path::param</span>()
+        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">id</span>: <span class="ident">u32</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
+            <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="number">0</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">warp::reject::custom</span>(<span class="ident">InvalidParameter</span>))
+            } <span class="kw">else</span> {
+                <span class="prelude-val">Ok</span>(<span class="string">&quot;id is valid&quot;</span>)
+            }
+        })
+        .<span class="ident">recover</span>(<span class="ident">handle_rejection</span>);
+
+    <span class="ident">warp::serve</span>(<span class="ident">route</span>).<span class="ident">run</span>(([<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>], <span class="number">3030</span>)).<span class="kw">await</span>;
+}</code></pre></div>
 </div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.InvalidHeader.html" title="warp::reject::InvalidHeader struct">InvalidHeader</a></div><div class="item-right docblock-short"><p>Invalid request header</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.InvalidQuery.html" title="warp::reject::InvalidQuery struct">InvalidQuery</a></div><div class="item-right docblock-short"><p>Invalid query</p>
@@ -42,5 +74,5 @@ matchable in the case a predicate doesn’t hold.</p>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.custom.html" title="warp::reject::custom fn">custom</a></div><div class="item-right docblock-short"><p>Rejects a request with a custom cause.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.not_found.html" title="warp::reject::not_found fn">not_found</a></div><div class="item-right docblock-short"><p>Rejects a request with <code>404 Not Found</code>.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.reject.html" title="warp::reject::reject fn">reject</a></div><div class="item-right docblock-short"><p>Rejects a request with <code>404 Not Found</code>.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.17.0/src/runtime/task/join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.18.2/src/runtime/task/join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>join.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -278,7 +278,36 @@
 <span id="273">273</span>
 <span id="274">274</span>
 <span id="275">275</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#8-10"><span class="kw">crate</span>::runtime::task::RawTask</a>;
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task</span>::{<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>, <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#8-10">RawTask</a>};
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
@@ -424,6 +453,7 @@
     <span class="doccomment">/// [`JoinError`]: crate::task::JoinError</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">raw</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#8-10">RawTask</a><span class="op">&gt;</span>,
+        <span class="ident">id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>,
         <span class="ident">_p</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     }
 }
@@ -435,9 +465,10 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html">RefUnwindSafe</a> <span class="kw">for</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">raw</span>: <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#8-10">RawTask</a>) -&gt; <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#145-148">JoinHandle</a> {
-            <span class="ident">raw</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#158">raw</a>),
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">raw</span>: <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#8-10">RawTask</a>, <span class="ident">id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>) -&gt; <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#145-149">JoinHandle</a> {
+            <span class="ident">raw</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#159">raw</a>),
+            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#159">id</a>,
             <span class="ident">_p</span>: <span class="ident">PhantomData</span>,
         }
     }
@@ -476,19 +507,44 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [cancelled]: method@super::error::JoinError::is_cancelled</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abort</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#198">self</a>.<span class="ident">raw</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#199">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#112">remote_abort</a>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#200">self</a>.<span class="ident">raw</span> {
+            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#201">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#121">remote_abort</a>();
         }
     }
 
     <span class="doccomment">/// Set the waker that is notified when the task completes.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_join_waker</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#205">self</a>.<span class="ident">raw</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#206">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#97">try_set_join_waker</a>(<a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#205">waker</a>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#207">self</a>.<span class="ident">raw</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#208">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#101">try_set_join_waker</a>(<a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#207">waker</a>) {
                 <span class="comment">// In this case the task has already completed. We wake the waker immediately.</span>
-                <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#205">waker</a>.<span class="ident">wake_by_ref</span>();
+                <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#207">waker</a>.<span class="ident">wake_by_ref</span>();
             }
         }
+    }
+
+    <span class="doccomment">/// Returns a new `AbortHandle` that can be used to remotely abort this task.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">tokio_unstable</span>, <span class="ident">test</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">abort_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="kw">super</span>::AbortHandle</span> {
+        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">raw</span><span class="op">|</span> {
+            <span class="ident">raw</span>.<span class="ident">ref_inc</span>();
+            <span class="ident">raw</span>
+        });
+        <span class="ident"><span class="kw">super</span>::AbortHandle::new</span>(<span class="ident">raw</span>, <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">clone</span>())
+    }
+
+    <span class="doccomment">/// Returns a [task ID] that uniquely identifies this task relative to other</span>
+    <span class="doccomment">/// currently spawned tasks.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: This is an [unstable API][unstable]. The public API of this type</span>
+    <span class="doccomment">/// may break in 1.x releases. See [the documentation on unstable</span>
+    <span class="doccomment">/// features][unstable] for details.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [task ID]: crate::task::Id</span>
+    <span class="doccomment">/// [unstable]: crate#unstable-features</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">tokio_unstable</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">tokio_unstable</span>)))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="kw">super</span>::Id</span> {
+        <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">clone</span>()
     }
 }
 
@@ -501,11 +557,11 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">Poll::Pending</span>;
 
         <span class="comment">// Keep track of task budget</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/tokio/coop.rs.html#169"><span class="kw">crate</span>::coop::poll_proceed</a>(<a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#220">cx</a>));
+        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/tokio/coop.rs.html#169"><span class="kw">crate</span>::coop::poll_proceed</a>(<a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#247">cx</a>));
 
         <span class="comment">// Raw should always be set. If it is not, this is due to polling after</span>
         <span class="comment">// completion</span>
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#220">self</a>
+        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#247">self</a>
             .<span class="ident">raw</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;polling after `JoinHandle` already completed&quot;</span>);
@@ -522,25 +578,25 @@
         <span class="comment">//</span>
         <span class="comment">// The type of `T` must match the task&#39;s output type.</span>
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#228">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#92">try_read_output</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#221">ret</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> (), <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#220">cx</a>.<span class="ident">waker</span>());
+            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#255">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#96">try_read_output</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#248">ret</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> (), <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#247">cx</a>.<span class="ident">waker</span>());
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#221">ret</a>.<span class="ident">is_ready</span>() {
-            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#224">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
+        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#248">ret</a>.<span class="ident">is_ready</span>() {
+            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#251">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
         }
 
-        <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#221">ret</a>
+        <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#248">ret</a>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#257">self</a>.<span class="ident">raw</span>.<span class="ident">take</span>() {
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#258">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#73">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#334">drop_join_handle_fast</a>().<span class="ident">is_ok</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#284">self</a>.<span class="ident">raw</span>.<span class="ident">take</span>() {
+            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#285">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#77">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#334">drop_join_handle_fast</a>().<span class="ident">is_ok</span>() {
                 <span class="kw">return</span>;
             }
 
-            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#258">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#102">drop_join_handle_slow</a>();
+            <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#285">raw</a>.<a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#106">drop_join_handle_slow</a>();
         }
     }
 }
@@ -550,9 +606,11 @@
     <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>,
 {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#272">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;JoinHandle&quot;</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../../../src/tokio/runtime/task/join.rs.html#299">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;JoinHandle&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/runtime/task/join.rs.html#299">self</a>.<span class="ident">id</span>)
+            .<span class="ident">finish</span>()
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

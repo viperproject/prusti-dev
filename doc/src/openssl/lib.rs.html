@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.38/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -197,10 +197,25 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Bindings to OpenSSL</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate provides a safe interface to the popular OpenSSL cryptography library. OpenSSL versions 1.0.1 through</span>
-<span class="doccomment">//! 1.1.1 and LibreSSL versions 2.5 through 3.4.0 are supported.</span>
+<span class="doccomment">//! 1.1.1 and LibreSSL versions 2.5 through 3.4.1 are supported.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Building</span>
 <span class="doccomment">//!</span>
@@ -210,7 +225,7 @@
 <span class="doccomment">//! ## Vendored</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! If the `vendored` Cargo feature is enabled, the `openssl-src` crate will be used to compile and statically link to</span>
-<span class="doccomment">//! a copy of OpenSSL. The build process requires a C compiler, perl, and make. The OpenSSL version will generally track</span>
+<span class="doccomment">//! a copy of OpenSSL. The build process requires a C compiler, perl (and perl-core), and make. The OpenSSL version will generally track</span>
 <span class="doccomment">//! the newest OpenSSL release, and changes to the version are *not* considered breaking changes.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```toml</span>
@@ -244,6 +259,9 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Fedora</span>
 <span class="doccomment">//! $ sudo dnf install pkg-config openssl-devel</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Alpine Linux</span>
+<span class="doccomment">//! $ apk add pkgconfig openssl-dev</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Manual</span>
@@ -328,69 +346,81 @@
 
 <span class="kw">mod</span> <a class="ident" href="../../src/openssl/bio.rs.html#1-84">bio</a>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
-<span class="kw">mod</span> <a class="ident" href="../../src/openssl/util.rs.html#1-94">util</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/aes.rs.html#1-291">aes</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/asn1.rs.html#1-794">asn1</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/base64.rs.html#1-133">base64</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/bn.rs.html#1-1547">bn</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/openssl/util.rs.html#1-93">util</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/aes.rs.html#1-297">aes</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/asn1.rs.html#1-769">asn1</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/base64.rs.html#1-128">base64</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/bn.rs.html#1-1415">bn</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/cipher.rs.html#1-388">cipher</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/cipher_ctx.rs.html#1-665">cipher_ctx</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">libressl</span>), <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_CMS&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/cms.rs.html#1-333">cms</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/conf.rs.html#1-55">conf</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/cms.rs.html#1-314">cms</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/conf.rs.html#1-58">conf</a>;
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/derive.rs.html#1-132">derive</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/dh.rs.html#1-450">dh</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/dsa.rs.html#1-460">dsa</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/ec.rs.html#1-1186">ec</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/ecdsa.rs.html#1-251">ecdsa</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/encrypt.rs.html#1-530">encrypt</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/envelope.rs.html#1-282">envelope</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/dh.rs.html#1-414">dh</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/dsa.rs.html#1-445">dsa</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/ec.rs.html#1-1071">ec</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/ecdsa.rs.html#1-224">ecdsa</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/encrypt.rs.html#1-578">encrypt</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/envelope.rs.html#1-181">envelope</a>;
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/error.rs.html#1-326">error</a>;
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/ex_data.rs.html#1-32">ex_data</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">libressl</span>, <span class="ident">ossl300</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/fips.rs.html#1-22">fips</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/hash.rs.html#1-663">hash</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/memcmp.rs.html#1-91">memcmp</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/nid.rs.html#1-1123">nid</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/fips.rs.html#1-21">fips</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/hash.rs.html#1-665">hash</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">lib_ctx</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/md.rs.html#1-223">md</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/md_ctx.rs.html#1-406">md_ctx</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/memcmp.rs.html#1-93">memcmp</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/nid.rs.html#1-1152">nid</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_OCSP&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#1-352">ocsp</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#1-282">pkcs12</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#1-302">pkcs5</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/pkcs7.rs.html#1-474">pkcs7</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/pkey.rs.html#1-1154">pkey</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/rand.rs.html#1-65">rand</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/rsa.rs.html#1-923">rsa</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/sha.rs.html#1-442">sha</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/sign.rs.html#1-875">sign</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/ocsp.rs.html#1-350">ocsp</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/pkcs12.rs.html#1-308">pkcs12</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#1-306">pkcs5</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/pkcs7.rs.html#1-442">pkcs7</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/pkey.rs.html#1-1029">pkey</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/pkey_ctx.rs.html#1-760">pkey_ctx</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">provider</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/rand.rs.html#1-60">rand</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/rsa.rs.html#1-841">rsa</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/sha.rs.html#1-463">sha</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/sign.rs.html#1-874">sign</a>;
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/srtp.rs.html#1-60">srtp</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/ssl/mod.rs.html#1-4226">ssl</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/ssl/mod.rs.html#1-3794">ssl</a>;
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/stack.rs.html#1-380">stack</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/string.rs.html#1-94">string</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/symm.rs.html#1-1625">symm</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/version.rs.html#14-135">version</a>;
-<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/x509/mod.rs.html#1-1635">x509</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/string.rs.html#1-85">string</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/symm.rs.html#1-1523">symm</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/version.rs.html#14-129">version</a>;
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../src/openssl/x509/mod.rs.html#1-1601">x509</a>;
 
+<span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">cvt_p</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <span class="ident">T</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <a class="ident" href="../../src/openssl/lib.rs.html#172">r</a>.<span class="ident">is_null</span>() {
+    <span class="kw">if</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">r</a>.<span class="ident">is_null</span>() {
         <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>())
     } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/lib.rs.html#172">r</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/lib.rs.html#185">r</a>)
     }
 }
 
+<span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">cvt</span>(<span class="ident">r</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <a class="ident" href="../../src/openssl/lib.rs.html#180">r</a> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">if</span> <a class="ident" href="../../src/openssl/lib.rs.html#194">r</a> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
         <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>())
     } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/lib.rs.html#180">r</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/lib.rs.html#194">r</a>)
     }
 }
 
+<span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">cvt_n</span>(<span class="ident">r</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <a class="ident" href="../../src/openssl/lib.rs.html#188">r</a> <span class="op">&lt;</span> <span class="number">0</span> {
+    <span class="kw">if</span> <a class="ident" href="../../src/openssl/lib.rs.html#203">r</a> <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>())
     } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/lib.rs.html#188">r</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/lib.rs.html#203">r</a>)
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

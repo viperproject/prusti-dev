@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.13.10/src/service/make.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>make.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.18/src/service/make.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>make.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -189,6 +189,7 @@
 <span id="184">184</span>
 <span id="185">185</span>
 <span id="186">186</span>
+<span id="187">187</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
@@ -196,7 +197,7 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/hyper/service/http.rs.html#8-27">HttpService</a>, <a class="ident" href="../../../hyper/service/trait.Service.html">Service</a>};
 <span class="kw">use</span> <a class="ident" href="../../../hyper/body/trait.HttpBody.html"><span class="kw">crate</span>::body::HttpBody</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#18">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
 <span class="comment">// The same &quot;trait alias&quot; as tower::MakeConnection, but inlined to reduce</span>
 <span class="comment">// dependencies.</span>
@@ -247,7 +248,7 @@
     <span class="comment">//</span>
     <span class="comment">// Why? So we can add new associated types to this alias in the future,</span>
     <span class="comment">// if necessary.</span>
-    <span class="kw">type</span> <span class="ident">__DontNameMe</span>: <a class="ident" href="../../../src/hyper/service/make.rs.html#180"><span class="self">self</span>::sealed::CantImpl</a>;
+    <span class="kw">type</span> <span class="ident">__DontNameMe</span>: <a class="ident" href="../../../src/hyper/service/make.rs.html#181"><span class="self">self</span>::sealed::CantImpl</a>;
 
     <span class="kw">fn</span> <span class="ident">poll_ready_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::MakeError</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
@@ -270,7 +271,7 @@
     <span class="kw">type</span> <span class="ident">MakeError</span> <span class="op">=</span> <span class="ident">ME</span>;
     <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">F</span>;
 
-    <span class="kw">type</span> <span class="ident">__DontNameMe</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/service/make.rs.html#183"><span class="self">self</span>::sealed::CantName</a>;
+    <span class="kw">type</span> <span class="ident">__DontNameMe</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/service/make.rs.html#184"><span class="self">self</span>::sealed::CantName</a>;
 
     <span class="kw">fn</span> <span class="ident">poll_ready_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::MakeError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/hyper/service/make.rs.html#84">self</a>.<a class="ident" href="../../../hyper/service/trait.Service.html">poll_ready</a>(<a class="ident" href="../../../src/hyper/service/make.rs.html#84">cx</a>)
@@ -368,13 +369,14 @@
 <span class="kw">mod</span> <span class="ident">sealed</span> {
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sealed</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {}
 
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_pub</span>)]</span> <span class="comment">// This is intentional.</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CantImpl</span> {}
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CantName</span> {}
 
-    <span class="kw">impl</span> <a class="ident" href="../../../src/hyper/service/make.rs.html#180">CantImpl</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/service/make.rs.html#183">CantName</a> {}
+    <span class="kw">impl</span> <a class="ident" href="../../../src/hyper/service/make.rs.html#181">CantImpl</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/service/make.rs.html#184">CantName</a> {}
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

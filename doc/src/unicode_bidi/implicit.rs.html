@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.7/src/implicit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>implicit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.8/src/implicit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>implicit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_bidi/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -233,6 +233,15 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2015 The Servo Project Developers. See the</span>
 <span class="comment">// COPYRIGHT file at the top-level directory of this distribution.</span>
 <span class="comment">//</span>
@@ -244,18 +253,18 @@
 
 <span class="doccomment">//! 3.3.4 - 3.3.6. Resolve implicit levels and types.</span>
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">core::cmp::max</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">core::cmp::max</a>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::char_data::BidiClass</span>::{<a class="self" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">self</a>, <span class="kw-2">*</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::prepare</span>::{<a class="ident" href="../../src/unicode_bidi/prepare.rs.html#29-33">IsolatingRunSequence</a>, <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>, <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#173">not_removed_by_x9</a>, <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#165">removed_by_x9</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/unicode_bidi/level.rs.html#34"><span class="kw">super</span>::level::Level</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::prepare</span>::{<a class="ident" href="../../src/unicode_bidi/prepare.rs.html#173">not_removed_by_x9</a>, <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#165">removed_by_x9</a>, <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#28-32">IsolatingRunSequence</a>, <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>};
 
 <span class="doccomment">/// 3.3.4 Resolving Weak Types</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// &lt;http://www.unicode.org/reports/tr9/#Resolving_Weak_Types&gt;</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer::flame</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve_weak</span>(<span class="ident">sequence</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/prepare.rs.html#29-33">IsolatingRunSequence</a>, <span class="ident">processing_classes</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">BidiClass</a>]) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve_weak</span>(<span class="ident">sequence</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/prepare.rs.html#28-32">IsolatingRunSequence</a>, <span class="ident">processing_classes</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">BidiClass</a>]) {
     <span class="comment">// FIXME (#8): This function applies steps W1-W6 in a single pass.  This can produce</span>
     <span class="comment">// incorrect results in cases where a &quot;later&quot; rule changes the value of `prev_class` seen</span>
     <span class="comment">// by an &quot;earlier&quot; rule.  We should either split this into separate passes, or preserve</span>
@@ -272,15 +281,17 @@
     <span class="kw">fn</span> <span class="ident">id</span>(<span class="ident">x</span>: <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>) -&gt; <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a> {
         <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#37">x</a>
     }
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indices</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">sequence</a>.<span class="ident">runs</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(
-        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#37">id</a> <span class="kw">as</span> <span class="kw">fn</span>(<a class="ident" href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>) -&gt; <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>,
-    );
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indices</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">sequence</a>
+        .<span class="ident">runs</span>
+        .<span class="ident">iter</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#37">id</a> <span class="kw">as</span> <span class="kw">fn</span>(<a class="ident" href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>) -&gt; <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#24">LevelRun</a>);
 
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#40">indices</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-        <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#44">i</a>] {
+        <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#46">i</a>] {
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#W1&gt;</span>
             <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#32">NSM</a> =&gt; {
-                <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#44">i</a>] <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#32">prev_class</a> {
+                <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#46">i</a>] <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#32">prev_class</a> {
                     <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#38">RLI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#30">LRI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#27">FSI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#35">PDI</a> =&gt; <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#33">ON</a>,
                     <span class="kw">_</span> =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#32">prev_class</a>,
                 };
@@ -288,26 +299,26 @@
             <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a> =&gt; {
                 <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#33">last_strong_is_al</a> {
                     <span class="comment">// W2. If previous strong char was AL, change EN to AN.</span>
-                    <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>;
+                    <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#46">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>;
                 } <span class="kw">else</span> {
                     <span class="comment">// W5. If a run of ETs is adjacent to an EN, change the ETs to EN.</span>
                     <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#34">et_run_indices</a> {
-                        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<span class="kw-2">*</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#59">j</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>;
+                        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<span class="kw-2">*</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#61">j</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>;
                     }
                     <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#34">et_run_indices</a>.<span class="ident">clear</span>();
                 }
             }
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#W3&gt;</span>
-            <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#19">AL</a> =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>,
+            <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#19">AL</a> =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#46">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>,
 
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#W4&gt;</span>
             <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#25">ES</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#23">CS</a> =&gt; {
                 <span class="kw">let</span> <span class="ident">next_class</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#40">indices</a>
                     .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">j</span><span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#72">j</a>])
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">j</span><span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#74">j</a>])
                     .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<a class="ident" href="../../src/unicode_bidi/prepare.rs.html#173">not_removed_by_x9</a>)
                     .<span class="ident">unwrap_or</span>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">sequence</a>.<span class="ident">eos</span>);
-                <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#44">i</a>] <span class="op">=</span> <span class="kw">match</span> (<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#32">prev_class</a>, <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#44">i</a>], <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#70">next_class</a>) {
+                <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#46">i</a>] <span class="op">=</span> <span class="kw">match</span> (<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#32">prev_class</a>, <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#46">i</a>], <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#72">next_class</a>) {
                     (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#25">ES</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>) <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#23">CS</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>) =&gt; <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>,
                     (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#23">CS</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>) =&gt; <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>,
                     (<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#33">ON</a>,
@@ -316,18 +327,18 @@
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#W5&gt;</span>
             <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#26">ET</a> =&gt; {
                 <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#32">prev_class</a> {
-                    <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a> =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#44">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>,
-                    <span class="kw">_</span> =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#34">et_run_indices</a>.<span class="ident">push</span>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#44">i</a>), <span class="comment">// In case this is followed by an EN.</span>
+                    <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a> =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#46">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>,
+                    <span class="kw">_</span> =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#34">et_run_indices</a>.<span class="ident">push</span>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#46">i</a>), <span class="comment">// In case this is followed by an EN.</span>
                 }
             }
             <span class="ident">class</span> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#165">removed_by_x9</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#88">class</a>) {
+                <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#165">removed_by_x9</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#90">class</a>) {
                     <span class="kw">continue</span>;
                 }
             }
         }
 
-        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#32">prev_class</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#44">i</a>];
+        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#32">prev_class</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#46">i</a>];
         <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#32">prev_class</a> {
             <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a> =&gt; {
                 <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#33">last_strong_is_al</a> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -340,7 +351,7 @@
         <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#32">prev_class</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#26">ET</a> {
             <span class="comment">// W6. If we didn&#39;t find an adjacent EN, turn any ETs into ON instead.</span>
             <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#34">et_run_indices</a> {
-                <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<span class="kw-2">*</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#107">j</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#33">ON</a>;
+                <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<span class="kw-2">*</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#109">j</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#33">ON</a>;
             }
             <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#34">et_run_indices</a>.<span class="ident">clear</span>();
         }
@@ -349,16 +360,16 @@
     <span class="comment">// W7. If the previous strong char was L, change EN to L.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_strong_is_l</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">sequence</a>.<span class="ident">sos</span> <span class="op">==</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>;
     <span class="kw">for</span> <span class="ident">run</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">sequence</a>.<span class="ident">runs</span> {
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#116">run</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
-            <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#117">i</a>] {
-                <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a> <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#115">last_strong_is_l</a> =&gt; {
-                    <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#117">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>;
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#118">run</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() {
+            <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#119">i</a>] {
+                <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a> <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#117">last_strong_is_l</a> =&gt; {
+                    <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#23">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#119">i</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>;
                 }
                 <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a> =&gt; {
-                    <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#115">last_strong_is_l</a> <span class="op">=</span> <span class="bool-val">true</span>;
+                    <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#117">last_strong_is_l</a> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
                 <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#19">AL</a> =&gt; {
-                    <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#115">last_strong_is_l</a> <span class="op">=</span> <span class="bool-val">false</span>;
+                    <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#117">last_strong_is_l</a> <span class="op">=</span> <span class="bool-val">false</span>;
                 }
                 <span class="kw">_</span> =&gt; {}
             }
@@ -371,40 +382,40 @@
 <span class="doccomment">/// &lt;http://www.unicode.org/reports/tr9/#Resolving_Neutral_Types&gt;</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer::flame</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve_neutral</span>(
-    <span class="ident">sequence</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/prepare.rs.html#29-33">IsolatingRunSequence</a>,
+    <span class="ident">sequence</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/prepare.rs.html#28-32">IsolatingRunSequence</a>,
     <span class="ident">levels</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/unicode_bidi/level.rs.html#34">Level</a>],
     <span class="ident">processing_classes</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">BidiClass</a>],
 ) {
-    <span class="kw">let</span> <span class="ident">e</span>: <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">BidiClass</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#140">levels</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#139">sequence</a>.<span class="ident">runs</span>[<span class="number">0</span>].<span class="ident">start</span>].<a class="ident" href="../../src/unicode_bidi/level.rs.html#186">bidi_class</a>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indices</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#139">sequence</a>.<span class="ident">runs</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone::clone</a>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_class</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#139">sequence</a>.<span class="ident">sos</span>;
+    <span class="kw">let</span> <span class="ident">e</span>: <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">BidiClass</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#142">levels</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#141">sequence</a>.<span class="ident">runs</span>[<span class="number">0</span>].<span class="ident">start</span>].<a class="ident" href="../../src/unicode_bidi/level.rs.html#186">bidi_class</a>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indices</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#141">sequence</a>.<span class="ident">runs</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone::clone</a>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_class</span> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#141">sequence</a>.<span class="ident">sos</span>;
 
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">i</span>) <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#144">indices</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">i</span>) <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#146">indices</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
         <span class="comment">// N0. Process bracket pairs.</span>
         <span class="comment">// TODO</span>
 
         <span class="comment">// Process sequences of NI characters.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ni_run</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#225">is_NI</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#141">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#147">i</a>]) {
+        <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#234">is_NI</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#143">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#149">i</a>]) {
             <span class="comment">// Consume a run of consecutive NI characters.</span>
-            <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#152">ni_run</a>.<span class="ident">push</span>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#147">i</a>);
+            <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#154">ni_run</a>.<span class="ident">push</span>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#149">i</a>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_class</span>;
             <span class="kw">loop</span> {
-                <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#144">indices</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#146">indices</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
                     <span class="prelude-val">Some</span>(<span class="ident">j</span>) =&gt; {
-                        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#147">i</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#159">j</a>;
-                        <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#165">removed_by_x9</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#141">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#147">i</a>]) {
+                        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#149">i</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#161">j</a>;
+                        <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/prepare.rs.html#165">removed_by_x9</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#143">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#149">i</a>]) {
                             <span class="kw">continue</span>;
                         }
-                        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#156">next_class</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#141">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#159">j</a>];
-                        <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#225">is_NI</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#156">next_class</a>) {
-                            <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#152">ni_run</a>.<span class="ident">push</span>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#147">i</a>);
+                        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#158">next_class</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#143">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#161">j</a>];
+                        <span class="kw">if</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#234">is_NI</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#158">next_class</a>) {
+                            <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#154">ni_run</a>.<span class="ident">push</span>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#149">i</a>);
                         } <span class="kw">else</span> {
                             <span class="kw">break</span>;
                         }
                     }
                     <span class="prelude-val">None</span> =&gt; {
-                        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#156">next_class</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#139">sequence</a>.<span class="ident">eos</span>;
+                        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#158">next_class</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#141">sequence</a>.<span class="ident">eos</span>;
                         <span class="kw">break</span>;
                     }
                 };
@@ -414,18 +425,25 @@
             <span class="comment">//</span>
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#N1&gt;</span>
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#N2&gt;</span>
-            <span class="kw">let</span> <span class="ident">new_class</span> <span class="op">=</span> <span class="kw">match</span> (<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#145">prev_class</a>, <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#156">next_class</a>) {
+            <span class="kw">let</span> <span class="ident">new_class</span> <span class="op">=</span> <span class="kw">match</span> (<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#147">prev_class</a>, <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#158">next_class</a>) {
                 (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>) =&gt; <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>,
-                (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>) <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>) <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>) <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>) <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>) <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>) <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>) <span class="op">|</span>
-                (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>) <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>) =&gt; <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>,
-                (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#143">e</a>,
+                (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>)
+                <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>)
+                <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>)
+                <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>)
+                <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>)
+                <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>)
+                <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>)
+                <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>)
+                <span class="op">|</span> (<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>) =&gt; <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>,
+                (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#145">e</a>,
             };
-            <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#152">ni_run</a> {
-                <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#141">processing_classes</a>[<span class="kw-2">*</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#188">j</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#182">new_class</a>;
+            <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#154">ni_run</a> {
+                <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#143">processing_classes</a>[<span class="kw-2">*</span><a class="ident" href="../../src/unicode_bidi/implicit.rs.html#197">j</a>] <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#184">new_class</a>;
             }
-            <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#152">ni_run</a>.<span class="ident">clear</span>();
+            <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#154">ni_run</a>.<span class="ident">clear</span>();
         }
-        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#145">prev_class</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#141">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#147">i</a>];
+        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#147">prev_class</a> <span class="op">=</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#143">processing_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#149">i</a>];
     }
 }
 
@@ -438,19 +456,19 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve_levels</span>(<span class="ident">original_classes</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">BidiClass</a>], <span class="ident">levels</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="../../src/unicode_bidi/level.rs.html#34">Level</a>]) -&gt; <a class="ident" href="../../src/unicode_bidi/level.rs.html#34">Level</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">max_level</span> <span class="op">=</span> <span class="ident">Level::ltr</span>();
 
-    <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#203">original_classes</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#203">levels</a>.<span class="ident">len</span>());
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#203">levels</a>.<span class="ident">len</span>() {
-        <span class="kw">match</span> (<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#203">levels</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#207">i</a>].<a class="ident" href="../../src/unicode_bidi/level.rs.html#113">is_rtl</a>(), <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#203">original_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#207">i</a>]) {
-            (<span class="bool-val">false</span>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>) <span class="op">|</span> (<span class="bool-val">false</span>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>) =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#203">levels</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#207">i</a>].<a class="ident" href="../../src/unicode_bidi/level.rs.html#121">raise</a>(<span class="number">2</span>).<span class="ident">expect</span>(<span class="string">&quot;Level number error&quot;</span>),
+    <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#212">original_classes</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#212">levels</a>.<span class="ident">len</span>());
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#212">levels</a>.<span class="ident">len</span>() {
+        <span class="kw">match</span> (<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#212">levels</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#216">i</a>].<a class="ident" href="../../src/unicode_bidi/level.rs.html#113">is_rtl</a>(), <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#212">original_classes</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#216">i</a>]) {
+            (<span class="bool-val">false</span>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>) <span class="op">|</span> (<span class="bool-val">false</span>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>) =&gt; <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#212">levels</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#216">i</a>].<a class="ident" href="../../src/unicode_bidi/level.rs.html#121">raise</a>(<span class="number">2</span>).<span class="ident">expect</span>(<span class="string">&quot;Level number error&quot;</span>),
             (<span class="bool-val">false</span>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#36">R</a>) <span class="op">|</span> (<span class="bool-val">true</span>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#28">L</a>) <span class="op">|</span> (<span class="bool-val">true</span>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#24">EN</a>) <span class="op">|</span> (<span class="bool-val">true</span>, <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#20">AN</a>) =&gt; {
-                <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#203">levels</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#207">i</a>].<a class="ident" href="../../src/unicode_bidi/level.rs.html#121">raise</a>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Level number error&quot;</span>)
+                <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#212">levels</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#216">i</a>].<a class="ident" href="../../src/unicode_bidi/level.rs.html#121">raise</a>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Level number error&quot;</span>)
             }
             (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {}
         }
-        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#204">max_level</a> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">max</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#204">max_level</a>, <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#203">levels</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#207">i</a>]);
+        <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#213">max_level</a> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/fn.max.html">max</a>(<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#213">max_level</a>, <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#212">levels</a>[<a class="ident" href="../../src/unicode_bidi/implicit.rs.html#216">i</a>]);
     }
 
-    <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#204">max_level</a>
+    <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#213">max_level</a>
 }
 
 <span class="doccomment">/// Neutral or Isolate formatting character (B, S, WS, ON, FSI, LRI, RLI, PDI)</span>
@@ -458,11 +476,11 @@
 <span class="doccomment">/// &lt;http://www.unicode.org/reports/tr9/#NI&gt;</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
 <span class="kw">fn</span> <span class="ident">is_NI</span>(<span class="ident">class</span>: <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#18-42">BidiClass</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#225">class</a> {
+    <span class="kw">match</span> <a class="ident" href="../../src/unicode_bidi/implicit.rs.html#234">class</a> {
         <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#21">B</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#40">S</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#41">WS</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#33">ON</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#27">FSI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#30">LRI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#38">RLI</a> <span class="op">|</span> <a class="ident" href="../../src/unicode_bidi/char_data/tables.rs.html#35">PDI</a> =&gt; <span class="bool-val">true</span>,
         <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.23.1/src/sys/mman.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mman.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.1/src/sys/mman.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mman.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -492,17 +492,93 @@
 <span id="487">487</span>
 <span id="488">488</span>
 <span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Memory management declarations.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#91"><span class="kw">crate</span>::Result</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#169"><span class="kw">crate</span>::Result</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#106-118"><span class="kw">crate</span>::NixPath</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#774-909"><span class="kw">crate</span>::errno::Errno</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#184-196"><span class="kw">crate</span>::NixPath</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#776-911"><span class="kw">crate</span>::errno::Errno</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/fcntl.rs.html#42-166"><span class="kw">crate</span>::fcntl::OFlag</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)]</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/nix/fcntl.rs.html#48-193">fcntl::OFlag</a>, <a class="ident" href="../../../src/nix/sys/stat.rs.html#25-44">sys::stat::Mode</a>};
 <span class="kw">use</span> <span class="ident">libc</span>::{<a class="self" href="../../../libc/index.html">self</a>, <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/sys/stat.rs.html#25-44"><span class="kw">crate</span>::sys::stat::Mode</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
 
 <span class="macro">libc_bitflags!</span>{
@@ -518,9 +594,11 @@
         <span class="ident">PROT_EXEC</span>;
         <span class="doccomment">/// Apply protection up to the end of a mapping that grows upwards.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">PROT_GROWSDOWN</span>;
         <span class="doccomment">/// Apply protection down to the beginning of a mapping that grows downwards.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">PROT_GROWSUP</span>;
     }
 }
@@ -536,9 +614,14 @@
         <span class="ident">MAP_PRIVATE</span>;
         <span class="doccomment">/// Place the mapping at exactly the address specified in `addr`.</span>
         <span class="ident">MAP_FIXED</span>;
+        <span class="doccomment">/// Place the mapping at exactly the address specified in `addr`, but never clobber an existing range.</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+        <span class="ident">MAP_FIXED_NOREPLACE</span>;
         <span class="doccomment">/// To be used with `MAP_FIXED`, to forbid the system</span>
         <span class="doccomment">/// to select a different address than the one specified.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_EXCL</span>;
         <span class="doccomment">/// Synonym for `MAP_ANONYMOUS`.</span>
         <span class="ident">MAP_ANON</span>;
@@ -549,98 +632,128 @@
                       <span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)),
                   <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)),
                   <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_32BIT</span>;
         <span class="doccomment">/// Used for stacks; indicates to the kernel that the mapping should extend downward in memory.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_GROWSDOWN</span>;
         <span class="doccomment">/// Compatibility flag. Ignored.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_DENYWRITE</span>;
         <span class="doccomment">/// Compatibility flag. Ignored.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_EXECUTABLE</span>;
         <span class="doccomment">/// Mark the mmaped region to be locked in the same way as `mlock(2)`.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_LOCKED</span>;
         <span class="doccomment">/// Do not reserve swap space for this mapping.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// This was removed in FreeBSD 11 and is unused in DragonFlyBSD.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_NORESERVE</span>;
         <span class="doccomment">/// Populate page tables for a mapping.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_POPULATE</span>;
         <span class="doccomment">/// Only meaningful when used with `MAP_POPULATE`. Don&#39;t perform read-ahead.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_NONBLOCK</span>;
         <span class="doccomment">/// Allocate the mapping using &quot;huge pages.&quot;</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGETLB</span>;
         <span class="doccomment">/// Make use of 64KB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_64KB</span>;
         <span class="doccomment">/// Make use of 512KB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_512KB</span>;
         <span class="doccomment">/// Make use of 1MB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_1MB</span>;
         <span class="doccomment">/// Make use of 2MB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_2MB</span>;
         <span class="doccomment">/// Make use of 8MB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_8MB</span>;
         <span class="doccomment">/// Make use of 16MB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_16MB</span>;
         <span class="doccomment">/// Make use of 32MB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_32MB</span>;
         <span class="doccomment">/// Make use of 256MB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_256MB</span>;
         <span class="doccomment">/// Make use of 512MB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_512MB</span>;
         <span class="doccomment">/// Make use of 1GB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_1GB</span>;
         <span class="doccomment">/// Make use of 2GB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_2GB</span>;
         <span class="doccomment">/// Make use of 16GB huge page (must be supported by the system)</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HUGE_16GB</span>;
 
         <span class="doccomment">/// Lock the mapped region into memory as with `mlock(2)`.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_WIRED</span>;
         <span class="doccomment">/// Causes dirtied data in the specified range to be flushed to disk only when necessary.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_NOSYNC</span>;
         <span class="doccomment">/// Rename private pages to a file.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// This was removed in FreeBSD 11 and is unused in DragonFlyBSD.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_RENAME</span>;
         <span class="doccomment">/// Region may contain semaphores.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_HASSEMAPHORE</span>;
         <span class="doccomment">/// Region grows down, like a stack.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_STACK</span>;
         <span class="doccomment">/// Pages in this mapping are not retained in the kernel&#39;s memory cache.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_NOCACHE</span>;
         <span class="doccomment">/// Allows the W/X bit on the page, it&#39;s necessary on aarch64 architecture.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_JIT</span>;
         <span class="doccomment">/// Allows to use large pages, underlying alignment based on size.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_ALIGNED_SUPER</span>;
         <span class="doccomment">/// Pages will be discarded in the core dumps.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_CONCEAL</span>;
     }
 }
@@ -651,15 +764,19 @@
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MRemapFlags</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a> {
         <span class="doccomment">/// Permit the kernel to relocate the mapping to a new virtual address, if necessary.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MREMAP_MAYMOVE</span>;
         <span class="doccomment">/// Place the mapping at exactly the address specified in `new_address`.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MREMAP_FIXED</span>;
-        <span class="doccomment">/// Permits to use the old and new address as hints to relocate the mapping.</span>
+        <span class="doccomment">/// Place the mapping at exactly the address specified in `new_address`.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_FIXED</span>;
         <span class="doccomment">/// Allows to duplicate the mapping to be able to apply different flags on the copy.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MAP_REMAPDUP</span>;
     }
 }
@@ -683,23 +800,29 @@
         <span class="ident">MADV_DONTNEED</span>,
         <span class="doccomment">/// Free up a given range of pages and its associated backing store.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_REMOVE</span>,
         <span class="doccomment">/// Do not make pages in this range available to the child after a `fork(2)`.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_DONTFORK</span>,
         <span class="doccomment">/// Undo the effect of `MADV_DONTFORK`.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_DOFORK</span>,
         <span class="doccomment">/// Poison the given pages.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// Subsequent references to those pages are treated like hardware memory corruption.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_HWPOISON</span>,
         <span class="doccomment">/// Enable Kernel Samepage Merging (KSM) for the given pages.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_MERGEABLE</span>,
         <span class="doccomment">/// Undo the effect of `MADV_MERGEABLE`</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_UNMERGEABLE</span>,
         <span class="doccomment">/// Preserve the memory of each page but offline the original page.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
@@ -715,46 +838,66 @@
         <span class="ident">MADV_SOFT_OFFLINE</span>,
         <span class="doccomment">/// Enable Transparent Huge Pages (THP) for pages in the given range.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_HUGEPAGE</span>,
         <span class="doccomment">/// Undo the effect of `MADV_HUGEPAGE`.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_NOHUGEPAGE</span>,
         <span class="doccomment">/// Exclude the given range from a core dump.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_DONTDUMP</span>,
         <span class="doccomment">/// Undo the effect of an earlier `MADV_DONTDUMP`.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_DODUMP</span>,
         <span class="doccomment">/// Specify that the application no longer needs the pages in the given range.</span>
         <span class="ident">MADV_FREE</span>,
         <span class="doccomment">/// Request that the system not flush the current range to disk unless it needs to.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_NOSYNC</span>,
         <span class="doccomment">/// Undoes the effects of `MADV_NOSYNC` for any future pages dirtied within the given range.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_AUTOSYNC</span>,
         <span class="doccomment">/// Region is not included in a core file.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_NOCORE</span>,
         <span class="doccomment">/// Include region in a core file</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_CORE</span>,
+        <span class="doccomment">/// This process should not be killed when swap space is exhausted.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_PROTECT</span>,
         <span class="doccomment">/// Invalidate the hardware page table for the given region.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_INVAL</span>,
         <span class="doccomment">/// Set the offset of the page directory page to `value` for the virtual page table.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_SETMAP</span>,
         <span class="doccomment">/// Indicates that the application will not need the data in the given range.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_ZERO_WIRED_PAGES</span>,
+        <span class="doccomment">/// Pages can be reused (by anyone).</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_FREE_REUSABLE</span>,
+        <span class="doccomment">/// Caller wants to reuse those pages.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MADV_FREE_REUSE</span>,
+        <span class="comment">// Darwin doesn&#39;t document this flag&#39;s behavior.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
         <span class="ident">MADV_CAN_REUSE</span>,
     }
 }
@@ -768,9 +911,11 @@
         <span class="ident">MS_INVALIDATE</span>;
         <span class="doccomment">/// Invalidate pages, but leave them mapped.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MS_KILLPAGES</span>;
         <span class="doccomment">/// Deactivate pages, but leave them mapped.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
         <span class="ident">MS_DEACTIVATE</span>;
         <span class="doccomment">/// Perform an update and wait for it to complete.</span>
         <span class="ident">MS_SYNC</span>;
@@ -798,7 +943,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`mlock(2)`]: https://man7.org/linux/man-pages/man2/mlock.2.html</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mlock</span>(<span class="ident">addr</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::mlock</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#306">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#306">length</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="ident">Errno::result</span>(<span class="ident">libc::mlock</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#374">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#374">length</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// Unlocks all memory pages that contain part of the address range with</span>
@@ -811,7 +956,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`munlock(2)`]: https://man7.org/linux/man-pages/man2/munlock.2.html</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">munlock</span>(<span class="ident">addr</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::munlock</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#319">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#319">length</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="ident">Errno::result</span>(<span class="ident">libc::munlock</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#387">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#387">length</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// Locks all memory pages mapped into this process&#39; address space.</span>
@@ -819,8 +964,8 @@
 <span class="doccomment">/// Locked pages never move to the swap area. For more information, see [`mlockall(2)`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`mlockall(2)`]: https://man7.org/linux/man-pages/man2/mlockall.2.html</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mlockall</span>(<span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#286-294">MlockAllFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> { <span class="ident">Errno::result</span>(<span class="ident">libc::mlockall</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#328">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#286-294">bits</a>())) }.<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mlockall</span>(<span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#354-362">MlockAllFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> { <span class="ident">Errno::result</span>(<span class="ident">libc::mlockall</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#396">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#354-362">bits</a>())) }.<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// Unlocks all memory pages mapped into this process&#39; address space.</span>
@@ -839,13 +984,13 @@
 <span class="doccomment">/// See the [`mmap(2)`] man page for detailed requirements.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`mmap(2)`]: https://man7.org/linux/man-pages/man2/mmap.2.html</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mmap</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">prot</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#14-32">ProtFlags</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#34-152">MapFlags</a>, <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offset</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::mmap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#348">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#348">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#348">prot</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#14-32">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#348">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#34-152">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#348">fd</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#348">offset</a>);
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mmap</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">prot</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#13-33">ProtFlags</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#35-188">MapFlags</a>, <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offset</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">off_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::mmap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#416">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#416">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#416">prot</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#13-33">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#416">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#35-188">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#416">fd</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#416">offset</a>);
 
-    <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#349">ret</a> <span class="op">==</span> <span class="ident">libc::MAP_FAILED</span> {
+    <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#417">ret</a> <span class="op">==</span> <span class="ident">libc::MAP_FAILED</span> {
         <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
     } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#349">ret</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#417">ret</a>)
     }
 }
 
@@ -861,11 +1006,11 @@
     <span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
     <span class="ident">old_size</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>,
     <span class="ident">new_size</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>,
-    <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#155-171">MRemapFlags</a>,
+    <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#191-211">MRemapFlags</a>,
     <span class="ident">new_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="op">*</span> <span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span>
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::mremap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#367">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#368">old_size</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#369">new_size</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#370">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#155-171">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#371">new_address</a>.<span class="ident">unwrap_or</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">std::ptr::null_mut</a>()));
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::mremap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#435">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#436">old_size</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#437">new_size</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#438">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#191-211">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#439">new_address</a>.<span class="ident">unwrap_or</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">std::ptr::null_mut</a>()));
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>)]</span>
     <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">libc::mremap</span>(
         <span class="ident">addr</span>,
@@ -875,10 +1020,10 @@
         <span class="ident">flags</span>.<span class="ident">bits</span>(),
         );
 
-    <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#374">ret</a> <span class="op">==</span> <span class="ident">libc::MAP_FAILED</span> {
+    <span class="kw">if</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#442">ret</a> <span class="op">==</span> <span class="ident">libc::MAP_FAILED</span> {
         <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
     } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#374">ret</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#442">ret</a>)
     }
 }
 
@@ -891,7 +1036,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`munmap(2)`]: https://man7.org/linux/man-pages/man2/munmap.2.html</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">munmap</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::munmap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#399">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#399">len</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="ident">Errno::result</span>(<span class="ident">libc::munmap</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#467">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#467">len</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// give advice about use of memory</span>
@@ -902,8 +1047,8 @@
 <span class="doccomment">/// [`MmapAdvise::MADV_FREE`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`madvise(2)`]: https://man7.org/linux/man-pages/man2/madvise.2.html</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">madvise</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">advise</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#173-266">MmapAdvise</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::madvise</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#411">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#411">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#411">advise</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">madvise</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">advise</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#213-332">MmapAdvise</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="ident">Errno::result</span>(<span class="ident">libc::madvise</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#479">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#479">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#479">advise</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// Set protection of memory mapping.</span>
@@ -931,8 +1076,8 @@
 <span class="doccomment">/// slice[0] = 0xFF;</span>
 <span class="doccomment">/// assert_eq!(slice[0], 0xFF);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mprotect</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">prot</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#14-32">ProtFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::mprotect</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#440">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#440">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#440">prot</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#14-32">bits</a>())).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mprotect</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">prot</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#13-33">ProtFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="ident">Errno::result</span>(<span class="ident">libc::mprotect</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#508">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#508">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#508">prot</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#13-33">bits</a>())).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// synchronize a mapped region</span>
@@ -943,29 +1088,38 @@
 <span class="doccomment">/// page.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`msync(2)`]: https://man7.org/linux/man-pages/man2/msync.2.html</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">msync</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#268-284">MsFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">Errno::result</span>(<span class="ident">libc::msync</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#452">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#452">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#452">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#268-284">bits</a>())).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">msync</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/type.size_t.html">size_t</a>, <span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/mman.rs.html#334-352">MsFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="ident">Errno::result</span>(<span class="ident">libc::msync</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#520">addr</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#520">length</a>, <a class="ident" href="../../../src/nix/sys/mman.rs.html#520">flags</a>.<a class="ident" href="../../../src/nix/sys/mman.rs.html#334-352">bits</a>())).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
+<span class="macro">feature!</span> {
+<span class="attribute">#![<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>]</span>
 <span class="doccomment">/// Creates and opens a new, or opens an existing, POSIX shared memory object.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For more information, see [`shm_open(3)`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`shm_open(3)`]: https://man7.org/linux/man-pages/man3/shm_open.3.html</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shm_open</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/lib.rs.html#106-118">NixPath</a><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">flag</span>: <a class="ident" href="../../../src/nix/fcntl.rs.html#42-166">OFlag</a>, <span class="ident">mode</span>: <a class="ident" href="../../../src/nix/sys/stat.rs.html#25-44">Mode</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#462">name</a>.<a class="ident" href="../../../src/nix/lib.rs.html#116-117">with_nix_path</a>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shm_open</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(
+    <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>,
+    <span class="ident">flag</span>: <a class="ident" href="../../../src/nix/fcntl.rs.html#48-193">OFlag</a>,
+    <span class="ident">mode</span>: <a class="ident" href="../../../src/nix/sys/stat.rs.html#25-44">Mode</a>
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span>
+    <span class="kw">where</span> <span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/lib.rs.html#184-196">NixPath</a>
+{
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#533">name</a>.<a class="ident" href="../../../src/nix/lib.rs.html#194-195">with_nix_path</a>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>))]</span>
         <span class="kw">unsafe</span> {
             <span class="ident">libc::shm_open</span>(<span class="ident">cstr</span>.<span class="ident">as_ptr</span>(), <span class="ident">flag</span>.<span class="ident">bits</span>(), <span class="ident">mode</span>.<span class="ident">bits</span>() <span class="kw">as</span> <span class="ident">libc::c_uint</span>)
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>)))]</span>
         <span class="kw">unsafe</span> {
-            <span class="ident">libc::shm_open</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#463">cstr</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#462">flag</a>.<a class="ident" href="../../../src/nix/fcntl.rs.html#42-166">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#462">mode</a>.<a class="ident" href="../../../src/nix/sys/stat.rs.html#25-44">bits</a>() <span class="kw">as</span> <a class="ident" href="../../../nix/sys/stat/type.mode_t.html">libc::mode_t</a>)
+            <span class="ident">libc::shm_open</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#539">cstr</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#534">flag</a>.<a class="ident" href="../../../src/nix/fcntl.rs.html#48-193">bits</a>(), <a class="ident" href="../../../src/nix/sys/mman.rs.html#535">mode</a>.<a class="ident" href="../../../src/nix/sys/stat.rs.html#25-44">bits</a>() <span class="kw">as</span> <a class="ident" href="../../../nix/sys/stat/type.mode_t.html">libc::mode_t</a>)
         }
     })<span class="question-mark">?</span>;
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#463">ret</a>)
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#539">ret</a>)
+}
 }
 
 <span class="doccomment">/// Performs the converse of [`shm_open`], removing an object previously created.</span>
@@ -974,13 +1128,13 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`shm_unlink(3)`]: https://man7.org/linux/man-pages/man3/shm_unlink.3.html</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shm_unlink</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/lib.rs.html#106-118">NixPath</a><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#483">name</a>.<a class="ident" href="../../../src/nix/lib.rs.html#116-117">with_nix_path</a>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
-        <span class="kw">unsafe</span> { <span class="ident">libc::shm_unlink</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#484">cstr</a>.<span class="ident">as_ptr</span>()) }
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shm_unlink</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/lib.rs.html#184-196">NixPath</a><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/mman.rs.html#560">name</a>.<a class="ident" href="../../../src/nix/lib.rs.html#194-195">with_nix_path</a>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
+        <span class="kw">unsafe</span> { <span class="ident">libc::shm_unlink</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#561">cstr</a>.<span class="ident">as_ptr</span>()) }
     })<span class="question-mark">?</span>;
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#484">ret</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/mman.rs.html#561">ret</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.38/src/hash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hash.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/hash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hash.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -666,8 +666,10 @@
 <span id="661">661</span>
 <span id="662">662</span>
 <span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">cfg_if::cfg_if</span>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/type.CString.html">std::ffi::CString</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">std::io::prelude</a>::<span class="kw-2">*</span>;
@@ -675,19 +677,19 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/nid.rs.html#47"><span class="kw">crate</span>::nid::Nid</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/nid.rs.html#49"><span class="kw">crate</span>::nid::Nid</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
-        <span class="kw">use</span> <span class="ident">ffi</span>::{<a class="ident" href="../../openssl_sys/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>, <a class="ident" href="../../openssl_sys/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>};
+        <span class="kw">use</span> <span class="ident">ffi</span>::{<a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>, <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>};
     } <span class="kw">else</span> {
         <span class="kw">use</span> <span class="ident">ffi</span>::{<span class="ident">EVP_MD_CTX_create</span> <span class="kw">as</span> <span class="ident">EVP_MD_CTX_new</span>, <span class="ident">EVP_MD_CTX_destroy</span> <span class="kw">as</span> <span class="ident">EVP_MD_CTX_free</span>};
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MessageDigest</span>(<span class="kw-2">*const</span> <a class="ident" href="../../openssl_sys/ossl_typ/enum.EVP_MD.html">ffi::EVP_MD</a>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MessageDigest</span>(<span class="kw-2">*const</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>);
 
 <span class="kw">impl</span> <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a> {
     <span class="doccomment">/// Creates a `MessageDigest` from a raw OpenSSL pointer.</span>
@@ -695,7 +697,7 @@
     <span class="doccomment">/// # Safety</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The caller must ensure the pointer is valid.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_ptr</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../openssl_sys/ossl_typ/enum.EVP_MD.html">ffi::EVP_MD</a>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_ptr</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>(<a class="ident" href="../../src/openssl/hash.rs.html#30">x</a>)
     }
 
@@ -704,9 +706,9 @@
     <span class="doccomment">/// This corresponds to [`EVP_get_digestbynid`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`EVP_get_digestbynid`]: https://www.openssl.org/docs/man1.1.0/crypto/EVP_DigestInit.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_nid</span>(<span class="ident">type_</span>: <a class="ident" href="../../src/openssl/nid.rs.html#47">Nid</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_nid</span>(<span class="ident">type_</span>: <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EVP_get_digestbynid</span>(<a class="ident" href="../../src/openssl/hash.rs.html#39">type_</a>.<a class="ident" href="../../src/openssl/nid.rs.html#58">as_raw</a>());
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EVP_get_digestbynid</span>(<a class="ident" href="../../src/openssl/hash.rs.html#39">type_</a>.<a class="ident" href="../../src/openssl/nid.rs.html#60">as_raw</a>());
             <span class="kw">if</span> <a class="ident" href="../../src/openssl/hash.rs.html#41">ptr</a>.<span class="ident">is_null</span>() {
                 <span class="prelude-val">None</span>
             } <span class="kw">else</span> {
@@ -802,7 +804,7 @@
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../openssl_sys/ossl_typ/enum.EVP_MD.html">ffi::EVP_MD</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a> {
         <a class="self" href="../../src/openssl/hash.rs.html#137">self</a>.<span class="number">0</span>
     }
 
@@ -814,7 +816,7 @@
 
     <span class="doccomment">/// The name of the digest.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/openssl/nid.rs.html#47">Nid</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a> {
         <span class="ident">Nid::from_raw</span>(<span class="kw">unsafe</span> { <span class="ident">ffi::EVP_MD_type</span>(<a class="self" href="../../src/openssl/hash.rs.html#149">self</a>.<span class="number">0</span>) })
     }
 }
@@ -884,8 +886,8 @@
 <span class="doccomment">/// For extendable output functions (XOFs, i.e. SHAKE128/SHAKE256), you must use finish_xof instead</span>
 <span class="doccomment">/// of finish and provide a buf to store the hash. The hash will be as long as the buf.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Hasher</span> {
-    <span class="ident">ctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/ossl_typ/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
-    <span class="ident">md</span>: <span class="kw-2">*const</span> <a class="ident" href="../../openssl_sys/ossl_typ/enum.EVP_MD.html">ffi::EVP_MD</a>,
+    <span class="ident">ctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_MD_CTX.html">ffi::EVP_MD_CTX</a>,
+    <span class="ident">md</span>: <span class="kw-2">*const</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_MD.html">ffi::EVP_MD</a>,
     <span class="ident">type_</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>,
     <span class="ident">state</span>: <a class="ident" href="../../src/openssl/hash.rs.html#158-162">State</a>,
 }
@@ -898,7 +900,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ty</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/hash.rs.html#218-223">Hasher</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
 
-        <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<a class="ident" href="../../openssl_sys/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>())<span class="question-mark">?</span> };
+        <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>())<span class="question-mark">?</span> };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">h</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/hash.rs.html#218-223">Hasher</a> {
             <a class="ident" href="../../src/openssl/hash.rs.html#233">ctx</a>,
@@ -919,7 +921,7 @@
             <a class="ident" href="../../src/openssl/hash.rs.html#161">Finalized</a> =&gt; (),
         }
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EVP_DigestInit_ex</span>(<a class="self" href="../../src/openssl/hash.rs.html#245">self</a>.<span class="ident">ctx</span>, <a class="self" href="../../src/openssl/hash.rs.html#245">self</a>.<span class="ident">md</span>, <span class="ident">ptr::null_mut</span>()))<span class="question-mark">?</span>;
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_DigestInit_ex</span>(<a class="self" href="../../src/openssl/hash.rs.html#245">self</a>.<span class="ident">ctx</span>, <a class="self" href="../../src/openssl/hash.rs.html#245">self</a>.<span class="ident">md</span>, <span class="ident">ptr::null_mut</span>()))<span class="question-mark">?</span>;
         }
         <a class="self" href="../../src/openssl/hash.rs.html#245">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/hash.rs.html#159">Reset</a>;
         <span class="prelude-val">Ok</span>(())
@@ -931,7 +933,7 @@
             <a class="self" href="../../src/openssl/hash.rs.html#261">self</a>.<a class="ident" href="../../src/openssl/hash.rs.html#245">init</a>()<span class="question-mark">?</span>;
         }
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EVP_DigestUpdate</span>(
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_DigestUpdate</span>(
                 <a class="self" href="../../src/openssl/hash.rs.html#261">self</a>.<span class="ident">ctx</span>,
                 <a class="ident" href="../../src/openssl/hash.rs.html#261">data</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
                 <a class="ident" href="../../src/openssl/hash.rs.html#261">data</a>.<span class="ident">len</span>(),
@@ -949,7 +951,7 @@
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">ffi::EVP_MAX_MD_SIZE</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="ident">ffi::EVP_MAX_MD_SIZE</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EVP_DigestFinal_ex</span>(
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_DigestFinal_ex</span>(
                 <a class="self" href="../../src/openssl/hash.rs.html#277">self</a>.<span class="ident">ctx</span>,
                 <a class="ident" href="../../src/openssl/hash.rs.html#283">buf</a>.<span class="ident">as_mut_ptr</span>(),
                 <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/hash.rs.html#282">len</a>,
@@ -970,7 +972,7 @@
             <a class="self" href="../../src/openssl/hash.rs.html#300">self</a>.<a class="ident" href="../../src/openssl/hash.rs.html#245">init</a>()<span class="question-mark">?</span>;
         }
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EVP_DigestFinalXOF</span>(
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_DigestFinalXOF</span>(
                 <a class="self" href="../../src/openssl/hash.rs.html#300">self</a>.<span class="ident">ctx</span>,
                 <a class="ident" href="../../src/openssl/hash.rs.html#300">buf</a>.<span class="ident">as_mut_ptr</span>(),
                 <a class="ident" href="../../src/openssl/hash.rs.html#300">buf</a>.<span class="ident">len</span>(),
@@ -996,7 +998,7 @@
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/hash.rs.html#218-223">Hasher</a> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/openssl/hash.rs.html#218-223">Hasher</a> {
         <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>();
+            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>();
             <span class="macro">assert!</span>(<span class="op">!</span><a class="ident" href="../../src/openssl/hash.rs.html#331">ctx</a>.<span class="ident">is_null</span>());
             <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::EVP_MD_CTX_copy_ex</span>(<a class="ident" href="../../src/openssl/hash.rs.html#331">ctx</a>, <a class="self" href="../../src/openssl/hash.rs.html#329">self</a>.<span class="ident">ctx</span>);
             <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/openssl/hash.rs.html#333">r</a>, <span class="number">1</span>);
@@ -1017,7 +1019,7 @@
             <span class="kw">if</span> <a class="self" href="../../src/openssl/hash.rs.html#347">self</a>.<span class="ident">state</span> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/openssl/hash.rs.html#161">Finalized</a> {
                 <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../src/openssl/hash.rs.html#347">self</a>.<a class="ident" href="../../src/openssl/hash.rs.html#277">finish</a>());
             }
-            <a class="ident" href="../../openssl_sys/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="self" href="../../src/openssl/hash.rs.html#347">self</a>.<span class="ident">ctx</span>);
+            <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="self" href="../../src/openssl/hash.rs.html#347">self</a>.<span class="ident">ctx</span>);
         }
     }
 }
@@ -1291,8 +1293,10 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">ossl300</span>, <span class="ident">ignore</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_ripemd160</span>() {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
+        <span class="kw">let</span> <span class="ident">_provider</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::provider::Provider::try_load</span>(<span class="prelude-val">None</span>, <span class="string">&quot;legacy&quot;</span>, <span class="bool-val">true</span>).<span class="ident">unwrap</span>();
+
         <span class="kw">let</span> <span class="ident">tests</span> <span class="op">=</span> [(<span class="string">&quot;616263&quot;</span>, <span class="string">&quot;8eb208f7e05d987a9b044a8e98c6b087f15a0bfc&quot;</span>)];
 
         <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">tests</span>.<span class="ident">iter</span>() {
@@ -1330,5 +1334,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

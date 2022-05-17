@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.23.1/src/time.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>time.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.1/src/time.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>time.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -263,7 +263,16 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/nix/sys/time.rs.html#51"><span class="kw">crate</span>::sys::time::TimeSpec</a>;
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/nix/sys/time.rs.html#174"><span class="kw">crate</span>::sys::time::TimeSpec</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
@@ -271,24 +280,27 @@
     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
 ))]</span>
-<span class="kw">use</span> <a class="ident" href="../../src/nix/unistd.rs.html#130"><span class="kw">crate</span>::unistd::Pid</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/nix/errno.rs.html#774-909">Errno</a>, <span class="prelude-ty">Result</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;process&quot;</span>)]</span>
+<span class="kw">use</span> <a class="ident" href="../../src/nix/unistd.rs.html#148"><span class="kw">crate</span>::unistd::Pid</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/nix/errno.rs.html#776-911">Errno</a>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">libc</span>::{<a class="self" href="../../libc/index.html">self</a>, <a class="ident" href="../../libc/unix/linux_like/type.clockid_t.html">clockid_t</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
 
 <span class="doccomment">/// Clock identifier</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Newtype pattern around `clockid_t` (which is just alias). It pervents bugs caused by</span>
+<span class="doccomment">/// Newtype pattern around `clockid_t` (which is just alias). It prevents bugs caused by</span>
 <span class="doccomment">/// accidentally passing wrong value.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ClockId</span>(<a class="ident" href="../../libc/unix/linux_like/type.clockid_t.html">clockid_t</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> {
     <span class="doccomment">/// Creates `ClockId` from raw `clockid_t`</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">clk_id</span>: <a class="ident" href="../../libc/unix/linux_like/type.clockid_t.html">clockid_t</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<a class="ident" href="../../src/nix/time.rs.html#23">clk_id</a>)
+        <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<a class="ident" href="../../src/nix/time.rs.html#24">clk_id</a>)
     }
 
+    <span class="macro">feature!</span> {
+    <span class="attribute">#![<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;process&quot;</span>]</span>
     <span class="doccomment">/// Returns `ClockId` of a `pid` CPU-time clock</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
@@ -297,196 +309,201 @@
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
     ))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pid_cpu_clock_id</span>(<span class="ident">pid</span>: <a class="ident" href="../../src/nix/unistd.rs.html#130">Pid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/nix/time.rs.html#251">clock_getcpuclockid</a>(<a class="ident" href="../../src/nix/time.rs.html#35">pid</a>)
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pid_cpu_clock_id</span>(<span class="ident">pid</span>: <a class="ident" href="../../src/nix/unistd.rs.html#148">Pid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../src/nix/time.rs.html#260">clock_getcpuclockid</a>(<a class="ident" href="../../src/nix/time.rs.html#39">pid</a>)
+    }
     }
 
     <span class="doccomment">/// Returns resolution of the clock id</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">res</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/sys/time.rs.html#51">TimeSpec</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/nix/time.rs.html#209">clock_getres</a>(<a class="self" href="../../src/nix/time.rs.html#41">self</a>)
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">res</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/sys/time.rs.html#174">TimeSpec</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../src/nix/time.rs.html#217">clock_getres</a>(<a class="self" href="../../src/nix/time.rs.html#47">self</a>)
     }
 
     <span class="doccomment">/// Returns the current time on the clock id</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">now</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/sys/time.rs.html#51">TimeSpec</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/nix/time.rs.html#219">clock_gettime</a>(<a class="self" href="../../src/nix/time.rs.html#46">self</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">now</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/sys/time.rs.html#174">TimeSpec</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../src/nix/time.rs.html#227">clock_gettime</a>(<a class="self" href="../../src/nix/time.rs.html#52">self</a>)
     }
 
     <span class="doccomment">/// Sets time to `timespec` on the clock id</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlibc&quot;</span>)),
-            <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;hermit&quot;</span>,),
-        ),
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;hermit&quot;</span>,
     )))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_time</span>(<span class="self">self</span>, <span class="ident">timespec</span>: <a class="ident" href="../../src/nix/sys/time.rs.html#51">TimeSpec</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="ident" href="../../src/nix/time.rs.html#237">clock_settime</a>(<a class="self" href="../../src/nix/time.rs.html#59">self</a>, <a class="ident" href="../../src/nix/time.rs.html#59">timespec</a>)
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_time</span>(<span class="self">self</span>, <span class="ident">timespec</span>: <a class="ident" href="../../src/nix/sys/time.rs.html#174">TimeSpec</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <a class="ident" href="../../src/nix/time.rs.html#244">clock_settime</a>(<a class="self" href="../../src/nix/time.rs.html#64">self</a>, <a class="ident" href="../../src/nix/time.rs.html#64">timespec</a>)
     }
 
     <span class="doccomment">/// Gets the raw `clockid_t` wrapped by `self`</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../libc/unix/linux_like/type.clockid_t.html">clockid_t</a> {
-        <a class="self" href="../../src/nix/time.rs.html#64">self</a>.<span class="number">0</span>
+        <a class="self" href="../../src/nix/time.rs.html#69">self</a>.<span class="number">0</span>
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>)),
-            <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>),
-        )
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>
     ))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_BOOTTIME</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<span class="ident">libc::CLOCK_BOOTTIME</span>);
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_BOOTTIME</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_BOOTTIME</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>)),
-            <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)
-        )
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>
     ))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_BOOTTIME_ALARM</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<span class="ident">libc::CLOCK_BOOTTIME_ALARM</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_MONOTONIC</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<span class="ident">libc::CLOCK_MONOTONIC</span>);
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_BOOTTIME_ALARM</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_BOOTTIME_ALARM</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_MONOTONIC</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_MONOTONIC</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>)),
-            <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)
-        )
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>
     ))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_MONOTONIC_COARSE</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<span class="ident">libc::CLOCK_MONOTONIC_COARSE</span>);
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_MONOTONIC_COARSE</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_MONOTONIC_COARSE</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_MONOTONIC_FAST</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_MONOTONIC_FAST</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_MONOTONIC_PRECISE</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_MONOTONIC_PRECISE</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>)),
-            <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)
-        )
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>
     ))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_MONOTONIC_RAW</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<span class="ident">libc::CLOCK_MONOTONIC_RAW</span>);
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_MONOTONIC_RAW</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_MONOTONIC_RAW</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-        <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>),
-            <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)
-        )
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>
     ))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_PROCESS_CPUTIME_ID</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<span class="ident">libc::CLOCK_PROCESS_CPUTIME_ID</span>);
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_PROCESS_CPUTIME_ID</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_PROCESS_CPUTIME_ID</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_PROF</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_PROF</span>);
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_REALTIME</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<span class="ident">libc::CLOCK_REALTIME</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_REALTIME</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_REALTIME</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>)),
-            <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)
-        )
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>
     ))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_REALTIME_ALARM</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<span class="ident">libc::CLOCK_REALTIME_ALARM</span>);
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_REALTIME_ALARM</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_REALTIME_ALARM</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>)),
-            <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)
-        )
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>
     ))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_REALTIME_COARSE</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<span class="ident">libc::CLOCK_REALTIME_COARSE</span>);
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_REALTIME_COARSE</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_REALTIME_COARSE</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_REALTIME_FAST</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_REALTIME_FAST</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_REALTIME_PRECISE</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_REALTIME_PRECISE</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_SECOND</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_SECOND</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>)),
-            <span class="ident">any</span>(
-                <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-                <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>)
-            )
-        )
+        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>)
     ))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_SGI_CYCLE</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_SGI_CYCLE</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>)),
-            <span class="ident">any</span>(
-                <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-                <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>)
-            )
-        )
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>
     ))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_TAI</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_TAI</span>);
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_TAI</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_TAI</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-        <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-        <span class="ident">all</span>(
-            <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>),
-            <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,),
-        ),
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>
     ))]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_THREAD_CPUTIME_ID</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>(<span class="ident">libc::CLOCK_THREAD_CPUTIME_ID</span>);
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_THREAD_CPUTIME_ID</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> <span class="op">=</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>(<span class="ident">libc::CLOCK_THREAD_CPUTIME_ID</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_UPTIME</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_UPTIME</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_UPTIME_FAST</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_UPTIME_FAST</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_UPTIME_PRECISE</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_UPTIME_PRECISE</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCK_VIRTUAL</span>: <span class="ident">ClockId</span> <span class="op">=</span> <span class="ident">ClockId</span>(<span class="ident">libc::CLOCK_VIRTUAL</span>);
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../libc/unix/linux_like/type.clockid_t.html">clockid_t</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">clock_id</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/nix/time.rs.html#189">clock_id</a>.<a class="ident" href="../../src/nix/time.rs.html#64">as_raw</a>()
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../libc/unix/linux_like/type.clockid_t.html">clockid_t</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">clock_id</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/nix/time.rs.html#196">clock_id</a>.<a class="ident" href="../../src/nix/time.rs.html#69">as_raw</a>()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/linux_like/type.clockid_t.html">clockid_t</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/linux_like/type.clockid_t.html">clockid_t</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">clk_id</span>: <a class="ident" href="../../libc/unix/linux_like/type.clockid_t.html">clockid_t</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident">ClockId::from_raw</span>(<a class="ident" href="../../src/nix/time.rs.html#195">clk_id</a>)
+        <span class="ident">ClockId::from_raw</span>(<a class="ident" href="../../src/nix/time.rs.html#202">clk_id</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">std::fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/nix/time.rs.html#201">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/nix/time.rs.html#201">f</a>)
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/nix/time.rs.html#208">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/nix/time.rs.html#208">f</a>)
     }
 }
 
 <span class="doccomment">/// Get the resolution of the specified clock, (see</span>
 <span class="doccomment">/// [clock_getres(2)](https://pubs.opengroup.org/onlinepubs/7908799/xsh/clock_getres.html)).</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clock_getres</span>(<span class="ident">clock_id</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/sys/time.rs.html#51">TimeSpec</a><span class="op">&gt;</span> {
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clock_getres</span>(<span class="ident">clock_id</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/sys/time.rs.html#174">TimeSpec</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c_time</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/struct.timespec.html">libc::timespec</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::clock_getres</span>(<a class="ident" href="../../src/nix/time.rs.html#209">clock_id</a>.<a class="ident" href="../../src/nix/time.rs.html#64">as_raw</a>(), <a class="ident" href="../../src/nix/time.rs.html#210">c_time</a>.<span class="ident">as_mut_ptr</span>()) };
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/time.rs.html#211">ret</a>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/nix/time.rs.html#210">c_time</a>.<span class="ident">assume_init</span>() };
-    <span class="prelude-val">Ok</span>(<span class="ident">TimeSpec::from</span>(<a class="ident" href="../../src/nix/time.rs.html#213">res</a>))
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::clock_getres</span>(<a class="ident" href="../../src/nix/time.rs.html#217">clock_id</a>.<a class="ident" href="../../src/nix/time.rs.html#69">as_raw</a>(), <a class="ident" href="../../src/nix/time.rs.html#218">c_time</a>.<span class="ident">as_mut_ptr</span>()) };
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/time.rs.html#219">ret</a>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/nix/time.rs.html#218">c_time</a>.<span class="ident">assume_init</span>() };
+    <span class="prelude-val">Ok</span>(<span class="ident">TimeSpec::from</span>(<a class="ident" href="../../src/nix/time.rs.html#221">res</a>))
 }
 
 <span class="doccomment">/// Get the time of the specified clock, (see</span>
 <span class="doccomment">/// [clock_gettime(2)](https://pubs.opengroup.org/onlinepubs/7908799/xsh/clock_gettime.html)).</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clock_gettime</span>(<span class="ident">clock_id</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/sys/time.rs.html#51">TimeSpec</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clock_gettime</span>(<span class="ident">clock_id</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/sys/time.rs.html#174">TimeSpec</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c_time</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/struct.timespec.html">libc::timespec</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::clock_gettime</span>(<a class="ident" href="../../src/nix/time.rs.html#219">clock_id</a>.<a class="ident" href="../../src/nix/time.rs.html#64">as_raw</a>(), <a class="ident" href="../../src/nix/time.rs.html#220">c_time</a>.<span class="ident">as_mut_ptr</span>()) };
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/time.rs.html#221">ret</a>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/nix/time.rs.html#220">c_time</a>.<span class="ident">assume_init</span>() };
-    <span class="prelude-val">Ok</span>(<span class="ident">TimeSpec::from</span>(<a class="ident" href="../../src/nix/time.rs.html#223">res</a>))
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::clock_gettime</span>(<a class="ident" href="../../src/nix/time.rs.html#227">clock_id</a>.<a class="ident" href="../../src/nix/time.rs.html#69">as_raw</a>(), <a class="ident" href="../../src/nix/time.rs.html#228">c_time</a>.<span class="ident">as_mut_ptr</span>()) };
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/time.rs.html#229">ret</a>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/nix/time.rs.html#228">c_time</a>.<span class="ident">assume_init</span>() };
+    <span class="prelude-val">Ok</span>(<span class="ident">TimeSpec::from</span>(<a class="ident" href="../../src/nix/time.rs.html#231">res</a>))
 }
 
 <span class="doccomment">/// Set the time of the specified clock, (see</span>
@@ -494,14 +511,13 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-    <span class="ident">all</span>(
-        <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlibc&quot;</span>)),
-        <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;hermit&quot;</span>,),
-    ),
+    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,
+    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;hermit&quot;</span>,
 )))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clock_settime</span>(<span class="ident">clock_id</span>: <a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a>, <span class="ident">timespec</span>: <a class="ident" href="../../src/nix/sys/time.rs.html#51">TimeSpec</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::clock_settime</span>(<a class="ident" href="../../src/nix/time.rs.html#237">clock_id</a>.<a class="ident" href="../../src/nix/time.rs.html#64">as_raw</a>(), <a class="ident" href="../../src/nix/time.rs.html#237">timespec</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()) };
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/time.rs.html#238">ret</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clock_settime</span>(<span class="ident">clock_id</span>: <a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a>, <span class="ident">timespec</span>: <a class="ident" href="../../src/nix/sys/time.rs.html#174">TimeSpec</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::clock_settime</span>(<a class="ident" href="../../src/nix/time.rs.html#244">clock_id</a>.<a class="ident" href="../../src/nix/time.rs.html#69">as_raw</a>(), <a class="ident" href="../../src/nix/time.rs.html#244">timespec</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()) };
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/time.rs.html#245">ret</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
 <span class="doccomment">/// Get the clock id of the specified process id, (see</span>
@@ -513,16 +529,18 @@
     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
 ))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clock_getcpuclockid</span>(<span class="ident">pid</span>: <a class="ident" href="../../src/nix/unistd.rs.html#130">Pid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/time.rs.html#19">ClockId</a><span class="op">&gt;</span> {
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;process&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;process&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clock_getcpuclockid</span>(<span class="ident">pid</span>: <a class="ident" href="../../src/nix/unistd.rs.html#148">Pid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/time.rs.html#20">ClockId</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">clk_id</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/linux_like/type.clockid_t.html">libc::clockid_t</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::clock_getcpuclockid</span>(<a class="ident" href="../../src/nix/time.rs.html#251">pid</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../src/nix/time.rs.html#252">clk_id</a>.<span class="ident">as_mut_ptr</span>()) };
-    <span class="kw">if</span> <a class="ident" href="../../src/nix/time.rs.html#253">ret</a> <span class="op">==</span> <span class="number">0</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/nix/time.rs.html#252">clk_id</a>.<span class="ident">assume_init</span>() };
-        <span class="prelude-val">Ok</span>(<span class="ident">ClockId::from</span>(<a class="ident" href="../../src/nix/time.rs.html#255">res</a>))
+    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::clock_getcpuclockid</span>(<a class="ident" href="../../src/nix/time.rs.html#260">pid</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../src/nix/time.rs.html#261">clk_id</a>.<span class="ident">as_mut_ptr</span>()) };
+    <span class="kw">if</span> <a class="ident" href="../../src/nix/time.rs.html#262">ret</a> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/nix/time.rs.html#261">clk_id</a>.<span class="ident">assume_init</span>() };
+        <span class="prelude-val">Ok</span>(<span class="ident">ClockId::from</span>(<a class="ident" href="../../src/nix/time.rs.html#264">res</a>))
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">Errno::from_i32</span>(<a class="ident" href="../../src/nix/time.rs.html#253">ret</a>))
+        <span class="prelude-val">Err</span>(<span class="ident">Errno::from_i32</span>(<a class="ident" href="../../src/nix/time.rs.html#262">ret</a>))
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

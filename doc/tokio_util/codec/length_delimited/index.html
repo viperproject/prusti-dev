@@ -4,7 +4,7 @@
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"><a href="#">Module length_delimited</a></h2><div class="sidebar-elems"><section><div class="block"><ul><li><a href="#structs">Structs</a></li></ul></div></section><div id="sidebar-vars" data-name="length_delimited" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Module <a href="../../index.html">tokio_util</a>::<wbr><a href="../index.html">codec</a>::<wbr><a class="mod" href="#">length_delimited</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../../src/tokio_util/codec/length_delimited.rs.html#1-962">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Frame a stream of bytes based on a length prefix</p>
+    <h1 class="fqn"><span class="in-band">Module <a href="../../index.html">tokio_util</a>::<wbr><a href="../index.html">codec</a>::<wbr><a class="mod" href="#">length_delimited</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../../src/tokio_util/codec/length_delimited.rs.html#1-1047">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Frame a stream of bytes based on a length prefix</p>
 <p>Many protocols delimit their frames by prefacing frame data with a
 frame head that specifies the length of the frame. The
 <code>length_delimited</code> module provides utilities for handling the length
@@ -33,7 +33,7 @@ payload length:</p>
 +----------+--------------------------------+</code></pre></div>
 <p>Specifically, given the following:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">tokio::prelude</span>::<span class="kw-2">*</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">tokio::io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
 <span class="kw">use</span> <span class="ident">tokio_util::codec</span>::{<span class="ident">Framed</span>, <span class="ident">LengthDelimitedCodec</span>};
 
 <span class="kw">use</span> <span class="ident">futures::SinkExt</span>;
@@ -53,10 +53,10 @@ payload length:</p>
 <div class="example-wrap"><pre class="language-text"><code>+---- len: u32 ----+---- data ----+
 | \x00\x00\x00\x0b |  hello world |
 +------------------+--------------+</code></pre></div><h2 id="decoding"><a href="#decoding">Decoding</a></h2>
-<p><a href="struct.FramedRead.html"><code>FramedRead</code></a> adapts an <a href="../../trait.AsyncRead.html"><code>AsyncRead</code></a> into a <code>Stream</code> of <a href="https://docs.rs/bytes/0.4/bytes/struct.BytesMut.html"><code>BytesMut</code></a>,
-such that each yielded <a href="https://docs.rs/bytes/0.4/bytes/struct.BytesMut.html"><code>BytesMut</code></a> value contains the contents of an
+<p><a href="../struct.FramedRead.html"><code>FramedRead</code></a> adapts an <a href="../../../tokio/io/async_read/trait.AsyncRead.html"><code>AsyncRead</code></a> into a <code>Stream</code> of <a href="../../../bytes/bytes_mut/struct.BytesMut.html"><code>BytesMut</code></a>,
+such that each yielded <a href="../../../bytes/bytes_mut/struct.BytesMut.html"><code>BytesMut</code></a> value contains the contents of an
 entire frame. There are many configuration parameters enabling
-<a href="struct.FramedRead.html"><code>FramedRead</code></a> to handle a wide range of protocols. Here are some
+<a href="../struct.FramedRead.html"><code>FramedRead</code></a> to handle a wide range of protocols. Here are some
 examples that will cover the various options at a high level.</p>
 <h3 id="example-1"><a href="#example-1">Example 1</a></h3>
 <p>The following will parse a <code>u16</code> length field at offset 0, including the
@@ -64,7 +64,7 @@ frame head in the yielded <code>BytesMut</code>.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">LengthDelimitedCodec::builder</span>()
     .<span class="ident">length_field_offset</span>(<span class="number">0</span>) <span class="comment">// default value</span>
-    .<span class="ident">length_field_length</span>(<span class="number">2</span>)
+    .<span class="ident">length_field_type</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>()
     .<span class="ident">length_adjustment</span>(<span class="number">0</span>)   <span class="comment">// default value</span>
     .<span class="ident">num_skip</span>(<span class="number">0</span>) <span class="comment">// Do not strip frame header</span>
     .<span class="ident">new_read</span>(<span class="ident">io</span>);</code></pre></div>
@@ -74,7 +74,7 @@ frame head in the yielded <code>BytesMut</code>.</p>
 | \x00\x0B |  Hello world  | --&gt; | \x00\x0B |  Hello world  |
 +----------+---------------+     +----------+---------------+</code></pre></div>
 <p>The value of the length field is 11 (<code>\x0B</code>) which represents the length
-of the payload, <code>hello world</code>. By default, <a href="struct.FramedRead.html"><code>FramedRead</code></a> assumes that
+of the payload, <code>hello world</code>. By default, <a href="../struct.FramedRead.html"><code>FramedRead</code></a> assumes that
 the length field represents the number of bytes that <strong>follows</strong> the
 length field. Thus, the entire frame has a length of 13: 2 bytes for the
 frame head + 11 bytes for the payload.</p>
@@ -84,7 +84,7 @@ frame head in the yielded <code>BytesMut</code>.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">LengthDelimitedCodec::builder</span>()
     .<span class="ident">length_field_offset</span>(<span class="number">0</span>) <span class="comment">// default value</span>
-    .<span class="ident">length_field_length</span>(<span class="number">2</span>)
+    .<span class="ident">length_field_type</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>()
     .<span class="ident">length_adjustment</span>(<span class="number">0</span>)   <span class="comment">// default value</span>
     <span class="comment">// `num_skip` is not needed, the default is to skip</span>
     .<span class="ident">new_read</span>(<span class="ident">io</span>);</code></pre></div>
@@ -102,7 +102,7 @@ frame head in the yielded <code>BytesMut</code>. In this case, the length field
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">LengthDelimitedCodec::builder</span>()
     .<span class="ident">length_field_offset</span>(<span class="number">0</span>) <span class="comment">// default value</span>
-    .<span class="ident">length_field_length</span>(<span class="number">2</span>)
+    .<span class="ident">length_field_type</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>()
     .<span class="ident">length_adjustment</span>(<span class="op">-</span><span class="number">2</span>)  <span class="comment">// size of head</span>
     .<span class="ident">num_skip</span>(<span class="number">0</span>)
     .<span class="ident">new_read</span>(<span class="ident">io</span>);</code></pre></div>
@@ -151,7 +151,7 @@ included.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">LengthDelimitedCodec::builder</span>()
     .<span class="ident">length_field_offset</span>(<span class="number">1</span>) <span class="comment">// length of hdr1</span>
-    .<span class="ident">length_field_length</span>(<span class="number">2</span>)
+    .<span class="ident">length_field_type</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>()
     .<span class="ident">length_adjustment</span>(<span class="number">1</span>)  <span class="comment">// length of hdr2</span>
     .<span class="ident">num_skip</span>(<span class="number">3</span>) <span class="comment">// length of hdr1 + LEN</span>
     .<span class="ident">new_read</span>(<span class="ident">io</span>);</code></pre></div>
@@ -182,7 +182,7 @@ length.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">LengthDelimitedCodec::builder</span>()
     .<span class="ident">length_field_offset</span>(<span class="number">1</span>) <span class="comment">// length of hdr1</span>
-    .<span class="ident">length_field_length</span>(<span class="number">2</span>)
+    .<span class="ident">length_field_type</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>()
     .<span class="ident">length_adjustment</span>(<span class="op">-</span><span class="number">3</span>)  <span class="comment">// length of hdr1 + LEN, negative</span>
     .<span class="ident">num_skip</span>(<span class="number">3</span>)
     .<span class="ident">new_read</span>(<span class="ident">io</span>);</code></pre></div>
@@ -202,17 +202,34 @@ The length of <code>hdr1</code> and <code>len</code> must be counted in <code>le
 Note that the length of <code>hdr2</code> does <strong>not</strong> need to be explicitly set
 anywhere because it already is factored into the total frame length that
 is read from the byte stream.</p>
+<h3 id="example-7"><a href="#example-7">Example 7</a></h3>
+<p>The following will parse a 3 byte length field at offset 0 in a 4 byte
+frame head, excluding the 4th byte from the yielded <code>BytesMut</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">LengthDelimitedCodec::builder</span>()
+    .<span class="ident">length_field_offset</span>(<span class="number">0</span>) <span class="comment">// default value</span>
+    .<span class="ident">length_field_length</span>(<span class="number">3</span>)
+    .<span class="ident">length_adjustment</span>(<span class="number">0</span>)  <span class="comment">// default value</span>
+    .<span class="ident">num_skip</span>(<span class="number">4</span>) <span class="comment">// skip the first 4 bytes</span>
+    .<span class="ident">new_read</span>(<span class="ident">io</span>);</code></pre></div>
+<p>The following frame will be decoded as such:</p>
+<div class="example-wrap"><pre class="language-text"><code>                 INPUT                       DECODED
++------- len ------+--- Payload ---+    +--- Payload ---+
+| \x00\x00\x0B\xFF |  Hello world  | =&gt; |  Hello world  |
++------------------+---------------+    +---------------+</code></pre></div>
+<p>A simple example where there are unused bytes between the length field
+and the payload.</p>
 <h2 id="encoding"><a href="#encoding">Encoding</a></h2>
-<p><a href="struct.FramedWrite.html"><code>FramedWrite</code></a> adapts an <a href="../../trait.AsyncWrite.html"><code>AsyncWrite</code></a> into a <code>Sink</code> of <a href="https://docs.rs/bytes/0.4/bytes/struct.BytesMut.html"><code>BytesMut</code></a>,
-such that each submitted <a href="https://docs.rs/bytes/0.4/bytes/struct.BytesMut.html"><code>BytesMut</code></a> is prefaced by a length field.
-There are fewer configuration options than <a href="struct.FramedRead.html"><code>FramedRead</code></a>. Given
+<p><a href="../struct.FramedWrite.html"><code>FramedWrite</code></a> adapts an <a href="../../../tokio/io/async_write/trait.AsyncWrite.html"><code>AsyncWrite</code></a> into a <code>Sink</code> of <a href="../../../bytes/bytes_mut/struct.BytesMut.html"><code>BytesMut</code></a>,
+such that each submitted <a href="../../../bytes/bytes_mut/struct.BytesMut.html"><code>BytesMut</code></a> is prefaced by a length field.
+There are fewer configuration options than <a href="../struct.FramedRead.html"><code>FramedRead</code></a>. Given
 protocols that have more complex frame heads, an encoder should probably
 be written by hand using <a href="../trait.Encoder.html"><code>Encoder</code></a>.</p>
 <p>Here is a simple example, given a <code>FramedWrite</code> with the following
 configuration:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">LengthDelimitedCodec::builder</span>()
-    .<span class="ident">length_field_length</span>(<span class="number">2</span>)
+    .<span class="ident">length_field_type</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>()
     .<span class="ident">new_write</span>(<span class="ident">io</span>);</code></pre></div>
 <p>A payload of <code>hello world</code> will be encoded as:</p>
 <div class="example-wrap"><pre class="language-text"><code>+- len: u16 -+---- data ----+
@@ -221,5 +238,5 @@ configuration:</p>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Builder.html" title="tokio_util::codec::length_delimited::Builder struct">Builder</a></div><div class="item-right docblock-short"><p>Configure length delimited <code>LengthDelimitedCodec</code>s.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.LengthDelimitedCodec.html" title="tokio_util::codec::length_delimited::LengthDelimitedCodec struct">LengthDelimitedCodec</a></div><div class="item-right docblock-short"><p>A codec for frames delimited by a frame head specifying their lengths.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.LengthDelimitedCodecError.html" title="tokio_util::codec::length_delimited::LengthDelimitedCodecError struct">LengthDelimitedCodecError</a></div><div class="item-right docblock-short"><p>An error when the number of bytes read is more than max frame length.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.38/src/cms.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cms.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/cms.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cms.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -317,25 +317,6 @@
 <span id="312">312</span>
 <span id="313">313</span>
 <span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
 </pre><pre class="rust"><code><span class="doccomment">//! SMIME implementation using CMS</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! CMS (PKCS#7) is an encryption standard.  It allows signing and encrypting data using</span>
@@ -350,11 +331,12 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bio</span>::{<a class="ident" href="../../src/openssl/bio.rs.html#40">MemBio</a>, <a class="ident" href="../../src/openssl/bio.rs.html#10">MemBioSlice</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#122-130">PKeyRef</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#130-138">PKeyRef</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/stack.rs.html#180"><span class="kw">crate</span>::stack::StackRef</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/symm.rs.html#76"><span class="kw">crate</span>::symm::Cipher</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509Ref</a>, <a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509</span>::{<a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509Ref</a>, <a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use</span> <span class="ident">openssl_macros::corresponds</span>;
 
 <span class="macro">bitflags!</span> {
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CMSOptions</span> : <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a> {
@@ -386,7 +368,7 @@
 }
 
 <span class="macro">foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/cms/enum.CMS_ContentInfo.html">ffi::CMS_ContentInfo</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/cms/enum.CMS_ContentInfo.html">ffi::CMS_ContentInfo</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::CMS_ContentInfo_free</span>;
 
     <span class="doccomment">/// High level CMS wrapper</span>
@@ -404,32 +386,29 @@
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CmsContentInfoRef</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/cms.rs.html#50-67">CmsContentInfoRef</a> {
-    <span class="doccomment">/// Given the sender&#39;s private key, `pkey` and the recipient&#39;s certificiate, `cert`,</span>
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfoRef</a> {
+    <span class="doccomment">/// Given the sender&#39;s private key, `pkey` and the recipient&#39;s certificate, `cert`,</span>
     <span class="doccomment">/// decrypt the data in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`CMS_decrypt`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`CMS_decrypt`]: https://www.openssl.org/docs/man1.1.0/crypto/CMS_decrypt.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decrypt</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">cert</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">CMS_decrypt</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decrypt</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">cert</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>,
+        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#76">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
-            <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#76">cert</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>();
+            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#74">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
+            <span class="kw">let</span> <span class="ident">cert</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#74">cert</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>();
             <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">MemBio::new</span>()<span class="question-mark">?</span>;
 
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::CMS_decrypt</span>(
-                <a class="self" href="../../src/openssl/cms.rs.html#76">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/cms.rs.html#81">pkey</a>,
-                <a class="ident" href="../../src/openssl/cms.rs.html#82">cert</a>,
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::CMS_decrypt</span>(
+                <a class="self" href="../../src/openssl/cms.rs.html#74">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/cms.rs.html#79">pkey</a>,
+                <a class="ident" href="../../src/openssl/cms.rs.html#80">cert</a>,
                 <span class="ident">ptr::null_mut</span>(),
-                <a class="ident" href="../../src/openssl/cms.rs.html#83">out</a>.<a class="ident" href="../../src/openssl/bio.rs.html#58">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/cms.rs.html#81">out</a>.<a class="ident" href="../../src/openssl/bio.rs.html#58">as_ptr</a>(),
                 <span class="number">0</span>,
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/cms.rs.html#83">out</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/cms.rs.html#81">out</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
         }
     }
 
@@ -437,87 +416,70 @@
     <span class="doccomment">/// decrypt the data in `self` without validating the recipient certificate.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *Warning*: Not checking the recipient certificate may leave you vulnerable to Bleichenbacher&#39;s attack on PKCS#1 v1.5 RSA padding.</span>
-    <span class="doccomment">/// See [`CMS_decrypt`] for more information.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`CMS_decrypt`]: https://www.openssl.org/docs/man1.1.0/crypto/CMS_decrypt.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">CMS_decrypt</span>)]</span>
     <span class="comment">// FIXME merge into decrypt</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decrypt_without_cert_check</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pkey</span>: <span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>,
+        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#106">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
+            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#102">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>();
             <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">MemBio::new</span>()<span class="question-mark">?</span>;
 
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::CMS_decrypt</span>(
-                <a class="self" href="../../src/openssl/cms.rs.html#106">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/cms.rs.html#111">pkey</a>,
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::CMS_decrypt</span>(
+                <a class="self" href="../../src/openssl/cms.rs.html#102">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/cms.rs.html#107">pkey</a>,
                 <span class="ident">ptr::null_mut</span>(),
                 <span class="ident">ptr::null_mut</span>(),
-                <a class="ident" href="../../src/openssl/cms.rs.html#112">out</a>.<a class="ident" href="../../src/openssl/bio.rs.html#58">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/cms.rs.html#108">out</a>.<a class="ident" href="../../src/openssl/bio.rs.html#58">as_ptr</a>(),
                 <span class="number">0</span>,
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/cms.rs.html#112">out</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/cms.rs.html#108">out</a>.<a class="ident" href="../../src/openssl/bio.rs.html#62">get_buf</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
         }
     }
 
     <span class="macro">to_der!</span> {
         <span class="doccomment">/// Serializes this CmsContentInfo using DER.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// OpenSSL documentation at [`i2d_CMS_ContentInfo`]</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`i2d_CMS_ContentInfo`]: https://www.openssl.org/docs/man1.0.2/crypto/i2d_CMS_ContentInfo.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_CMS_ContentInfo</span>)]</span>
         <span class="ident">to_der</span>,
         <span class="ident">ffi::i2d_CMS_ContentInfo</span>
     }
 
     <span class="macro">to_pem!</span> {
         <span class="doccomment">/// Serializes this CmsContentInfo using DER.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// OpenSSL documentation at [`PEM_write_bio_CMS`]</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_CMS`]: https://www.openssl.org/docs/man1.1.0/man3/PEM_write_bio_CMS.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_CMS</span>)]</span>
         <span class="ident">to_pem</span>,
         <span class="ident">ffi::PEM_write_bio_CMS</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/cms.rs.html#50-67">CmsContentInfo</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a> {
     <span class="doccomment">/// Parses a smime formatted `vec` of bytes into a `CmsContentInfo`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`SMIME_read_CMS`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`SMIME_read_CMS`]: https://www.openssl.org/docs/man1.0.2/crypto/SMIME_read_CMS.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">smime_read_cms</span>(<span class="ident">smime</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/cms.rs.html#50-67">CmsContentInfo</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">SMIME_read_CMS</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">smime_read_cms</span>(<span class="ident">smime</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<a class="ident" href="../../src/openssl/cms.rs.html#154">smime</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<a class="ident" href="../../src/openssl/cms.rs.html#141">smime</a>)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">cms</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::SMIME_read_CMS</span>(<a class="ident" href="../../src/openssl/cms.rs.html#156">bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>(), <span class="ident">ptr::null_mut</span>()))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">cms</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::SMIME_read_CMS</span>(<a class="ident" href="../../src/openssl/cms.rs.html#143">bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>(), <span class="ident">ptr::null_mut</span>()))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<span class="ident">CmsContentInfo::from_ptr</span>(<a class="ident" href="../../src/openssl/cms.rs.html#158">cms</a>))
+            <span class="prelude-val">Ok</span>(<span class="ident">CmsContentInfo::from_ptr</span>(<a class="ident" href="../../src/openssl/cms.rs.html#145">cms</a>))
         }
     }
 
     <span class="macro">from_der!</span> {
         <span class="doccomment">/// Deserializes a DER-encoded ContentInfo structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`d2i_CMS_ContentInfo`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`d2i_CMS_ContentInfo`]: https://www.openssl.org/docs/manmaster/man3/d2i_X509.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_CMS_ContentInfo</span>)]</span>
         <span class="ident">from_der</span>,
-        <a class="ident" href="../../src/openssl/cms.rs.html#50-67">CmsContentInfo</a>,
+        <a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>,
         <span class="ident">ffi::d2i_CMS_ContentInfo</span>
     }
 
     <span class="macro">from_pem!</span> {
         <span class="doccomment">/// Deserializes a PEM-encoded ContentInfo structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_read_bio_CMS`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_read_bio_CMS`]: https://www.openssl.org/docs/man1.1.0/man3/PEM_read_bio_CMS.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_CMS</span>)]</span>
         <span class="ident">from_pem</span>,
-        <a class="ident" href="../../src/openssl/cms.rs.html#50-67">CmsContentInfo</a>,
+        <a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>,
         <span class="ident">ffi::PEM_read_bio_CMS</span>
     }
 
@@ -525,39 +487,36 @@
     <span class="doccomment">/// data `data` and flags `flags`, create a CmsContentInfo struct.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// All arguments are optional.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`CMS_sign`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`CMS_sign`]: https://www.openssl.org/docs/manmaster/man3/CMS_sign.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">CMS_sign</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="ident">signcert</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509Ref</a><span class="op">&gt;</span>,
+        <span class="ident">signcert</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509Ref</a><span class="op">&gt;</span>,
         <span class="ident">pkey</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PKeyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">certs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">certs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
-        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/cms.rs.html#21-48">CMSOptions</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/cms.rs.html#50-67">CmsContentInfo</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
+        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/cms.rs.html#22-49">CMSOptions</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>,
+        <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">signcert</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#195">signcert</a>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#205">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#196">pkey</a>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#206">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="kw">let</span> <span class="ident">data_bio</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/openssl/cms.rs.html#198">data</a> {
-                <span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">MemBioSlice::new</span>(<a class="ident" href="../../src/openssl/cms.rs.html#208">data</a>)<span class="question-mark">?</span>),
+            <span class="kw">let</span> <span class="ident">signcert</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#173">signcert</a>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#183">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#174">pkey</a>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#184">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="kw">let</span> <span class="ident">data_bio</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/openssl/cms.rs.html#176">data</a> {
+                <span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">MemBioSlice::new</span>(<a class="ident" href="../../src/openssl/cms.rs.html#186">data</a>)<span class="question-mark">?</span>),
                 <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
             };
-            <span class="kw">let</span> <span class="ident">data_bio_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#207">data_bio</a>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#211">p</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>());
-            <span class="kw">let</span> <span class="ident">certs</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#197">certs</a>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#212">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="kw">let</span> <span class="ident">data_bio_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#185">data_bio</a>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#189">p</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>());
+            <span class="kw">let</span> <span class="ident">certs</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/cms.rs.html#175">certs</a>.<span class="ident">map_or</span>(<span class="ident">ptr::null_mut</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/openssl/cms.rs.html#190">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
 
-            <span class="kw">let</span> <span class="ident">cms</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::CMS_sign</span>(
-                <a class="ident" href="../../src/openssl/cms.rs.html#205">signcert</a>,
-                <a class="ident" href="../../src/openssl/cms.rs.html#206">pkey</a>,
-                <a class="ident" href="../../src/openssl/cms.rs.html#212">certs</a>,
-                <a class="ident" href="../../src/openssl/cms.rs.html#211">data_bio_ptr</a>,
-                <a class="ident" href="../../src/openssl/cms.rs.html#199">flags</a>.<a class="ident" href="../../src/openssl/cms.rs.html#21-48">bits</a>(),
+            <span class="kw">let</span> <span class="ident">cms</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::CMS_sign</span>(
+                <a class="ident" href="../../src/openssl/cms.rs.html#183">signcert</a>,
+                <a class="ident" href="../../src/openssl/cms.rs.html#184">pkey</a>,
+                <a class="ident" href="../../src/openssl/cms.rs.html#190">certs</a>,
+                <a class="ident" href="../../src/openssl/cms.rs.html#189">data_bio_ptr</a>,
+                <a class="ident" href="../../src/openssl/cms.rs.html#177">flags</a>.<a class="ident" href="../../src/openssl/cms.rs.html#22-49">bits</a>(),
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<span class="ident">CmsContentInfo::from_ptr</span>(<a class="ident" href="../../src/openssl/cms.rs.html#214">cms</a>))
+            <span class="prelude-val">Ok</span>(<span class="ident">CmsContentInfo::from_ptr</span>(<a class="ident" href="../../src/openssl/cms.rs.html#192">cms</a>))
         }
     }
 
@@ -567,23 +526,24 @@
     <span class="doccomment">/// OpenSSL documentation at [`CMS_encrypt`]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`CMS_encrypt`]: https://www.openssl.org/docs/manmaster/man3/CMS_encrypt.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">CMS_encrypt</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encrypt</span>(
-        <span class="ident">certs</span>: <span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#376-384">X509</a><span class="op">&gt;</span>,
+        <span class="ident">certs</span>: <span class="kw-2">&amp;</span><span class="ident">StackRef</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/x509/mod.rs.html#361-369">X509</a><span class="op">&gt;</span>,
         <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-        <span class="ident">cipher</span>: <a class="ident" href="../../src/openssl/symm.rs.html#76">Cipher</a>,
-        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/cms.rs.html#21-48">CMSOptions</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/cms.rs.html#50-67">CmsContentInfo</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="ident">cipher</span>: <a class="ident" href="../../src/openssl/symm.rs.html#73">Cipher</a>,
+        <span class="ident">flags</span>: <a class="ident" href="../../src/openssl/cms.rs.html#22-49">CMSOptions</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/cms.rs.html#51-68">CmsContentInfo</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">data_bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<a class="ident" href="../../src/openssl/cms.rs.html#234">data</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">data_bio</span> <span class="op">=</span> <span class="ident">MemBioSlice::new</span>(<a class="ident" href="../../src/openssl/cms.rs.html#213">data</a>)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">cms</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::CMS_encrypt</span>(
-                <a class="ident" href="../../src/openssl/cms.rs.html#233">certs</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/cms.rs.html#239">data_bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/cms.rs.html#235">cipher</a>.<a class="ident" href="../../src/openssl/symm.rs.html#323">as_ptr</a>(),
-                <a class="ident" href="../../src/openssl/cms.rs.html#236">flags</a>.<a class="ident" href="../../src/openssl/cms.rs.html#21-48">bits</a>(),
+            <span class="kw">let</span> <span class="ident">cms</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::CMS_encrypt</span>(
+                <a class="ident" href="../../src/openssl/cms.rs.html#212">certs</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/cms.rs.html#218">data_bio</a>.<a class="ident" href="../../src/openssl/bio.rs.html#35">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/cms.rs.html#214">cipher</a>.<a class="ident" href="../../src/openssl/symm.rs.html#320">as_ptr</a>(),
+                <a class="ident" href="../../src/openssl/cms.rs.html#215">flags</a>.<a class="ident" href="../../src/openssl/cms.rs.html#22-49">bits</a>(),
             ))<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<span class="ident">CmsContentInfo::from_ptr</span>(<a class="ident" href="../../src/openssl/cms.rs.html#241">cms</a>))
+            <span class="prelude-val">Ok</span>(<span class="ident">CmsContentInfo::from_ptr</span>(<a class="ident" href="../../src/openssl/cms.rs.html#220">cms</a>))
         }
     }
 }
@@ -596,8 +556,10 @@
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::x509::X509</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">ossl300</span>, <span class="ident">ignore</span>)]</span> <span class="comment">// 3.0.0 can&#39;t load RC2-40-CBC</span>
     <span class="kw">fn</span> <span class="ident">cms_encrypt_decrypt</span>() {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
+        <span class="kw">let</span> <span class="ident">_provider</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::provider::Provider::try_load</span>(<span class="prelude-val">None</span>, <span class="string">&quot;legacy&quot;</span>, <span class="bool-val">true</span>).<span class="ident">unwrap</span>();
+
         <span class="comment">// load cert with public key only</span>
         <span class="kw">let</span> <span class="ident">pub_cert_bytes</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../test/cms_pubkey.der&quot;</span>);
         <span class="kw">let</span> <span class="ident">pub_cert</span> <span class="op">=</span> <span class="ident">X509::from_der</span>(<span class="ident">pub_cert_bytes</span>).<span class="ident">expect</span>(<span class="string">&quot;failed to load pub cert&quot;</span>);
@@ -670,5 +632,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.11.1/src/protocol/frame/coding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>coding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/protocol/frame/coding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>coding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -294,19 +294,20 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
-<span id="292">292</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Various codes defined in RFC 6455.</span>
 
-<span class="kw">use</span> <span class="ident">std::convert</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">convert</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into</a>},
+    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
+};
 
 <span class="doccomment">/// WebSocket message opcode as in RFC 6455.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OpCode</span> {
     <span class="doccomment">/// Data (text or binary).</span>
-    <span class="ident">Data</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#17-26">Data</a>),
+    <span class="ident">Data</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#19-28">Data</a>),
     <span class="doccomment">/// Control message (close, ping, pong).</span>
-    <span class="ident">Control</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#30-39">Control</a>),
+    <span class="ident">Control</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#32-41">Control</a>),
 }
 
 <span class="doccomment">/// Data opcodes as in RFC 6455</span>
@@ -335,76 +336,80 @@
     <span class="ident">Reserved</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#17-26">Data</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#19-28">Data</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#42">self</a> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#19">Data::Continue</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#42">f</a>, <span class="string">&quot;CONTINUE&quot;</span>),
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#21">Data::Text</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#42">f</a>, <span class="string">&quot;TEXT&quot;</span>),
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#23">Data::Binary</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#42">f</a>, <span class="string">&quot;BINARY&quot;</span>),
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#25">Data::Reserved</a>(<span class="ident">x</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#42">f</a>, <span class="string">&quot;RESERVED_DATA_{}&quot;</span>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#47">x</a>),
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#44">self</a> {
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#21">Data::Continue</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#44">f</a>, <span class="string">&quot;CONTINUE&quot;</span>),
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#23">Data::Text</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#44">f</a>, <span class="string">&quot;TEXT&quot;</span>),
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#25">Data::Binary</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#44">f</a>, <span class="string">&quot;BINARY&quot;</span>),
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#27">Data::Reserved</a>(<span class="ident">x</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#44">f</a>, <span class="string">&quot;RESERVED_DATA_{}&quot;</span>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#49">x</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#30-39">Control</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#32-41">Control</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#53">self</a> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#32">Control::Close</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#53">f</a>, <span class="string">&quot;CLOSE&quot;</span>),
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Control::Ping</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#53">f</a>, <span class="string">&quot;PING&quot;</span>),
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Control::Pong</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#53">f</a>, <span class="string">&quot;PONG&quot;</span>),
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#38">Control::Reserved</a>(<span class="ident">x</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#53">f</a>, <span class="string">&quot;RESERVED_CONTROL_{}&quot;</span>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#58">x</a>),
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#55">self</a> {
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Control::Close</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#55">f</a>, <span class="string">&quot;CLOSE&quot;</span>),
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Control::Ping</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#55">f</a>, <span class="string">&quot;PING&quot;</span>),
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#38">Control::Pong</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#55">f</a>, <span class="string">&quot;PONG&quot;</span>),
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#40">Control::Reserved</a>(<span class="ident">x</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#55">f</a>, <span class="string">&quot;RESERVED_CONTROL_{}&quot;</span>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#60">x</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#8-13">OpCode</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10-15">OpCode</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#64">self</a> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">OpCode::Data</a>(<span class="ident">d</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#66">d</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#64">f</a>),
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">OpCode::Control</a>(<span class="ident">c</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#67">c</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#64">f</a>),
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#66">self</a> {
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">OpCode::Data</a>(<span class="ident">d</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#68">d</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#66">f</a>),
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">OpCode::Control</a>(<span class="ident">c</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#69">c</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#66">f</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#8-13">OpCode</a> {
+<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10-15">OpCode</a> {
     <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::Control</span>::{<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#32">Close</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Ping</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Pong</a>};
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::Data</span>::{<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#23">Binary</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#19">Continue</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#21">Text</a>};
-        <span class="kw">use</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#8-13"><span class="self">self</span>::OpCode</a>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#73">self</a> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#19">Continue</a>) =&gt; <span class="number">0</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#21">Text</a>) =&gt; <span class="number">1</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#23">Binary</a>) =&gt; <span class="number">2</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#25"><span class="self">self</span>::Data::Reserved</a>(<span class="ident">i</span>)) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#81">i</a>,
+        <span class="kw">use</span> <span class="self">self</span>::{
+            <span class="ident">Control</span>::{<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Close</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Ping</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#38">Pong</a>},
+            <span class="ident">Data</span>::{<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#25">Binary</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#21">Continue</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#23">Text</a>},
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10-15">OpCode</a>::<span class="kw-2">*</span>,
+        };
+        <span class="kw">match</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#75">self</a> {
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#21">Continue</a>) =&gt; <span class="number">0</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#23">Text</a>) =&gt; <span class="number">1</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#25">Binary</a>) =&gt; <span class="number">2</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#27"><span class="self">self</span>::Data::Reserved</a>(<span class="ident">i</span>)) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#85">i</a>,
 
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#32">Close</a>) =&gt; <span class="number">8</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Ping</a>) =&gt; <span class="number">9</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Pong</a>) =&gt; <span class="number">10</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#38"><span class="self">self</span>::Control::Reserved</a>(<span class="ident">i</span>)) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#86">i</a>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Close</a>) =&gt; <span class="number">8</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Ping</a>) =&gt; <span class="number">9</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#38">Pong</a>) =&gt; <span class="number">10</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#40"><span class="self">self</span>::Control::Reserved</a>(<span class="ident">i</span>)) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#90">i</a>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#8-13">OpCode</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#8-13">OpCode</a> {
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::Control</span>::{<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#32">Close</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Ping</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Pong</a>};
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::Data</span>::{<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#23">Binary</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#19">Continue</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#21">Text</a>};
-        <span class="kw">use</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#8-13"><span class="self">self</span>::OpCode</a>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#92">byte</a> {
-            <span class="number">0</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#19">Continue</a>),
-            <span class="number">1</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#21">Text</a>),
-            <span class="number">2</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#23">Binary</a>),
-            <span class="ident">i</span> @ <span class="number">3</span>..<span class="op">=</span><span class="number">7</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#25"><span class="self">self</span>::Data::Reserved</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#100">i</a>)),
-            <span class="number">8</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#32">Close</a>),
-            <span class="number">9</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Ping</a>),
-            <span class="number">10</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Pong</a>),
-            <span class="ident">i</span> @ <span class="number">11</span>..<span class="op">=</span><span class="number">15</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#38"><span class="self">self</span>::Control::Reserved</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#104">i</a>)),
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10-15">OpCode</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10-15">OpCode</a> {
+        <span class="kw">use</span> <span class="self">self</span>::{
+            <span class="ident">Control</span>::{<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Close</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Ping</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#38">Pong</a>},
+            <span class="ident">Data</span>::{<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#25">Binary</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#21">Continue</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#23">Text</a>},
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#10-15">OpCode</a>::<span class="kw-2">*</span>,
+        };
+        <span class="kw">match</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#96">byte</a> {
+            <span class="number">0</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#21">Continue</a>),
+            <span class="number">1</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#23">Text</a>),
+            <span class="number">2</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#25">Binary</a>),
+            <span class="ident">i</span> @ <span class="number">3</span>..<span class="op">=</span><span class="number">7</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#12">Data</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#27"><span class="self">self</span>::Data::Reserved</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#106">i</a>)),
+            <span class="number">8</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#34">Close</a>),
+            <span class="number">9</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#36">Ping</a>),
+            <span class="number">10</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#38">Pong</a>),
+            <span class="ident">i</span> @ <span class="number">11</span>..<span class="op">=</span><span class="number">15</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#14">Control</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#40"><span class="self">self</span>::Control::Reserved</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#110">i</a>)),
             <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Bug: OpCode out of range&quot;</span>),
         }
     }
 }
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#113-182"><span class="self">self</span>::CloseCode</a>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119-188"><span class="self">self</span>::CloseCode</a>::<span class="kw-2">*</span>;
 <span class="doccomment">/// Status code used to indicate why an endpoint is closing the WebSocket connection.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CloseCode</span> {
@@ -434,7 +439,7 @@
     <span class="ident">Abnormal</span>,
     <span class="doccomment">/// Indicates that an endpoint is terminating the connection</span>
     <span class="doccomment">/// because it has received data within a message that was not</span>
-    <span class="doccomment">/// consistent with the type of the message (e.g., non-UTF-8 [RFC3629]</span>
+    <span class="doccomment">/// consistent with the type of the message (e.g., non-UTF-8 \[RFC3629\]</span>
     <span class="doccomment">/// data within a text message).</span>
     <span class="ident">Invalid</span>,
     <span class="doccomment">/// Indicates that an endpoint is terminating the connection</span>
@@ -478,80 +483,73 @@
     <span class="ident">Bad</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#113-182">CloseCode</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119-188">CloseCode</a> {
     <span class="doccomment">/// Check if this CloseCode is allowed.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_allowed</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#186">self</a> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#181">Bad</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#175">Reserved</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#131">Status</a> =&gt; <span class="bool-val">false</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#137">Abnormal</a> =&gt; <span class="bool-val">false</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#173">Tls</a> =&gt; <span class="bool-val">false</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
-        }
+        <span class="op">!</span><span class="macro">matches!</span>(<a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#192">self</a>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#187">Bad</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#181">Reserved</a>(<span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#137">Status</a> <span class="op">|</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#143">Abnormal</a> <span class="op">|</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#179">Tls</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#113-182">CloseCode</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119-188">CloseCode</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="ident">code</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> <span class="op">=</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#199">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#199">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#200">code</a>)
+        <span class="kw">let</span> <span class="ident">code</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> <span class="op">=</span> <a class="self" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#198">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="macro">write!</span>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#198">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#199">code</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#113-182">CloseCode</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">code</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#113-182">CloseCode</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#206">code</a> {
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#116">Normal</a> =&gt; <span class="number">1000</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119">Away</a> =&gt; <span class="number">1001</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#122">Protocol</a> =&gt; <span class="number">1002</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#127">Unsupported</a> =&gt; <span class="number">1003</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#131">Status</a> =&gt; <span class="number">1005</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#137">Abnormal</a> =&gt; <span class="number">1006</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#142">Invalid</a> =&gt; <span class="number">1007</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#148">Policy</a> =&gt; <span class="number">1008</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#152">Size</a> =&gt; <span class="number">1009</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#160">Extension</a> =&gt; <span class="number">1010</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#164">Error</a> =&gt; <span class="number">1011</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#167">Restart</a> =&gt; <span class="number">1012</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#171">Again</a> =&gt; <span class="number">1013</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#173">Tls</a> =&gt; <span class="number">1015</span>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#175">Reserved</a>(<span class="ident">code</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#222">code</a>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#177">Iana</a>(<span class="ident">code</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#223">code</a>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#179">Library</a>(<span class="ident">code</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#224">code</a>,
-            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#181">Bad</a>(<span class="ident">code</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#225">code</a>,
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119-188">CloseCode</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">code</span>: <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119-188">CloseCode</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+        <span class="kw">match</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#205">code</a> {
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#122">Normal</a> =&gt; <span class="number">1000</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#125">Away</a> =&gt; <span class="number">1001</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#128">Protocol</a> =&gt; <span class="number">1002</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#133">Unsupported</a> =&gt; <span class="number">1003</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#137">Status</a> =&gt; <span class="number">1005</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#143">Abnormal</a> =&gt; <span class="number">1006</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#148">Invalid</a> =&gt; <span class="number">1007</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#154">Policy</a> =&gt; <span class="number">1008</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#158">Size</a> =&gt; <span class="number">1009</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#166">Extension</a> =&gt; <span class="number">1010</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#170">Error</a> =&gt; <span class="number">1011</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#173">Restart</a> =&gt; <span class="number">1012</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#177">Again</a> =&gt; <span class="number">1013</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#179">Tls</a> =&gt; <span class="number">1015</span>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#181">Reserved</a>(<span class="ident">code</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#221">code</a>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#183">Iana</a>(<span class="ident">code</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#222">code</a>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#185">Library</a>(<span class="ident">code</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#223">code</a>,
+            <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#187">Bad</a>(<span class="ident">code</span>) =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#224">code</a>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#113-182">CloseCode</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">code</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#113-182">CloseCode</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        (<span class="kw-2">*</span><a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#231">code</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119-188">CloseCode</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">code</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119-188">CloseCode</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
+        (<span class="kw-2">*</span><a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#230">code</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#113-182">CloseCode</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">code</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#113-182">CloseCode</a> {
-        <span class="kw">match</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#237">code</a> {
-            <span class="number">1000</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#116">Normal</a>,
-            <span class="number">1001</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119">Away</a>,
-            <span class="number">1002</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#122">Protocol</a>,
-            <span class="number">1003</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#127">Unsupported</a>,
-            <span class="number">1005</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#131">Status</a>,
-            <span class="number">1006</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#137">Abnormal</a>,
-            <span class="number">1007</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#142">Invalid</a>,
-            <span class="number">1008</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#148">Policy</a>,
-            <span class="number">1009</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#152">Size</a>,
-            <span class="number">1010</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#160">Extension</a>,
-            <span class="number">1011</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#164">Error</a>,
-            <span class="number">1012</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#167">Restart</a>,
-            <span class="number">1013</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#171">Again</a>,
-            <span class="number">1015</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#173">Tls</a>,
-            <span class="number">1</span>..<span class="op">=</span><span class="number">999</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#181">Bad</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#237">code</a>),
-            <span class="number">1016</span>..<span class="op">=</span><span class="number">2999</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#175">Reserved</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#237">code</a>),
-            <span class="number">3000</span>..<span class="op">=</span><span class="number">3999</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#177">Iana</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#237">code</a>),
-            <span class="number">4000</span>..<span class="op">=</span><span class="number">4999</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#179">Library</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#237">code</a>),
-            <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#181">Bad</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#237">code</a>),
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119-188">CloseCode</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">code</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#119-188">CloseCode</a> {
+        <span class="kw">match</span> <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#236">code</a> {
+            <span class="number">1000</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#122">Normal</a>,
+            <span class="number">1001</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#125">Away</a>,
+            <span class="number">1002</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#128">Protocol</a>,
+            <span class="number">1003</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#133">Unsupported</a>,
+            <span class="number">1005</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#137">Status</a>,
+            <span class="number">1006</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#143">Abnormal</a>,
+            <span class="number">1007</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#148">Invalid</a>,
+            <span class="number">1008</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#154">Policy</a>,
+            <span class="number">1009</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#158">Size</a>,
+            <span class="number">1010</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#166">Extension</a>,
+            <span class="number">1011</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#170">Error</a>,
+            <span class="number">1012</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#173">Restart</a>,
+            <span class="number">1013</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#177">Again</a>,
+            <span class="number">1015</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#179">Tls</a>,
+            <span class="number">1</span>..<span class="op">=</span><span class="number">999</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#187">Bad</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#236">code</a>),
+            <span class="number">1016</span>..<span class="op">=</span><span class="number">2999</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#181">Reserved</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#236">code</a>),
+            <span class="number">3000</span>..<span class="op">=</span><span class="number">3999</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#183">Iana</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#236">code</a>),
+            <span class="number">4000</span>..<span class="op">=</span><span class="number">4999</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#185">Library</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#236">code</a>),
+            <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#187">Bad</a>(<a class="ident" href="../../../../src/tungstenite/protocol/frame/coding.rs.html#236">code</a>),
         }
     }
 }
@@ -588,5 +586,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.13.10/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.18/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -457,429 +457,778 @@
 <span id="452">452</span>
 <span id="453">453</span>
 <span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error and Result module.</span>
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 
 <span class="doccomment">/// Result type often returned from methods that can have hyper `Error`s.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a><span class="op">&gt;</span>;
 
 <span class="kw">type</span> <span class="ident">Cause</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Represents errors that can occur handling HTTP streams.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Error</span> {
-    <span class="ident">inner</span>: <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#16-19">ErrorImpl</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#15-18">ErrorImpl</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">struct</span> <span class="ident">ErrorImpl</span> {
-    <span class="ident">kind</span>: <a class="ident" href="../../src/hyper/error.rs.html#22-53">Kind</a>,
-    <span class="ident">cause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#9">Cause</a><span class="op">&gt;</span>,
+    <span class="ident">kind</span>: <a class="ident" href="../../src/hyper/error.rs.html#21-63">Kind</a>,
+    <span class="ident">cause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#8">Cause</a><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Kind</span> {
-    <span class="ident">Parse</span>(<a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a>),
-    <span class="ident">User</span>(<a class="ident" href="../../src/hyper/error.rs.html#67-92">User</a>),
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">Kind</span> {
+    <span class="ident">Parse</span>(<a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a>),
+    <span class="ident">User</span>(<a class="ident" href="../../src/hyper/error.rs.html#93-143">User</a>),
     <span class="doccomment">/// A message reached EOF, but is not complete.</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
     <span class="ident">IncompleteMessage</span>,
     <span class="doccomment">/// A connection received a message (or bytes) when not waiting for one.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
     <span class="ident">UnexpectedMessage</span>,
     <span class="doccomment">/// A pending item was dropped before ever being processed.</span>
     <span class="ident">Canceled</span>,
     <span class="doccomment">/// Indicates a channel (client or body sender) is closed.</span>
     <span class="ident">ChannelClosed</span>,
     <span class="doccomment">/// An `io::Error` that occurred while trying to read or write to a network stream.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
     <span class="ident">Io</span>,
     <span class="doccomment">/// Error occurred while connecting.</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
     <span class="ident">Connect</span>,
     <span class="doccomment">/// Error creating a TcpListener.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tcp&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tcp&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>))]</span>
     <span class="ident">Listen</span>,
     <span class="doccomment">/// Error accepting on an Incoming stream.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
     <span class="ident">Accept</span>,
+    <span class="doccomment">/// User took too long to send headers</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
+    <span class="ident">HeaderTimeout</span>,
     <span class="doccomment">/// Error while reading a body from connection.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>))]</span>
     <span class="ident">Body</span>,
     <span class="doccomment">/// Error while writing a body to connection.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
     <span class="ident">BodyWrite</span>,
-    <span class="doccomment">/// The body write was aborted.</span>
-    <span class="ident">BodyWriteAborted</span>,
     <span class="doccomment">/// Error calling AsyncWrite::shutdown()</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
     <span class="ident">Shutdown</span>,
 
     <span class="doccomment">/// A general error from h2.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
     <span class="ident">Http2</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Parse</span> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">Parse</span> {
     <span class="ident">Method</span>,
     <span class="ident">Version</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
     <span class="ident">VersionH2</span>,
     <span class="ident">Uri</span>,
-    <span class="ident">Header</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)), <span class="ident">allow</span>(<span class="ident">unused</span>))]</span>
+    <span class="ident">UriTooLong</span>,
+    <span class="ident">Header</span>(<a class="ident" href="../../src/hyper/error.rs.html#82-90">Header</a>),
     <span class="ident">TooLarge</span>,
     <span class="ident">Status</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">debug_assertions</span>, <span class="ident">allow</span>(<span class="ident">unused</span>))]</span>
+    <span class="ident">Internal</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">User</span> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">Header</span> {
+    <span class="ident">Token</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+    <span class="ident">ContentLengthInvalid</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>))]</span>
+    <span class="ident">TransferEncodingInvalid</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+    <span class="ident">TransferEncodingUnexpected</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">User</span> {
     <span class="doccomment">/// Error calling user&#39;s HttpBody::poll_data().</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
     <span class="ident">Body</span>,
+    <span class="doccomment">/// The user aborted writing of the outgoing body.</span>
+    <span class="ident">BodyWriteAborted</span>,
     <span class="doccomment">/// Error calling user&#39;s MakeService.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
     <span class="ident">MakeService</span>,
     <span class="doccomment">/// Error from future of user&#39;s Service.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
     <span class="ident">Service</span>,
     <span class="doccomment">/// User tried to send a certain header in an unexpected context.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// For example, sending both `content-length` and `transfer-encoding`.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
     <span class="ident">UnexpectedHeader</span>,
     <span class="doccomment">/// User tried to create a Request with bad version.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
     <span class="ident">UnsupportedVersion</span>,
     <span class="doccomment">/// User tried to create a CONNECT Request with the Client.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
     <span class="ident">UnsupportedRequestMethod</span>,
     <span class="doccomment">/// User tried to respond with a 1xx (not 101) response code.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
     <span class="ident">UnsupportedStatusCode</span>,
     <span class="doccomment">/// User tried to send a Request with Client with non-absolute URI.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
     <span class="ident">AbsoluteUriRequired</span>,
 
     <span class="doccomment">/// User tried polling for an upgrade that doesn&#39;t exist.</span>
     <span class="ident">NoUpgrade</span>,
 
     <span class="doccomment">/// User polled for an upgrade, but low-level API is not using upgrades.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
     <span class="ident">ManualUpgrade</span>,
+
+    <span class="doccomment">/// User called `server::Connection::without_shutdown()` on an HTTP/2 conn.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+    <span class="ident">WithoutShutdownNonHttp1</span>,
+
+    <span class="doccomment">/// User aborted in an FFI callback.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
+    <span class="ident">AbortedByCallback</span>,
 }
 
 <span class="comment">// Sentinel type to indicate the error was caused by a timeout.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">TimedOut</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">TimedOut</span>;
 
-<span class="kw">impl</span> <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
     <span class="doccomment">/// Returns true if this was an HTTP parse error.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/hyper/error.rs.html#100">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
-        }
+        <span class="macro">matches!</span>(<a class="self" href="../../src/hyper/error.rs.html#151">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>, <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<span class="kw">_</span>))
+    }
+
+    <span class="doccomment">/// Returns true if this was an HTTP parse error caused by a message that was too large.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_parse_too_large</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="macro">matches!</span>(
+            <a class="self" href="../../src/hyper/error.rs.html#156">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#75">Parse::TooLarge</a>) <span class="op">|</span> <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#73">Parse::UriTooLong</a>)
+        )
+    }
+
+    <span class="doccomment">/// Returns true if this was an HTTP parse error caused by an invalid response status code or</span>
+    <span class="doccomment">/// reason phrase.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_parse_status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="macro">matches!</span>(<a class="self" href="../../src/hyper/error.rs.html#165">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>, <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#76">Parse::Status</a>))
     }
 
     <span class="doccomment">/// Returns true if this error was caused by user code.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_user</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/hyper/error.rs.html#108">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
-        }
+        <span class="macro">matches!</span>(<a class="self" href="../../src/hyper/error.rs.html#170">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>, <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns true if this was about a `Request` that was canceled.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_canceled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/hyper/error.rs.html#116">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span> <span class="op">==</span> <a class="ident" href="../../src/hyper/error.rs.html#30">Kind::Canceled</a>
+        <span class="macro">matches!</span>(<a class="self" href="../../src/hyper/error.rs.html#175">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>, <a class="ident" href="../../src/hyper/error.rs.html#31">Kind::Canceled</a>)
     }
 
     <span class="doccomment">/// Returns true if a sender&#39;s channel is closed.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/hyper/error.rs.html#121">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span> <span class="op">==</span> <a class="ident" href="../../src/hyper/error.rs.html#32">Kind::ChannelClosed</a>
+        <span class="macro">matches!</span>(<a class="self" href="../../src/hyper/error.rs.html#180">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>, <a class="ident" href="../../src/hyper/error.rs.html#33">Kind::ChannelClosed</a>)
     }
 
     <span class="doccomment">/// Returns true if this was an error from `Connect`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_connect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/hyper/error.rs.html#126">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span> <span class="op">==</span> <a class="ident" href="../../src/hyper/error.rs.html#36">Kind::Connect</a>
+        <span class="macro">matches!</span>(<a class="self" href="../../src/hyper/error.rs.html#185">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>, <a class="ident" href="../../src/hyper/error.rs.html#39">Kind::Connect</a>)
     }
 
     <span class="doccomment">/// Returns true if the connection closed before a message could complete.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_incomplete_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/hyper/error.rs.html#131">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span> <span class="op">==</span> <a class="ident" href="../../src/hyper/error.rs.html#26">Kind::IncompleteMessage</a>
+        <span class="macro">matches!</span>(<a class="self" href="../../src/hyper/error.rs.html#190">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>, <a class="ident" href="../../src/hyper/error.rs.html#26">Kind::IncompleteMessage</a>)
     }
 
     <span class="doccomment">/// Returns true if the body write was aborted.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_body_write_aborted</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/hyper/error.rs.html#136">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span> <span class="op">==</span> <a class="ident" href="../../src/hyper/error.rs.html#47">Kind::BodyWriteAborted</a>
+        <span class="macro">matches!</span>(<a class="self" href="../../src/hyper/error.rs.html#195">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>, <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#98">User::BodyWriteAborted</a>))
     }
 
     <span class="doccomment">/// Returns true if the error was caused by a timeout.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_timeout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/hyper/error.rs.html#141">self</a>.<a class="ident" href="../../src/hyper/error.rs.html#165">find_source</a>::<span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#96">TimedOut</a><span class="op">&gt;</span>().<span class="ident">is_some</span>()
+        <a class="self" href="../../src/hyper/error.rs.html#200">self</a>.<a class="ident" href="../../src/hyper/error.rs.html#225">find_source</a>::<span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#147">TimedOut</a><span class="op">&gt;</span>().<span class="ident">is_some</span>()
     }
 
     <span class="doccomment">/// Consumes the error, returning its cause.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_cause</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/hyper/error.rs.html#146">self</a>.<span class="ident">inner</span>.<span class="ident">cause</span>
+        <a class="self" href="../../src/hyper/error.rs.html#205">self</a>.<span class="ident">inner</span>.<span class="ident">cause</span>
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <a class="ident" href="../../src/hyper/error.rs.html#22-53">Kind</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-            <span class="ident">inner</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#16-19">ErrorImpl</a> { <a class="ident" href="../../src/hyper/error.rs.html#150">kind</a>, <span class="ident">cause</span>: <span class="prelude-val">None</span> }),
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <a class="ident" href="../../src/hyper/error.rs.html#21-63">Kind</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+            <span class="ident">inner</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#15-18">ErrorImpl</a> { <a class="ident" href="../../src/hyper/error.rs.html#209">kind</a>, <span class="ident">cause</span>: <span class="prelude-val">None</span> }),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cause</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cause</span>: <span class="ident">C</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <a class="self" href="../../src/hyper/error.rs.html#156">self</a>.<span class="ident">inner</span>.<span class="ident">cause</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/hyper/error.rs.html#156">cause</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <a class="self" href="../../src/hyper/error.rs.html#156">self</a>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#8">Cause</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cause</span>: <span class="ident">C</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <a class="self" href="../../src/hyper/error.rs.html#215">self</a>.<span class="ident">inner</span>.<span class="ident">cause</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/hyper/error.rs.html#215">cause</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <a class="self" href="../../src/hyper/error.rs.html#215">self</a>
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/hyper/error.rs.html#22-53">Kind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/hyper/error.rs.html#161">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/hyper/error.rs.html#21-63">Kind</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/hyper/error.rs.html#221">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">find_source</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cause</span> <span class="op">=</span> <a class="self" href="../../src/hyper/error.rs.html#165">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">source</a>();
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/hyper/error.rs.html#166">cause</a> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">typed</span>) <span class="op">=</span> <a class="ident" href="../../src/hyper/error.rs.html#167">err</a>.<span class="ident">downcast_ref</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/hyper/error.rs.html#168">typed</a>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find_source</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">E</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cause</span> <span class="op">=</span> <a class="self" href="../../src/hyper/error.rs.html#225">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">source</a>();
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/hyper/error.rs.html#226">cause</a> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">typed</span>) <span class="op">=</span> <a class="ident" href="../../src/hyper/error.rs.html#227">err</a>.<span class="ident">downcast_ref</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/hyper/error.rs.html#228">typed</a>);
             }
-            <a class="ident" href="../../src/hyper/error.rs.html#166">cause</a> <span class="op">=</span> <a class="ident" href="../../src/hyper/error.rs.html#167">err</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">source</a>();
+            <a class="ident" href="../../src/hyper/error.rs.html#226">cause</a> <span class="op">=</span> <a class="ident" href="../../src/hyper/error.rs.html#227">err</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">source</a>();
         }
 
         <span class="comment">// else</span>
         <span class="prelude-val">None</span>
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">h2_reason</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../h2/frame/reason/struct.Reason.html">h2::Reason</a> {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">h2_reason</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../h2/frame/reason/struct.Reason.html">h2::Reason</a> {
         <span class="comment">// Find an h2::Reason somewhere in the cause stack, if it exists,</span>
         <span class="comment">// otherwise assume an INTERNAL_ERROR.</span>
-        <a class="self" href="../../src/hyper/error.rs.html#178">self</a>.<a class="ident" href="../../src/hyper/error.rs.html#165">find_source</a>::<span class="op">&lt;</span><a class="ident" href="../../h2/error/struct.Error.html">h2::Error</a><span class="op">&gt;</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">h2_err</span><span class="op">|</span> <a class="ident" href="../../src/hyper/error.rs.html#182">h2_err</a>.<span class="ident">reason</span>())
+        <a class="self" href="../../src/hyper/error.rs.html#239">self</a>.<a class="ident" href="../../src/hyper/error.rs.html#225">find_source</a>::<span class="op">&lt;</span><a class="ident" href="../../h2/error/struct.Error.html">h2::Error</a><span class="op">&gt;</span>()
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">h2_err</span><span class="op">|</span> <a class="ident" href="../../src/hyper/error.rs.html#243">h2_err</a>.<span class="ident">reason</span>())
             .<span class="ident">unwrap_or</span>(<span class="ident">h2::Reason::INTERNAL_ERROR</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_canceled</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#30">Kind::Canceled</a>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_canceled</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#31">Kind::Canceled</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_incomplete</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_incomplete</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
         <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#26">Kind::IncompleteMessage</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_too_large</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#62">Parse::TooLarge</a>))
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_too_large</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#75">Parse::TooLarge</a>))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_version_h2</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#59">Parse::VersionH2</a>))
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_version_h2</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#70">Parse::VersionH2</a>))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_unexpected_message</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#28">Kind::UnexpectedMessage</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_unexpected_message</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#29">Kind::UnexpectedMessage</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_io</span>(<span class="ident">cause</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#34">Kind::Io</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#206">cause</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_io</span>(<span class="ident">cause</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#36">Kind::Io</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#272">cause</a>)
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tcp&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_listen</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cause</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#39">Kind::Listen</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#211">cause</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tcp&quot;</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_listen</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#8">Cause</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#42">Kind::Listen</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#277">cause</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_accept</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cause</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#41">Kind::Accept</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#215">cause</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_accept</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#8">Cause</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#46">Kind::Accept</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#283">cause</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_connect</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cause</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#36">Kind::Connect</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#219">cause</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_connect</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#8">Cause</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#39">Kind::Connect</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#289">cause</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_closed</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#32">Kind::ChannelClosed</a>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_closed</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#33">Kind::ChannelClosed</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_body</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cause</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#43">Kind::Body</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#227">cause</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_body</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#8">Cause</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#52">Kind::Body</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#298">cause</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_body_write</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cause</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#45">Kind::BodyWrite</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#231">cause</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_body_write</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#8">Cause</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#55">Kind::BodyWrite</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#303">cause</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_body_write_aborted</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#47">Kind::BodyWriteAborted</a>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_body_write_aborted</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#98">User::BodyWriteAborted</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">new_user</span>(<span class="ident">user</span>: <a class="ident" href="../../src/hyper/error.rs.html#67-92">User</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#239">user</a>))
+    <span class="kw">fn</span> <span class="ident">new_user</span>(<span class="ident">user</span>: <a class="ident" href="../../src/hyper/error.rs.html#93-143">User</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#311">user</a>))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_user_header</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#77">User::UnexpectedHeader</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_header</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#111">User::UnexpectedHeader</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_user_unsupported_version</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#79">User::UnsupportedVersion</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_header_timeout</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#49">Kind::HeaderTimeout</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_user_unsupported_request_method</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#81">User::UnsupportedRequestMethod</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_unsupported_version</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#115">User::UnsupportedVersion</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_user_unsupported_status_code</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#83">User::UnsupportedStatusCode</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_unsupported_request_method</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#119">User::UnsupportedRequestMethod</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_user_absolute_uri_required</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#85">User::AbsoluteUriRequired</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_unsupported_status_code</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#123">User::UnsupportedStatusCode</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_user_no_upgrade</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#88">User::NoUpgrade</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_absolute_uri_required</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#127">User::AbsoluteUriRequired</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_user_manual_upgrade</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#91">User::ManualUpgrade</a>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_no_upgrade</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#130">User::NoUpgrade</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_user_make_service</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cause</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#71">User::MakeService</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#271">cause</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_manual_upgrade</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#134">User::ManualUpgrade</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_user_service</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cause</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#73">User::Service</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#275">cause</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_make_service</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#8">Cause</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#102">User::MakeService</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#361">cause</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_user_body</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cause</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#69">User::Body</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#279">cause</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_service</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#8">Cause</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#105">User::Service</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#366">cause</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_shutdown</span>(<span class="ident">cause</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#49">Kind::Shutdown</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#283">cause</a>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_body</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#8">Cause</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">cause</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new_user</span>(<a class="ident" href="../../src/hyper/error.rs.html#96">User::Body</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#371">cause</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_h2</span>(<span class="ident">cause</span>: <a class="ident" href="../../h2/error/struct.Error.html">::h2::Error</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="kw">if</span> <a class="ident" href="../../src/hyper/error.rs.html#287">cause</a>.<span class="ident">is_io</span>() {
-            <span class="ident">Error::new_io</span>(<a class="ident" href="../../src/hyper/error.rs.html#287">cause</a>.<span class="ident">into_io</span>().<span class="ident">expect</span>(<span class="string">&quot;h2::Error::is_io&quot;</span>))
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_without_shutdown_not_h1</span>() -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#138">User::WithoutShutdownNonHttp1</a>))
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_shutdown</span>(<span class="ident">cause</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#58">Kind::Shutdown</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#381">cause</a>)
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_user_aborted_by_callback</span>() -&gt; <span class="ident">Error</span> {
+        <span class="ident">Error::new_user</span>(<span class="ident">User::AbortedByCallback</span>)
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new_h2</span>(<span class="ident">cause</span>: <a class="ident" href="../../h2/error/struct.Error.html">::h2::Error</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="kw">if</span> <a class="ident" href="../../src/hyper/error.rs.html#391">cause</a>.<span class="ident">is_io</span>() {
+            <span class="ident">Error::new_io</span>(<a class="ident" href="../../src/hyper/error.rs.html#391">cause</a>.<span class="ident">into_io</span>().<span class="ident">expect</span>(<span class="string">&quot;h2::Error::is_io&quot;</span>))
         } <span class="kw">else</span> {
-            <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#52">Kind::Http2</a>).<a class="ident" href="../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#287">cause</a>)
+            <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#62">Kind::Http2</a>).<a class="ident" href="../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../src/hyper/error.rs.html#391">cause</a>)
         }
+    }
+
+    <span class="doccomment">/// The error&#39;s standalone message, without the message from the source.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
+        <a class="self" href="../../src/hyper/error.rs.html#400">self</a>.<a class="ident" href="../../src/hyper/error.rs.html#404">description</a>()
     }
 
     <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/hyper/error.rs.html#295">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span> {
-            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#57">Parse::Method</a>) =&gt; <span class="string">&quot;invalid HTTP method parsed&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#58">Parse::Version</a>) =&gt; <span class="string">&quot;invalid HTTP version parsed&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#59">Parse::VersionH2</a>) =&gt; <span class="string">&quot;invalid HTTP version parsed (found HTTP2 preface)&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#60">Parse::Uri</a>) =&gt; <span class="string">&quot;invalid URI&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#61">Parse::Header</a>) =&gt; <span class="string">&quot;invalid HTTP header parsed&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#62">Parse::TooLarge</a>) =&gt; <span class="string">&quot;message head is too large&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#63">Parse::Status</a>) =&gt; <span class="string">&quot;invalid HTTP status-code parsed&quot;</span>,
+        <span class="kw">match</span> <a class="self" href="../../src/hyper/error.rs.html#404">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span> {
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#67">Parse::Method</a>) =&gt; <span class="string">&quot;invalid HTTP method parsed&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#68">Parse::Version</a>) =&gt; <span class="string">&quot;invalid HTTP version parsed&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#70">Parse::VersionH2</a>) =&gt; <span class="string">&quot;invalid HTTP version parsed (found HTTP2 preface)&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#71">Parse::Uri</a>) =&gt; <span class="string">&quot;invalid URI&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#73">Parse::UriTooLong</a>) =&gt; <span class="string">&quot;URI too long&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a class="ident" href="../../src/hyper/error.rs.html#83">Header::Token</a>)) =&gt; <span class="string">&quot;invalid HTTP header parsed&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a class="ident" href="../../src/hyper/error.rs.html#85">Header::ContentLengthInvalid</a>)) =&gt; {
+                <span class="string">&quot;invalid content-length parsed&quot;</span>
+            }
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>))]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a class="ident" href="../../src/hyper/error.rs.html#87">Header::TransferEncodingInvalid</a>)) =&gt; {
+                <span class="string">&quot;invalid transfer-encoding parsed&quot;</span>
+            }
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a class="ident" href="../../src/hyper/error.rs.html#89">Header::TransferEncodingUnexpected</a>)) =&gt; {
+                <span class="string">&quot;unexpected transfer-encoding parsed&quot;</span>
+            }
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#75">Parse::TooLarge</a>) =&gt; <span class="string">&quot;message head is too large&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#76">Parse::Status</a>) =&gt; <span class="string">&quot;invalid HTTP status-code parsed&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#78">Parse::Internal</a>) =&gt; {
+                <span class="string">&quot;internal error inside Hyper and/or its dependencies, please report&quot;</span>
+            }
             <a class="ident" href="../../src/hyper/error.rs.html#26">Kind::IncompleteMessage</a> =&gt; <span class="string">&quot;connection closed before message completed&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#28">Kind::UnexpectedMessage</a> =&gt; <span class="string">&quot;received unexpected message from connection&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#32">Kind::ChannelClosed</a> =&gt; <span class="string">&quot;channel closed&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#36">Kind::Connect</a> =&gt; <span class="string">&quot;error trying to connect&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#30">Kind::Canceled</a> =&gt; <span class="string">&quot;operation was canceled&quot;</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tcp&quot;</span>)]</span>
-            <a class="ident" href="../../src/hyper/error.rs.html#39">Kind::Listen</a> =&gt; <span class="string">&quot;error creating server listener&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#41">Kind::Accept</a> =&gt; <span class="string">&quot;error accepting connection&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#43">Kind::Body</a> =&gt; <span class="string">&quot;error reading a body from connection&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#45">Kind::BodyWrite</a> =&gt; <span class="string">&quot;error writing a body to connection&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#47">Kind::BodyWriteAborted</a> =&gt; <span class="string">&quot;body write aborted&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#49">Kind::Shutdown</a> =&gt; <span class="string">&quot;error shutting down connection&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#52">Kind::Http2</a> =&gt; <span class="string">&quot;http2 error&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#34">Kind::Io</a> =&gt; <span class="string">&quot;connection error&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#29">Kind::UnexpectedMessage</a> =&gt; <span class="string">&quot;received unexpected message from connection&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#33">Kind::ChannelClosed</a> =&gt; <span class="string">&quot;channel closed&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#39">Kind::Connect</a> =&gt; <span class="string">&quot;error trying to connect&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#31">Kind::Canceled</a> =&gt; <span class="string">&quot;operation was canceled&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tcp&quot;</span>))]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#42">Kind::Listen</a> =&gt; <span class="string">&quot;error creating server listener&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#46">Kind::Accept</a> =&gt; <span class="string">&quot;error accepting connection&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#49">Kind::HeaderTimeout</a> =&gt; <span class="string">&quot;read header from client timeout&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>))]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#52">Kind::Body</a> =&gt; <span class="string">&quot;error reading a body from connection&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#55">Kind::BodyWrite</a> =&gt; <span class="string">&quot;error writing a body to connection&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#58">Kind::Shutdown</a> =&gt; <span class="string">&quot;error shutting down connection&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#62">Kind::Http2</a> =&gt; <span class="string">&quot;http2 error&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#36">Kind::Io</a> =&gt; <span class="string">&quot;connection error&quot;</span>,
 
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#69">User::Body</a>) =&gt; <span class="string">&quot;error from user&#39;s HttpBody stream&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#71">User::MakeService</a>) =&gt; <span class="string">&quot;error from user&#39;s MakeService&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#73">User::Service</a>) =&gt; <span class="string">&quot;error from user&#39;s Service&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#77">User::UnexpectedHeader</a>) =&gt; <span class="string">&quot;user sent unexpected header&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#79">User::UnsupportedVersion</a>) =&gt; <span class="string">&quot;request has unsupported HTTP version&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#81">User::UnsupportedRequestMethod</a>) =&gt; <span class="string">&quot;request has unsupported HTTP method&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#83">User::UnsupportedStatusCode</a>) =&gt; {
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#96">User::Body</a>) =&gt; <span class="string">&quot;error from user&#39;s HttpBody stream&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#98">User::BodyWriteAborted</a>) =&gt; <span class="string">&quot;user body write aborted&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#102">User::MakeService</a>) =&gt; <span class="string">&quot;error from user&#39;s MakeService&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#105">User::Service</a>) =&gt; <span class="string">&quot;error from user&#39;s Service&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#111">User::UnexpectedHeader</a>) =&gt; <span class="string">&quot;user sent unexpected header&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#115">User::UnsupportedVersion</a>) =&gt; <span class="string">&quot;request has unsupported HTTP version&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#119">User::UnsupportedRequestMethod</a>) =&gt; <span class="string">&quot;request has unsupported HTTP method&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#123">User::UnsupportedStatusCode</a>) =&gt; {
                 <span class="string">&quot;response has 1xx status code, not supported by server&quot;</span>
             }
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#85">User::AbsoluteUriRequired</a>) =&gt; <span class="string">&quot;client requires absolute-form URIs&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#88">User::NoUpgrade</a>) =&gt; <span class="string">&quot;no upgrade available&quot;</span>,
-            <a class="ident" href="../../src/hyper/error.rs.html#24">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#91">User::ManualUpgrade</a>) =&gt; <span class="string">&quot;upgrade expected but low level API in use&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#127">User::AbsoluteUriRequired</a>) =&gt; <span class="string">&quot;client requires absolute-form URIs&quot;</span>,
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#130">User::NoUpgrade</a>) =&gt; <span class="string">&quot;no upgrade available&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#134">User::ManualUpgrade</a>) =&gt; <span class="string">&quot;upgrade expected but low level API in use&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
+            <a class="ident" href="../../src/hyper/error.rs.html#23">Kind::User</a>(<a class="ident" href="../../src/hyper/error.rs.html#138">User::WithoutShutdownNonHttp1</a>) =&gt; {
+                <span class="string">&quot;without_shutdown() called on a non-HTTP/1 connection&quot;</span>
+            }
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
+            <span class="ident">Kind::User</span>(<span class="ident">User::AbortedByCallback</span>) =&gt; <span class="string">&quot;operation aborted by an application callback&quot;</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <a class="ident" href="../../src/hyper/error.rs.html#336">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;hyper::Error&quot;</span>);
-        <a class="ident" href="../../src/hyper/error.rs.html#337">f</a>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/hyper/error.rs.html#336">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">cause</span>) <span class="op">=</span> <a class="self" href="../../src/hyper/error.rs.html#336">self</a>.<span class="ident">inner</span>.<span class="ident">cause</span> {
-            <a class="ident" href="../../src/hyper/error.rs.html#337">f</a>.<span class="ident">field</span>(<a class="ident" href="../../src/hyper/error.rs.html#339">cause</a>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <a class="ident" href="../../src/hyper/error.rs.html#493">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;hyper::Error&quot;</span>);
+        <a class="ident" href="../../src/hyper/error.rs.html#494">f</a>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/hyper/error.rs.html#493">self</a>.<span class="ident">inner</span>.<span class="ident">kind</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">cause</span>) <span class="op">=</span> <a class="self" href="../../src/hyper/error.rs.html#493">self</a>.<span class="ident">inner</span>.<span class="ident">cause</span> {
+            <a class="ident" href="../../src/hyper/error.rs.html#494">f</a>.<span class="ident">field</span>(<a class="ident" href="../../src/hyper/error.rs.html#496">cause</a>);
         }
-        <a class="ident" href="../../src/hyper/error.rs.html#337">f</a>.<span class="ident">finish</span>()
+        <a class="ident" href="../../src/hyper/error.rs.html#494">f</a>.<span class="ident">finish</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">cause</span>) <span class="op">=</span> <a class="self" href="../../src/hyper/error.rs.html#347">self</a>.<span class="ident">inner</span>.<span class="ident">cause</span> {
-            <span class="macro">write!</span>(<a class="ident" href="../../src/hyper/error.rs.html#347">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <a class="self" href="../../src/hyper/error.rs.html#347">self</a>.<a class="ident" href="../../src/hyper/error.rs.html#295">description</a>(), <a class="ident" href="../../src/hyper/error.rs.html#348">cause</a>)
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">cause</span>) <span class="op">=</span> <a class="self" href="../../src/hyper/error.rs.html#504">self</a>.<span class="ident">inner</span>.<span class="ident">cause</span> {
+            <span class="macro">write!</span>(<a class="ident" href="../../src/hyper/error.rs.html#504">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <a class="self" href="../../src/hyper/error.rs.html#504">self</a>.<a class="ident" href="../../src/hyper/error.rs.html#404">description</a>(), <a class="ident" href="../../src/hyper/error.rs.html#505">cause</a>)
         } <span class="kw">else</span> {
-            <a class="ident" href="../../src/hyper/error.rs.html#347">f</a>.<span class="ident">write_str</span>(<a class="self" href="../../src/hyper/error.rs.html#347">self</a>.<a class="ident" href="../../src/hyper/error.rs.html#295">description</a>())
+            <a class="ident" href="../../src/hyper/error.rs.html#504">f</a>.<span class="ident">write_str</span>(<a class="self" href="../../src/hyper/error.rs.html#504">self</a>.<a class="ident" href="../../src/hyper/error.rs.html#404">description</a>())
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
     <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <a class="self" href="../../src/hyper/error.rs.html#357">self</a>.<span class="ident">inner</span>
+        <a class="self" href="../../src/hyper/error.rs.html#514">self</a>.<span class="ident">inner</span>
             .<span class="ident">cause</span>
             .<span class="ident">as_ref</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">cause</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/hyper/error.rs.html#361">cause</a> <span class="kw">as</span> <span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">cause</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/hyper/error.rs.html#518">cause</a> <span class="kw">as</span> <span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>))
     }
 }
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {
-        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#23">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#367">err</a>))
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {
+        <span class="ident">Error::new</span>(<a class="ident" href="../../src/hyper/error.rs.html#22">Kind::Parse</a>(<a class="ident" href="../../src/hyper/error.rs.html#524">err</a>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../httparse/enum.Error.html">httparse::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../httparse/enum.Error.html">httparse::Error</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a> {
-        <span class="kw">match</span> <a class="ident" href="../../src/hyper/error.rs.html#373">err</a> {
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>)]</span>
+<span class="kw">impl</span> <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">content_length_invalid</span>() -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a class="ident" href="../../src/hyper/error.rs.html#85">Header::ContentLengthInvalid</a>)
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http1&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">transfer_encoding_invalid</span>() -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a class="ident" href="../../src/hyper/error.rs.html#87">Header::TransferEncodingInvalid</a>)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">transfer_encoding_unexpected</span>() -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a class="ident" href="../../src/hyper/error.rs.html#89">Header::TransferEncodingUnexpected</a>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../httparse/enum.Error.html">httparse::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <a class="ident" href="../../httparse/enum.Error.html">httparse::Error</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+        <span class="kw">match</span> <a class="ident" href="../../src/hyper/error.rs.html#546">err</a> {
             <span class="ident">httparse::Error::HeaderName</span>
             <span class="op">|</span> <span class="ident">httparse::Error::HeaderValue</span>
             <span class="op">|</span> <span class="ident">httparse::Error::NewLine</span>
-            <span class="op">|</span> <span class="ident">httparse::Error::Token</span> =&gt; <a class="ident" href="../../src/hyper/error.rs.html#61">Parse::Header</a>,
-            <span class="ident">httparse::Error::Status</span> =&gt; <a class="ident" href="../../src/hyper/error.rs.html#63">Parse::Status</a>,
-            <span class="ident">httparse::Error::TooManyHeaders</span> =&gt; <a class="ident" href="../../src/hyper/error.rs.html#62">Parse::TooLarge</a>,
-            <span class="ident">httparse::Error::Version</span> =&gt; <a class="ident" href="../../src/hyper/error.rs.html#58">Parse::Version</a>,
+            <span class="op">|</span> <span class="ident">httparse::Error::Token</span> =&gt; <a class="ident" href="../../src/hyper/error.rs.html#74">Parse::Header</a>(<a class="ident" href="../../src/hyper/error.rs.html#83">Header::Token</a>),
+            <span class="ident">httparse::Error::Status</span> =&gt; <a class="ident" href="../../src/hyper/error.rs.html#76">Parse::Status</a>,
+            <span class="ident">httparse::Error::TooManyHeaders</span> =&gt; <a class="ident" href="../../src/hyper/error.rs.html#75">Parse::TooLarge</a>,
+            <span class="ident">httparse::Error::Version</span> =&gt; <a class="ident" href="../../src/hyper/error.rs.html#68">Parse::Version</a>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/method/struct.InvalidMethod.html">http::method::InvalidMethod</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../http/method/struct.InvalidMethod.html">http::method::InvalidMethod</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a> {
-        <a class="ident" href="../../src/hyper/error.rs.html#57">Parse::Method</a>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/method/struct.InvalidMethod.html">http::method::InvalidMethod</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../http/method/struct.InvalidMethod.html">http::method::InvalidMethod</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+        <a class="ident" href="../../src/hyper/error.rs.html#67">Parse::Method</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/status/struct.InvalidStatusCode.html">http::status::InvalidStatusCode</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../http/status/struct.InvalidStatusCode.html">http::status::InvalidStatusCode</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a> {
-        <a class="ident" href="../../src/hyper/error.rs.html#63">Parse::Status</a>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/status/struct.InvalidStatusCode.html">http::status::InvalidStatusCode</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../http/status/struct.InvalidStatusCode.html">http::status::InvalidStatusCode</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+        <a class="ident" href="../../src/hyper/error.rs.html#76">Parse::Status</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/uri/struct.InvalidUri.html">http::uri::InvalidUri</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../http/uri/struct.InvalidUri.html">http::uri::InvalidUri</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a> {
-        <a class="ident" href="../../src/hyper/error.rs.html#60">Parse::Uri</a>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/uri/struct.InvalidUri.html">http::uri::InvalidUri</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../http/uri/struct.InvalidUri.html">http::uri::InvalidUri</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+        <a class="ident" href="../../src/hyper/error.rs.html#71">Parse::Uri</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/uri/struct.InvalidUriParts.html">http::uri::InvalidUriParts</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../http/uri/struct.InvalidUriParts.html">http::uri::InvalidUriParts</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#56-64">Parse</a> {
-        <a class="ident" href="../../src/hyper/error.rs.html#60">Parse::Uri</a>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../http/uri/struct.InvalidUriParts.html">http::uri::InvalidUriParts</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../http/uri/struct.InvalidUriParts.html">http::uri::InvalidUriParts</a>) -&gt; <a class="ident" href="../../src/hyper/error.rs.html#66-79">Parse</a> {
+        <a class="ident" href="../../src/hyper/error.rs.html#71">Parse::Uri</a>
     }
 }
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">trait</span> <span class="ident">AssertSendSync</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> {}
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/hyper/error.rs.html#411">AssertSendSync</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#12-14">Error</a> {}
+<span class="kw">impl</span> <a class="ident" href="../../src/hyper/error.rs.html#584">AssertSendSync</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#11-13">Error</a> {}
 
 <span class="comment">// ===== impl TimedOut ====</span>
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#96">TimedOut</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#147">TimedOut</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/hyper/error.rs.html#418">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;operation timed out&quot;</span>)
+        <a class="ident" href="../../src/hyper/error.rs.html#591">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;operation timed out&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#96">TimedOut</a> {}
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../src/hyper/error.rs.html#147">TimedOut</a> {}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
@@ -891,18 +1240,21 @@
         <span class="macro">assert_eq!</span>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span>(), <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>());
     }
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">h2_reason_unknown</span>() {
         <span class="kw">let</span> <span class="ident">closed</span> <span class="op">=</span> <span class="ident">Error::new_closed</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">closed</span>.<span class="ident">h2_reason</span>(), <span class="ident">h2::Reason::INTERNAL_ERROR</span>);
     }
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">h2_reason_one_level</span>() {
         <span class="kw">let</span> <span class="ident">body_err</span> <span class="op">=</span> <span class="ident">Error::new_user_body</span>(<span class="ident">h2::Error::from</span>(<span class="ident">h2::Reason::ENHANCE_YOUR_CALM</span>));
         <span class="macro">assert_eq!</span>(<span class="ident">body_err</span>.<span class="ident">h2_reason</span>(), <span class="ident">h2::Reason::ENHANCE_YOUR_CALM</span>);
     }
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">h2_reason_nested</span>() {
         <span class="kw">let</span> <span class="ident">recvd</span> <span class="op">=</span> <span class="ident">Error::new_h2</span>(<span class="ident">h2::Error::from</span>(<span class="ident">h2::Reason::HTTP_1_1_REQUIRED</span>));
@@ -912,5 +1264,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

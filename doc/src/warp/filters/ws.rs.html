@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.2.5/src/filters/ws.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ws.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/ws.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ws.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -379,6 +379,39 @@
 <span id="374">374</span>
 <span id="375">375</span>
 <span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Websockets Filters</span>
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
@@ -387,13 +420,14 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/warp/filters/mod.rs.html#8">body</a>, <a class="ident" href="../../../src/warp/filters/mod.rs.html#15">header</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::filter</span>::{<a class="ident" href="../../../src/warp/filter/mod.rs.html#92-401">Filter</a>, <a class="ident" href="../../../src/warp/generic.rs.html#4">One</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/warp/reject.rs.html#174-176"><span class="kw">crate</span>::reject::Rejection</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/warp/filters/mod.rs.html#15"><span class="kw">super</span>::header</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::filter</span>::{<a class="ident" href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>, <a class="ident" href="../../../src/warp/filter/mod.rs.html#93-434">Filter</a>, <a class="ident" href="../../../src/warp/generic.rs.html#4">One</a>};
+<span class="kw">use</span> <a class="ident" href="../../../src/warp/reject.rs.html#210-212"><span class="kw">crate</span>::reject::Rejection</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::reply</span>::{<a class="ident" href="../../../src/warp/reply.rs.html#228-291">Reply</a>, <a class="ident" href="../../../src/warp/reply.rs.html#55">Response</a>};
-<span class="kw">use</span> <span class="ident">futures</span>::{<a class="ident" href="../../../futures_util/future/index.html">future</a>, <span class="ident">ready</span>, <a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">FutureExt</a>, <a class="ident" href="../../../futures_sink/trait.Sink.html">Sink</a>, <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>, <a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">TryFutureExt</a>};
+<span class="kw">use</span> <span class="ident">futures_util</span>::{<a class="ident" href="../../../futures_util/future/index.html">future</a>, <span class="ident">ready</span>, <a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">FutureExt</a>, <a class="ident" href="../../../futures_sink/trait.Sink.html">Sink</a>, <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>, <a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">TryFutureExt</a>};
 <span class="kw">use</span> <span class="ident">headers</span>::{<a class="ident" href="../../../headers/common/connection/struct.Connection.html">Connection</a>, <a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">HeaderMapExt</a>, <a class="ident" href="../../../headers/common/sec_websocket_accept/struct.SecWebsocketAccept.html">SecWebsocketAccept</a>, <a class="ident" href="../../../headers/common/sec_websocket_key/struct.SecWebsocketKey.html">SecWebsocketKey</a>, <a class="ident" href="../../../headers/common/upgrade/struct.Upgrade.html">Upgrade</a>};
 <span class="kw">use</span> <a class="ident" href="../../../http/index.html">http</a>;
+<span class="kw">use</span> <a class="ident" href="../../../hyper/upgrade/struct.OnUpgrade.html">hyper::upgrade::OnUpgrade</a>;
 <span class="kw">use</span> <span class="ident">tokio_tungstenite</span>::{
     <span class="ident">tungstenite::protocol</span>::{<a class="self" href="../../../tungstenite/protocol/index.html">self</a>, <a class="ident" href="../../../tungstenite/protocol/struct.WebSocketConfig.html">WebSocketConfig</a>},
     <a class="ident" href="../../../tokio_tungstenite/struct.WebSocketStream.html">WebSocketStream</a>,
@@ -420,51 +454,53 @@
 <span class="doccomment">/// - Header `connection: upgrade`</span>
 <span class="doccomment">/// - Header `upgrade: websocket`</span>
 <span class="doccomment">/// - Header `sec-websocket-accept` with the hash value of the received key.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ws</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> <span class="ident">One</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/ws.rs.html#69-73">Ws</a><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#174-176">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ws</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> <span class="ident">One</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/ws.rs.html#72-76">Ws</a><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210-212">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
     <span class="kw">let</span> <span class="ident">connection_has_upgrade</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/header.rs.html#52-53">header::header2</a>()
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#222-227">and_then</a>(<span class="op">|</span><span class="ident">conn</span>: <a class="ident" href="../../../headers/common/connection/struct.Connection.html">::headers::Connection</a><span class="op">|</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#44">conn</a>.<span class="ident">contains</span>(<span class="string">&quot;upgrade&quot;</span>) {
+        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(<span class="op">|</span><span class="ident">conn</span>: <a class="ident" href="../../../headers/common/connection/struct.Connection.html">::headers::Connection</a><span class="op">|</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#45">conn</a>.<span class="ident">contains</span>(<span class="string">&quot;upgrade&quot;</span>) {
                 <span class="ident">future::ok</span>(())
             } <span class="kw">else</span> {
-                <span class="ident">future::err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#167"><span class="kw">crate</span>::reject::known</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#368">MissingConnectionUpgrade</a>))
+                <span class="ident">future::err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#203"><span class="kw">crate</span>::reject::known</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#401">MissingConnectionUpgrade</a>))
             }
         })
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#337-340">untuple_one</a>();
+        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#370-373">untuple_one</a>();
 
     <a class="ident" href="../../../src/warp/filters/method.rs.html#25"><span class="kw">crate</span>::get</a>()
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#112-117">and</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#43">connection_has_upgrade</a>)
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#112-117">and</a>(<a class="ident" href="../../../src/warp/filters/header.rs.html#169-172">header::exact_ignore_case</a>(<span class="string">&quot;upgrade&quot;</span>, <span class="string">&quot;websocket&quot;</span>))
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#112-117">and</a>(<a class="ident" href="../../../src/warp/filters/header.rs.html#137-140">header::exact</a>(<span class="string">&quot;sec-websocket-version&quot;</span>, <span class="string">&quot;13&quot;</span>))
+        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#44">connection_has_upgrade</a>)
+        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a class="ident" href="../../../src/warp/filters/header.rs.html#169-172">header::exact_ignore_case</a>(<span class="string">&quot;upgrade&quot;</span>, <span class="string">&quot;websocket&quot;</span>))
+        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a class="ident" href="../../../src/warp/filters/header.rs.html#137-140">header::exact</a>(<span class="string">&quot;sec-websocket-version&quot;</span>, <span class="string">&quot;13&quot;</span>))
         <span class="comment">//.and(header::exact2(Upgrade::websocket()))</span>
         <span class="comment">//.and(header::exact2(SecWebsocketVersion::V13))</span>
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#112-117">and</a>(<span class="ident">header::header2</span>::<span class="op">&lt;</span><a class="ident" href="../../../headers/common/sec_websocket_key/struct.SecWebsocketKey.html">SecWebsocketKey</a><span class="op">&gt;</span>())
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#112-117">and</a>(<a class="ident" href="../../../src/warp/filters/body.rs.html#28">body::body</a>())
-        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#190-193">map</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">key</span>: <a class="ident" href="../../../headers/common/sec_websocket_key/struct.SecWebsocketKey.html">SecWebsocketKey</a>, <span class="ident">body</span>: <a class="ident" href="../../../hyper/body/body/struct.Body.html">::hyper::Body</a><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#69-73">Ws</a> {
-            <a class="ident" href="../../../src/warp/filters/ws.rs.html#61">body</a>,
-            <span class="ident">config</span>: <span class="prelude-val">None</span>,
-            <a class="ident" href="../../../src/warp/filters/ws.rs.html#61">key</a>,
-        })
+        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<span class="ident">header::header2</span>::<span class="op">&lt;</span><a class="ident" href="../../../headers/common/sec_websocket_key/struct.SecWebsocketKey.html">SecWebsocketKey</a><span class="op">&gt;</span>())
+        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#171">on_upgrade</a>())
+        .<a class="ident" href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(
+            <span class="kw">move</span> <span class="op">|</span><span class="ident">key</span>: <a class="ident" href="../../../headers/common/sec_websocket_key/struct.SecWebsocketKey.html">SecWebsocketKey</a>, <span class="ident">on_upgrade</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/upgrade/struct.OnUpgrade.html">OnUpgrade</a><span class="op">&gt;</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#72-76">Ws</a> {
+                <span class="ident">config</span>: <span class="prelude-val">None</span>,
+                <a class="ident" href="../../../src/warp/filters/ws.rs.html#63">key</a>,
+                <a class="ident" href="../../../src/warp/filters/ws.rs.html#63">on_upgrade</a>,
+            },
+        )
 }
 
 <span class="doccomment">/// Extracted by the [`ws`](ws) filter, and used to finish an upgrade.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Ws</span> {
-    <span class="ident">body</span>: <a class="ident" href="../../../hyper/body/body/struct.Body.html">::hyper::Body</a>,
     <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../tungstenite/protocol/struct.WebSocketConfig.html">WebSocketConfig</a><span class="op">&gt;</span>,
     <span class="ident">key</span>: <a class="ident" href="../../../headers/common/sec_websocket_key/struct.SecWebsocketKey.html">SecWebsocketKey</a>,
+    <span class="ident">on_upgrade</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/upgrade/struct.OnUpgrade.html">OnUpgrade</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#69-73">Ws</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#72-76">Ws</a> {
     <span class="doccomment">/// Finish the upgrade, passing a function to handle the `WebSocket`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The passed function must return a `Future`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on_upgrade</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="kw">impl</span> <a class="ident" href="../../../src/warp/reply.rs.html#228-291">Reply</a>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#171-173">WebSocket</a>) -&gt; <span class="ident">U</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#184-186">WebSocket</a>) -&gt; <span class="ident">U</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">U</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#124-127">WsReply</a> {
-            <span class="ident">ws</span>: <a class="self" href="../../../src/warp/filters/ws.rs.html#79">self</a>,
-            <span class="ident">on_upgrade</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#79">func</a>,
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#127-130">WsReply</a> {
+            <span class="ident">ws</span>: <a class="self" href="../../../src/warp/filters/ws.rs.html#82">self</a>,
+            <span class="ident">on_upgrade</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#82">func</a>,
         }
     }
 
@@ -472,76 +508,82 @@
 
     <span class="doccomment">/// Set the size of the internal message send queue.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_send_queue</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#93">self</a>.<span class="ident">config</span>
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#96">self</a>.<span class="ident">config</span>
             .<span class="ident">get_or_insert_with</span>(<span class="ident">WebSocketConfig::default</span>)
-            .<span class="ident">max_send_queue</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#93">max</a>);
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#93">self</a>
+            .<span class="ident">max_send_queue</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#96">max</a>);
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#96">self</a>
     }
 
     <span class="doccomment">/// Set the maximum message size (defaults to 64 megabytes)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_message_size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#101">self</a>.<span class="ident">config</span>
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#104">self</a>.<span class="ident">config</span>
             .<span class="ident">get_or_insert_with</span>(<span class="ident">WebSocketConfig::default</span>)
-            .<span class="ident">max_message_size</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#101">max</a>);
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#101">self</a>
+            .<span class="ident">max_message_size</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#104">max</a>);
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#104">self</a>
     }
 
     <span class="doccomment">/// Set the maximum frame size (defaults to 16 megabytes)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_frame_size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#109">self</a>.<span class="ident">config</span>
-            .<span class="ident">get_or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">WebSocketConfig::default</span>())
-            .<span class="ident">max_frame_size</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#109">max</a>);
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#109">self</a>
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#112">self</a>.<span class="ident">config</span>
+            .<span class="ident">get_or_insert_with</span>(<span class="ident">WebSocketConfig::default</span>)
+            .<span class="ident">max_frame_size</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#112">max</a>);
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#112">self</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#69-73">Ws</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#118">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Ws&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#72-76">Ws</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#121">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Ws&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
 <span class="kw">struct</span> <span class="ident">WsReply</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="ident">ws</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#69-73">Ws</a>,
+    <span class="ident">ws</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#72-76">Ws</a>,
     <span class="ident">on_upgrade</span>: <span class="ident">F</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span> <a class="ident" href="../../../src/warp/reply.rs.html#228-291">Reply</a> <span class="kw">for</span> <span class="ident">WsReply</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#171-173">WebSocket</a>) -&gt; <span class="ident">U</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#184-186">WebSocket</a>) -&gt; <span class="ident">U</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">U</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">fn</span> <span class="ident">into_response</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/warp/reply.rs.html#55">Response</a> {
-        <span class="kw">let</span> <span class="ident">on_upgrade</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#134">self</a>.<span class="ident">on_upgrade</span>;
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#134">self</a>.<span class="ident">ws</span>.<span class="ident">config</span>;
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#134">self</a>
-            .<span class="ident">ws</span>
-            .<span class="ident">body</span>
-            .<span class="ident">on_upgrade</span>()
-            .<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">upgraded</span><span class="op">|</span> {
-                <span class="macro">tracing::trace!</span>(<span class="string">&quot;websocket upgrade complete&quot;</span>);
-                <span class="ident">WebSocket::from_raw_socket</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#141">upgraded</a>, <span class="ident">protocol::Role::Server</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#136">config</a>).<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="prelude-val">Ok</span>)
-            })
-            .<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">socket</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#135">on_upgrade</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#145">socket</a>).<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="prelude-val">Ok</span>))
-            .<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#146">result</a> {
-                    <span class="macro">tracing::debug!</span>(<span class="string">&quot;ws upgrade error: {}&quot;</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#147">err</a>);
-                }
-            });
-        <span class="ident">::tokio::task::spawn</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#137">fut</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">on_upgrade</span>) <span class="op">=</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#137">self</a>.<span class="ident">ws</span>.<span class="ident">on_upgrade</span> {
+            <span class="kw">let</span> <span class="ident">on_upgrade_cb</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#137">self</a>.<span class="ident">on_upgrade</span>;
+            <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#137">self</a>.<span class="ident">ws</span>.<span class="ident">config</span>;
+            <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#138">on_upgrade</a>
+                .<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">upgraded</span><span class="op">|</span> {
+                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;websocket upgrade complete&quot;</span>);
+                    <span class="ident">WebSocket::from_raw_socket</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#142">upgraded</a>, <span class="ident">protocol::Role::Server</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#140">config</a>).<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="prelude-val">Ok</span>)
+                })
+                .<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">socket</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#139">on_upgrade_cb</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#146">socket</a>).<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="prelude-val">Ok</span>))
+                .<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#147">result</a> {
+                        <span class="macro">tracing::debug!</span>(<span class="string">&quot;ws upgrade error: {}&quot;</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#148">err</a>);
+                    }
+                });
+            <span class="ident">::tokio::task::spawn</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#141">fut</a>);
+        } <span class="kw">else</span> {
+            <span class="macro">tracing::debug!</span>(<span class="string">&quot;ws couldn&#39;t be upgraded since no upgrade state was present&quot;</span>);
+        }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">http::Response::default</span>();
 
-        <span class="kw-2">*</span><a class="ident" href="../../../src/warp/filters/ws.rs.html#153">res</a>.<span class="ident">status_mut</span>() <span class="op">=</span> <span class="ident">http::StatusCode::SWITCHING_PROTOCOLS</span>;
+        <span class="kw-2">*</span><a class="ident" href="../../../src/warp/filters/ws.rs.html#157">res</a>.<span class="ident">status_mut</span>() <span class="op">=</span> <span class="ident">http::StatusCode::SWITCHING_PROTOCOLS</span>;
 
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#153">res</a>.<span class="ident">headers_mut</span>().<a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<span class="ident">Connection::upgrade</span>());
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#153">res</a>.<span class="ident">headers_mut</span>().<a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<span class="ident">Upgrade::websocket</span>());
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#153">res</a>.<span class="ident">headers_mut</span>()
-            .<a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<span class="ident">SecWebsocketAccept::from</span>(<a class="self" href="../../../src/warp/filters/ws.rs.html#134">self</a>.<span class="ident">ws</span>.<span class="ident">key</span>));
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#157">res</a>.<span class="ident">headers_mut</span>().<a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<span class="ident">Connection::upgrade</span>());
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#157">res</a>.<span class="ident">headers_mut</span>().<a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<span class="ident">Upgrade::websocket</span>());
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#157">res</a>.<span class="ident">headers_mut</span>()
+            .<a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(<span class="ident">SecWebsocketAccept::from</span>(<a class="self" href="../../../src/warp/filters/ws.rs.html#137">self</a>.<span class="ident">ws</span>.<span class="ident">key</span>));
 
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#153">res</a>
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#157">res</a>
     }
+}
+
+<span class="comment">// Extracts OnUpgrade state from the route.</span>
+<span class="kw">fn</span> <span class="ident">on_upgrade</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/upgrade/struct.OnUpgrade.html">OnUpgrade</a><span class="op">&gt;</span>,), <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210-212">Rejection</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+    <a class="ident" href="../../../src/warp/filter/mod.rs.html#458-465">filter_fn_one</a>(<span class="op">|</span><span class="ident">route</span><span class="op">|</span> <span class="ident">future::ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#172">route</a>.<a class="ident" href="../../../src/warp/route.rs.html#78">extensions_mut</a>().<span class="ident">remove</span>::<span class="op">&lt;</span><a class="ident" href="../../../hyper/upgrade/struct.OnUpgrade.html">OnUpgrade</a><span class="op">&gt;</span>())))
 }
 
 <span class="doccomment">/// A websocket `Stream` and `Sink`, provided to `ws` filters.</span>
@@ -549,36 +591,40 @@
 <span class="doccomment">/// Ping messages sent from the client will be handled internally by replying with a Pong message.</span>
 <span class="doccomment">/// Close messages need to be handled explicitly: usually by closing the `Sink` end of the</span>
 <span class="doccomment">/// `WebSocket`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// **Note!**</span>
+<span class="doccomment">/// Due to rust futures nature, pings won&#39;t be handled until read part of `WebSocket` is polled</span>
+
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WebSocket</span> {
     <span class="ident">inner</span>: <span class="ident">WebSocketStream</span><span class="op">&lt;</span><a class="ident" href="../../../hyper/upgrade/struct.Upgraded.html">hyper::upgrade::Upgraded</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#171-173">WebSocket</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#184-186">WebSocket</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">from_raw_socket</span>(
         <span class="ident">upgraded</span>: <a class="ident" href="../../../hyper/upgrade/struct.Upgraded.html">hyper::upgrade::Upgraded</a>,
         <span class="ident">role</span>: <a class="ident" href="../../../tungstenite/protocol/enum.Role.html">protocol::Role</a>,
         <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../tungstenite/protocol/struct.WebSocketConfig.html">protocol::WebSocketConfig</a><span class="op">&gt;</span>,
     ) -&gt; <span class="self">Self</span> {
-        <span class="ident">WebSocketStream::from_raw_socket</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#177">upgraded</a>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#178">role</a>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#179">config</a>)
-            .<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#171-173">WebSocket</a> { <a class="ident" href="../../../src/warp/filters/ws.rs.html#182">inner</a> })
+        <span class="ident">WebSocketStream::from_raw_socket</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#190">upgraded</a>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#191">role</a>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#192">config</a>)
+            .<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#184-186">WebSocket</a> { <a class="ident" href="../../../src/warp/filters/ws.rs.html#195">inner</a> })
             .<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Gracefully close this websocket.</span>
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/warp/error.rs.html#8-10"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span> {
-        <span class="ident">future::poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#187">self</a>).<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_close</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#188">cx</a>)).<span class="kw">await</span>
+        <span class="ident">future::poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#200">self</a>).<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_close</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#201">cx</a>)).<span class="kw">await</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#171-173">WebSocket</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a>, <a class="ident" href="../../../src/warp/error.rs.html#8-10"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>;
+<span class="kw">impl</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#184-186">WebSocket</a> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a>, <a class="ident" href="../../../src/warp/error.rs.html#8-10"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#195">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#195">cx</a>)) {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">item</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> { <span class="ident">inner</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#197">item</a> }))),
+    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#208">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#208">cx</a>)) {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">item</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> { <span class="ident">inner</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#210">item</a> }))),
             <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; {
-                <span class="macro">tracing::debug!</span>(<span class="string">&quot;websocket poll error: {}&quot;</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#198">e</a>);
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#198">e</a>))))
+                <span class="macro">tracing::debug!</span>(<span class="string">&quot;websocket poll error: {}&quot;</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#211">e</a>);
+                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#211">e</a>))))
             }
             <span class="prelude-val">None</span> =&gt; {
                 <span class="macro">tracing::trace!</span>(<span class="string">&quot;websocket closed&quot;</span>);
@@ -588,47 +634,47 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Sink</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#171-173">WebSocket</a> {
+<span class="kw">impl</span> <span class="ident">Sink</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#184-186">WebSocket</a> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/error.rs.html#8-10"><span class="kw">crate</span>::Error</a>;
 
     <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#213">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_ready</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#213">cx</a>)) {
+        <span class="kw">match</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#226">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_ready</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#226">cx</a>)) {
             <span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#216">e</a>))),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#229">e</a>))),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">start_send</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">item</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#220">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../futures_sink/trait.Sink.html">start_send</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#220">item</a>.<span class="ident">inner</span>) {
+    <span class="kw">fn</span> <span class="ident">start_send</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">item</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#233">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../futures_sink/trait.Sink.html">start_send</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#233">item</a>.<span class="ident">inner</span>) {
             <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(()),
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <span class="macro">tracing::debug!</span>(<span class="string">&quot;websocket start_send error: {}&quot;</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#223">e</a>);
-                <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#223">e</a>))
+                <span class="macro">tracing::debug!</span>(<span class="string">&quot;websocket start_send error: {}&quot;</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#236">e</a>);
+                <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#236">e</a>))
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#230">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_flush</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#230">cx</a>)) {
+    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#243">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_flush</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#243">cx</a>)) {
             <span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#233">e</a>))),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#246">e</a>))),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#237">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_close</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#237">cx</a>)) {
+    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#250">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_close</a>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#250">cx</a>)) {
             <span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
             <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-                <span class="macro">tracing::debug!</span>(<span class="string">&quot;websocket close error: {}&quot;</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#240">err</a>);
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#240">err</a>)))
+                <span class="macro">tracing::debug!</span>(<span class="string">&quot;websocket close error: {}&quot;</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#253">err</a>);
+                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#253">err</a>)))
             }
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#171-173">WebSocket</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#249">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;WebSocket&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#184-186">WebSocket</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#262">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;WebSocket&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
@@ -641,104 +687,124 @@
     <span class="ident">inner</span>: <a class="ident" href="../../../tungstenite/protocol/message/enum.Message.html">protocol::Message</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
     <span class="doccomment">/// Construct a new Text `Message`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
-            <span class="ident">inner</span>: <span class="ident">protocol::Message::text</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#265">s</a>),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+            <span class="ident">inner</span>: <span class="ident">protocol::Message::text</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#278">s</a>),
         }
     }
 
     <span class="doccomment">/// Construct a new Binary `Message`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binary</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="ident">V</span>) -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
-            <span class="ident">inner</span>: <span class="ident">protocol::Message::binary</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#272">v</a>),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binary</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="ident">V</span>) -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+            <span class="ident">inner</span>: <span class="ident">protocol::Message::binary</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#285">v</a>),
         }
     }
 
     <span class="doccomment">/// Construct a new Ping `Message`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ping</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="ident">V</span>) -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
-            <span class="ident">inner</span>: <span class="ident">protocol::Message::Ping</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#279">v</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ping</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="ident">V</span>) -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+            <span class="ident">inner</span>: <span class="ident">protocol::Message::Ping</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#292">v</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        }
+    }
+
+    <span class="doccomment">/// Construct a new Pong `Message`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that one rarely needs to manually construct a Pong message because the underlying tungstenite socket</span>
+    <span class="doccomment">/// automatically responds to the Ping messages it receives. Manual construction might still be useful in some cases</span>
+    <span class="doccomment">/// like in tests or to send unidirectional heartbeats.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pong</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="ident">V</span>) -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+            <span class="ident">inner</span>: <span class="ident">protocol::Message::Pong</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#303">v</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 
     <span class="doccomment">/// Construct the default Close `Message`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>() -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>() -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
             <span class="ident">inner</span>: <span class="ident">protocol::Message::Close</span>(<span class="prelude-val">None</span>),
         }
     }
 
     <span class="doccomment">/// Construct a Close `Message` with a code and reason.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close_with</span>(<span class="ident">code</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>, <span class="ident">reason</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
-        <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close_with</span>(<span class="ident">code</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a><span class="op">&gt;</span>, <span class="ident">reason</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
             <span class="ident">inner</span>: <span class="ident">protocol::Message::Close</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../tungstenite/protocol/frame/frame/struct.CloseFrame.html">protocol::frame::CloseFrame</a> {
-                <span class="ident">code</span>: <span class="ident">protocol::frame::coding::CloseCode::from</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#293">code</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                <span class="ident">reason</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#293">reason</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <span class="ident">code</span>: <span class="ident">protocol::frame::coding::CloseCode::from</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#317">code</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                <span class="ident">reason</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#317">reason</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             })),
         }
     }
 
     <span class="doccomment">/// Returns true if this message is a Text message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_text</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#303">self</a>.<span class="ident">inner</span>.<span class="ident">is_text</span>()
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#327">self</a>.<span class="ident">inner</span>.<span class="ident">is_text</span>()
     }
 
     <span class="doccomment">/// Returns true if this message is a Binary message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_binary</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#308">self</a>.<span class="ident">inner</span>.<span class="ident">is_binary</span>()
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#332">self</a>.<span class="ident">inner</span>.<span class="ident">is_binary</span>()
     }
 
     <span class="doccomment">/// Returns true if this message a is a Close message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#313">self</a>.<span class="ident">inner</span>.<span class="ident">is_close</span>()
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#337">self</a>.<span class="ident">inner</span>.<span class="ident">is_close</span>()
     }
 
     <span class="doccomment">/// Returns true if this message is a Ping message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#318">self</a>.<span class="ident">inner</span>.<span class="ident">is_ping</span>()
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#342">self</a>.<span class="ident">inner</span>.<span class="ident">is_ping</span>()
     }
 
     <span class="doccomment">/// Returns true if this message is a Pong message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pong</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#323">self</a>.<span class="ident">inner</span>.<span class="ident">is_pong</span>()
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#347">self</a>.<span class="ident">inner</span>.<span class="ident">is_pong</span>()
+    }
+
+    <span class="doccomment">/// Try to get the close frame (close code and reason)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close_frame</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>)<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">protocol::Message::Close</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">close_frame</span>)) <span class="op">=</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#352">self</a>.<span class="ident">inner</span> {
+            <span class="prelude-val">Some</span>((<a class="ident" href="../../../src/warp/filters/ws.rs.html#353">close_frame</a>.<span class="ident">code</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../src/warp/filters/ws.rs.html#353">close_frame</a>.<span class="ident">reason</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        }
     }
 
     <span class="doccomment">/// Try to get a reference to the string text, if this is a Text message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, ()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#328">self</a>.<span class="ident">inner</span> {
-            <span class="ident">protocol::Message::Text</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#330">s</a>),
+        <span class="kw">match</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#361">self</a>.<span class="ident">inner</span> {
+            <span class="ident">protocol::Message::Text</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#363">s</a>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(()),
         }
     }
 
     <span class="doccomment">/// Return the bytes of this message, if the message can contain data.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">match</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#336">self</a>.<span class="ident">inner</span> {
-            <span class="ident">protocol::Message::Text</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#338">s</a>.<span class="ident">as_bytes</span>(),
-            <span class="ident">protocol::Message::Binary</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#339">v</a>,
-            <span class="ident">protocol::Message::Ping</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#340">v</a>,
-            <span class="ident">protocol::Message::Pong</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#341">v</a>,
+        <span class="kw">match</span> <a class="self" href="../../../src/warp/filters/ws.rs.html#369">self</a>.<span class="ident">inner</span> {
+            <span class="ident">protocol::Message::Text</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#371">s</a>.<span class="ident">as_bytes</span>(),
+            <span class="ident">protocol::Message::Binary</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#372">v</a>,
+            <span class="ident">protocol::Message::Ping</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#373">v</a>,
+            <span class="ident">protocol::Message::Pong</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <a class="ident" href="../../../src/warp/filters/ws.rs.html#374">v</a>,
             <span class="ident">protocol::Message::Close</span>(<span class="kw">_</span>) =&gt; <span class="kw-2">&amp;</span>[],
         }
     }
 
     <span class="doccomment">/// Destructure this message into binary data.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_bytes</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#347">self</a>.<span class="ident">inner</span>.<span class="ident">into_data</span>()
+        <a class="self" href="../../../src/warp/filters/ws.rs.html#380">self</a>.<span class="ident">inner</span>.<span class="ident">into_data</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/ws.rs.html#353">self</a>.<span class="ident">inner</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#353">f</a>)
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug::fmt</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/warp/filters/ws.rs.html#386">self</a>.<span class="ident">inner</span>, <a class="ident" href="../../../src/warp/filters/ws.rs.html#386">f</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#259-261">Message</a> {
-    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/warp/filters/ws.rs.html#359">self</a>.<a class="ident" href="../../../src/warp/filters/ws.rs.html#347">into_bytes</a>()
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">m</span>: <a class="ident" href="../../../src/warp/filters/ws.rs.html#272-274">Message</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/warp/filters/ws.rs.html#392">m</a>.<a class="ident" href="../../../src/warp/filters/ws.rs.html#380">into_bytes</a>()
     }
 }
 
@@ -748,13 +814,13 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MissingConnectionUpgrade</span>;
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">::std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#368">MissingConnectionUpgrade</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">::std::fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">::std::fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#371">f</a>, <span class="string">&quot;Connection header did not include &#39;upgrade&#39;&quot;</span>)
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#401">MissingConnectionUpgrade</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="macro">write!</span>(<a class="ident" href="../../../src/warp/filters/ws.rs.html#404">f</a>, <span class="string">&quot;Connection header did not include &#39;upgrade&#39;&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">::std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#368">MissingConnectionUpgrade</a> {}
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">::std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/warp/filters/ws.rs.html#401">MissingConnectionUpgrade</a> {}
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

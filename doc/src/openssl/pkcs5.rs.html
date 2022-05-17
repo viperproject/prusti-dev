@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.38/src/pkcs5.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs5.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/pkcs5.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs5.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -305,13 +305,18 @@
 <span id="300">300</span>
 <span id="301">301</span>
 <span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/lib.rs.html#180"><span class="kw">crate</span>::cvt</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/lib.rs.html#194"><span class="kw">crate</span>::cvt</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/symm.rs.html#76"><span class="kw">crate</span>::symm::Cipher</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
+<span class="kw">use</span> <span class="ident">openssl_macros::corresponds</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeyIvPair</span> {
@@ -329,64 +334,66 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// New applications should not use this and instead use</span>
 <span class="doccomment">/// `pbkdf2_hmac` or another more modern key derivation algorithm.</span>
+<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_BytesToKey</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::useless_conversion</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes_to_key</span>(
-    <span class="ident">cipher</span>: <a class="ident" href="../../src/openssl/symm.rs.html#76">Cipher</a>,
+    <span class="ident">cipher</span>: <a class="ident" href="../../src/openssl/symm.rs.html#73">Cipher</a>,
     <span class="ident">digest</span>: <a class="ident" href="../../src/openssl/hash.rs.html#22">MessageDigest</a>,
     <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     <span class="ident">salt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
     <span class="ident">count</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkcs5.rs.html#10-13">KeyIvPair</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkcs5.rs.html#11-14">KeyIvPair</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
     <span class="kw">unsafe</span> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#29">data</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="kw">let</span> <span class="ident">salt_ptr</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#30">salt</a> {
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#31">data</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="kw">let</span> <span class="ident">salt_ptr</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#32">salt</a> {
             <span class="prelude-val">Some</span>(<span class="ident">salt</span>) =&gt; {
-                <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#36">salt</a>.<span class="ident">len</span>(), <span class="ident">ffi::PKCS5_SALT_LEN</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-                <a class="ident" href="../../src/openssl/pkcs5.rs.html#36">salt</a>.<span class="ident">as_ptr</span>()
+                <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#38">salt</a>.<span class="ident">len</span>(), <span class="ident">ffi::PKCS5_SALT_LEN</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+                <a class="ident" href="../../src/openssl/pkcs5.rs.html#38">salt</a>.<span class="ident">as_ptr</span>()
             }
             <span class="prelude-val">None</span> =&gt; <span class="ident">ptr::null</span>(),
         };
 
         <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iv</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#27">cipher</a>.<a class="ident" href="../../src/openssl/symm.rs.html#336">iv_len</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="macro">vec!</span>[<span class="number">0</span>; <a class="ident" href="../../src/openssl/pkcs5.rs.html#45">l</a>]);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iv</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#29">cipher</a>.<a class="ident" href="../../src/openssl/symm.rs.html#333">iv_len</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="macro">vec!</span>[<span class="number">0</span>; <a class="ident" href="../../src/openssl/pkcs5.rs.html#47">l</a>]);
 
-        <span class="kw">let</span> <span class="ident">cipher</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#27">cipher</a>.<a class="ident" href="../../src/openssl/symm.rs.html#323">as_ptr</a>();
-        <span class="kw">let</span> <span class="ident">digest</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#28">digest</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>();
+        <span class="kw">let</span> <span class="ident">cipher</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#29">cipher</a>.<a class="ident" href="../../src/openssl/symm.rs.html#320">as_ptr</a>();
+        <span class="kw">let</span> <span class="ident">digest</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#30">digest</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>();
 
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EVP_BytesToKey</span>(
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#47">cipher</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#48">digest</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#35">salt_ptr</a>,
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_BytesToKey</span>(
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#49">cipher</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#50">digest</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#37">salt_ptr</a>,
             <span class="ident">ptr::null</span>(),
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#29">data</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#31">count</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#31">data</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#33">count</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             <span class="ident">ptr::null_mut</span>(),
             <span class="ident">ptr::null_mut</span>(),
         ))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <a class="ident" href="../../src/openssl/pkcs5.rs.html#50">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
-        <span class="kw">let</span> <span class="ident">iv_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#45">iv</a>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">key</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <a class="ident" href="../../src/openssl/pkcs5.rs.html#52">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>];
+        <span class="kw">let</span> <span class="ident">iv_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#47">iv</a>
             .<span class="ident">as_mut</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#64">v</a>.<span class="ident">as_mut_ptr</span>())
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../src/openssl/pkcs5.rs.html#66">v</a>.<span class="ident">as_mut_ptr</span>())
             .<span class="ident">unwrap_or</span>(<span class="ident">ptr::null_mut</span>());
 
-        <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EVP_BytesToKey</span>(
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#47">cipher</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#48">digest</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#35">salt_ptr</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#29">data</a>.<span class="ident">as_ptr</span>(),
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#29">data</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#31">count</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#61">key</a>.<span class="ident">as_mut_ptr</span>(),
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#62">iv_ptr</a>,
+        <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_BytesToKey</span>(
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#49">cipher</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#50">digest</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#37">salt_ptr</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#31">data</a>.<span class="ident">as_ptr</span>(),
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#31">data</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#33">count</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#63">key</a>.<span class="ident">as_mut_ptr</span>(),
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#64">iv_ptr</a>,
         ))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#10-13">KeyIvPair</a> { <a class="ident" href="../../src/openssl/pkcs5.rs.html#61">key</a>, <a class="ident" href="../../src/openssl/pkcs5.rs.html#45">iv</a> })
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#11-14">KeyIvPair</a> { <a class="ident" href="../../src/openssl/pkcs5.rs.html#63">key</a>, <a class="ident" href="../../src/openssl/pkcs5.rs.html#47">iv</a> })
     }
 }
 
 <span class="doccomment">/// Derives a key from a password and salt using the PBKDF2-HMAC algorithm with a digest function.</span>
+<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PKCS5_PBKDF2_HMAC</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pbkdf2_hmac</span>(
     <span class="ident">pass</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     <span class="ident">salt</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
@@ -395,20 +402,20 @@
     <span class="ident">key</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
     <span class="kw">unsafe</span> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#84">pass</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#85">salt</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#88">key</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#87">pass</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#88">salt</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/pkcs5.rs.html#91">key</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
         <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-        <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::PKCS5_PBKDF2_HMAC</span>(
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#84">pass</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#84">pass</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#85">salt</a>.<span class="ident">as_ptr</span>(),
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#85">salt</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#86">iter</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#87">hash</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>(),
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#88">key</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#88">key</a>.<span class="ident">as_mut_ptr</span>(),
+        <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::PKCS5_PBKDF2_HMAC</span>(
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#87">pass</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#87">pass</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#88">salt</a>.<span class="ident">as_ptr</span>(),
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#88">salt</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#89">iter</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#90">hash</a>.<a class="ident" href="../../src/openssl/hash.rs.html#137">as_ptr</a>(),
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#91">key</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#91">key</a>.<span class="ident">as_mut_ptr</span>(),
         ))
         .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
     }
@@ -417,6 +424,7 @@
 <span class="doccomment">/// Derives a key from a password and salt using the scrypt algorithm.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.</span>
+<span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_PBE_scrypt</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scrypt</span>(
     <span class="ident">pass</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
@@ -429,17 +437,17 @@
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
     <span class="kw">unsafe</span> {
         <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
-        <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::EVP_PBE_scrypt</span>(
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#115">pass</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#115">pass</a>.<span class="ident">len</span>(),
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#116">salt</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#116">salt</a>.<span class="ident">len</span>(),
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#117">n</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#118">r</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#119">p</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#120">maxmem</a>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#121">key</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-            <a class="ident" href="../../src/openssl/pkcs5.rs.html#121">key</a>.<span class="ident">len</span>(),
+        <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_PBE_scrypt</span>(
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#119">pass</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#119">pass</a>.<span class="ident">len</span>(),
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#120">salt</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#120">salt</a>.<span class="ident">len</span>(),
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#121">n</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#122">r</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#123">p</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#124">maxmem</a>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#125">key</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+            <a class="ident" href="../../src/openssl/pkcs5.rs.html#125">key</a>.<span class="ident">len</span>(),
         ))
         .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
     }
@@ -608,5 +616,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

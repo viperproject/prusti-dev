@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.38/src/dsa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dsa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/dsa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dsa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -448,21 +448,6 @@
 <span id="443">443</span>
 <span id="444">444</span>
 <span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Digital Signatures</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! DSA ensures a message originated from a known sender, and was not modified.</span>
@@ -477,14 +462,15 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bn</span>::{<a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>, <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::bn</span>::{<a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#104">HasParams</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#111">HasPublic</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#81-93"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#112">HasParams</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#80-92"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
+<span class="kw">use</span> <span class="ident">openssl_macros::corresponds</span>;
 
 <span class="macro">generic_foreign_type_and_impl_send_sync!</span> {
-    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/ossl_typ/enum.DSA.html">ffi::DSA</a>;
+    <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.DSA.html">ffi::DSA</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::DSA_free</span>;
 
     <span class="doccomment">/// Object representing DSA keys.</span>
@@ -527,7 +513,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/openssl/dsa.rs.html#64">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/openssl/dsa.rs.html#65">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
     }
 }
 
@@ -536,124 +522,114 @@
 
     <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="ident">ffi::DSA_up_ref</span>(<a class="self" href="../../src/openssl/dsa.rs.html#72">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
-            <span class="ident">Dsa::from_ptr</span>(<a class="self" href="../../src/openssl/dsa.rs.html#72">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())
+            <span class="ident">ffi::DSA_up_ref</span>(<a class="self" href="../../src/openssl/dsa.rs.html#73">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>());
+            <span class="ident">Dsa::from_ptr</span>(<a class="self" href="../../src/openssl/dsa.rs.html#73">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DsaRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#111">HasPublic</a>,
+    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
 {
     <span class="macro">to_pem!</span> {
-        <span class="doccomment">/// Serialies the public key into a PEM-encoded SubjectPublicKeyInfo structure.</span>
+        <span class="doccomment">/// Serializes the public key into a PEM-encoded SubjectPublicKeyInfo structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The output will have a header of `-----BEGIN PUBLIC KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_write_bio_DSA_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_DSA_PUBKEY`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_write_bio_DSA_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_DSA_PUBKEY</span>)]</span>
         <span class="ident">public_key_to_pem</span>,
         <span class="ident">ffi::PEM_write_bio_DSA_PUBKEY</span>
     }
 
     <span class="macro">to_der!</span> {
         <span class="doccomment">/// Serializes the public key into a DER-encoded SubjectPublicKeyInfo structure.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`i2d_DSA_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`i2d_DSA_PUBKEY`]: https://www.openssl.org/docs/man1.1.0/crypto/i2d_DSA_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_DSA_PUBKEY</span>)]</span>
         <span class="ident">public_key_to_der</span>,
         <span class="ident">ffi::i2d_DSA_PUBKEY</span>
     }
 
     <span class="doccomment">/// Returns a reference to the public key component of `self`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pub_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DSA_get0_key</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pub_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pub_key</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/dsa/fn.DSA_get0_key.html">DSA_get0_key</a>(<a class="self" href="../../src/openssl/dsa.rs.html#107">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dsa.rs.html#109">pub_key</a>, <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#109">pub_key</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_get0_key.html">DSA_get0_key</a>(<a class="self" href="../../src/openssl/dsa.rs.html#103">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dsa.rs.html#105">pub_key</a>, <span class="ident">ptr::null_mut</span>());
+            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#105">pub_key</a>)
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DsaRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#118">HasPrivate</a>,
+    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
 {
     <span class="macro">private_key_to_pem!</span> {
         <span class="doccomment">/// Serializes the private key to a PEM-encoded DSAPrivateKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The output will have a header of `-----BEGIN DSA PRIVATE KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_write_bio_DSAPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_DSAPrivateKey`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_write_bio_DSAPrivateKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_DSAPrivateKey</span>)]</span>
         <span class="ident">private_key_to_pem</span>,
         <span class="doccomment">/// Serializes the private key to a PEM-encoded encrypted DSAPrivateKey structure.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The output will have a header of `-----BEGIN DSA PRIVATE KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_write_bio_DSAPrivateKey`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_write_bio_DSAPrivateKey`]: https://www.openssl.org/docs/man1.1.0/crypto/PEM_write_bio_DSAPrivateKey.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_write_bio_DSAPrivateKey</span>)]</span>
         <span class="ident">private_key_to_pem_passphrase</span>,
         <span class="ident">ffi::PEM_write_bio_DSAPrivateKey</span>
     }
 
     <span class="doccomment">/// Returns a reference to the private key component of `self`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">priv_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DSA_get0_key</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">priv_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">priv_key</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/dsa/fn.DSA_get0_key.html">DSA_get0_key</a>(<a class="self" href="../../src/openssl/dsa.rs.html#141">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dsa.rs.html#143">priv_key</a>);
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#143">priv_key</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_get0_key.html">DSA_get0_key</a>(<a class="self" href="../../src/openssl/dsa.rs.html#132">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dsa.rs.html#134">priv_key</a>);
+            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#134">priv_key</a>)
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DsaRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#104">HasParams</a>,
+    <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#112">HasParams</a>,
 {
     <span class="doccomment">/// Returns the maximum size of the signature output by `self` in bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// OpenSSL documentation at [`DSA_size`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`DSA_size`]: https://www.openssl.org/docs/man1.1.0/crypto/DSA_size.html</span>
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DSA_size</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="kw">unsafe</span> { <span class="ident">ffi::DSA_size</span>(<a class="self" href="../../src/openssl/dsa.rs.html#159">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
+        <span class="kw">unsafe</span> { <span class="ident">ffi::DSA_size</span>(<a class="self" href="../../src/openssl/dsa.rs.html#147">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> }
     }
 
     <span class="doccomment">/// Returns the DSA prime parameter of `self`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DSA_get0_pqg</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/dsa/fn.DSA_get0_pqg.html">DSA_get0_pqg</a>(<a class="self" href="../../src/openssl/dsa.rs.html#164">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dsa.rs.html#166">p</a>, <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#166">p</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_get0_pqg.html">DSA_get0_pqg</a>(<a class="self" href="../../src/openssl/dsa.rs.html#153">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dsa.rs.html#155">p</a>, <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>());
+            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#155">p</a>)
         }
     }
 
     <span class="doccomment">/// Returns the DSA sub-prime parameter of `self`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">q</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DSA_get0_pqg</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">q</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/dsa/fn.DSA_get0_pqg.html">DSA_get0_pqg</a>(<a class="self" href="../../src/openssl/dsa.rs.html#173">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dsa.rs.html#175">q</a>, <span class="ident">ptr::null_mut</span>());
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#175">q</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_get0_pqg.html">DSA_get0_pqg</a>(<a class="self" href="../../src/openssl/dsa.rs.html#163">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dsa.rs.html#165">q</a>, <span class="ident">ptr::null_mut</span>());
+            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#165">q</a>)
         }
     }
 
     <span class="doccomment">/// Returns the DSA base parameter of `self`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">g</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNumRef</a> {
+    <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">DSA_get0_pqg</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">g</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNumRef</a> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-            <a class="ident" href="../../openssl_sys/dsa/fn.DSA_get0_pqg.html">DSA_get0_pqg</a>(<a class="self" href="../../src/openssl/dsa.rs.html#182">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dsa.rs.html#184">g</a>);
-            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#184">g</a>)
+            <a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_get0_pqg.html">DSA_get0_pqg</a>(<a class="self" href="../../src/openssl/dsa.rs.html#173">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>(), <span class="ident">ptr::null_mut</span>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/dsa.rs.html#175">g</a>);
+            <span class="ident">BigNumRef::from_const_ptr</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#175">g</a>)
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Generate a DSA key pair.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Calls [`DSA_generate_parameters_ex`] to populate the `p`, `g`, and `q` values.</span>
@@ -663,21 +639,21 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`DSA_generate_parameters_ex`]: https://www.openssl.org/docs/man1.1.0/crypto/DSA_generate_parameters_ex.html</span>
     <span class="doccomment">/// [`DSA_generate_key`]: https://www.openssl.org/docs/man1.1.0/crypto/DSA_generate_key.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate</span>(<span class="ident">bits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate</span>(<span class="ident">bits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">dsa</span> <span class="op">=</span> <span class="ident">Dsa::from_ptr</span>(<a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::DSA_new</span>())<span class="question-mark">?</span>);
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::DSA_generate_parameters_ex</span>(
-                <a class="ident" href="../../src/openssl/dsa.rs.html#204">dsa</a>.<span class="number">0</span>,
-                <a class="ident" href="../../src/openssl/dsa.rs.html#201">bits</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
+            <span class="kw">let</span> <span class="ident">dsa</span> <span class="op">=</span> <span class="ident">Dsa::from_ptr</span>(<a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::DSA_new</span>())<span class="question-mark">?</span>);
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::DSA_generate_parameters_ex</span>(
+                <a class="ident" href="../../src/openssl/dsa.rs.html#195">dsa</a>.<span class="number">0</span>,
+                <a class="ident" href="../../src/openssl/dsa.rs.html#192">bits</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
                 <span class="ident">ptr::null</span>(),
                 <span class="number">0</span>,
                 <span class="ident">ptr::null_mut</span>(),
                 <span class="ident">ptr::null_mut</span>(),
                 <span class="ident">ptr::null_mut</span>(),
             ))<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<span class="ident">ffi::DSA_generate_key</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#204">dsa</a>.<span class="number">0</span>))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#204">dsa</a>)
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::DSA_generate_key</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#195">dsa</a>.<span class="number">0</span>))<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#195">dsa</a>)
         }
     }
 
@@ -687,46 +663,40 @@
     <span class="doccomment">/// `priv_key` is the private component of the key pair.</span>
     <span class="doccomment">/// `pub_key` is the public component of the key. Can be computed via `g^(priv_key) mod p`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_private_components</span>(
-        <span class="ident">p</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">q</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">g</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">priv_key</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">pub_key</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#69">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="ident">p</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">q</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">g</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">priv_key</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">pub_key</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#73">Private</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">dsa</span> <span class="op">=</span> <span class="ident">Dsa::from_ptr</span>(<a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::DSA_new</span>())<span class="question-mark">?</span>);
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<a class="ident" href="../../openssl_sys/dsa/fn.DSA_set0_pqg.html">DSA_set0_pqg</a>(<a class="ident" href="../../src/openssl/dsa.rs.html#233">dsa</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/dsa.rs.html#225">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/dsa.rs.html#226">q</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/dsa.rs.html#227">g</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>()))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/dsa.rs.html#225">p</a>, <a class="ident" href="../../src/openssl/dsa.rs.html#226">q</a>, <a class="ident" href="../../src/openssl/dsa.rs.html#227">g</a>));
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<a class="ident" href="../../openssl_sys/dsa/fn.DSA_set0_key.html">DSA_set0_key</a>(<a class="ident" href="../../src/openssl/dsa.rs.html#233">dsa</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/dsa.rs.html#229">pub_key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/dsa.rs.html#228">priv_key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>()))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/dsa.rs.html#229">pub_key</a>, <a class="ident" href="../../src/openssl/dsa.rs.html#228">priv_key</a>));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#233">dsa</a>)
+            <span class="kw">let</span> <span class="ident">dsa</span> <span class="op">=</span> <span class="ident">Dsa::from_ptr</span>(<a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::DSA_new</span>())<span class="question-mark">?</span>);
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_set0_pqg.html">DSA_set0_pqg</a>(<a class="ident" href="../../src/openssl/dsa.rs.html#224">dsa</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/dsa.rs.html#216">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/dsa.rs.html#217">q</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/dsa.rs.html#218">g</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>()))<span class="question-mark">?</span>;
+            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/dsa.rs.html#216">p</a>, <a class="ident" href="../../src/openssl/dsa.rs.html#217">q</a>, <a class="ident" href="../../src/openssl/dsa.rs.html#218">g</a>));
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_set0_key.html">DSA_set0_key</a>(<a class="ident" href="../../src/openssl/dsa.rs.html#224">dsa</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/dsa.rs.html#220">pub_key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/dsa.rs.html#219">priv_key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>()))<span class="question-mark">?</span>;
+            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/dsa.rs.html#220">pub_key</a>, <a class="ident" href="../../src/openssl/dsa.rs.html#219">priv_key</a>));
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#224">dsa</a>)
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span> {
     <span class="macro">from_pem!</span> {
         <span class="doccomment">/// Decodes a PEM-encoded SubjectPublicKeyInfo structure containing a DSA key.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// The input should have a header of `-----BEGIN PUBLIC KEY-----`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`PEM_read_bio_DSA_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`PEM_read_bio_DSA_PUBKEY`]: https://www.openssl.org/docs/man1.0.2/crypto/PEM_read_bio_DSA_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">PEM_read_bio_DSA_PUBKEY</span>)]</span>
         <span class="ident">public_key_from_pem</span>,
-        <span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>,
+        <span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>,
         <span class="ident">ffi::PEM_read_bio_DSA_PUBKEY</span>
     }
 
     <span class="macro">from_der!</span> {
         <span class="doccomment">/// Decodes a DER-encoded SubjectPublicKeyInfo structure containing a DSA key.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This corresponds to [`d2i_DSA_PUBKEY`].</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [`d2i_DSA_PUBKEY`]: https://www.openssl.org/docs/man1.0.2/crypto/d2i_DSA_PUBKEY.html</span>
+        <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_DSA_PUBKEY</span>)]</span>
         <span class="ident">public_key_from_der</span>,
-        <span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>,
+        <span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>,
         <span class="ident">ffi::d2i_DSA_PUBKEY</span>
     }
 
@@ -735,32 +705,32 @@
     <span class="doccomment">/// `p`, `q` and `g` are the common parameters.</span>
     <span class="doccomment">/// `pub_key` is the public component of the key.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_public_components</span>(
-        <span class="ident">p</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">q</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">g</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-        <span class="ident">pub_key</span>: <a class="ident" href="../../src/openssl/bn.rs.html#126-158">BigNum</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#66">Public</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
+        <span class="ident">p</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">q</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">g</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+        <span class="ident">pub_key</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dsa</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/pkey.rs.html#70">Public</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">dsa</span> <span class="op">=</span> <span class="ident">Dsa::from_ptr</span>(<a class="ident" href="../../src/openssl/lib.rs.html#172">cvt_p</a>(<span class="ident">ffi::DSA_new</span>())<span class="question-mark">?</span>);
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<a class="ident" href="../../openssl_sys/dsa/fn.DSA_set0_pqg.html">DSA_set0_pqg</a>(<a class="ident" href="../../src/openssl/dsa.rs.html#280">dsa</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/dsa.rs.html#273">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/dsa.rs.html#274">q</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/dsa.rs.html#275">g</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>()))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/dsa.rs.html#273">p</a>, <a class="ident" href="../../src/openssl/dsa.rs.html#274">q</a>, <a class="ident" href="../../src/openssl/dsa.rs.html#275">g</a>));
-            <a class="ident" href="../../src/openssl/lib.rs.html#180">cvt</a>(<a class="ident" href="../../openssl_sys/dsa/fn.DSA_set0_key.html">DSA_set0_key</a>(<a class="ident" href="../../src/openssl/dsa.rs.html#280">dsa</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/dsa.rs.html#276">pub_key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>()))<span class="question-mark">?</span>;
-            <span class="ident">mem::forget</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#276">pub_key</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#280">dsa</a>)
+            <span class="kw">let</span> <span class="ident">dsa</span> <span class="op">=</span> <span class="ident">Dsa::from_ptr</span>(<a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::DSA_new</span>())<span class="question-mark">?</span>);
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_set0_pqg.html">DSA_set0_pqg</a>(<a class="ident" href="../../src/openssl/dsa.rs.html#265">dsa</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/dsa.rs.html#258">p</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/dsa.rs.html#259">q</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/dsa.rs.html#260">g</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>()))<span class="question-mark">?</span>;
+            <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/dsa.rs.html#258">p</a>, <a class="ident" href="../../src/openssl/dsa.rs.html#259">q</a>, <a class="ident" href="../../src/openssl/dsa.rs.html#260">g</a>));
+            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_set0_key.html">DSA_set0_key</a>(<a class="ident" href="../../src/openssl/dsa.rs.html#265">dsa</a>.<span class="number">0</span>, <a class="ident" href="../../src/openssl/dsa.rs.html#261">pub_key</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <span class="ident">ptr::null_mut</span>()))<span class="question-mark">?</span>;
+            <span class="ident">mem::forget</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#261">pub_key</a>);
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#265">dsa</a>)
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Dsa</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#291">f</a>, <span class="string">&quot;DSA&quot;</span>)
+        <span class="macro">write!</span>(<a class="ident" href="../../src/openssl/dsa.rs.html#276">f</a>, <span class="string">&quot;DSA&quot;</span>)
     }
 }
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span> {
-        <span class="kw">use</span> <span class="ident">ffi</span>::{<a class="ident" href="../../openssl_sys/dsa/fn.DSA_get0_key.html">DSA_get0_key</a>, <a class="ident" href="../../openssl_sys/dsa/fn.DSA_get0_pqg.html">DSA_get0_pqg</a>, <a class="ident" href="../../openssl_sys/dsa/fn.DSA_set0_key.html">DSA_set0_key</a>, <a class="ident" href="../../openssl_sys/dsa/fn.DSA_set0_pqg.html">DSA_set0_pqg</a>};
+        <span class="kw">use</span> <span class="ident">ffi</span>::{<a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_get0_key.html">DSA_get0_key</a>, <a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_get0_pqg.html">DSA_get0_pqg</a>, <a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_set0_key.html">DSA_set0_key</a>, <a class="ident" href="../../openssl_sys/handwritten/dsa/fn.DSA_set0_pqg.html">DSA_set0_pqg</a>};
     } <span class="kw">else</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">DSA_get0_pqg</span>(
@@ -924,5 +894,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

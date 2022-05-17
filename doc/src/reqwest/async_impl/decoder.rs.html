@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.10.10/src/async_impl/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.10/src/async_impl/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -382,16 +382,58 @@
 <span id="377">377</span>
 <span id="378">378</span>
 <span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">async_compression::stream::GzipDecoder</span>;
+<span class="kw">use</span> <span class="ident">async_compression::tokio::bufread::GzipDecoder</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">async_compression::stream::BrotliDecoder</span>;
+<span class="kw">use</span> <span class="ident">async_compression::tokio::bufread::BrotliDecoder</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">async_compression::tokio::bufread::ZlibDecoder</span>;
 
 <span class="kw">use</span> <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">bytes::Bytes</a>;
 <span class="kw">use</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">futures_core::Stream</a>;
@@ -399,8 +441,13 @@
 <span class="kw">use</span> <a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">http::HeaderMap</a>;
 <span class="kw">use</span> <a class="ident" href="../../../http_body/trait.Body.html">hyper::body::HttpBody</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#13-15"><span class="kw">super</span>::<span class="kw">super</span>::Body</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/reqwest/lib.rs.html#223"><span class="kw">crate</span>::error</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident">tokio_util::codec</span>::{<span class="ident">BytesCodec</span>, <span class="ident">FramedRead</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident">tokio_util::io::StreamReader</span>;
+
+<span class="kw">use</span> <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17-19"><span class="kw">super</span>::<span class="kw">super</span>::Body</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/reqwest/lib.rs.html#227"><span class="kw">crate</span>::error</a>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Accepts</span> {
@@ -408,51 +455,59 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">gzip</span>: <span class="ident">bool</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">brotli</span>: <span class="ident">bool</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">deflate</span>: <span class="ident">bool</span>,
 }
 
 <span class="doccomment">/// A response decompressor over a non-blocking stream of chunks.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The inner decoder may be constructed asynchronously.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Decoder</span> {
-    <span class="ident">inner</span>: <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#36-51">Inner</a>,
+    <span class="ident">inner</span>: <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#46-65">Inner</a>,
 }
 
 <span class="kw">enum</span> <span class="ident">Inner</span> {
     <span class="doccomment">/// A `PlainText` decoder just returns the response content as is.</span>
-    <span class="ident">PlainText</span>(<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#18"><span class="kw">super</span>::body::ImplStream</a>),
+    <span class="ident">PlainText</span>(<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#22"><span class="kw">super</span>::body::ImplStream</a>),
 
     <span class="doccomment">/// A `Gzip` decoder will uncompress the gzipped response content before returning it.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>)]</span>
-    <span class="ident">Gzip</span>(<span class="ident">GzipDecoder</span><span class="op">&lt;</span><span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">IoStream</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="ident">Gzip</span>(<span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">GzipDecoder</span><span class="op">&lt;</span><span class="ident">StreamReader</span><span class="op">&lt;</span><span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">IoStream</span><span class="op">&gt;</span>, <span class="ident">Bytes</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">BytesCodec</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// A `Brotli` decoder will uncompress the brotlied response content before returning it.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
-    <span class="ident">Brotli</span>(<span class="ident">BrotliDecoder</span><span class="op">&lt;</span><span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">IoStream</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="ident">Brotli</span>(<span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">BrotliDecoder</span><span class="op">&lt;</span><span class="ident">StreamReader</span><span class="op">&lt;</span><span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">IoStream</span><span class="op">&gt;</span>, <span class="ident">Bytes</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">BytesCodec</span><span class="op">&gt;</span>),
+
+    <span class="doccomment">/// A `Deflate` decoder will uncompress the deflated response content before returning it.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+    <span class="ident">Deflate</span>(<span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">ZlibDecoder</span><span class="op">&lt;</span><span class="ident">StreamReader</span><span class="op">&lt;</span><span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">IoStream</span><span class="op">&gt;</span>, <span class="ident">Bytes</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">BytesCodec</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// A decoder that doesn&#39;t have a value yet.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>))]</span>
     <span class="ident">Pending</span>(<span class="ident">Pending</span>),
 }
 
 <span class="doccomment">/// A future attempt to poll the response body for EOF so we know whether to use gzip or not.</span>
-<span class="kw">struct</span> <span class="ident">Pending</span>(<span class="ident">Peekable</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#56">IoStream</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#58-63">DecoderType</a>);
+<span class="kw">struct</span> <span class="ident">Pending</span>(<span class="ident">Peekable</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#70">IoStream</a><span class="op">&gt;</span>, <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#72-79">DecoderType</a>);
 
-<span class="kw">struct</span> <span class="ident">IoStream</span>(<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#18"><span class="kw">super</span>::body::ImplStream</a>);
+<span class="kw">struct</span> <span class="ident">IoStream</span>(<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#22"><span class="kw">super</span>::body::ImplStream</a>);
 
 <span class="kw">enum</span> <span class="ident">DecoderType</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>)]</span>
     <span class="ident">Gzip</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
     <span class="ident">Brotli</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+    <span class="ident">Deflate</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#32-34">Decoder</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#42-44">Decoder</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#66">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Decoder&quot;</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#82">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Decoder&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#32-34">Decoder</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#42-44">Decoder</a> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;blocking&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="ident">Decoder</span> {
         <span class="ident">Decoder</span> {
@@ -463,9 +518,9 @@
     <span class="doccomment">/// A plain text decoder.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This decoder will emit the underlying chunks as-is.</span>
-    <span class="kw">fn</span> <span class="ident">plain_text</span>(<span class="ident">body</span>: <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#13-15">Body</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#32-34">Decoder</a> {
-        <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#32-34">Decoder</a> {
-            <span class="ident">inner</span>: <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#38">Inner::PlainText</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#82">body</a>.<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#151">into_stream</a>()),
+    <span class="kw">fn</span> <span class="ident">plain_text</span>(<span class="ident">body</span>: <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17-19">Body</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#42-44">Decoder</a> {
+        <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#42-44">Decoder</a> {
+            <span class="ident">inner</span>: <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#48">Inner::PlainText</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#98">body</a>.<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#156">into_stream</a>()),
         }
     }
 
@@ -499,68 +554,49 @@
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">detect_gzip</span>(<span class="ident">headers</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HeaderMap</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">use</span> <span class="ident">http::header</span>::{<span class="ident">CONTENT_ENCODING</span>, <span class="ident">CONTENT_LENGTH</span>, <span class="ident">TRANSFER_ENCODING</span>};
-        <span class="kw">use</span> <span class="ident">log::warn</span>;
+    <span class="doccomment">/// A deflate decoder.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This decoder will buffer and decompress chunks that are deflated.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">deflate</span>(<span class="ident">body</span>: <span class="ident">Body</span>) -&gt; <span class="ident">Decoder</span> {
+        <span class="kw">use</span> <span class="ident">futures_util::StreamExt</span>;
 
-        <span class="kw">let</span> <span class="ident">content_encoding_gzip</span>: <span class="ident">bool</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_gzip</span> <span class="op">=</span> {
-            <span class="ident">content_encoding_gzip</span> <span class="op">=</span> <span class="ident">headers</span>
-                .<span class="ident">get_all</span>(<span class="ident">CONTENT_ENCODING</span>)
-                .<span class="ident">iter</span>()
-                .<span class="ident">any</span>(<span class="op">|</span><span class="ident">enc</span><span class="op">|</span> <span class="ident">enc</span> <span class="op">==</span> <span class="string">&quot;gzip&quot;</span>);
-            <span class="ident">content_encoding_gzip</span>
-                <span class="op">|</span><span class="op">|</span> <span class="ident">headers</span>
-                    .<span class="ident">get_all</span>(<span class="ident">TRANSFER_ENCODING</span>)
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">any</span>(<span class="op">|</span><span class="ident">enc</span><span class="op">|</span> <span class="ident">enc</span> <span class="op">==</span> <span class="string">&quot;gzip&quot;</span>)
-        };
-        <span class="kw">if</span> <span class="ident">is_gzip</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">content_length</span>) <span class="op">=</span> <span class="ident">headers</span>.<span class="ident">get</span>(<span class="ident">CONTENT_LENGTH</span>) {
-                <span class="kw">if</span> <span class="ident">content_length</span> <span class="op">==</span> <span class="string">&quot;0&quot;</span> {
-                    <span class="macro">warn!</span>(<span class="string">&quot;gzip response with content-length of 0&quot;</span>);
-                    <span class="ident">is_gzip</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                }
-            }
+        <span class="ident">Decoder</span> {
+            <span class="ident">inner</span>: <span class="ident">Inner::Pending</span>(<span class="ident">Pending</span>(
+                <span class="ident">IoStream</span>(<span class="ident">body</span>.<span class="ident">into_stream</span>()).<span class="ident">peekable</span>(),
+                <span class="ident">DecoderType::Deflate</span>,
+            )),
         }
-        <span class="kw">if</span> <span class="ident">is_gzip</span> {
-            <span class="ident">headers</span>.<span class="ident">remove</span>(<span class="ident">CONTENT_ENCODING</span>);
-            <span class="ident">headers</span>.<span class="ident">remove</span>(<span class="ident">CONTENT_LENGTH</span>);
-        }
-        <span class="ident">is_gzip</span>
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">detect_brotli</span>(<span class="ident">headers</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HeaderMap</span>) -&gt; <span class="ident">bool</span> {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">detect_encoding</span>(<span class="ident">headers</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HeaderMap</span>, <span class="ident">encoding_str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">use</span> <span class="ident">http::header</span>::{<span class="ident">CONTENT_ENCODING</span>, <span class="ident">CONTENT_LENGTH</span>, <span class="ident">TRANSFER_ENCODING</span>};
         <span class="kw">use</span> <span class="ident">log::warn</span>;
 
-        <span class="kw">let</span> <span class="ident">content_encoding_gzip</span>: <span class="ident">bool</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_brotli</span> <span class="op">=</span> {
-            <span class="ident">content_encoding_gzip</span> <span class="op">=</span> <span class="ident">headers</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_content_encoded</span> <span class="op">=</span> {
+            <span class="ident">headers</span>
                 .<span class="ident">get_all</span>(<span class="ident">CONTENT_ENCODING</span>)
                 .<span class="ident">iter</span>()
-                .<span class="ident">any</span>(<span class="op">|</span><span class="ident">enc</span><span class="op">|</span> <span class="ident">enc</span> <span class="op">==</span> <span class="string">&quot;br&quot;</span>);
-            <span class="ident">content_encoding_gzip</span>
+                .<span class="ident">any</span>(<span class="op">|</span><span class="ident">enc</span><span class="op">|</span> <span class="ident">enc</span> <span class="op">==</span> <span class="ident">encoding_str</span>)
                 <span class="op">|</span><span class="op">|</span> <span class="ident">headers</span>
                     .<span class="ident">get_all</span>(<span class="ident">TRANSFER_ENCODING</span>)
                     .<span class="ident">iter</span>()
-                    .<span class="ident">any</span>(<span class="op">|</span><span class="ident">enc</span><span class="op">|</span> <span class="ident">enc</span> <span class="op">==</span> <span class="string">&quot;br&quot;</span>)
+                    .<span class="ident">any</span>(<span class="op">|</span><span class="ident">enc</span><span class="op">|</span> <span class="ident">enc</span> <span class="op">==</span> <span class="ident">encoding_str</span>)
         };
-        <span class="kw">if</span> <span class="ident">is_brotli</span> {
+        <span class="kw">if</span> <span class="ident">is_content_encoded</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">content_length</span>) <span class="op">=</span> <span class="ident">headers</span>.<span class="ident">get</span>(<span class="ident">CONTENT_LENGTH</span>) {
                 <span class="kw">if</span> <span class="ident">content_length</span> <span class="op">==</span> <span class="string">&quot;0&quot;</span> {
-                    <span class="macro">warn!</span>(<span class="string">&quot;brotli response with content-length of 0&quot;</span>);
-                    <span class="ident">is_brotli</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                    <span class="macro">warn!</span>(<span class="string">&quot;{} response with content-length of 0&quot;</span>, <span class="ident">encoding_str</span>);
+                    <span class="ident">is_content_encoded</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 }
             }
         }
-        <span class="kw">if</span> <span class="ident">is_brotli</span> {
+        <span class="kw">if</span> <span class="ident">is_content_encoded</span> {
             <span class="ident">headers</span>.<span class="ident">remove</span>(<span class="ident">CONTENT_ENCODING</span>);
             <span class="ident">headers</span>.<span class="ident">remove</span>(<span class="ident">CONTENT_LENGTH</span>);
         }
-        <span class="ident">is_brotli</span>
+        <span class="ident">is_content_encoded</span>
     }
 
     <span class="doccomment">/// Constructs a Decoder from a hyper request.</span>
@@ -569,36 +605,39 @@
     <span class="doccomment">/// how to decode the content body of the request.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Uses the correct variant by inspecting the Content-Encoding header.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">detect</span>(
-        <span class="ident">_headers</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>,
-        <span class="ident">body</span>: <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#13-15">Body</a>,
-        <span class="ident">_accepts</span>: <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#22-27">Accepts</a>,
-    ) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#32-34">Decoder</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">detect</span>(<span class="ident">_headers</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>, <span class="ident">body</span>: <a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#17-19">Body</a>, <span class="ident">_accepts</span>: <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#30-37">Accepts</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#42-44">Decoder</a> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>)]</span>
         {
-            <span class="kw">if</span> <span class="ident">_accepts</span>.<span class="ident">gzip</span> <span class="op">&amp;&amp;</span> <span class="ident">Decoder::detect_gzip</span>(<span class="ident">_headers</span>) {
+            <span class="kw">if</span> <span class="ident">_accepts</span>.<span class="ident">gzip</span> <span class="op">&amp;&amp;</span> <span class="ident">Decoder::detect_encoding</span>(<span class="ident">_headers</span>, <span class="string">&quot;gzip&quot;</span>) {
                 <span class="kw">return</span> <span class="ident">Decoder::gzip</span>(<span class="ident">body</span>);
             }
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
         {
-            <span class="kw">if</span> <span class="ident">_accepts</span>.<span class="ident">brotli</span> <span class="op">&amp;&amp;</span> <span class="ident">Decoder::detect_brotli</span>(<span class="ident">_headers</span>) {
+            <span class="kw">if</span> <span class="ident">_accepts</span>.<span class="ident">brotli</span> <span class="op">&amp;&amp;</span> <span class="ident">Decoder::detect_encoding</span>(<span class="ident">_headers</span>, <span class="string">&quot;br&quot;</span>) {
                 <span class="kw">return</span> <span class="ident">Decoder::brotli</span>(<span class="ident">body</span>);
             }
         }
 
-        <span class="ident">Decoder::plain_text</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#190">body</a>)
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+        {
+            <span class="kw">if</span> <span class="ident">_accepts</span>.<span class="ident">deflate</span> <span class="op">&amp;&amp;</span> <span class="ident">Decoder::detect_encoding</span>(<span class="ident">_headers</span>, <span class="string">&quot;deflate&quot;</span>) {
+                <span class="kw">return</span> <span class="ident">Decoder::deflate</span>(<span class="ident">body</span>);
+            }
+        }
+
+        <span class="ident">Decoder::plain_text</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#185">body</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#32-34">Decoder</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../src/reqwest/error.rs.html#12-14">error::Error</a><span class="op">&gt;</span>;
+<span class="kw">impl</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#42-44">Decoder</a> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../src/reqwest/error.rs.html#16-18">error::Error</a><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Do a read or poll for a pending decoder value.</span>
         <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#214">self</a>.<span class="ident">inner</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>))]</span>
             <span class="ident">Inner::Pending</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">future</span>) =&gt; <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="ident">future</span>).<span class="ident">poll</span>(<span class="ident">cx</span>) {
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">inner</span>)) =&gt; {
                     <span class="self">self</span>.<span class="ident">inner</span> <span class="op">=</span> <span class="ident">inner</span>;
@@ -609,11 +648,11 @@
                 }
                 <span class="ident">Poll::Pending</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
             },
-            <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#38">Inner::PlainText</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">body</span>) =&gt; <span class="ident">Pin::new</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#228">body</a>).<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#214">cx</a>),
+            <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#48">Inner::PlainText</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">body</span>) =&gt; <span class="ident">Pin::new</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#228">body</a>).<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#214">cx</a>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>)]</span>
             <span class="ident">Inner::Gzip</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">decoder</span>) =&gt; {
                 <span class="kw">return</span> <span class="kw">match</span> <span class="macro">futures_core::ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">decoder</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>))),
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>.<span class="ident">freeze</span>()))),
                     <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::error::decode_io</span>(<span class="ident">err</span>)))),
                     <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
                 };
@@ -621,7 +660,15 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
             <span class="ident">Inner::Brotli</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">decoder</span>) =&gt; {
                 <span class="kw">return</span> <span class="kw">match</span> <span class="macro">futures_core::ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">decoder</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>))),
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>.<span class="ident">freeze</span>()))),
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::error::decode_io</span>(<span class="ident">err</span>)))),
+                    <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
+                };
+            }
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+            <span class="ident">Inner::Deflate</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">decoder</span>) =&gt; {
+                <span class="kw">return</span> <span class="kw">match</span> <span class="macro">futures_core::ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">decoder</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>.<span class="ident">freeze</span>()))),
                     <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::error::decode_io</span>(<span class="ident">err</span>)))),
                     <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
                 };
@@ -630,15 +677,15 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../http_body/trait.Body.html">HttpBody</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#32-34">Decoder</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../http_body/trait.Body.html">HttpBody</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#42-44">Decoder</a> {
     <span class="kw">type</span> <span class="ident">Data</span> <span class="op">=</span> <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/error.rs.html#12-14"><span class="kw">crate</span>::Error</a>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/error.rs.html#16-18"><span class="kw">crate</span>::Error</a>;
 
     <span class="kw">fn</span> <span class="ident">poll_data</span>(
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Data</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#254">self</a>.<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#255">cx</a>)
+        <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#262">self</a>.<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#263">cx</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">poll_trailers</span>(
@@ -649,57 +696,68 @@
     }
 
     <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../http_body/size_hint/struct.SizeHint.html">http_body::SizeHint</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#267">self</a>.<span class="ident">inner</span> {
-            <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#38">Inner::PlainText</a>(<span class="kw-2">ref</span> <span class="ident">body</span>) =&gt; <a class="ident" href="../../../http_body/trait.Body.html">HttpBody::size_hint</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#269">body</a>),
+        <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#275">self</a>.<span class="ident">inner</span> {
+            <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#48">Inner::PlainText</a>(<span class="kw-2">ref</span> <span class="ident">body</span>) =&gt; <a class="ident" href="../../../http_body/trait.Body.html">HttpBody::size_hint</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#277">body</a>),
             <span class="comment">// the rest are &quot;unknown&quot;, so default</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>))]</span>
             <span class="kw">_</span> =&gt; <span class="ident">http_body::SizeHint::default</span>(),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#54">Pending</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#36-51">Inner</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span>;
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#68">Pending</a> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#46-65">Inner</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../../futures_util/stream/stream/trait.StreamExt.html">futures_util::StreamExt</a>;
 
-        <span class="kw">match</span> <span class="macro">futures_core::ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#280">self</a>.<span class="number">0</span>).<span class="ident">poll_peek</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#280">cx</a>)) {
+        <span class="kw">match</span> <span class="macro">futures_core::ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#288">self</a>.<span class="number">0</span>).<span class="ident">poll_peek</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#288">cx</a>)) {
             <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="comment">// fallthrough</span>
             }
             <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">_e</span>)) =&gt; {
                 <span class="comment">// error was just a ref, so we need to really poll to move it</span>
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="macro">futures_core::ready!</span>(
-                    <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#280">self</a>.<span class="number">0</span>).<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#280">cx</a>)
+                    <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#288">self</a>.<span class="number">0</span>).<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#288">cx</a>)
                 )
                 .<span class="ident">expect</span>(<span class="string">&quot;just peeked Some&quot;</span>)
                 .<span class="ident">unwrap_err</span>()));
             }
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#38">Inner::PlainText</a>(<span class="ident">Body::empty</span>().<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#151">into_stream</a>()))),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#48">Inner::PlainText</a>(<span class="ident">Body::empty</span>().<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#156">into_stream</a>()))),
         };
 
         <span class="kw">let</span> <span class="ident">_body</span> <span class="op">=</span> <span class="ident">std::mem::replace</span>(
-            <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#280">self</a>.<span class="number">0</span>,
-            <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#56">IoStream</a>(<span class="ident">Body::empty</span>().<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#151">into_stream</a>()).<a class="ident" href="../../../futures_util/stream/stream/trait.StreamExt.html">peekable</a>(),
+            <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#288">self</a>.<span class="number">0</span>,
+            <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#70">IoStream</a>(<span class="ident">Body::empty</span>().<a class="ident" href="../../../src/reqwest/async_impl/body.rs.html#156">into_stream</a>()).<a class="ident" href="../../../futures_util/stream/stream/trait.StreamExt.html">peekable</a>(),
         );
 
-        <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#280">self</a>.<span class="number">1</span> {
+        <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#288">self</a>.<span class="number">1</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
-            <span class="ident">DecoderType::Brotli</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">Inner::Brotli</span>(<span class="ident">BrotliDecoder::new</span>(<span class="ident">_body</span>)))),
+            <span class="ident">DecoderType::Brotli</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">Inner::Brotli</span>(<span class="ident">FramedRead::new</span>(
+                <span class="ident">BrotliDecoder::new</span>(<span class="ident">StreamReader::new</span>(<span class="ident">_body</span>)),
+                <span class="ident">BytesCodec::new</span>(),
+            )))),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>)]</span>
-            <span class="ident">DecoderType::Gzip</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">Inner::Gzip</span>(<span class="ident">GzipDecoder::new</span>(<span class="ident">_body</span>)))),
+            <span class="ident">DecoderType::Gzip</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">Inner::Gzip</span>(<span class="ident">FramedRead::new</span>(
+                <span class="ident">GzipDecoder::new</span>(<span class="ident">StreamReader::new</span>(<span class="ident">_body</span>)),
+                <span class="ident">BytesCodec::new</span>(),
+            )))),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+            <span class="ident">DecoderType::Deflate</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">Inner::Deflate</span>(<span class="ident">FramedRead::new</span>(
+                <span class="ident">ZlibDecoder::new</span>(<span class="ident">StreamReader::new</span>(<span class="ident">_body</span>)),
+                <span class="ident">BytesCodec::new</span>(),
+            )))),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#56">IoStream</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#70">IoStream</a> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">futures_core::ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#315">self</a>.<span class="number">0</span>).<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#315">cx</a>)) {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">chunk</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#317">chunk</a>))),
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#318">err</a>.<a class="ident" href="../../../src/reqwest/error.rs.html#155">into_io</a>()))),
+        <span class="kw">match</span> <span class="macro">futures_core::ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#334">self</a>.<span class="number">0</span>).<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#334">cx</a>)) {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">chunk</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#336">chunk</a>))),
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#337">err</a>.<a class="ident" href="../../../src/reqwest/error.rs.html#158">into_io</a>()))),
             <span class="prelude-val">None</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
         }
     }
@@ -707,22 +765,28 @@
 
 <span class="comment">// ===== impl Accepts =====</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#22-27">Accepts</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#30-37">Accepts</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#22-27">Accepts</a> {
+        <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#30-37">Accepts</a> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>)]</span>
             <span class="ident">gzip</span>: <span class="bool-val">false</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
             <span class="ident">brotli</span>: <span class="bool-val">false</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+            <span class="ident">deflate</span>: <span class="bool-val">false</span>,
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#336">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#345">is_gzip</a>(), <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#336">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#357">is_brotli</a>()) {
-            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;gzip, br&quot;</span>),
-            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;gzip&quot;</span>),
-            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;br&quot;</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">match</span> (<a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#357">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#370">is_gzip</a>(), <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#357">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#382">is_brotli</a>(), <a class="self" href="../../../src/reqwest/async_impl/decoder.rs.html#357">self</a>.<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#394">is_deflate</a>()) {
+            (<span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;gzip, br, deflate&quot;</span>),
+            (<span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;gzip, br&quot;</span>),
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;gzip, deflate&quot;</span>),
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;br, deflate&quot;</span>),
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;gzip&quot;</span>),
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;br&quot;</span>),
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;deflate&quot;</span>),
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -749,18 +813,32 @@
             <span class="bool-val">false</span>
         }
     }
+
+    <span class="kw">fn</span> <span class="ident">is_deflate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+        {
+            <span class="self">self</span>.<span class="ident">deflate</span>
+        }
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>))]</span>
+        {
+            <span class="bool-val">false</span>
+        }
+    }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#22-27">Accepts</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#22-27">Accepts</a> {
-        <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#22-27">Accepts</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#30-37">Accepts</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#30-37">Accepts</a> {
+        <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#30-37">Accepts</a> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gzip&quot;</span>)]</span>
             <span class="ident">gzip</span>: <span class="bool-val">true</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
             <span class="ident">brotli</span>: <span class="bool-val">true</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+            <span class="ident">deflate</span>: <span class="bool-val">true</span>,
         }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

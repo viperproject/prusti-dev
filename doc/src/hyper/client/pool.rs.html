@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.13.10/src/client/pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.18/src/client/pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1016,7 +1016,39 @@
 <span id="1011">1011</span>
 <span id="1012">1012</span>
 <span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">HashSet</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">VecDeque</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <span class="ident">std::ops</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
 <span class="kw">use</span> <span class="ident">std::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Weak.html">Weak</a>};
@@ -1027,9 +1059,10 @@
 <span class="kw">use</span> <a class="ident" href="../../../futures_channel/oneshot/index.html">futures_channel::oneshot</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">tokio::time</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a class="ident" href="../../../tokio/time/instant/struct.Instant.html">Instant</a>, <a class="ident" href="../../../tokio/time/interval/struct.Interval.html">Interval</a>};
+<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/hyper/client/mod.rs.html#762-765"><span class="kw">super</span>::Ver</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/hyper/common/mod.rs.html#18">task</a>, <a class="ident" href="../../../src/hyper/common/exec.rs.html#30-33">Exec</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
+<span class="kw">use</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#761-764"><span class="kw">super</span>::client::Ver</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/hyper/common/exec.rs.html#33-36">exec::Exec</a>, <a class="ident" href="../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
 
 <span class="comment">// FIXME: allow() required due to `impl Trait` leaking types to this lint</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
@@ -1063,6 +1096,7 @@
     <span class="doccomment">/// This connection could be used multiple times, the first one will be</span>
     <span class="doccomment">/// reinserted into the `idle` pool, and the second will be given to</span>
     <span class="doccomment">/// the `Checkout`.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
     <span class="ident">Shared</span>(<span class="ident">T</span>, <span class="ident">T</span>),
     <span class="doccomment">/// This connection requires unique access. It will be returned after</span>
     <span class="doccomment">/// use is complete.</span>
@@ -1076,10 +1110,10 @@
     <span class="comment">// A flag that a connection is being established, and the connection</span>
     <span class="comment">// should be shared. This prevents making multiple HTTP/2 connections</span>
     <span class="comment">// to the same host.</span>
-    <span class="ident">connecting</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a><span class="op">&gt;</span>,
+    <span class="ident">connecting</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a><span class="op">&gt;</span>,
     <span class="comment">// These are internal Conns sitting in the event loop in the KeepAlive</span>
     <span class="comment">// state, waiting to receive a new Request to send on the socket.</span>
-    <span class="ident">idle</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Idle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">idle</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Idle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">max_idle_per_host</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="comment">// These are outstanding Checkouts that are waiting for a socket to be</span>
     <span class="comment">// able to send a Request one. This is used when &quot;racing&quot; for a new</span>
@@ -1090,13 +1124,13 @@
     <span class="comment">// this list is checked for any parked Checkouts, and tries to notify</span>
     <span class="comment">// them that the Conn could be used instead of waiting for a brand new</span>
     <span class="comment">// connection.</span>
-    <span class="ident">waiters</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>, <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">waiters</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>, <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="comment">// A oneshot channel is used to allow the interval to be notified when</span>
     <span class="comment">// the Pool completely drops. That way, the interval can cancel immediately.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
     <span class="ident">idle_interval_ref</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">oneshot::Sender</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
-    <span class="ident">exec</span>: <a class="ident" href="../../../src/hyper/common/exec.rs.html#30-33">Exec</a>,
+    <span class="ident">exec</span>: <a class="ident" href="../../../src/hyper/common/exec.rs.html#33-36">Exec</a>,
     <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>,
 }
 
@@ -1110,35 +1144,35 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">max_idle_per_host</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#90-93">Config</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#93-96">Config</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#96">self</a>.<span class="ident">max_idle_per_host</span> <span class="op">&gt;</span> <span class="number">0</span>
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#99">self</a>.<span class="ident">max_idle_per_host</span> <span class="op">&gt;</span> <span class="number">0</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#90-93">Config</a>, <span class="ident">__exec</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/common/exec.rs.html#30-33">Exec</a>) -&gt; <span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#102">config</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#96">is_enabled</a>() {
-            <span class="prelude-val">Some</span>(<span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#57-83">PoolInner</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#93-96">Config</a>, <span class="ident">__exec</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/common/exec.rs.html#33-36">Exec</a>) -&gt; <span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#105">config</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#99">is_enabled</a>() {
+            <span class="prelude-val">Some</span>(<span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#60-86">PoolInner</a> {
                 <span class="ident">connecting</span>: <span class="ident">HashSet::new</span>(),
                 <span class="ident">idle</span>: <span class="ident">HashMap::new</span>(),
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
                 <span class="ident">idle_interval_ref</span>: <span class="prelude-val">None</span>,
-                <span class="ident">max_idle_per_host</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#102">config</a>.<span class="ident">max_idle_per_host</span>,
+                <span class="ident">max_idle_per_host</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#105">config</a>.<span class="ident">max_idle_per_host</span>,
                 <span class="ident">waiters</span>: <span class="ident">HashMap::new</span>(),
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
-                <span class="ident">exec</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#102">__exec</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <span class="ident">timeout</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#102">config</a>.<span class="ident">idle_timeout</span>,
+                <span class="ident">exec</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#105">__exec</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                <span class="ident">timeout</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#105">config</a>.<span class="ident">idle_timeout</span>,
             })))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         };
 
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#18-21">Pool</a> { <a class="ident" href="../../../src/hyper/client/pool.rs.html#103">inner</a> }
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#20-23">Pool</a> { <a class="ident" href="../../../src/hyper/client/pool.rs.html#106">inner</a> }
     }
 
     <span class="kw">fn</span> <span class="ident">is_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#122">self</a>.<span class="ident">inner</span>.<span class="ident">is_some</span>()
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#125">self</a>.<span class="ident">inner</span>.<span class="ident">is_some</span>()
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -1154,39 +1188,39 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns a `Checkout` which is a future that resolves if an idle</span>
     <span class="doccomment">/// connection becomes available.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checkout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>) -&gt; <span class="ident">Checkout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#549-553">Checkout</a> {
-            <a class="ident" href="../../../src/hyper/client/pool.rs.html#142">key</a>,
-            <span class="ident">pool</span>: <a class="self" href="../../../src/hyper/client/pool.rs.html#142">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">checkout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>) -&gt; <span class="ident">Checkout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#561-565">Checkout</a> {
+            <a class="ident" href="../../../src/hyper/client/pool.rs.html#145">key</a>,
+            <span class="ident">pool</span>: <a class="self" href="../../../src/hyper/client/pool.rs.html#145">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             <span class="ident">waiter</span>: <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Ensure that there is only ever 1 connecting task for HTTP/2</span>
     <span class="doccomment">/// connections. This does nothing for HTTP/1.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">connecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>, <span class="ident">ver</span>: <a class="ident" href="../../../src/hyper/client/mod.rs.html#762-765">Ver</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#152">ver</a> <span class="op">==</span> <a class="ident" href="../../../src/hyper/client/mod.rs.html#764">Ver::Http2</a> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">enabled</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#152">self</a>.<span class="ident">inner</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#154">enabled</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-                <span class="kw">return</span> <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#155">inner</a>.<span class="ident">connecting</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#152">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
-                    <span class="kw">let</span> <span class="ident">connecting</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#666-669">Connecting</a> {
-                        <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#152">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <span class="ident">pool</span>: <span class="ident">WeakOpt::downgrade</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#154">enabled</a>),
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">connecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>, <span class="ident">ver</span>: <a class="ident" href="../../../src/hyper/client/client.rs.html#761-764">Ver</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#155">ver</a> <span class="op">==</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#763">Ver::Http2</a> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">enabled</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#155">self</a>.<span class="ident">inner</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#157">enabled</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+                <span class="kw">return</span> <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#158">inner</a>.<span class="ident">connecting</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#155">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()) {
+                    <span class="kw">let</span> <span class="ident">connecting</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#690-693">Connecting</a> {
+                        <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#155">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        <span class="ident">pool</span>: <span class="ident">WeakOpt::downgrade</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#157">enabled</a>),
                     };
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#157">connecting</a>)
+                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#160">connecting</a>)
                 } <span class="kw">else</span> {
-                    <span class="macro">trace!</span>(<span class="string">&quot;HTTP/2 connecting already in progress for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#152">key</a>);
+                    <span class="macro">trace!</span>(<span class="string">&quot;HTTP/2 connecting already in progress for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#155">key</a>);
                     <span class="prelude-val">None</span>
                 };
             }
         }
 
         <span class="comment">// else</span>
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#666-669">Connecting</a> {
-            <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#152">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#690-693">Connecting</a> {
+            <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#155">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             <span class="comment">// in HTTP/1&#39;s case, there is never a lock, so we don&#39;t</span>
             <span class="comment">// need to do anything in Drop.</span>
             <span class="ident">pool</span>: <span class="ident">WeakOpt::none</span>(),
@@ -1217,47 +1251,52 @@
     }
     */</span>
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">pooled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">connecting</span>: <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">value</span>, <span class="ident">pool_ref</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">enabled</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#202">self</a>.<span class="ident">inner</span> {
-            <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#202">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#33">reserve</a>() {
-                <a class="ident" href="../../../src/hyper/client/pool.rs.html#48">Reservation::Shared</a>(<span class="ident">to_insert</span>, <span class="ident">to_return</span>) =&gt; {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#203">enabled</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#206">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#315">put</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#202">connecting</a>.<span class="ident">key</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/hyper/client/pool.rs.html#205">to_insert</a>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#203">enabled</a>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">pooled</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>), <span class="ident">allow</span>(<span class="ident">unused_mut</span>))]</span> <span class="kw-2">mut</span> <span class="ident">connecting</span>: <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">value</span>: <span class="ident">T</span>,
+    ) -&gt; <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> (<span class="ident">value</span>, <span class="ident">pool_ref</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">enabled</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#206">self</a>.<span class="ident">inner</span> {
+            <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#208">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#35">reserve</a>() {
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
+                <a class="ident" href="../../../src/hyper/client/pool.rs.html#51">Reservation::Shared</a>(<span class="ident">to_insert</span>, <span class="ident">to_return</span>) =&gt; {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#210">enabled</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#214">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#324">put</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#207">connecting</a>.<span class="ident">key</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/hyper/client/pool.rs.html#213">to_insert</a>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#210">enabled</a>);
                     <span class="comment">// Do this here instead of Drop for Connecting because we</span>
                     <span class="comment">// already have a lock, no need to lock the mutex twice.</span>
-                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#206">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#384">connected</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#202">connecting</a>.<span class="ident">key</span>);
+                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#214">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#394">connected</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#207">connecting</a>.<span class="ident">key</span>);
                     <span class="comment">// prevent the Drop of Connecting from repeating inner.connected()</span>
-                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#202">connecting</a>.<span class="ident">pool</span> <span class="op">=</span> <span class="ident">WeakOpt::none</span>();
+                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#207">connecting</a>.<span class="ident">pool</span> <span class="op">=</span> <span class="ident">WeakOpt::none</span>();
 
                     <span class="comment">// Shared reservations don&#39;t need a reference to the pool,</span>
                     <span class="comment">// since the pool always keeps a copy.</span>
-                    (<a class="ident" href="../../../src/hyper/client/pool.rs.html#205">to_return</a>, <span class="ident">WeakOpt::none</span>())
+                    (<a class="ident" href="../../../src/hyper/client/pool.rs.html#213">to_return</a>, <span class="ident">WeakOpt::none</span>())
                 }
-                <a class="ident" href="../../../src/hyper/client/pool.rs.html#51">Reservation::Unique</a>(<span class="ident">value</span>) =&gt; {
+                <a class="ident" href="../../../src/hyper/client/pool.rs.html#54">Reservation::Unique</a>(<span class="ident">value</span>) =&gt; {
                     <span class="comment">// Unique reservations must take a reference to the pool</span>
                     <span class="comment">// since they hope to reinsert once the reservation is</span>
                     <span class="comment">// completed</span>
-                    (<a class="ident" href="../../../src/hyper/client/pool.rs.html#218">value</a>, <span class="ident">WeakOpt::downgrade</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#203">enabled</a>))
+                    (<a class="ident" href="../../../src/hyper/client/pool.rs.html#226">value</a>, <span class="ident">WeakOpt::downgrade</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#210">enabled</a>))
                 }
             }
         } <span class="kw">else</span> {
             <span class="comment">// If pool is not enabled, skip all the things...</span>
 
             <span class="comment">// The Connecting should have had no pool ref</span>
-            <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#202">connecting</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#756">upgrade</a>().<span class="ident">is_none</span>());
+            <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#207">connecting</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#786">upgrade</a>().<span class="ident">is_none</span>());
 
-            (<a class="ident" href="../../../src/hyper/client/pool.rs.html#202">value</a>, <span class="ident">WeakOpt::none</span>())
+            (<a class="ident" href="../../../src/hyper/client/pool.rs.html#208">value</a>, <span class="ident">WeakOpt::none</span>())
         };
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#476-481">Pooled</a> {
-            <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#202">connecting</a>.<span class="ident">key</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#488-493">Pooled</a> {
+            <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#207">connecting</a>.<span class="ident">key</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             <span class="ident">is_reused</span>: <span class="bool-val">false</span>,
-            <span class="ident">pool</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#203">pool_ref</a>,
-            <span class="ident">value</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#203">value</a>),
+            <span class="ident">pool</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#210">pool_ref</a>,
+            <span class="ident">value</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#210">value</a>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">reuse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="macro">debug!</span>(<span class="string">&quot;reuse idle connection for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#241">key</a>);
+    <span class="kw">fn</span> <span class="ident">reuse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="macro">debug!</span>(<span class="string">&quot;reuse idle connection for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#249">key</a>);
         <span class="comment">// TODO: unhack this</span>
         <span class="comment">// In Pool::pooled(), which is used for inserting brand new connections,</span>
         <span class="comment">// there&#39;s some code that adjusts the pool reference taken depending</span>
@@ -1267,34 +1306,34 @@
         <span class="comment">// unique or shared. So, the hack is to just assume Ver::Http2 means</span>
         <span class="comment">// shared... :(</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pool_ref</span> <span class="op">=</span> <span class="ident">WeakOpt::none</span>();
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#241">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#34">can_share</a>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">enabled</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#241">self</a>.<span class="ident">inner</span> {
-                <a class="ident" href="../../../src/hyper/client/pool.rs.html#251">pool_ref</a> <span class="op">=</span> <span class="ident">WeakOpt::downgrade</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#253">enabled</a>);
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#249">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#36">can_share</a>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">enabled</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#249">self</a>.<span class="ident">inner</span> {
+                <a class="ident" href="../../../src/hyper/client/pool.rs.html#259">pool_ref</a> <span class="op">=</span> <span class="ident">WeakOpt::downgrade</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#261">enabled</a>);
             }
         }
 
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#476-481">Pooled</a> {
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#488-493">Pooled</a> {
             <span class="ident">is_reused</span>: <span class="bool-val">true</span>,
-            <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#241">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <span class="ident">pool</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#251">pool_ref</a>,
-            <span class="ident">value</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#241">value</a>),
+            <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#249">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">pool</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#259">pool_ref</a>,
+            <span class="ident">value</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#249">value</a>),
         }
     }
 }
 
 <span class="doccomment">/// Pop off this list, looking for a usable connection that hasn&#39;t expired.</span>
 <span class="kw">struct</span> <span class="ident">IdlePopper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>,
+    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>,
     <span class="ident">list</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Idle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">IdlePopper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="self">self</span>, <span class="ident">expiration</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#693">Expiration</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Idle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">entry</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#274">self</a>.<span class="ident">list</span>.<span class="ident">pop</span>() {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">IdlePopper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="self">self</span>, <span class="ident">expiration</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#717">Expiration</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Idle</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">entry</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#282">self</a>.<span class="ident">list</span>.<span class="ident">pop</span>() {
             <span class="comment">// If the connection has been closed, or is older than our idle</span>
             <span class="comment">// timeout, simply drop it and keep looking...</span>
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#275">entry</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#29">is_open</a>() {
-                <span class="macro">trace!</span>(<span class="string">&quot;removing closed connection for {:?}&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#274">self</a>.<span class="ident">key</span>);
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#283">entry</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#31">is_open</a>() {
+                <span class="macro">trace!</span>(<span class="string">&quot;removing closed connection for {:?}&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#282">self</a>.<span class="ident">key</span>);
                 <span class="kw">continue</span>;
             }
             <span class="comment">// TODO: Actually, since the `idle` list is pushed to the end always,</span>
@@ -1303,25 +1342,26 @@
             <span class="comment">//</span>
             <span class="comment">// In that case, we could just break out of the loop and drop the</span>
             <span class="comment">// whole list...</span>
-            <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#274">expiration</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#700">expires</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#275">entry</a>.<span class="ident">idle_at</span>) {
-                <span class="macro">trace!</span>(<span class="string">&quot;removing expired connection for {:?}&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#274">self</a>.<span class="ident">key</span>);
+            <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#282">expiration</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#724">expires</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#283">entry</a>.<span class="ident">idle_at</span>) {
+                <span class="macro">trace!</span>(<span class="string">&quot;removing expired connection for {:?}&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#282">self</a>.<span class="ident">key</span>);
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#275">entry</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#33">reserve</a>() {
-                <a class="ident" href="../../../src/hyper/client/pool.rs.html#48">Reservation::Shared</a>(<span class="ident">to_reinsert</span>, <span class="ident">to_checkout</span>) =&gt; {
-                    <a class="self" href="../../../src/hyper/client/pool.rs.html#274">self</a>.<span class="ident">list</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#542-545">Idle</a> {
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#283">entry</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#35">reserve</a>() {
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
+                <a class="ident" href="../../../src/hyper/client/pool.rs.html#51">Reservation::Shared</a>(<span class="ident">to_reinsert</span>, <span class="ident">to_checkout</span>) =&gt; {
+                    <a class="self" href="../../../src/hyper/client/pool.rs.html#282">self</a>.<span class="ident">list</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#554-557">Idle</a> {
                         <span class="ident">idle_at</span>: <span class="ident">Instant::now</span>(),
-                        <span class="ident">value</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#294">to_reinsert</a>,
+                        <span class="ident">value</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#303">to_reinsert</a>,
                     });
-                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#294">to_checkout</a>
+                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#303">to_checkout</a>
                 }
-                <a class="ident" href="../../../src/hyper/client/pool.rs.html#51">Reservation::Unique</a>(<span class="ident">unique</span>) =&gt; <a class="ident" href="../../../src/hyper/client/pool.rs.html#301">unique</a>,
+                <a class="ident" href="../../../src/hyper/client/pool.rs.html#54">Reservation::Unique</a>(<span class="ident">unique</span>) =&gt; <a class="ident" href="../../../src/hyper/client/pool.rs.html#310">unique</a>,
             };
 
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#542-545">Idle</a> {
-                <span class="ident">idle_at</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#275">entry</a>.<span class="ident">idle_at</span>,
-                <a class="ident" href="../../../src/hyper/client/pool.rs.html#293">value</a>,
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#554-557">Idle</a> {
+                <span class="ident">idle_at</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#283">entry</a>.<span class="ident">idle_at</span>,
+                <a class="ident" href="../../../src/hyper/client/pool.rs.html#301">value</a>,
             });
         }
 
@@ -1329,108 +1369,109 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">put</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>, <span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">__pool_ref</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
-        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#315">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#34">can_share</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#315">self</a>.<span class="ident">idle</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#315">key</a>) {
-            <span class="macro">trace!</span>(<span class="string">&quot;put; existing idle HTTP/2 connection for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#315">key</a>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">put</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>, <span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">__pool_ref</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
+        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#324">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#36">can_share</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#324">self</a>.<span class="ident">idle</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#324">key</a>) {
+            <span class="macro">trace!</span>(<span class="string">&quot;put; existing idle HTTP/2 connection for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#324">key</a>);
             <span class="kw">return</span>;
         }
-        <span class="macro">trace!</span>(<span class="string">&quot;put; add idle connection for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#315">key</a>);
+        <span class="macro">trace!</span>(<span class="string">&quot;put; add idle connection for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#324">key</a>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remove_waiters</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#315">value</a>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waiters</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#315">self</a>.<span class="ident">waiters</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#315">key</a>) {
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tx</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#323">waiters</a>.<span class="ident">pop_front</span>() {
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#324">tx</a>.<span class="ident">is_canceled</span>() {
-                    <span class="kw">let</span> <span class="ident">reserved</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#322">value</a>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;value already sent&quot;</span>);
-                    <span class="kw">let</span> <span class="ident">reserved</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#326">reserved</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#33">reserve</a>() {
-                        <a class="ident" href="../../../src/hyper/client/pool.rs.html#48">Reservation::Shared</a>(<span class="ident">to_keep</span>, <span class="ident">to_send</span>) =&gt; {
-                            <a class="ident" href="../../../src/hyper/client/pool.rs.html#322">value</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#328">to_keep</a>);
-                            <a class="ident" href="../../../src/hyper/client/pool.rs.html#328">to_send</a>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#324">value</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waiters</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#324">self</a>.<span class="ident">waiters</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#324">key</a>) {
+            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tx</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#332">waiters</a>.<span class="ident">pop_front</span>() {
+                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#333">tx</a>.<span class="ident">is_canceled</span>() {
+                    <span class="kw">let</span> <span class="ident">reserved</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#331">value</a>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;value already sent&quot;</span>);
+                    <span class="kw">let</span> <span class="ident">reserved</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#335">reserved</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#35">reserve</a>() {
+                        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
+                        <a class="ident" href="../../../src/hyper/client/pool.rs.html#51">Reservation::Shared</a>(<span class="ident">to_keep</span>, <span class="ident">to_send</span>) =&gt; {
+                            <a class="ident" href="../../../src/hyper/client/pool.rs.html#331">value</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#338">to_keep</a>);
+                            <a class="ident" href="../../../src/hyper/client/pool.rs.html#338">to_send</a>
                         }
-                        <a class="ident" href="../../../src/hyper/client/pool.rs.html#51">Reservation::Unique</a>(<span class="ident">uniq</span>) =&gt; <a class="ident" href="../../../src/hyper/client/pool.rs.html#332">uniq</a>,
+                        <a class="ident" href="../../../src/hyper/client/pool.rs.html#54">Reservation::Unique</a>(<span class="ident">uniq</span>) =&gt; <a class="ident" href="../../../src/hyper/client/pool.rs.html#342">uniq</a>,
                     };
-                    <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#324">tx</a>.<span class="ident">send</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#327">reserved</a>) {
+                    <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#333">tx</a>.<span class="ident">send</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#336">reserved</a>) {
                         <span class="prelude-val">Ok</span>(()) =&gt; {
-                            <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#322">value</a>.<span class="ident">is_none</span>() {
+                            <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#331">value</a>.<span class="ident">is_none</span>() {
                                 <span class="kw">break</span>;
                             } <span class="kw">else</span> {
                                 <span class="kw">continue</span>;
                             }
                         }
                         <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                            <a class="ident" href="../../../src/hyper/client/pool.rs.html#322">value</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#342">e</a>);
+                            <a class="ident" href="../../../src/hyper/client/pool.rs.html#331">value</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#352">e</a>);
                         }
                     }
                 }
 
-                <span class="macro">trace!</span>(<span class="string">&quot;put; removing canceled waiter for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#315">key</a>);
+                <span class="macro">trace!</span>(<span class="string">&quot;put; removing canceled waiter for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#324">key</a>);
             }
-            <a class="ident" href="../../../src/hyper/client/pool.rs.html#321">remove_waiters</a> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#323">waiters</a>.<span class="ident">is_empty</span>();
+            <a class="ident" href="../../../src/hyper/client/pool.rs.html#330">remove_waiters</a> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#332">waiters</a>.<span class="ident">is_empty</span>();
         }
-        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#321">remove_waiters</a> {
-            <a class="self" href="../../../src/hyper/client/pool.rs.html#315">self</a>.<span class="ident">waiters</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#315">key</a>);
+        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#330">remove_waiters</a> {
+            <a class="self" href="../../../src/hyper/client/pool.rs.html#324">self</a>.<span class="ident">waiters</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#324">key</a>);
         }
 
-        <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#322">value</a> {
+        <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#331">value</a> {
             <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; {
                 <span class="comment">// borrow-check scope...</span>
                 {
-                    <span class="kw">let</span> <span class="ident">idle_list</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#315">self</a>.<span class="ident">idle</span>.<span class="ident">entry</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#315">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<span class="ident">or_insert_with</span>(<span class="ident">Vec::new</span>);
-                    <span class="kw">if</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#315">self</a>.<span class="ident">max_idle_per_host</span> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#360">idle_list</a>.<span class="ident">len</span>() {
-                        <span class="macro">trace!</span>(<span class="string">&quot;max idle per host for {:?}, dropping connection&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#315">key</a>);
+                    <span class="kw">let</span> <span class="ident">idle_list</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#324">self</a>.<span class="ident">idle</span>.<span class="ident">entry</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#324">key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<span class="ident">or_insert_with</span>(<span class="ident">Vec::new</span>);
+                    <span class="kw">if</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#324">self</a>.<span class="ident">max_idle_per_host</span> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#370">idle_list</a>.<span class="ident">len</span>() {
+                        <span class="macro">trace!</span>(<span class="string">&quot;max idle per host for {:?}, dropping connection&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#324">key</a>);
                         <span class="kw">return</span>;
                     }
 
-                    <span class="macro">debug!</span>(<span class="string">&quot;pooling idle connection for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#315">key</a>);
-                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#360">idle_list</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#542-545">Idle</a> {
-                        <a class="ident" href="../../../src/hyper/client/pool.rs.html#357">value</a>,
+                    <span class="macro">debug!</span>(<span class="string">&quot;pooling idle connection for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#324">key</a>);
+                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#370">idle_list</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#554-557">Idle</a> {
+                        <a class="ident" href="../../../src/hyper/client/pool.rs.html#367">value</a>,
                         <span class="ident">idle_at</span>: <span class="ident">Instant::now</span>(),
                     });
                 }
 
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
                 {
-                    <a class="self" href="../../../src/hyper/client/pool.rs.html#315">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#394">spawn_idle_interval</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#315">__pool_ref</a>);
+                    <a class="self" href="../../../src/hyper/client/pool.rs.html#324">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#404">spawn_idle_interval</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#324">__pool_ref</a>);
                 }
             }
-            <span class="prelude-val">None</span> =&gt; <span class="macro">trace!</span>(<span class="string">&quot;put; found waiter for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#315">key</a>),
+            <span class="prelude-val">None</span> =&gt; <span class="macro">trace!</span>(<span class="string">&quot;put; found waiter for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#324">key</a>),
         }
     }
 
     <span class="doccomment">/// A `Connecting` task is complete. Not necessarily successfully,</span>
     <span class="doccomment">/// but the lock is going away, so clean up.</span>
-    <span class="kw">fn</span> <span class="ident">connected</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>) {
-        <span class="kw">let</span> <span class="ident">existed</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#384">self</a>.<span class="ident">connecting</span>.<span class="ident">remove</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#384">key</a>);
-        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#385">existed</a>, <span class="string">&quot;Connecting dropped, key not in pool.connecting&quot;</span>);
+    <span class="kw">fn</span> <span class="ident">connected</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>) {
+        <span class="kw">let</span> <span class="ident">existed</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#394">self</a>.<span class="ident">connecting</span>.<span class="ident">remove</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#394">key</a>);
+        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#395">existed</a>, <span class="string">&quot;Connecting dropped, key not in pool.connecting&quot;</span>);
         <span class="comment">// cancel any waiters. if there are any, it&#39;s because</span>
         <span class="comment">// this Connecting task didn&#39;t complete successfully.</span>
         <span class="comment">// those waiters would never receive a connection.</span>
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#384">self</a>.<span class="ident">waiters</span>.<span class="ident">remove</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#384">key</a>);
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#394">self</a>.<span class="ident">waiters</span>.<span class="ident">remove</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#394">key</a>);
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">spawn_idle_interval</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pool_ref</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> (<span class="ident">dur</span>, <span class="ident">rx</span>) <span class="op">=</span> {
-            <span class="kw">if</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#394">self</a>.<span class="ident">idle_interval_ref</span>.<span class="ident">is_some</span>() {
+            <span class="kw">if</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#404">self</a>.<span class="ident">idle_interval_ref</span>.<span class="ident">is_some</span>() {
                 <span class="kw">return</span>;
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">dur</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#394">self</a>.<span class="ident">timeout</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">dur</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#404">self</a>.<span class="ident">timeout</span> {
                 <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-                <a class="self" href="../../../src/hyper/client/pool.rs.html#394">self</a>.<span class="ident">idle_interval_ref</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#401">tx</a>);
-                (<a class="ident" href="../../../src/hyper/client/pool.rs.html#400">dur</a>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#401">rx</a>)
+                <a class="self" href="../../../src/hyper/client/pool.rs.html#404">self</a>.<span class="ident">idle_interval_ref</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#411">tx</a>);
+                (<a class="ident" href="../../../src/hyper/client/pool.rs.html#410">dur</a>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#411">rx</a>)
             } <span class="kw">else</span> {
                 <span class="kw">return</span>;
             }
         };
 
-        <span class="kw">let</span> <span class="ident">interval</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#709-716">IdleTask</a> {
-            <span class="ident">interval</span>: <span class="ident">tokio::time::interval</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#395">dur</a>),
-            <span class="ident">pool</span>: <span class="ident">WeakOpt::downgrade</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#394">pool_ref</a>),
-            <span class="ident">pool_drop_notifier</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#395">rx</a>,
+        <span class="kw">let</span> <span class="ident">interval</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#734-745">IdleTask</a> {
+            <span class="ident">interval</span>: <span class="ident">tokio::time::interval</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#405">dur</a>),
+            <span class="ident">pool</span>: <span class="ident">WeakOpt::downgrade</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#404">pool_ref</a>),
+            <span class="ident">pool_drop_notifier</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#405">rx</a>,
         };
 
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#394">self</a>.<span class="ident">exec</span>.<a class="ident" href="../../../src/hyper/common/exec.rs.html#38-40">execute</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#409">interval</a>);
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#404">self</a>.<span class="ident">exec</span>.<a class="ident" href="../../../src/hyper/common/exec.rs.html#41-43">execute</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#419">interval</a>);
     }
 }
 
@@ -1439,35 +1480,37 @@
     <span class="doccomment">/// and possibly inserted into the pool that it is waiting for an idle</span>
     <span class="doccomment">/// connection. If a user ever dropped that future, we need to clean out</span>
     <span class="doccomment">/// those parked senders.</span>
-    <span class="kw">fn</span> <span class="ident">clean_waiters</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>) {
+    <span class="kw">fn</span> <span class="ident">clean_waiters</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remove_waiters</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waiters</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#424">self</a>.<span class="ident">waiters</span>.<span class="ident">get_mut</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#424">key</a>) {
-            <a class="ident" href="../../../src/hyper/client/pool.rs.html#426">waiters</a>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">tx</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#427">tx</a>.<span class="ident">is_canceled</span>());
-            <a class="ident" href="../../../src/hyper/client/pool.rs.html#425">remove_waiters</a> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#426">waiters</a>.<span class="ident">is_empty</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waiters</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#434">self</a>.<span class="ident">waiters</span>.<span class="ident">get_mut</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#434">key</a>) {
+            <a class="ident" href="../../../src/hyper/client/pool.rs.html#436">waiters</a>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">tx</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#437">tx</a>.<span class="ident">is_canceled</span>());
+            <a class="ident" href="../../../src/hyper/client/pool.rs.html#435">remove_waiters</a> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#436">waiters</a>.<span class="ident">is_empty</span>();
         }
-        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#425">remove_waiters</a> {
-            <a class="self" href="../../../src/hyper/client/pool.rs.html#424">self</a>.<span class="ident">waiters</span>.<span class="ident">remove</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#424">key</a>);
+        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#435">remove_waiters</a> {
+            <a class="self" href="../../../src/hyper/client/pool.rs.html#434">self</a>.<span class="ident">waiters</span>.<span class="ident">remove</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#434">key</a>);
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// This should *only* be called by the IdleTask</span>
     <span class="kw">fn</span> <span class="ident">clear_expired</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">dur</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#439">self</a>.<span class="ident">timeout</span>.<span class="ident">expect</span>(<span class="string">&quot;interval assumes timeout&quot;</span>);
+        <span class="kw">let</span> <span class="ident">dur</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#449">self</a>.<span class="ident">timeout</span>.<span class="ident">expect</span>(<span class="string">&quot;interval assumes timeout&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
         <span class="comment">//self.last_idle_check_at = now;</span>
 
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#439">self</a>.<span class="ident">idle</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">key</span>, <span class="ident">values</span><span class="op">|</span> {
-            <a class="ident" href="../../../src/hyper/client/pool.rs.html#445">values</a>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">entry</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#446">entry</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#29">is_open</a>() {
-                    <span class="macro">trace!</span>(<span class="string">&quot;idle interval evicting closed for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#445">key</a>);
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#449">self</a>.<span class="ident">idle</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">key</span>, <span class="ident">values</span><span class="op">|</span> {
+            <a class="ident" href="../../../src/hyper/client/pool.rs.html#455">values</a>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">entry</span><span class="op">|</span> {
+                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#456">entry</a>.<span class="ident">value</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#31">is_open</a>() {
+                    <span class="macro">trace!</span>(<span class="string">&quot;idle interval evicting closed for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#455">key</a>);
                     <span class="kw">return</span> <span class="bool-val">false</span>;
                 }
-                <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#442">now</a> <span class="op">-</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#446">entry</a>.<span class="ident">idle_at</span> <span class="op">&gt;</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#440">dur</a> {
-                    <span class="macro">trace!</span>(<span class="string">&quot;idle interval evicting expired for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#445">key</a>);
+
+                <span class="comment">// Avoid `Instant::sub` to avoid issues like rust-lang/rust#86470.</span>
+                <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#452">now</a>.<span class="ident">saturating_duration_since</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#456">entry</a>.<span class="ident">idle_at</span>) <span class="op">&gt;</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#450">dur</a> {
+                    <span class="macro">trace!</span>(<span class="string">&quot;idle interval evicting expired for {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#455">key</a>);
                     <span class="kw">return</span> <span class="bool-val">false</span>;
                 }
 
@@ -1476,74 +1519,74 @@
             });
 
             <span class="comment">// returning false evicts this key/val</span>
-            <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#445">values</a>.<span class="ident">is_empty</span>()
+            <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#455">values</a>.<span class="ident">is_empty</span>()
         });
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#18-21">Pool</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../../src/hyper/client/pool.rs.html#467">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#20-23">Pool</a> {
+            <span class="ident">inner</span>: <a class="self" href="../../../src/hyper/client/pool.rs.html#479">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
 
 <span class="doccomment">/// A wrapped poolable value that tries to reinsert to the Pool on Drop.</span>
 <span class="comment">// Note: The bounds `T: Poolable` is needed for the Drop impl.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> {
     <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">is_reused</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>,
+    <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>,
     <span class="ident">pool</span>: <span class="ident">WeakOpt</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_reused</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#484">self</a>.<span class="ident">is_reused</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_reused</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#496">self</a>.<span class="ident">is_reused</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pool_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#488">self</a>.<span class="ident">pool</span>.<span class="number">0</span>.<span class="ident">is_some</span>()
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_pool_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#500">self</a>.<span class="ident">pool</span>.<span class="number">0</span>.<span class="ident">is_some</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#492">self</a>.<span class="ident">value</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;not dropped&quot;</span>)
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#504">self</a>.<span class="ident">value</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;not dropped&quot;</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#496">self</a>.<span class="ident">value</span>.<span class="ident">as_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;not dropped&quot;</span>)
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#508">self</a>.<span class="ident">value</span>.<span class="ident">as_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;not dropped&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
     <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#503">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#492">as_ref</a>()
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#515">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#504">as_ref</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#509">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#496">as_mut</a>()
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#521">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#508">as_mut</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#515">self</a>.<span class="ident">value</span>.<span class="ident">take</span>() {
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#516">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#29">is_open</a>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#527">self</a>.<span class="ident">value</span>.<span class="ident">take</span>() {
+            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#528">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#31">is_open</a>() {
                 <span class="comment">// If we *already* know the connection is done here,</span>
                 <span class="comment">// it shouldn&#39;t be re-inserted back into the pool.</span>
                 <span class="kw">return</span>;
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pool</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#515">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#756">upgrade</a>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#523">pool</a>.<span class="ident">lock</span>() {
-                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#524">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#315">put</a>(<a class="self" href="../../../src/hyper/client/pool.rs.html#515">self</a>.<span class="ident">key</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/hyper/client/pool.rs.html#516">value</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#523">pool</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pool</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#527">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#786">upgrade</a>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#535">pool</a>.<span class="ident">lock</span>() {
+                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#536">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#324">put</a>(<a class="self" href="../../../src/hyper/client/pool.rs.html#527">self</a>.<span class="ident">key</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/hyper/client/pool.rs.html#528">value</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#535">pool</a>);
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#516">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#34">can_share</a>() {
-                <span class="macro">trace!</span>(<span class="string">&quot;pool dropped, dropping pooled ({:?})&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#515">self</a>.<span class="ident">key</span>);
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#528">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#36">can_share</a>() {
+                <span class="macro">trace!</span>(<span class="string">&quot;pool dropped, dropping pooled ({:?})&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#527">self</a>.<span class="ident">key</span>);
             }
             <span class="comment">// Ver::Http2 is already in the Pool (or dead), so we wouldn&#39;t</span>
             <span class="comment">// have an actual reference to the Pool.</span>
@@ -1551,9 +1594,9 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#537">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Pooled&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;key&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#537">self</a>.<span class="ident">key</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#549">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Pooled&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;key&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#549">self</a>.<span class="ident">key</span>).<span class="ident">finish</span>()
     }
 }
 
@@ -1565,33 +1608,45 @@
 <span class="comment">// FIXME: allow() required due to `impl Trait` leaking types to this lint</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Checkout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>,
+    <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>,
     <span class="ident">pool</span>: <span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">oneshot::Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <span class="ident">Checkout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">CheckoutIsClosedError</span>;
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#568">CheckoutIsClosedError</a> {}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#568">CheckoutIsClosedError</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#573">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;checked out connection was closed&quot;</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <span class="ident">Checkout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">poll_waiter</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">static</span> <span class="ident">CANCELED</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;pool checkout failed&quot;</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">rx</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#557">self</a>.<span class="ident">waiter</span>.<span class="ident">take</span>() {
-            <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#561">rx</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#558">cx</a>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">rx</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#580">self</a>.<span class="ident">waiter</span>.<span class="ident">take</span>() {
+            <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#583">rx</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#581">cx</a>) {
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">value</span>)) =&gt; {
-                    <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#563">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#29">is_open</a>() {
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="self" href="../../../src/hyper/client/pool.rs.html#557">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#241">reuse</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#557">self</a>.<span class="ident">key</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#563">value</a>))))
+                    <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#585">value</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#31">is_open</a>() {
+                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="self" href="../../../src/hyper/client/pool.rs.html#580">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#249">reuse</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#580">self</a>.<span class="ident">key</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#585">value</a>))))
                     } <span class="kw">else</span> {
-                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_canceled</span>().<a class="ident" href="../../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#560">CANCELED</a>))))
+                        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(
+                            <span class="ident"><span class="kw">crate</span>::Error::new_canceled</span>().<a class="ident" href="../../../src/hyper/error.rs.html#215">with</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#568">CheckoutIsClosedError</a>)
+                        )))
                     }
                 }
                 <span class="ident">Poll::Pending</span> =&gt; {
-                    <a class="self" href="../../../src/hyper/client/pool.rs.html#557">self</a>.<span class="ident">waiter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#561">rx</a>);
+                    <a class="self" href="../../../src/hyper/client/pool.rs.html#580">self</a>.<span class="ident">waiter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#583">rx</a>);
                     <span class="ident">Poll::Pending</span>
                 }
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">_canceled</span>)) =&gt; {
-                    <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_canceled</span>().<a class="ident" href="../../../src/hyper/error.rs.html#156">with</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#560">CANCELED</a>))))
-                }
+                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">_canceled</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(
+                    <span class="ident"><span class="kw">crate</span>::Error::new_canceled</span>().<a class="ident" href="../../../src/hyper/error.rs.html#215">with</a>(<span class="string">&quot;request has been canceled&quot;</span>)
+                ))),
             }
         } <span class="kw">else</span> {
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
@@ -1600,69 +1655,69 @@
 
     <span class="kw">fn</span> <span class="ident">checkout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">pool</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()<span class="question-mark">?</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">expiration</span> <span class="op">=</span> <span class="ident">Expiration::new</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#585">inner</a>.<span class="ident">timeout</span>);
-            <span class="kw">let</span> <span class="ident">maybe_entry</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#585">inner</a>.<span class="ident">idle</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">key</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">list</span><span class="op">|</span> {
-                <span class="macro">trace!</span>(<span class="string">&quot;take? {:?}: expiration = {:?}&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">key</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#586">expiration</a>.<span class="number">0</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">pool</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()<span class="question-mark">?</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">expiration</span> <span class="op">=</span> <span class="ident">Expiration::new</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#609">inner</a>.<span class="ident">timeout</span>);
+            <span class="kw">let</span> <span class="ident">maybe_entry</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#609">inner</a>.<span class="ident">idle</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">key</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">list</span><span class="op">|</span> {
+                <span class="macro">trace!</span>(<span class="string">&quot;take? {:?}: expiration = {:?}&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">key</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#610">expiration</a>.<span class="number">0</span>);
                 <span class="comment">// A block to end the mutable borrow on list,</span>
                 <span class="comment">// so the map below can check is_empty()</span>
                 {
-                    <span class="kw">let</span> <span class="ident">popper</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#268-271">IdlePopper</a> {
-                        <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">key</span>,
-                        <a class="ident" href="../../../src/hyper/client/pool.rs.html#587">list</a>,
+                    <span class="kw">let</span> <span class="ident">popper</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#276-279">IdlePopper</a> {
+                        <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">key</span>,
+                        <a class="ident" href="../../../src/hyper/client/pool.rs.html#611">list</a>,
                     };
-                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#592">popper</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#274">pop</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#586">expiration</a>)
+                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#616">popper</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#282">pop</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#610">expiration</a>)
                 }
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> (<a class="ident" href="../../../src/hyper/client/pool.rs.html#598">e</a>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#587">list</a>.<span class="ident">is_empty</span>()))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> (<a class="ident" href="../../../src/hyper/client/pool.rs.html#622">e</a>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#611">list</a>.<span class="ident">is_empty</span>()))
             });
 
-            <span class="kw">let</span> (<span class="ident">entry</span>, <span class="ident">empty</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">e</span>, <span class="ident">empty</span>)) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#587">maybe_entry</a> {
-                (<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#601">e</a>), <a class="ident" href="../../../src/hyper/client/pool.rs.html#601">empty</a>)
+            <span class="kw">let</span> (<span class="ident">entry</span>, <span class="ident">empty</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">e</span>, <span class="ident">empty</span>)) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#611">maybe_entry</a> {
+                (<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#625">e</a>), <a class="ident" href="../../../src/hyper/client/pool.rs.html#625">empty</a>)
             } <span class="kw">else</span> {
                 <span class="comment">// No entry found means nuke the list for sure.</span>
                 (<span class="prelude-val">None</span>, <span class="bool-val">true</span>)
             };
-            <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#601">empty</a> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#625">empty</a> {
                 <span class="comment">//TODO: This could be done with the HashMap::entry API instead.</span>
-                <a class="ident" href="../../../src/hyper/client/pool.rs.html#585">inner</a>.<span class="ident">idle</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">key</span>);
+                <a class="ident" href="../../../src/hyper/client/pool.rs.html#609">inner</a>.<span class="ident">idle</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">key</span>);
             }
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#601">entry</a>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">waiter</span>.<span class="ident">is_none</span>() {
+            <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#625">entry</a>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">waiter</span>.<span class="ident">is_none</span>() {
                 <span class="kw">let</span> (<span class="ident">tx</span>, <span class="kw-2">mut</span> <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-                <span class="macro">trace!</span>(<span class="string">&quot;checkout waiting for idle connection: {:?}&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">key</span>);
-                <a class="ident" href="../../../src/hyper/client/pool.rs.html#585">inner</a>
+                <span class="macro">trace!</span>(<span class="string">&quot;checkout waiting for idle connection: {:?}&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">key</span>);
+                <a class="ident" href="../../../src/hyper/client/pool.rs.html#609">inner</a>
                     .<span class="ident">waiters</span>
-                    .<span class="ident">entry</span>(<a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">key</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                    .<span class="ident">entry</span>(<a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">key</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
                     .<span class="ident">or_insert_with</span>(<span class="ident">VecDeque::new</span>)
-                    .<span class="ident">push_back</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#613">tx</a>);
+                    .<span class="ident">push_back</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#637">tx</a>);
 
                 <span class="comment">// register the waker with this oneshot</span>
-                <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#613">rx</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#583">cx</a>).<span class="ident">is_pending</span>());
-                <a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">waiter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#613">rx</a>);
+                <span class="macro">assert!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#637">rx</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#607">cx</a>).<span class="ident">is_pending</span>());
+                <a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">waiter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#637">rx</a>);
             }
 
-            <a class="ident" href="../../../src/hyper/client/pool.rs.html#601">entry</a>
+            <a class="ident" href="../../../src/hyper/client/pool.rs.html#625">entry</a>
         };
 
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#584">entry</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#241">reuse</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#583">self</a>.<span class="ident">key</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#629">e</a>.<span class="ident">value</span>))
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#608">entry</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#249">reuse</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#607">self</a>.<span class="ident">key</span>, <a class="ident" href="../../../src/hyper/client/pool.rs.html#653">e</a>.<span class="ident">value</span>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Checkout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">Checkout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pooled</span>) <span class="op">=</span> <span class="macro">ready!</span>(<a class="self" href="../../../src/hyper/client/pool.rs.html#636">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#556-559">poll_waiter</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#636">cx</a>)<span class="question-mark">?</span>) {
-            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#637">pooled</a>));
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pooled</span>) <span class="op">=</span> <span class="macro">ready!</span>(<a class="self" href="../../../src/hyper/client/pool.rs.html#660">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#579-582">poll_waiter</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#660">cx</a>)<span class="question-mark">?</span>) {
+            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#661">pooled</a>));
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pooled</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#636">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#583">checkout</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#636">cx</a>) {
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#641">pooled</a>))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/hyper/client/pool.rs.html#636">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#122">is_enabled</a>() {
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_canceled</span>().<a class="ident" href="../../../src/hyper/error.rs.html#156">with</a>(<span class="string">&quot;pool is disabled&quot;</span>)))
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pooled</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#660">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#607">checkout</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#660">cx</a>) {
+            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#665">pooled</a>))
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/hyper/client/pool.rs.html#660">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#125">is_enabled</a>() {
+            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_canceled</span>().<a class="ident" href="../../../src/hyper/error.rs.html#215">with</a>(<span class="string">&quot;pool is disabled&quot;</span>)))
         } <span class="kw">else</span> {
             <span class="comment">// There&#39;s a new waiter, already registered in self.checkout()</span>
-            <span class="macro">debug_assert!</span>(<a class="self" href="../../../src/hyper/client/pool.rs.html#636">self</a>.<span class="ident">waiter</span>.<span class="ident">is_some</span>());
+            <span class="macro">debug_assert!</span>(<a class="self" href="../../../src/hyper/client/pool.rs.html#660">self</a>.<span class="ident">waiter</span>.<span class="ident">is_some</span>());
             <span class="ident">Poll::Pending</span>
         }
     }
@@ -1670,10 +1725,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Checkout</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#654">self</a>.<span class="ident">waiter</span>.<span class="ident">take</span>().<span class="ident">is_some</span>() {
-            <span class="macro">trace!</span>(<span class="string">&quot;checkout dropped for {:?}&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#654">self</a>.<span class="ident">key</span>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">inner</span>)) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#654">self</a>.<span class="ident">pool</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#657">i</a>.<span class="ident">lock</span>()) {
-                <a class="ident" href="../../../src/hyper/client/pool.rs.html#657">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#424">clean_waiters</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#654">self</a>.<span class="ident">key</span>);
+        <span class="kw">if</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#678">self</a>.<span class="ident">waiter</span>.<span class="ident">take</span>().<span class="ident">is_some</span>() {
+            <span class="macro">trace!</span>(<span class="string">&quot;checkout dropped for {:?}&quot;</span>, <a class="self" href="../../../src/hyper/client/pool.rs.html#678">self</a>.<span class="ident">key</span>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">inner</span>)) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#678">self</a>.<span class="ident">pool</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#681">i</a>.<span class="ident">lock</span>()) {
+                <a class="ident" href="../../../src/hyper/client/pool.rs.html#681">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#434">clean_waiters</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#678">self</a>.<span class="ident">key</span>);
             }
         }
     }
@@ -1681,28 +1736,28 @@
 
 <span class="comment">// FIXME: allow() required due to `impl Trait` leaking types to this lint</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> {
-    <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#55">Key</a>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> {
+    <span class="ident">key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#58">Key</a>,
     <span class="ident">pool</span>: <span class="ident">WeakOpt</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">alpn_h2</span>(<span class="self">self</span>, <span class="ident">pool</span>: <span class="kw-2">&amp;</span><span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(
-            <a class="self" href="../../../src/hyper/client/pool.rs.html#672">self</a>.<span class="ident">pool</span>.<span class="number">0</span>.<span class="ident">is_none</span>(),
+            <a class="self" href="../../../src/hyper/client/pool.rs.html#696">self</a>.<span class="ident">pool</span>.<span class="number">0</span>.<span class="ident">is_none</span>(),
             <span class="string">&quot;Connecting::alpn_h2 but already Http2&quot;</span>
         );
 
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#672">pool</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#152">connecting</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#672">self</a>.<span class="ident">key</span>, <a class="ident" href="../../../src/hyper/client/mod.rs.html#764">Ver::Http2</a>)
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#696">pool</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#155">connecting</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#696">self</a>.<span class="ident">key</span>, <a class="ident" href="../../../src/hyper/client/client.rs.html#763">Ver::Http2</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pool</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#683">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#756">upgrade</a>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pool</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#707">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#786">upgrade</a>() {
             <span class="comment">// No need to panic on drop, that could abort!</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#684">pool</a>.<span class="ident">lock</span>() {
-                <a class="ident" href="../../../src/hyper/client/pool.rs.html#686">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#384">connected</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#683">self</a>.<span class="ident">key</span>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#708">pool</a>.<span class="ident">lock</span>() {
+                <a class="ident" href="../../../src/hyper/client/pool.rs.html#710">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#394">connected</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/hyper/client/pool.rs.html#707">self</a>.<span class="ident">key</span>);
             }
         }
     }
@@ -1710,37 +1765,43 @@
 
 <span class="kw">struct</span> <span class="ident">Expiration</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>);
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#693">Expiration</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">dur</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/hyper/client/pool.rs.html#693">Expiration</a> {
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#693">Expiration</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#696">dur</a>)
+<span class="kw">impl</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#717">Expiration</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">dur</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/hyper/client/pool.rs.html#717">Expiration</a> {
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#717">Expiration</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#720">dur</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">expires</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">instant</span>: <a class="ident" href="../../../tokio/time/instant/struct.Instant.html">Instant</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#700">self</a>.<span class="number">0</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">timeout</span>) =&gt; <a class="ident" href="../../../src/hyper/client/pool.rs.html#700">instant</a>.<span class="ident">elapsed</span>() <span class="op">&gt;</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#702">timeout</a>,
+        <span class="kw">match</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#724">self</a>.<span class="number">0</span> {
+            <span class="comment">// Avoid `Instant::elapsed` to avoid issues like rust-lang/rust#86470.</span>
+            <span class="prelude-val">Some</span>(<span class="ident">timeout</span>) =&gt; <span class="ident">Instant::now</span>().<span class="ident">saturating_duration_since</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#724">instant</a>) <span class="op">&gt;</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#727">timeout</a>,
             <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
-<span class="kw">struct</span> <span class="ident">IdleTask</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">interval</span>: <a class="ident" href="../../../tokio/time/interval/struct.Interval.html">Interval</a>,
-    <span class="ident">pool</span>: <span class="ident">WeakOpt</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="comment">// This allows the IdleTask to be notified as soon as the entire</span>
-    <span class="comment">// Pool is fully dropped, and shutdown. This channel is never sent on,</span>
-    <span class="comment">// but Err(Canceled) will be received when the Pool is dropped.</span>
-    <span class="ident">pool_drop_notifier</span>: <span class="ident">oneshot::Receiver</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a><span class="op">&gt;</span>,
+<span class="macro">pin_project_lite::pin_project!</span> {
+    <span class="kw">struct</span> <span class="ident">IdleTask</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">pin</span>]</span>
+        <span class="ident">interval</span>: <a class="ident" href="../../../tokio/time/interval/struct.Interval.html">Interval</a>,
+        <span class="ident">pool</span>: <span class="ident">WeakOpt</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">PoolInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="comment">// This allows the IdleTask to be notified as soon as the entire</span>
+        <span class="comment">// Pool is fully dropped, and shutdown. This channel is never sent on,</span>
+        <span class="comment">// but Err(Canceled) will be received when the Pool is dropped.</span>
+        <span class="attribute">#[<span class="ident">pin</span>]</span>
+        <span class="ident">pool_drop_notifier</span>: <span class="ident">oneshot::Receiver</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/common/never.rs.html#9"><span class="kw">crate</span>::common::Never</a><span class="op">&gt;</span>,
+    }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#28-35">Poolable</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">IdleTask</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#30-37">Poolable</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for</span> <span class="ident">IdleTask</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#751">self</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#734-745">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#722">self</a>.<span class="ident">pool_drop_notifier</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#722">cx</a>) {
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>)) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#725">n</a> {},
+            <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#752">this</a>.<span class="ident">pool_drop_notifier</span>.<span class="ident">as_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#751">cx</a>) {
+                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>)) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#755">n</a> {},
                 <span class="ident">Poll::Pending</span> =&gt; (),
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">_canceled</span>)) =&gt; {
                     <span class="macro">trace!</span>(<span class="string">&quot;pool closed, canceling idle interval&quot;</span>);
@@ -1748,12 +1809,12 @@
                 }
             }
 
-            <span class="macro">ready!</span>(<a class="self" href="../../../src/hyper/client/pool.rs.html#722">self</a>.<span class="ident">interval</span>.<span class="ident">poll_tick</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#722">cx</a>));
+            <span class="macro">ready!</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#752">this</a>.<span class="ident">interval</span>.<span class="ident">as_mut</span>().<span class="ident">poll_tick</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#751">cx</a>));
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="self" href="../../../src/hyper/client/pool.rs.html#722">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#756">upgrade</a>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#735">inner</a>.<span class="ident">lock</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#752">this</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#786">upgrade</a>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">inner</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/pool.rs.html#765">inner</a>.<span class="ident">lock</span>() {
                     <span class="macro">trace!</span>(<span class="string">&quot;idle interval checking for expired&quot;</span>);
-                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#736">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#439">clear_expired</a>();
+                    <a class="ident" href="../../../src/hyper/client/pool.rs.html#766">inner</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#449">clear_expired</a>();
                     <span class="kw">continue</span>;
                 }
             }
@@ -1764,15 +1825,15 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">WeakOpt</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#87">WeakOpt</a>(<span class="prelude-val">None</span>)
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#90">WeakOpt</a>(<span class="prelude-val">None</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">downgrade</span>(<span class="ident">arc</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/hyper/client/pool.rs.html#87">WeakOpt</a>(<span class="prelude-val">Some</span>(<span class="ident">Arc::downgrade</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#752">arc</a>)))
+        <a class="ident" href="../../../src/hyper/client/pool.rs.html#90">WeakOpt</a>(<span class="prelude-val">Some</span>(<span class="ident">Arc::downgrade</span>(<a class="ident" href="../../../src/hyper/client/pool.rs.html#782">arc</a>)))
     }
 
     <span class="kw">fn</span> <span class="ident">upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/hyper/client/pool.rs.html#756">self</a>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">Weak::upgrade</span>)
+        <a class="self" href="../../../src/hyper/client/pool.rs.html#786">self</a>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">Weak::upgrade</span>)
     }
 }
 
@@ -1782,7 +1843,7 @@
     <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
     <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Connecting</span>, <span class="ident">Key</span>, <span class="ident">Pool</span>, <span class="ident">Poolable</span>, <span class="ident">Reservation</span>, <span class="ident">WeakOpt</span>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<span class="ident">task</span>, <span class="ident">Exec</span>, <span class="ident">Future</span>, <span class="ident">Pin</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<span class="ident">exec::Exec</span>, <span class="ident">task</span>, <span class="ident">Future</span>, <span class="ident">Pin</span>};
 
     <span class="doccomment">/// Test unique reservations.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
@@ -1868,7 +1929,7 @@
         <span class="kw">let</span> <span class="ident">pooled</span> <span class="op">=</span> <span class="ident">pool</span>.<span class="ident">pooled</span>(<span class="ident">c</span>(<span class="ident">key</span>.<span class="ident">clone</span>()), <span class="ident">Uniq</span>(<span class="number">41</span>));
 
         <span class="ident">drop</span>(<span class="ident">pooled</span>);
-        <span class="ident">tokio::time::delay_for</span>(<span class="ident">pool</span>.<span class="ident">locked</span>().<span class="ident">timeout</span>.<span class="ident">unwrap</span>()).<span class="kw">await</span>;
+        <span class="ident">tokio::time::sleep</span>(<span class="ident">pool</span>.<span class="ident">locked</span>().<span class="ident">timeout</span>.<span class="ident">unwrap</span>()).<span class="kw">await</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">checkout</span> <span class="op">=</span> <span class="ident">pool</span>.<span class="ident">checkout</span>(<span class="ident">key</span>);
         <span class="kw">let</span> <span class="ident">poll_once</span> <span class="op">=</span> <span class="ident">PollOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">checkout</span>);
         <span class="kw">let</span> <span class="ident">is_not_ready</span> <span class="op">=</span> <span class="ident">poll_once</span>.<span class="kw">await</span>.<span class="ident">is_none</span>();
@@ -1889,7 +1950,7 @@
             <span class="ident">pool</span>.<span class="ident">locked</span>().<span class="ident">idle</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">entries</span><span class="op">|</span> <span class="ident">entries</span>.<span class="ident">len</span>()),
             <span class="prelude-val">Some</span>(<span class="number">3</span>)
         );
-        <span class="ident">tokio::time::delay_for</span>(<span class="ident">pool</span>.<span class="ident">locked</span>().<span class="ident">timeout</span>.<span class="ident">unwrap</span>()).<span class="kw">await</span>;
+        <span class="ident">tokio::time::sleep</span>(<span class="ident">pool</span>.<span class="ident">locked</span>().<span class="ident">timeout</span>.<span class="ident">unwrap</span>()).<span class="kw">await</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">checkout</span> <span class="op">=</span> <span class="ident">pool</span>.<span class="ident">checkout</span>(<span class="ident">key</span>.<span class="ident">clone</span>());
         <span class="kw">let</span> <span class="ident">poll_once</span> <span class="op">=</span> <span class="ident">PollOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">checkout</span>);
@@ -1996,6 +2057,7 @@
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="kw">struct</span> <span class="ident">CanClose</span> {
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
         <span class="ident">val</span>: <span class="ident">i32</span>,
         <span class="ident">closed</span>: <span class="ident">bool</span>,
     }
@@ -2030,5 +2092,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>

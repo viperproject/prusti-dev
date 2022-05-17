@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Cipher","A symmetric cipher."],["CipherRef","A reference to a [`Cipher`]."]]});

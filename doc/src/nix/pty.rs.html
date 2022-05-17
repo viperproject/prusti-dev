@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.23.1/src/pty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.1/src/pty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -351,20 +351,44 @@
 <span id="346">346</span>
 <span id="347">347</span>
 <span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Create master and slave virtual pseudo-terminals (PTYs)</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../nix/pty/type.SessionId.html">libc::pid_t</a> <span class="kw">as</span> <span class="ident">SessionId</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../nix/pty/struct.Winsize.html">libc::winsize</a> <span class="kw">as</span> <span class="ident">Winsize</span>;
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/c_str/struct.CStr.html">std::ffi::CStr</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/type.CStr.html">std::ffi::CStr</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html">std::os::unix::prelude</a>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/nix/sys/termios.rs.html#171-183"><span class="kw">crate</span>::sys::termios::Termios</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::unistd</span>::{<a class="self" href="../../src/nix/lib.rs.html#73">self</a>, <a class="ident" href="../../src/nix/unistd.rs.html#173-176">ForkResult</a>, <a class="ident" href="../../src/nix/unistd.rs.html#130">Pid</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="prelude-ty">Result</span>, <a class="ident" href="../../src/nix/lib.rs.html#31">fcntl</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#774-909"><span class="kw">crate</span>::errno::Errno</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/nix/sys/termios.rs.html#172-184"><span class="kw">crate</span>::sys::termios::Termios</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;process&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::unistd</span>::{<a class="ident" href="../../src/nix/unistd.rs.html#191-194">ForkResult</a>, <a class="ident" href="../../src/nix/unistd.rs.html#148">Pid</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="prelude-ty">Result</span>, <a class="ident" href="../../src/nix/lib.rs.html#84">fcntl</a>, <a class="ident" href="../../src/nix/lib.rs.html#158">unistd</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#776-911"><span class="kw">crate</span>::errno::Errno</a>;
 
 <span class="doccomment">/// Representation of a master/slave pty pair</span>
 <span class="doccomment">///</span>
@@ -378,6 +402,8 @@
     <span class="kw">pub</span> <span class="ident">slave</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
 }
 
+<span class="macro">feature!</span> {
+<span class="attribute">#![<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;process&quot;</span>]</span>
 <span class="doccomment">/// Representation of a master with a forked pty</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This is returned by `forkpty`. Note that this type does *not* implement `Drop`, so the user</span>
@@ -387,7 +413,8 @@
     <span class="doccomment">/// The master port in a virtual pty pair</span>
     <span class="kw">pub</span> <span class="ident">master</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
     <span class="doccomment">/// Metadata about forked process</span>
-    <span class="kw">pub</span> <span class="ident">fork_result</span>: <a class="ident" href="../../src/nix/unistd.rs.html#173-176">ForkResult</a>,
+    <span class="kw">pub</span> <span class="ident">fork_result</span>: <a class="ident" href="../../src/nix/unistd.rs.html#191-194">ForkResult</a>,
+}
 }
 
 
@@ -399,21 +426,21 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PtyMaster</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>);
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a> {
     <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../src/nix/pty.rs.html#50">self</a>.<span class="number">0</span>
+        <a class="self" href="../../src/nix/pty.rs.html#54">self</a>.<span class="number">0</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.IntoRawFd.html">IntoRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a> {
     <span class="kw">fn</span> <span class="ident">into_raw_fd</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <a class="self" href="../../src/nix/pty.rs.html#56">self</a>.<span class="number">0</span>;
-        <span class="ident">mem::forget</span>(<a class="self" href="../../src/nix/pty.rs.html#56">self</a>);
-        <a class="ident" href="../../src/nix/pty.rs.html#57">fd</a>
+        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <a class="self" href="../../src/nix/pty.rs.html#60">self</a>.<span class="number">0</span>;
+        <span class="ident">mem::forget</span>(<a class="self" href="../../src/nix/pty.rs.html#60">self</a>);
+        <a class="ident" href="../../src/nix/pty.rs.html#61">fd</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// On drop, we ignore errors like EINTR and EIO because there&#39;s no clear</span>
         <span class="comment">// way to handle them, we can&#39;t return anything, and (on FreeBSD at</span>
@@ -422,22 +449,37 @@
         <span class="comment">// invalid file descriptor.  That frequently indicates a double-close</span>
         <span class="comment">// condition, which can cause confusing errors for future I/O</span>
         <span class="comment">// operations.</span>
-        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <a class="ident" href="../../src/nix/unistd.rs.html#984">unistd::close</a>(<a class="self" href="../../src/nix/pty.rs.html#64">self</a>.<span class="number">0</span>);
-        <span class="kw">if</span> <a class="ident" href="../../src/nix/pty.rs.html#72">e</a> <span class="op">==</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nix/errno.rs.html#784">Errno::EBADF</a>) {
+        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <a class="ident" href="../../src/nix/unistd.rs.html#1027">unistd::close</a>(<a class="self" href="../../src/nix/pty.rs.html#68">self</a>.<span class="number">0</span>);
+        <span class="kw">if</span> <a class="ident" href="../../src/nix/pty.rs.html#76">e</a> <span class="op">==</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nix/errno.rs.html#786">Errno::EBADF</a>) {
             <span class="macro">panic!</span>(<span class="string">&quot;Closing an invalid file descriptor!&quot;</span>);
         };
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/nix/unistd.rs.html#992">unistd::read</a>(<a class="self" href="../../src/nix/pty.rs.html#80">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/nix/pty.rs.html#80">buf</a>).<span class="ident">map_err</span>(<span class="ident">io::Error::from</span>)
+        <a class="ident" href="../../src/nix/unistd.rs.html#1035">unistd::read</a>(<a class="self" href="../../src/nix/pty.rs.html#84">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/nix/pty.rs.html#84">buf</a>).<span class="ident">map_err</span>(<span class="ident">io::Error::from</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for</span> <a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/nix/unistd.rs.html#1001">unistd::write</a>(<a class="self" href="../../src/nix/pty.rs.html#86">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/nix/pty.rs.html#86">buf</a>).<span class="ident">map_err</span>(<span class="ident">io::Error::from</span>)
+        <a class="ident" href="../../src/nix/unistd.rs.html#1044">unistd::write</a>(<a class="self" href="../../src/nix/pty.rs.html#90">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/nix/pty.rs.html#90">buf</a>).<span class="ident">map_err</span>(<span class="ident">io::Error::from</span>)
+    }
+    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../src/nix/unistd.rs.html#1035">unistd::read</a>(<a class="self" href="../../src/nix/pty.rs.html#99">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/nix/pty.rs.html#99">buf</a>).<span class="ident">map_err</span>(<span class="ident">io::Error::from</span>)
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a> {
+    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../src/nix/unistd.rs.html#1044">unistd::write</a>(<a class="self" href="../../src/nix/pty.rs.html#105">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/nix/pty.rs.html#105">buf</a>).<span class="ident">map_err</span>(<span class="ident">io::Error::from</span>)
     }
     <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
@@ -450,8 +492,8 @@
 <span class="doccomment">/// `grantpt()` changes the mode and owner of the slave pseudoterminal device corresponding to the</span>
 <span class="doccomment">/// master pseudoterminal referred to by `fd`. This is a necessary step towards opening the slave.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">grantpt</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::grantpt</span>(<a class="ident" href="../../src/nix/pty.rs.html#100">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()) } <span class="op">&lt;</span> <span class="number">0</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">grantpt</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::grantpt</span>(<a class="ident" href="../../src/nix/pty.rs.html#119">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()) } <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>());
     }
 
@@ -461,7 +503,7 @@
 <span class="doccomment">/// Open a pseudoterminal device (see</span>
 <span class="doccomment">/// [`posix_openpt(3)`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/posix_openpt.html))</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `posix_openpt()` returns a file descriptor to an existing unused pseuterminal master device.</span>
+<span class="doccomment">/// `posix_openpt()` returns a file descriptor to an existing unused pseudoterminal master device.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
@@ -492,16 +534,16 @@
 <span class="doccomment">/// # }</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">posix_openpt</span>(<span class="ident">flags</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#42-166">fcntl::OFlag</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">posix_openpt</span>(<span class="ident">flags</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#48-193">fcntl::OFlag</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="ident">libc::posix_openpt</span>(<a class="ident" href="../../src/nix/pty.rs.html#142">flags</a>.<a class="ident" href="../../src/nix/fcntl.rs.html#42-166">bits</a>())
+        <span class="ident">libc::posix_openpt</span>(<a class="ident" href="../../src/nix/pty.rs.html#161">flags</a>.<a class="ident" href="../../src/nix/fcntl.rs.html#48-193">bits</a>())
     };
 
-    <span class="kw">if</span> <a class="ident" href="../../src/nix/pty.rs.html#143">fd</a> <span class="op">&lt;</span> <span class="number">0</span> {
+    <span class="kw">if</span> <a class="ident" href="../../src/nix/pty.rs.html#162">fd</a> <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>());
     }
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a>(<a class="ident" href="../../src/nix/pty.rs.html#143">fd</a>))
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a>(<a class="ident" href="../../src/nix/pty.rs.html#162">fd</a>))
 }
 
 <span class="doccomment">/// Get the name of the slave pseudoterminal (see</span>
@@ -521,14 +563,14 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// For a threadsafe and non-`unsafe` alternative on Linux, see `ptsname_r()`.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptsname</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">name_ptr</span> <span class="op">=</span> <span class="ident">libc::ptsname</span>(<a class="ident" href="../../src/nix/pty.rs.html#171">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>());
-    <span class="kw">if</span> <a class="ident" href="../../src/nix/pty.rs.html#172">name_ptr</a>.<span class="ident">is_null</span>() {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptsname</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">name_ptr</span> <span class="op">=</span> <span class="ident">libc::ptsname</span>(<a class="ident" href="../../src/nix/pty.rs.html#190">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>());
+    <span class="kw">if</span> <a class="ident" href="../../src/nix/pty.rs.html#191">name_ptr</a>.<span class="ident">is_null</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>());
     }
 
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../src/nix/pty.rs.html#172">name_ptr</a>);
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#177">name</a>.<span class="ident">to_string_lossy</span>().<span class="ident">into_owned</span>())
+    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../src/nix/pty.rs.html#191">name_ptr</a>);
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#196">name</a>.<span class="ident">to_string_lossy</span>().<span class="ident">into_owned</span>())
 }
 
 <span class="doccomment">/// Get the name of the slave pseudoterminal (see</span>
@@ -541,20 +583,21 @@
 <span class="doccomment">/// This value is useful for opening the slave ptty once the master has already been opened with</span>
 <span class="doccomment">/// `posix_openpt()`.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptsname_r</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptsname_r</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">name_buf</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">libc::c_char</a><span class="op">&gt;</span><span class="ident">::with_capacity</span>(<span class="number">64</span>);
-    <span class="kw">let</span> <span class="ident">name_buf_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#193">name_buf</a>.<span class="ident">as_mut_ptr</span>();
+    <span class="kw">let</span> <span class="ident">name_buf_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#213">name_buf</a>.<span class="ident">as_mut_ptr</span>();
     <span class="kw">let</span> <span class="ident">cname</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#193">name_buf</a>.<span class="ident">capacity</span>();
-        <span class="kw">if</span> <span class="ident">libc::ptsname_r</span>(<a class="ident" href="../../src/nix/pty.rs.html#192">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a class="ident" href="../../src/nix/pty.rs.html#194">name_buf_ptr</a>, <a class="ident" href="../../src/nix/pty.rs.html#196">cap</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#213">name_buf</a>.<span class="ident">capacity</span>();
+        <span class="kw">if</span> <span class="ident">libc::ptsname_r</span>(<a class="ident" href="../../src/nix/pty.rs.html#212">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a class="ident" href="../../src/nix/pty.rs.html#214">name_buf_ptr</a>, <a class="ident" href="../../src/nix/pty.rs.html#216">cap</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::last</span>());
         }
-        <span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../src/nix/pty.rs.html#193">name_buf</a>.<span class="ident">as_ptr</span>())
+        <span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../src/nix/pty.rs.html#213">name_buf</a>.<span class="ident">as_ptr</span>())
     };
 
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#195">cname</a>.<span class="ident">to_string_lossy</span>().<span class="ident">into_owned</span>();
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#203">name</a>)
+    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#215">cname</a>.<span class="ident">to_string_lossy</span>().<span class="ident">into_owned</span>();
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#223">name</a>)
 }
 
 <span class="doccomment">/// Unlock a pseudoterminal master/slave pseudoterminal pair (see</span>
@@ -562,10 +605,10 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// `unlockpt()` unlocks the slave pseudoterminal device corresponding to the master pseudoterminal</span>
 <span class="doccomment">/// referred to by `fd`. This must be called before trying to open the slave side of a</span>
-<span class="doccomment">/// pseuoterminal.</span>
+<span class="doccomment">/// pseudoterminal.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unlockpt</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#47">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::unlockpt</span>(<a class="ident" href="../../src/nix/pty.rs.html#214">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()) } <span class="op">&lt;</span> <span class="number">0</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unlockpt</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::unlockpt</span>(<a class="ident" href="../../src/nix/pty.rs.html#234">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()) } <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>());
     }
 
@@ -581,44 +624,44 @@
 <span class="doccomment">/// the values in `winsize`. If `termios` is not `None`, the pseudoterminal&#39;s</span>
 <span class="doccomment">/// terminal settings of the slave will be set to the values in `termios`.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">openpty</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Winsize</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Termios</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">winsize</span>: <span class="ident">T</span>, <span class="ident">termios</span>: <span class="ident">U</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/pty.rs.html#21-26">OpenptyResult</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">openpty</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../nix/pty/struct.Winsize.html">Winsize</a><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <a class="ident" href="../../src/nix/sys/termios.rs.html#172-184">Termios</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">winsize</span>: <span class="ident">T</span>, <span class="ident">termios</span>: <span class="ident">U</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/pty.rs.html#22-27">OpenptyResult</a><span class="op">&gt;</span> {
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slave</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit</span>::<span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a><span class="op">&gt;</span><span class="ident">::uninit</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">master</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit</span>::<span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a><span class="op">&gt;</span><span class="ident">::uninit</span>();
     <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> {
-        <span class="kw">match</span> (<a class="ident" href="../../src/nix/pty.rs.html#231">termios</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../src/nix/pty.rs.html#231">winsize</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) {
+        <span class="kw">match</span> (<a class="ident" href="../../src/nix/pty.rs.html#251">termios</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../src/nix/pty.rs.html#251">winsize</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) {
             (<span class="prelude-val">Some</span>(<span class="ident">termios</span>), <span class="prelude-val">Some</span>(<span class="ident">winsize</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">inner_termios</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#238">termios</a>.<a class="ident" href="../../src/nix/sys/termios.rs.html#190">get_libc_termios</a>();
+                <span class="kw">let</span> <span class="ident">inner_termios</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#258">termios</a>.<a class="ident" href="../../src/nix/sys/termios.rs.html#191">get_libc_termios</a>();
                 <span class="kw">unsafe</span> {
                     <span class="ident">libc::openpty</span>(
-                        <a class="ident" href="../../src/nix/pty.rs.html#235">master</a>.<span class="ident">as_mut_ptr</span>(),
-                        <a class="ident" href="../../src/nix/pty.rs.html#234">slave</a>.<span class="ident">as_mut_ptr</span>(),
+                        <a class="ident" href="../../src/nix/pty.rs.html#255">master</a>.<span class="ident">as_mut_ptr</span>(),
+                        <a class="ident" href="../../src/nix/pty.rs.html#254">slave</a>.<span class="ident">as_mut_ptr</span>(),
                         <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(),
-                        <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/nix/pty.rs.html#239">inner_termios</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                        <a class="ident" href="../../src/nix/pty.rs.html#238">winsize</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../nix/pty/struct.Winsize.html">Winsize</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+                        <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/nix/pty.rs.html#259">inner_termios</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+                        <a class="ident" href="../../src/nix/pty.rs.html#258">winsize</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../nix/pty/struct.Winsize.html">Winsize</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
                     )
                 }
             }
             (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">winsize</span>)) =&gt; {
                 <span class="kw">unsafe</span> {
                     <span class="ident">libc::openpty</span>(
-                        <a class="ident" href="../../src/nix/pty.rs.html#235">master</a>.<span class="ident">as_mut_ptr</span>(),
-                        <a class="ident" href="../../src/nix/pty.rs.html#234">slave</a>.<span class="ident">as_mut_ptr</span>(),
+                        <a class="ident" href="../../src/nix/pty.rs.html#255">master</a>.<span class="ident">as_mut_ptr</span>(),
+                        <a class="ident" href="../../src/nix/pty.rs.html#254">slave</a>.<span class="ident">as_mut_ptr</span>(),
                         <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(),
                         <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(),
-                        <a class="ident" href="../../src/nix/pty.rs.html#250">winsize</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../nix/pty/struct.Winsize.html">Winsize</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+                        <a class="ident" href="../../src/nix/pty.rs.html#270">winsize</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../nix/pty/struct.Winsize.html">Winsize</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
                     )
                 }
             }
             (<span class="prelude-val">Some</span>(<span class="ident">termios</span>), <span class="prelude-val">None</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">inner_termios</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#261">termios</a>.<a class="ident" href="../../src/nix/sys/termios.rs.html#190">get_libc_termios</a>();
+                <span class="kw">let</span> <span class="ident">inner_termios</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#281">termios</a>.<a class="ident" href="../../src/nix/sys/termios.rs.html#191">get_libc_termios</a>();
                 <span class="kw">unsafe</span> {
                     <span class="ident">libc::openpty</span>(
-                        <a class="ident" href="../../src/nix/pty.rs.html#235">master</a>.<span class="ident">as_mut_ptr</span>(),
-                        <a class="ident" href="../../src/nix/pty.rs.html#234">slave</a>.<span class="ident">as_mut_ptr</span>(),
+                        <a class="ident" href="../../src/nix/pty.rs.html#255">master</a>.<span class="ident">as_mut_ptr</span>(),
+                        <a class="ident" href="../../src/nix/pty.rs.html#254">slave</a>.<span class="ident">as_mut_ptr</span>(),
                         <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(),
-                        <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/nix/pty.rs.html#262">inner_termios</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+                        <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/nix/pty.rs.html#282">inner_termios</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
                         <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(),
                     )
                 }
@@ -626,8 +669,8 @@
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
                 <span class="kw">unsafe</span> {
                     <span class="ident">libc::openpty</span>(
-                        <a class="ident" href="../../src/nix/pty.rs.html#235">master</a>.<span class="ident">as_mut_ptr</span>(),
-                        <a class="ident" href="../../src/nix/pty.rs.html#234">slave</a>.<span class="ident">as_mut_ptr</span>(),
+                        <a class="ident" href="../../src/nix/pty.rs.html#255">master</a>.<span class="ident">as_mut_ptr</span>(),
+                        <a class="ident" href="../../src/nix/pty.rs.html#254">slave</a>.<span class="ident">as_mut_ptr</span>(),
                         <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(),
                         <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(),
                         <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(),
@@ -637,16 +680,18 @@
         }
     };
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/pty.rs.html#236">ret</a>)<span class="question-mark">?</span>;
+    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/pty.rs.html#256">ret</a>)<span class="question-mark">?</span>;
 
     <span class="kw">unsafe</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#21-26">OpenptyResult</a> {
-            <span class="ident">master</span>: <a class="ident" href="../../src/nix/pty.rs.html#235">master</a>.<span class="ident">assume_init</span>(),
-            <span class="ident">slave</span>: <a class="ident" href="../../src/nix/pty.rs.html#234">slave</a>.<span class="ident">assume_init</span>(),
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#22-27">OpenptyResult</a> {
+            <span class="ident">master</span>: <a class="ident" href="../../src/nix/pty.rs.html#255">master</a>.<span class="ident">assume_init</span>(),
+            <span class="ident">slave</span>: <a class="ident" href="../../src/nix/pty.rs.html#254">slave</a>.<span class="ident">assume_init</span>(),
         })
     }
 }
 
+<span class="macro">feature!</span> {
+<span class="attribute">#![<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;process&quot;</span>]</span>
 <span class="doccomment">/// Create a new pseudoterminal, returning the master file descriptor and forked pid.</span>
 <span class="doccomment">/// in `ForkptyResult`</span>
 <span class="doccomment">/// (see [`forkpty`](https://man7.org/linux/man-pages/man3/forkpty.3.html)).</span>
@@ -666,39 +711,40 @@
 <span class="doccomment">/// special care must be taken to only invoke code you can control and audit.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [async-signal-safe]: https://man7.org/linux/man-pages/man7/signal-safety.7.html</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">forkpty</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Winsize</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Termios</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">forkpty</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../nix/pty/struct.Winsize.html">Winsize</a><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <a class="ident" href="../../src/nix/sys/termios.rs.html#172-184">Termios</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(
     <span class="ident">winsize</span>: <span class="ident">T</span>,
     <span class="ident">termios</span>: <span class="ident">U</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/pty.rs.html#33-38">ForkptyResult</a><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/nix/pty.rs.html#36-41">ForkptyResult</a><span class="op">&gt;</span> {
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">master</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit</span>::<span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a><span class="op">&gt;</span><span class="ident">::uninit</span>();
 
-    <span class="kw">let</span> <span class="ident">term</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/nix/pty.rs.html#318">termios</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
+    <span class="kw">let</span> <span class="ident">term</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/nix/pty.rs.html#340">termios</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() {
         <span class="prelude-val">Some</span>(<span class="ident">termios</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">inner_termios</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#325">termios</a>.<a class="ident" href="../../src/nix/sys/termios.rs.html#190">get_libc_termios</a>();
-            <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/nix/pty.rs.html#326">inner_termios</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
+            <span class="kw">let</span> <span class="ident">inner_termios</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#347">termios</a>.<a class="ident" href="../../src/nix/sys/termios.rs.html#191">get_libc_termios</a>();
+            <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/nix/pty.rs.html#348">inner_termios</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/struct.termios.html">libc::termios</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
         },
         <span class="prelude-val">None</span> =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(),
     };
 
-    <span class="kw">let</span> <span class="ident">win</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#317">winsize</a>
+    <span class="kw">let</span> <span class="ident">win</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#339">winsize</a>
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ws</span><span class="op">|</span> <a class="ident" href="../../src/nix/pty.rs.html#334">ws</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../nix/pty/struct.Winsize.html">Winsize</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ws</span><span class="op">|</span> <a class="ident" href="../../src/nix/pty.rs.html#356">ws</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../nix/pty/struct.Winsize.html">Winsize</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
         .<span class="ident">unwrap_or</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>());
 
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">libc::forkpty</span>(<a class="ident" href="../../src/nix/pty.rs.html#322">master</a>.<span class="ident">as_mut_ptr</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(), <a class="ident" href="../../src/nix/pty.rs.html#324">term</a>, <a class="ident" href="../../src/nix/pty.rs.html#332">win</a>);
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">libc::forkpty</span>(<a class="ident" href="../../src/nix/pty.rs.html#344">master</a>.<span class="ident">as_mut_ptr</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(), <a class="ident" href="../../src/nix/pty.rs.html#346">term</a>, <a class="ident" href="../../src/nix/pty.rs.html#354">win</a>);
 
-    <span class="kw">let</span> <span class="ident">fork_result</span> <span class="op">=</span> <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/pty.rs.html#337">res</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/nix/pty.rs.html#339">res</a> {
-        <span class="number">0</span> =&gt; <a class="ident" href="../../src/nix/unistd.rs.html#175">ForkResult::Child</a>,
-        <span class="ident">res</span> =&gt; <a class="ident" href="../../src/nix/unistd.rs.html#174">ForkResult::Parent</a> { <span class="ident">child</span>: <span class="ident">Pid::from_raw</span>(<a class="ident" href="../../src/nix/pty.rs.html#341">res</a>) },
+    <span class="kw">let</span> <span class="ident">fork_result</span> <span class="op">=</span> <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/pty.rs.html#359">res</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/nix/pty.rs.html#361">res</a> {
+        <span class="number">0</span> =&gt; <a class="ident" href="../../src/nix/unistd.rs.html#193">ForkResult::Child</a>,
+        <span class="ident">res</span> =&gt; <a class="ident" href="../../src/nix/unistd.rs.html#192">ForkResult::Parent</a> { <span class="ident">child</span>: <span class="ident">Pid::from_raw</span>(<a class="ident" href="../../src/nix/pty.rs.html#363">res</a>) },
     })<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#33-38">ForkptyResult</a> {
-        <span class="ident">master</span>: <a class="ident" href="../../src/nix/pty.rs.html#322">master</a>.<span class="ident">assume_init</span>(),
-        <a class="ident" href="../../src/nix/pty.rs.html#339">fork_result</a>,
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#36-41">ForkptyResult</a> {
+        <span class="ident">master</span>: <a class="ident" href="../../src/nix/pty.rs.html#344">master</a>.<span class="ident">assume_init</span>(),
+        <a class="ident" href="../../src/nix/pty.rs.html#361">fork_result</a>,
     })
 }
+}
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e7575f967 2022-04-14)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (7c4b47696 2022-04-30)" ></div>
 </body></html>
