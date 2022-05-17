@@ -14,11 +14,20 @@ fn test3() {}
 #[ensures(Int::new(1) == Int::new(2))]    //~ ERROR: postcondition might not hold.
 fn test4() {}
 
-//#[ensures(result == Int::new(5))]
-//fn test5() -> Int {
-    //let a = Int::new(5);
-    //a
-//}
+#[ensures(result == Int::new(5))]
+fn test5() -> Int {
+    let b = 5;
+    let a = Int::new(b);
+    a
+}
+
+#[ensures(result == Int::new(5))]
+#[ensures(false)]    //~ ERROR: postcondition might not hold.
+fn test6() -> Int {
+    let b = 5;
+    let a = Int::new(b);
+    a
+}
 
 fn main() {}
 

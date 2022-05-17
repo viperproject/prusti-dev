@@ -18,6 +18,7 @@ pub enum Type {
     Int(Int),
     /// A mathematical sequence of values of the same type.
     Sequence(Sequence),
+    /// A mathematical map.
     Map(Map),
     Float(Float),
     TypeVar(TypeVar),
