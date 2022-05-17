@@ -271,11 +271,11 @@ impl<'tcx> VecPlace<'tcx> {
     }
 }
 
-pub fn get_local_attributes<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
+pub fn get_local_attributes(tcx: ty::TyCtxt<'_>, def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
     tcx.hir().attrs(tcx.hir().local_def_id_to_hir_id(def_id))
 }
 
-pub fn get_attributes<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: DefId) -> &[rustc_ast::ast::Attribute] {
+pub fn get_attributes(tcx: ty::TyCtxt<'_>, def_id: DefId) -> &[rustc_ast::ast::Attribute] {
     if let Some(local_def_id) = def_id.as_local() {
         get_local_attributes(tcx, local_def_id)
     } else {

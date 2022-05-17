@@ -33,7 +33,7 @@ impl LocalSet {
     }
 }
 
-impl<'tcx> From<FxHashSet<mir::Local>> for LocalSet {
+impl From<FxHashSet<mir::Local>> for LocalSet {
     fn from(locals: FxHashSet<mir::Local>) -> Self {
         Self { locals }
     }
