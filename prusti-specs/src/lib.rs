@@ -32,7 +32,7 @@ pub use spec_attribute_kind::SpecAttributeKind;
 use prusti_utils::force_matches;
 pub use extern_spec_rewriter::ExternSpecKind;
 use crate::common::{merge_generics, RewritableReceiver, SelfTypeRewriter};
-use crate::specifications::preparser::{NestedSpec, parse_ghost_constraint};
+use crate::specifications::preparser::{NestedSpec, parse_prusti, parse_ghost_constraint};
 use crate::predicate::{is_predicate_macro, ParsedPredicate};
 
 macro_rules! handle_result {
@@ -73,6 +73,7 @@ fn extract_prusti_attributes(
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
                         attr.tokens
                     }
+                    SpecAttributeKind::Invariant => unreachable!("type invariant on function"),
                 };
                 prusti_attributes.push((attr_kind, tokens));
             } else {
@@ -149,6 +150,7 @@ fn generate_spec_and_assertions(
             // only exists so we successfully parse it and emit an error in
             // `check_incompatible_attrs`; so we'll never reach here.
             SpecAttributeKind::Predicate => unreachable!(),
+            SpecAttributeKind::Invariant => unreachable!(),
             SpecAttributeKind::GhostConstraint => ghost_constraints::generate(attr_tokens, item),
         };
         let (new_items, new_attributes) = rewriting_result?;
@@ -451,6 +453,46 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     quote_spanned! {impl_block.span()=>
         #(#generated_spec_items)*
         #impl_block
+    }
+}
+
+pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+
+    let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
+    let item_span = item.span();
+    let item_ident = item.ident.clone();
+    let item_name = syn::Ident::new(
+        &format!("prusti_invariant_item_{}_{}", item_ident, spec_id),
+        item_span,
+    );
+
+    let attr = handle_result!(parse_prusti(attr));
+
+    // TODO: move some of this to AstRewriter?
+    // see AstRewriter::generate_spec_item_fn for explanation of syntax below
+    let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+        #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
+        #[prusti::spec_only]
+        #[prusti::type_invariant_spec]
+        #[prusti::spec_id = #spec_id_str]
+        fn #item_name(self) -> bool {
+            !!((#attr) : bool)
+        }
+    };
+
+    let generics = item.generics.clone();
+    // TODO: remove constraints from the second "generics"
+    let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
+        impl #generics #item_ident #generics {
+            #spec_item
+        }
+    };
+    quote_spanned! { item_span =>
+        #item
+        #item_impl
     }
 }
 

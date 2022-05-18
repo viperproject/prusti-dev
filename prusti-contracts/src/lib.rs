@@ -20,6 +20,9 @@ mod private {
     /// A macro for marking a function as trusted.
     pub use prusti_contracts_impl::trusted;
 
+    /// A macro for type invariants.
+    pub use prusti_contracts_impl::invariant;
+
     /// A macro for writing a loop body invariant.
     pub use prusti_contracts_impl::body_invariant;
 
@@ -90,6 +93,9 @@ mod private {
 
     /// A macro for marking a function as trusted.
     pub use prusti_contracts_internal::trusted;
+
+    /// A macro for type invariants.
+    pub use prusti_contracts_internal::invariant;
 
     /// A macro for writing a loop body invariant.
     pub use prusti_contracts_internal::body_invariant;

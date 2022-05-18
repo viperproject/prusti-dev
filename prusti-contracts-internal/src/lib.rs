@@ -58,6 +58,11 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::extern_spec(attr.into(), tokens.into()).into()
 }
 
+#[proc_macro_attribute]
+pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    prusti_specs::invariant(attr.into(), tokens.into()).into()
+}
+
 #[proc_macro]
 pub fn predicate(tokens: TokenStream) -> TokenStream {
     prusti_specs::predicate(tokens.into()).into()
