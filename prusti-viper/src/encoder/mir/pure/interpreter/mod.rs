@@ -630,7 +630,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     Type::Reference(Reference {
                         target_type: box Type::Map(map),
                         ..
-                    }) => builtin((LookupMap, (*map.val_type).clone())),
+                    }) => {
+                        let ref_type = Type::reference(
+                            LifetimeConst::erased(),
+                            Uniqueness::Shared,
+                            (*map.val_type).clone(),
+                        );
+                        builtin((LookupMap, ref_type))
+                    }
                     _ => self
                         .encode_call_index(
                             *target_block,
