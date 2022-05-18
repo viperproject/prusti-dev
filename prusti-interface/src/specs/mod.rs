@@ -167,6 +167,14 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
     fn determine_type_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (type_id, refs) in self.type_specs.iter() {
+            if !refs.invariants.is_empty() && !prusti_common::config::enable_type_invariants() {
+                let span = self.env.tcx().def_span(type_id.to_def_id());
+                PrustiError::unsupported(
+                    "Type invariants need to be enabled with a feature flag",
+                    MultiSpan::from(span),
+                ).emit(self.env);
+            }
+
             def_spec.type_specs.insert(type_id.to_def_id(), typed::TypeSpecification {
                 invariant: SpecificationItem::Inherent(refs.invariants.clone()),
             });

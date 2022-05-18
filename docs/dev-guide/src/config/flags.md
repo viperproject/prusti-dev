@@ -22,6 +22,7 @@
 | [`ENABLE_CACHE`](#enable_cache) | `bool` | `true` |
 | [`ENABLE_GHOST_CONSTRAINTS`](#enable_ghost_constraints) | `bool` | `false` |
 | [`ENABLE_PURIFICATION_OPTIMIZATION`](#enable_purification_optimization) | `bool` | `false` |
+| [`ENABLE_TYPE_INVARIANTS`](#enable_type_invariants) | `bool` | `false` |
 | [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) | `bool` | `false` |
 | [`ENCODE_BITVECTORS`](#encode_bitvectors) | `bool` | `false` |
 | [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](#encode_unsigned_num_constraint) | `bool` | `false` |
@@ -134,7 +135,7 @@ When enabled, verification requests (to verify individual `fn`s) are cached to i
 
 ## `ENABLE_GHOST_CONSTRAINTS`
 
-Enables ghost constraints in Prusti specifications.
+When enabled, ghost constraints can be used in Prusti specifications.
 
 Ghost constraints allow for specifications which are only active if a certain "constraint" (i.e. a trait bound
 on a generic type parameter) is satisfied.
@@ -146,6 +147,10 @@ on a generic type parameter) is satisfied.
 When enabled, impure methods are optimized using the purification optimization, which tries to convert heap operations to pure (snapshot-based) operations.
 
 **Note:** This option is highly experimental.
+
+## `ENABLE_TYPE_INVARIANTS`
+
+When enabled, type invariants can be declared on types using the `#[invariant(...)]` attribute.
 
 ## `ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`
 
