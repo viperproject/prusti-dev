@@ -114,10 +114,16 @@ pub(in super::super) trait AdtsInterface {
     /// and its result is used to guard the injectivity property. This is
     /// intended to be used by the snapshot encoder to supply call to the
     /// validity function.
+    ///
+    /// If `generate_top_down_injectivity_axiom` is true, do not generate
+    /// destructors and for injectivity axioms use destructors with
+    /// `variant_name==""`. This assumes that this variant's parameters are a
+    /// subset of the main constructor's parameters.
     fn adt_register_variant_constructor<F>(
         &mut self,
         domain_name: &str,
         variant_name: &str,
+        use_main_constructor_destructors: bool,
         parameters: Vec<vir_low::VariableDecl>,
         generate_injectivity_axioms: bool,
         top_down_injectivity_guard: Option<F>,
@@ -198,6 +204,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         self.adt_register_variant_constructor(
             domain_name,
             "",
+            false,
             parameters,
             generate_injectivity_axioms,
             top_down_injectivity_guard,
@@ -207,6 +214,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         domain_name: &str,
         variant_name: &str,
+        use_main_constructor_destructors: bool,
         parameters: Vec<vir_low::VariableDecl>,
         generate_injectivity_axioms: bool,
         top_down_injectivity_guard: Option<F>,
@@ -224,6 +232,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         )));
         let ty = vir_low::Type::domain(domain_name.to_string());
 
+        let destructor_variant_name = if use_main_constructor_destructors {
+            ""
+        } else {
+            variant_name
+        };
+
         // Constructor.
         let constructor_name = self.adt_constructor_variant_name(domain_name, variant_name)?;
         self.declare_domain_function(
@@ -237,8 +251,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         // Destructors.
         let value = vir_low::VariableDecl::new("value", ty.clone());
         for parameter in &parameters {
-            let destructor_name =
-                self.adt_destructor_variant_name(domain_name, variant_name, &parameter.name)?;
+            let destructor_name = self.adt_destructor_variant_name(
+                domain_name,
+                destructor_variant_name,
+                &parameter.name,
+            )?;
             self.declare_domain_function(
                 domain_name,
                 Cow::Owned(destructor_name),
@@ -309,7 +326,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
             for parameter in &parameters {
                 let destructor_call = self.adt_destructor_variant_call(
                     domain_name,
-                    variant_name,
+                    destructor_variant_name,
                     &parameter.name,
                     parameter.ty.clone(),
                     value.clone().into(),

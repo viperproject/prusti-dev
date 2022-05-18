@@ -302,7 +302,7 @@ impl Expression {
                     ..
                 }) => arguments[field.index].clone(),
                 Expression::BinaryOp(BinaryOp {
-                    op_kind: BinaryOpKind::EqCmp,
+                    op_kind,
                     left:
                         box Expression::AddrOf(AddrOf {
                             base: left,
@@ -310,7 +310,7 @@ impl Expression {
                                 Type::Reference(ty::Reference {
                                     lifetime: _,
                                     uniqueness: ty::Uniqueness::Shared,
-                                    target_type: box Type::Map(_) | box Type::Sequence(_),
+                                    target_type: box Type::Map(_) | box Type::Sequence(_) | box Type::Int(_),
                                 }),
                             ..
                         }),
@@ -321,13 +321,13 @@ impl Expression {
                                 Type::Reference(ty::Reference {
                                     lifetime: _,
                                     uniqueness: ty::Uniqueness::Shared,
-                                    target_type: box Type::Map(_) | box Type::Sequence(_),
+                                    target_type: box Type::Map(_) | box Type::Sequence(_) | box Type::Int(_),
                                 }),
                             ..
                         }),
                     position,
                 }) => Expression::BinaryOp(BinaryOp {
-                    op_kind: BinaryOpKind::EqCmp,
+                    op_kind,
                     left,
                     right,
                     position,

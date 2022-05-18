@@ -1628,14 +1628,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 | vir_mid::TypeDecl::Int(_)
                 | vir_mid::TypeDecl::Float(_)
                 | vir_mid::TypeDecl::Pointer(_)
-                | vir_mid::TypeDecl::Sequence(_) => {
+                | vir_mid::TypeDecl::Sequence(_)
+                | vir_mid::TypeDecl::Map(_) => {
                     self.encode_write_address_method(ty)?;
                     statements.push(stmtp! { position =>
                         call write_address<ty>([address.clone()], value)
                     });
-                }
-                vir_mid::TypeDecl::Map(_) => {
-                    unimplemented!()
                 }
                 vir_mid::TypeDecl::TypeVar(_) => {
                     unreachable!("Cannot write constants to variables of generic type.");

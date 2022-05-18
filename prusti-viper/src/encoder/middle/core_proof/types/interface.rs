@@ -200,6 +200,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     self.register_alternative_constructor(
                         &domain_name,
                         "no_alloc",
+                        true,
                         no_alloc_parameters.clone(),
                     )?;
                     self.encode_validity_axioms_struct_alternative_constructor(
@@ -274,7 +275,13 @@ pub(in super::super) trait TypesInterface {
 
 impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
     fn ensure_type_definition(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        if matches!(ty, vir_mid::Type::MBool | vir_mid::Type::MInt) {
+        if matches!(
+            ty,
+            vir_mid::Type::MBool
+                | vir_mid::Type::MInt
+                | vir_mid::Type::MPerm
+                | vir_mid::Type::Lifetime
+        ) {
             // Natively supported types, nothing to do.
             return Ok(());
         }
@@ -316,6 +323,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             self.register_alternative_constructor(
                 &result_domain,
                 &variant_name,
+                false,
                 vars! { argument: {snapshot_type} },
             )?;
             // Simplification axioms.
@@ -366,6 +374,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             self.register_alternative_constructor(
                 &result_domain,
                 &variant_name,
+                false,
                 vars! { left: {snapshot_type.clone()}, right: {snapshot_type.clone()} },
             )?;
             // Simplification axioms.
