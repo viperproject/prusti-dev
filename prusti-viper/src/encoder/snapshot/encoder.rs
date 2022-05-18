@@ -63,7 +63,7 @@ pub(super) struct SnapshotEncoder {
 
 /// Snapshot encoding flattens references and boxes. This function removes any
 /// [Box<...>] or reference (mutable or shared) wrappers.
-fn strip_refs_and_boxes(ty: ty::Ty) -> ty::Ty {
+pub(crate) fn strip_refs_and_boxes(ty: ty::Ty) -> ty::Ty {
     match ty.kind() {
         _ if ty.is_box() => strip_refs_and_boxes(ty.boxed_ty()),
         ty::TyKind::Ref(_, sub_ty, _) => strip_refs_and_boxes(*sub_ty),

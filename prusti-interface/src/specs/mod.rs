@@ -22,7 +22,7 @@ use typed::SpecIdRef;
 
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
-use crate::specs::typed::{ProcedureSpecification, SpecGraph, ProcedureSpecificationKind};
+use crate::specs::typed::{ProcedureSpecification, SpecGraph, ProcedureSpecificationKind, SpecificationItem};
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -30,6 +30,11 @@ struct ProcedureSpecRefs {
     pure: bool,
     abstract_predicate: bool,
     trusted: bool,
+}
+
+#[derive(Debug)]
+struct TypeSpecRefs {
+    invariants: Vec<LocalDefId>,
 }
 
 /// Specification collector, intended to be applied as a visitor over the crate
@@ -44,9 +49,10 @@ pub struct SpecCollector<'a, 'tcx: 'a> {
     /// Map from specification IDs to their typed expressions.
     spec_functions: HashMap<SpecificationId, LocalDefId>,
 
-    /// Map from functions/loops and their specifications.
+    /// Map from functions/loops/types to their specifications.
     procedure_specs: HashMap<LocalDefId, ProcedureSpecRefs>,
     loop_specs: Vec<LocalDefId>,
+    type_specs: HashMap<LocalDefId, TypeSpecRefs>,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -59,6 +65,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             spec_functions: HashMap::new(),
             procedure_specs: HashMap::new(),
             loop_specs: vec![],
+            type_specs: HashMap::new(),
         }
     }
 
@@ -67,7 +74,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_procedure_specs(&mut def_spec);
         self.determine_extern_specs(&mut def_spec);
         self.determine_loop_specs(&mut def_spec);
-        self.determine_struct_specs(&mut def_spec);
+        self.determine_type_specs(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
 
         def_spec
@@ -158,8 +165,21 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
-    // TODO: struct specs
-    fn determine_struct_specs(&self, _def_spec: &mut typed::DefSpecificationMap) {}
+    fn determine_type_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for (type_id, refs) in self.type_specs.iter() {
+            if !refs.invariants.is_empty() && !prusti_common::config::enable_type_invariants() {
+                let span = self.env.tcx().def_span(type_id.to_def_id());
+                PrustiError::unsupported(
+                    "Type invariants need to be enabled with a feature flag",
+                    MultiSpan::from(span),
+                ).emit(self.env);
+            }
+
+            def_spec.type_specs.insert(type_id.to_def_id(), typed::TypeSpecification {
+                invariant: SpecificationItem::Inherent(refs.invariants.clone()),
+            });
+        }
+    }
 }
 
 fn parse_spec_id(spec_id: String, def_id: DefId) -> SpecificationId {
@@ -269,6 +289,20 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if has_prusti_attr(attrs, "loop_body_invariant_spec") {
                 self.loop_specs.push(local_id);
             }
+
+            // Collect type invariants
+            if has_prusti_attr(attrs, "type_invariant_spec") {
+                // TODO(inv): visit the struct itself instead?
+                let self_id = fn_decl.inputs[0].hir_id;
+                let hir = self.tcx.hir();
+                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                self.type_specs
+                    .entry(type_id.as_local().unwrap())
+                    .or_insert(TypeSpecRefs { invariants: vec![] })
+                    .invariants
+                    .push(local_id);
+            }
         } else {
             // Don't collect specs "for" spec items
 
@@ -307,4 +341,17 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
         }
     }
+}
+
+fn get_type_id_from_impl_node(node: rustc_hir::Node) -> Option<DefId> {
+    if let rustc_hir::Node::Item(item) = node {
+        if let rustc_hir::ItemKind::Impl(item_impl) = &item.kind {
+            if let rustc_hir::TyKind::Path(rustc_hir::QPath::Resolved(_, path)) = item_impl.self_ty.kind {
+                if let rustc_hir::def::Res::Def(_, def_id) = path.res {
+                    return Some(def_id);
+                }
+            }
+        }
+    }
+    None
 }
