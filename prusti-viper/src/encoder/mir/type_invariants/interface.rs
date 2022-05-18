@@ -25,6 +25,10 @@ impl<'v, 'tcx: 'v> TypeInvariantEncoderInterface<'tcx> for super::super::super::
         ty: ty::Ty<'tcx>,
         encoded_arg: vir::Expr,
     ) -> EncodingResult<vir::Expr> {
+        if !prusti_common::config::enable_type_invariants() {
+            return Ok(true.into());
+        }
+
         // match snapshot ref/box peeling
         let ty = crate::encoder::snapshot::encoder::strip_refs_and_boxes(ty);
 

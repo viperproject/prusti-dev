@@ -1,3 +1,7 @@
+// compile-flags: -Penable_type_invariants=true
+// ignore-test Invariant as stated is too weak to conclude that `contains` and
+//   `contains_golden` have the same result.
+
 use prusti_contracts::*;
 fn main() {}
 
@@ -67,7 +71,7 @@ impl BST {
         if let BST::Node { value, left, right } = self {
             if val == *value { true }
             else {
-                left.contains(val) && right.contains(val)
+                left.contains_golden(val) && right.contains_golden(val)
             }
         } else { false }
     }
