@@ -279,6 +279,19 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     }
 }
 
+pub fn prusti_assertion(tokens: TokenStream) -> TokenStream {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let assertion = handle_result!(rewriter.process_prusti_assertion(spec_id, tokens));
+    let callsite_span = Span::call_site();
+    quote_spanned! {callsite_span=>
+        #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+        if false {
+            #assertion
+        }
+    }
+}
+
 /// Unlike the functions above, which are only called from
 /// prusti-contracts-internal, this function also needs to be called
 /// from prusti-contracts-impl, because we still need to parse the

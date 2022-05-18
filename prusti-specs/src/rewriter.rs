@@ -210,6 +210,26 @@ impl AstRewriter {
         })
     }
 
+    /// Parse a prusti assertion into a Rust expression
+    pub fn process_prusti_assertion(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        let expr = parse_prusti(tokens)?;
+        let spec_id_str = spec_id.to_string();
+        Ok(quote_spanned! {expr.span()=>
+            {
+                #[prusti::spec_only]
+                #[prusti::prusti_assertion]
+                #[prusti::spec_id = #spec_id_str]
+                || -> bool {
+                    #expr
+                };
+            }
+        })
+    }
+
     /// Parse a closure with specifications into a Rust expression
     /// TODO: arguments, result (types are typically not known yet after parsing...)
     pub fn process_closure(
