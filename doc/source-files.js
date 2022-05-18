@@ -1,4 +1,4 @@
-var N = null;var sourcesIndex = {};
+var sourcesIndex = {};
 sourcesIndex["addr2line"] = {"name":"","files":["function.rs","lazy.rs","lib.rs"]};
 sourcesIndex["adler"] = {"name":"","files":["algo.rs","lib.rs"]};
 sourcesIndex["ahash"] = {"name":"","files":["convert.rs","fallback_hash.rs","lib.rs","operations.rs","random_state.rs","specialize.rs"]};
@@ -189,7 +189,7 @@ sourcesIndex["tokio"] = {"name":"","dirs":[{"name":"fs","files":["canonicalize.r
 sourcesIndex["tokio_native_tls"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["tokio_stream"] = {"name":"","dirs":[{"name":"stream_ext","files":["all.rs","any.rs","chain.rs","collect.rs","filter.rs","filter_map.rs","fold.rs","fuse.rs","map.rs","merge.rs","next.rs","skip.rs","skip_while.rs","take.rs","take_while.rs","throttle.rs","timeout.rs","try_next.rs"]},{"name":"wrappers","files":["interval.rs","lines.rs","mpsc_bounded.rs","mpsc_unbounded.rs","split.rs"]}],"files":["empty.rs","iter.rs","lib.rs","macros.rs","once.rs","pending.rs","stream_ext.rs","stream_map.rs","wrappers.rs"]};
 sourcesIndex["tokio_tungstenite"] = {"name":"","files":["compat.rs","connect.rs","handshake.rs","lib.rs","stream.rs"]};
-sourcesIndex["tokio_util"] = {"name":"","dirs":[{"name":"codec","files":["any_delimiter_codec.rs","bytes_codec.rs","decoder.rs","encoder.rs","framed.rs","framed_impl.rs","framed_read.rs","framed_write.rs","length_delimited.rs","lines_codec.rs","mod.rs"]},{"name":"sync","dirs":[{"name":"cancellation_token","files":["guard.rs"]}],"files":["cancellation_token.rs","intrusive_double_linked_list.rs","mod.rs","mpsc.rs","poll_semaphore.rs","reusable_box.rs"]}],"files":["cfg.rs","either.rs","lib.rs","loom.rs"]};
+sourcesIndex["tokio_util"] = {"name":"","dirs":[{"name":"codec","files":["any_delimiter_codec.rs","bytes_codec.rs","decoder.rs","encoder.rs","framed.rs","framed_impl.rs","framed_read.rs","framed_write.rs","length_delimited.rs","lines_codec.rs","mod.rs"]},{"name":"sync","dirs":[{"name":"cancellation_token","files":["guard.rs","tree_node.rs"]}],"files":["cancellation_token.rs","mod.rs","mpsc.rs","poll_semaphore.rs","reusable_box.rs"]}],"files":["cfg.rs","either.rs","lib.rs","loom.rs"]};
 sourcesIndex["toml"] = {"name":"","files":["datetime.rs","de.rs","lib.rs","macros.rs","map.rs","ser.rs","spanned.rs","tokens.rs","value.rs"]};
 sourcesIndex["tower_service"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["tracing"] = {"name":"","files":["dispatcher.rs","field.rs","instrument.rs","level_filters.rs","lib.rs","macros.rs","span.rs","stdlib.rs","subscriber.rs"]};
@@ -202,6 +202,7 @@ sourcesIndex["typenum"] = {"name":"","files":["array.rs","bit.rs","int.rs","lib.
 sourcesIndex["ucd_trie"] = {"name":"","files":["lib.rs","owned.rs"]};
 sourcesIndex["unicase"] = {"name":"","dirs":[{"name":"unicode","files":["map.rs","mod.rs"]}],"files":["ascii.rs","lib.rs"]};
 sourcesIndex["unicode_bidi"] = {"name":"","dirs":[{"name":"char_data","files":["mod.rs","tables.rs"]}],"files":["data_source.rs","deprecated.rs","explicit.rs","format_chars.rs","implicit.rs","level.rs","lib.rs","prepare.rs"]};
+sourcesIndex["unicode_ident"] = {"name":"","files":["lib.rs","tables.rs"]};
 sourcesIndex["unicode_normalization"] = {"name":"","files":["__test_api.rs","decompose.rs","lib.rs","lookups.rs","no_std_prelude.rs","normalize.rs","perfect_hash.rs","quick_check.rs","recompose.rs","replace.rs","stream_safe.rs","tables.rs"]};
 sourcesIndex["unicode_xid"] = {"name":"","files":["lib.rs","tables.rs"]};
 sourcesIndex["url"] = {"name":"","files":["host.rs","lib.rs","origin.rs","parser.rs","path_segments.rs","quirks.rs","slicing.rs"]};
