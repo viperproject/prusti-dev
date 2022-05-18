@@ -626,15 +626,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             | "std::ops::Index::index"
             | "core::ops::Index::index" => {
                 assert_eq!(encoded_args.len(), 2);
-                self.encode_call_index(
-                    *target_block,
-                    states.clone(),
-                    encoded_lhs,
-                    encoded_args[0].clone(),
-                    encoded_args[1].clone(),
-                    span,
-                )
-                .map(Some)
+                match encoded_args[0].get_type() {
+                    Type::Reference(Reference {
+                        target_type: box Type::Map(map),
+                        ..
+                    }) => builtin((LookupMap, (*map.val_type).clone())),
+                    _ => self
+                        .encode_call_index(
+                            *target_block,
+                            states.clone(),
+                            encoded_lhs,
+                            encoded_args[0].clone(),
+                            encoded_args[1].clone(),
+                            span,
+                        )
+                        .map(Some),
+                }
             }
 
             // Prusti-specific syntax
