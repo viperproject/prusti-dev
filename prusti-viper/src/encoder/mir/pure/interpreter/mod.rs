@@ -572,9 +572,62 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Int::") {
             assert!(type_arguments.is_empty());
             return match proc_name {
-                "new" => builtin((NewInt, Type::Int(vir_high::ty::Int::Unbounded))),
+                "new" => builtin((NewInt, Type::Int(Int::Unbounded))),
                 _ => unreachable!("no further int functions"),
             };
+        }
+
+        // replace all the operations on Ints
+        if let Some(
+            Type::Int(Int::Unbounded)
+            | Type::Reference(Reference {
+                target_type: box Type::Int(Int::Unbounded),
+                ..
+            }),
+        ) = encoded_args.first().map(vir_high::Expression::get_type)
+        {
+            let std = proc_name.strip_prefix("std::");
+            let core = proc_name.strip_prefix("core::");
+            let op_name = std.or(core).and_then(|name| {
+                name.strip_prefix("ops::")
+                    .or_else(|| name.strip_prefix("cmp::PartialOrd::"))
+                    .or_else(|| name.strip_prefix("cmp::PartialEq::"))
+            });
+
+            if let Some(op_name) = op_name {
+                use vir_high::BinaryOpKind::*;
+                let ops = [
+                    ("Add::add", Add),
+                    ("Sub::sub", Sub),
+                    ("Mul::mul", Mul),
+                    ("Div::div", Div),
+                    ("Rem::rem", Mod),
+                    ("lt", LtCmp),
+                    ("le", LeCmp),
+                    ("gt", GtCmp),
+                    ("ge", GeCmp),
+                    ("eq", EqCmp),
+                    ("ne", NeCmp),
+                ];
+
+                // replace binary ops
+                for (fun, op_kind) in ops {
+                    if op_name == fun {
+                        return subst_with(vir_high::Expression::binary_op_no_pos(
+                            op_kind,
+                            encoded_args[0].clone(),
+                            encoded_args[1].clone(),
+                        ));
+                    }
+                }
+
+                // replace negation
+                if op_name == "Neg::neg" {
+                    return subst_with(vir_high::Expression::minus(encoded_args[0].clone()));
+                }
+
+                unreachable!("Didn't expect function {:?} on Int.", proc_name);
+            }
         }
 
         match proc_name {
@@ -626,15 +679,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             | "std::ops::Index::index"
             | "core::ops::Index::index" => {
                 assert_eq!(encoded_args.len(), 2);
-                self.encode_call_index(
-                    *target_block,
-                    states.clone(),
-                    encoded_lhs,
-                    encoded_args[0].clone(),
-                    encoded_args[1].clone(),
-                    span,
-                )
-                .map(Some)
+                match encoded_args[0].get_type() {
+                    Type::Reference(Reference {
+                        target_type: box Type::Map(_),
+                        ..
+                    }) => {
+                        let ref_type = encoded_lhs.get_type().clone();
+                        builtin((LookupMap, ref_type))
+                    }
+                    Type::Reference(Reference {
+                        target_type: box Type::Sequence(_),
+                        ..
+                    }) => {
+                        let ref_type = encoded_lhs.get_type().clone();
+                        //assert!(encoded_args[0].get_type().is_sequence(), "Expected sequence type, got {:?}", encoded_args[0].get_type());
+                        builtin((LookupSeq, ref_type))
+                    }
+                    _ => self
+                        .encode_call_index(
+                            *target_block,
+                            states.clone(),
+                            encoded_lhs,
+                            encoded_args[0].clone(),
+                            encoded_args[1].clone(),
+                            span,
+                        )
+                        .map(Some),
+                }
             }
 
             // Prusti-specific syntax

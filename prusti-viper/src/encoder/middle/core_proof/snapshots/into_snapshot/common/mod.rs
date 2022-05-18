@@ -6,6 +6,7 @@ use crate::encoder::{
         lifetimes::*,
         references::ReferencesInterface,
         snapshots::{IntoSnapshot, SnapshotDomainsInterface, SnapshotValuesInterface},
+        types::TypesInterface,
     },
 };
 use vir_crate::{
@@ -455,13 +456,30 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             .collect::<Result<Vec<_>, _>>()?;
         let mut args =
             self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
+        log::debug!(
+            "BFASNAPSHOT  ty_args:{ty_args:?} app_args:{:?} args:{args:?}",
+            app.arguments
+        );
+        if !app.arguments.is_empty() {
+            let first_arg_type = app.arguments[0].get_type();
+            if first_arg_type.is_reference() {
+                // The first argument is a reference, dereference it.
+                args[0] = lowerer.reference_target_current_snapshot(
+                    first_arg_type,
+                    args[0].clone(),
+                    app.position,
+                )?;
+            }
+        }
+        lowerer.ensure_type_definition(&app.return_type)?;
 
         let map = |low_kind| {
             let map_ty = vir_low::Type::map(ty_args[0].clone(), ty_args[1].clone());
+            let args = args.clone();
             Ok(vir_low::Expression::map_op(
                 map_ty,
                 low_kind,
-                args.clone(),
+                args,
                 app.position,
             ))
         };
@@ -470,16 +488,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             Ok(vir_low::Expression::container_op(
                 low_kind,
                 args[0].clone(),
-                if args.len() > 1 {
-                    args[1].clone()
-                } else {
-                    // this is only necessary because containerop takes two arguments any time, but length only has one argument
-                    // constructing a dummy value
-                    vir_low::Expression::constant_no_pos(
-                        vir_low::expression::ConstantValue::Bool(false),
-                        vir_low::ty::Type::Bool,
-                    )
-                },
+                args.get(1).cloned().unwrap_or_else(|| false.into()),
                 app.position,
             ))
         };
@@ -487,12 +496,49 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         match app.function {
             BuiltinFunc::EmptyMap => map(MapOpKind::Empty),
             BuiltinFunc::UpdateMap => map(MapOpKind::Update),
-            BuiltinFunc::LookupMap => map(MapOpKind::Lookup),
+            BuiltinFunc::LookupMap => {
+                let value = map(MapOpKind::Lookup)?;
+                if app.return_type.is_reference() {
+                    lowerer.shared_non_alloc_reference_snapshot_constructor(
+                        &app.return_type,
+                        value,
+                        app.position,
+                    )
+                } else {
+                    Ok(value)
+                }
+            }
             BuiltinFunc::MapLen => {
                 let value = map(MapOpKind::Len)?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
-            BuiltinFunc::LookupSeq => seq(ContainerOpKind::SeqIndex),
+            BuiltinFunc::LookupSeq => {
+                use vir_low::operations::ty::Typed;
+                assert!(
+                    args[0].get_type().is_seq(),
+                    "Expected Sequence type, got {:?}",
+                    args[0].get_type()
+                );
+                let value = vir_low::Expression::container_op(
+                    ContainerOpKind::SeqIndex,
+                    args[0].clone(),
+                    lowerer.obtain_constant_value(
+                        app.arguments[1].get_type(),
+                        args[1].clone(),
+                        args[1].position(),
+                    )?,
+                    app.position,
+                );
+                if app.return_type.is_reference() {
+                    lowerer.shared_non_alloc_reference_snapshot_constructor(
+                        &app.return_type,
+                        value,
+                        app.position,
+                    )
+                } else {
+                    Ok(value)
+                }
+            }
             BuiltinFunc::ConcatSeq => seq(ContainerOpKind::SeqConcat),
             BuiltinFunc::SeqLen => {
                 let value = seq(ContainerOpKind::SeqLen)?;
@@ -526,7 +572,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 Ok(intersect_expr)
             }
             BuiltinFunc::EmptySeq | BuiltinFunc::SingleSeq => Ok(vir_low::Expression::seq(
-                ty_args[0].clone(),
+                vir_low::Type::seq(ty_args[0].clone()),
                 args,
                 app.position,
             )),
@@ -563,6 +609,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Type> {
+        lowerer.ensure_type_definition(ty)?;
         // This ensures that the domain is included into the program.
         lowerer.encode_snapshot_domain_type(ty)
     }
