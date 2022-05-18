@@ -4,7 +4,7 @@ use self::{
 };
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
-    errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
+    errors::{ErrorCtxt, PanicCause, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         casts::CastsEncoderInterface,
         constants::ConstantsEncoderInterface,
@@ -1816,11 +1816,60 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_statements: &mut Vec<vir_high::Statement>,
     ) -> SpannedEncodingResult<()> {
         let block = &self.mir[bb];
-        if self.try_encode_specification_function_call(bb, block, encoded_statements)? {
+        if self.try_encode_assert(bb, block, encoded_statements)?
+            || self.try_encode_specification_function_call(bb, block, encoded_statements)?
+        {
             Ok(())
         } else {
             unreachable!()
         }
+    }
+
+    fn try_encode_assert(
+        &mut self,
+        bb: mir::BasicBlock,
+        block: &mir::BasicBlockData<'tcx>,
+        encoded_statements: &mut Vec<vir_high::Statement>,
+    ) -> SpannedEncodingResult<bool> {
+        for stmt in &block.statements {
+            if let mir::StatementKind::Assign(box (
+                _,
+                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
+            )) = stmt.kind
+            {
+                let assertion = match self.encoder.get_prusti_assertion(cl_def_id) {
+                    Some(spec) => spec,
+                    None => return Ok(false),
+                };
+
+                let span = self
+                    .encoder
+                    .get_definition_span(assertion.assertion.to_def_id());
+
+                let error_ctxt = ErrorCtxt::Panic(PanicCause::Assert);
+
+                let assert_expr = self.encoder.set_expression_error_ctxt(
+                    self.encoder
+                        .encode_invariant_high(self.mir, bb, self.def_id, cl_substs)?,
+                    span,
+                    error_ctxt.clone(),
+                    self.def_id,
+                );
+
+                let assert_stmt = vir_high::Statement::assert_no_pos(assert_expr);
+                let assert_stmt = self.encoder.set_statement_error_ctxt(
+                    assert_stmt,
+                    span,
+                    error_ctxt,
+                    self.def_id,
+                )?;
+
+                encoded_statements.push(assert_stmt);
+
+                return Ok(true);
+            }
+        }
+        Ok(false)
     }
 
     fn try_encode_specification_function_call(
