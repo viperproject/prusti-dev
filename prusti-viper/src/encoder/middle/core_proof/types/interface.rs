@@ -185,6 +185,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     self.register_alternative_constructor(
                         &domain_name,
                         "no_alloc",
+                        true,
                         no_alloc_parameters.clone(),
                     )?;
                     self.encode_validity_axioms_struct_alternative_constructor(
@@ -301,6 +302,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             self.register_alternative_constructor(
                 &result_domain,
                 &variant_name,
+                false,
                 vars! { argument: {snapshot_type} },
             )?;
             // Simplification axioms.
@@ -351,6 +353,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             self.register_alternative_constructor(
                 &result_domain,
                 &variant_name,
+                false,
                 vars! { left: {snapshot_type.clone()}, right: {snapshot_type.clone()} },
             )?;
             // Simplification axioms.
