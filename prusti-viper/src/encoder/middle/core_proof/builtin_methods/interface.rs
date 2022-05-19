@@ -684,32 +684,49 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         };
         let lifetime_token =
             self.encode_lifetime_token(operand_lifetime.clone(), lifetime_perm.clone().into())?;
-        let snapshot = if value.is_mut {
-            self.reference_target_final_snapshot(
-                result_type,
-                result_value.clone().into(),
-                position,
-            )?
-        } else {
-            self.reference_target_current_snapshot(
-                result_type,
-                result_value.clone().into(),
-                position,
-            )?
-        };
-        let validity = self.encode_snapshot_valid_call_for_type(snapshot.clone(), ty)?;
-        let restoration = expr! {
-            wand(
-                (acc(DeadLifetimeToken(operand_lifetime))) --* (
-                    (acc(OwnedNonAliased<ty>(operand_place, operand_address, [snapshot]))) &&
-                    [validity] &&
-                    // DeadLifetimeToken is duplicable and does not get consumed.
-                    (acc(DeadLifetimeToken(operand_lifetime)))
+        let restoration = {
+            let restoration_snapshot = if value.is_mut {
+                self.reference_target_final_snapshot(
+                    result_type,
+                    result_value.clone().into(),
+                    position,
+                )?
+            } else {
+                self.reference_target_current_snapshot(
+                    result_type,
+                    result_value.clone().into(),
+                    position,
+                )?
+            };
+            let validity =
+                self.encode_snapshot_valid_call_for_type(restoration_snapshot.clone(), ty)?;
+            expr! {
+                wand(
+                    (acc(DeadLifetimeToken(operand_lifetime))) --* (
+                        (acc(OwnedNonAliased<ty>(
+                            operand_place, operand_address, [restoration_snapshot]
+                        ))) &&
+                        [validity] &&
+                        // DeadLifetimeToken is duplicable and does not get consumed.
+                        (acc(DeadLifetimeToken(operand_lifetime)))
+                    )
                 )
-            )
+            }
         };
-        let compute_address = ty!(Address);
-        let _address = expr! { ComputeAddress::compute_address(operand_place, operand_address) };
+        let reference_target_address =
+            self.reference_address(result_type, result_value.clone().into(), position)?;
+        posts.push(expr! {
+            operand_address == [reference_target_address]
+        });
+        // Note: We do not constraint the final snapshot, because it is fresh.
+        let reference_target_current_snapshot = self.reference_target_current_snapshot(
+            result_type,
+            result_value.clone().into(),
+            position,
+        )?;
+        posts.push(expr! {
+            operand_value == [reference_target_current_snapshot]
+        });
         pres.push(expr! {
             [vir_low::Expression::no_permission()] < lifetime_perm
         });
@@ -1214,12 +1231,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         target_address: Address,
                         source_place: Place,
                         source_address: Address,
+                        source_permission: Perm,
                         source_value: {ty.to_snapshot(self)?}
                     ) returns ()
+                    requires ([vir_low::Expression::no_permission()] < source_permission);
                     requires (acc(MemoryBlock((ComputeAddress::compute_address(target_place, target_address)), [size_of])));
-                    requires (acc(OwnedNonAliased<ty>(source_place, source_address, source_value)));
+                    requires (acc(OwnedNonAliased<ty>(source_place, source_address, source_value), source_permission));
                     ensures (acc(OwnedNonAliased<ty>(target_place, target_address, source_value)));
-                    ensures (acc(OwnedNonAliased<ty>(source_place, source_address, source_value)));
+                    ensures (acc(OwnedNonAliased<ty>(source_place, source_address, source_value), source_permission));
                 };
                 method.body = None;
                 self.declare_method(method)?;
@@ -1234,6 +1253,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     target_address: Address,
                     source_place: Place,
                     source_address: Address,
+                    source_permission: Perm,
                     source_value: {ty.to_snapshot(self)?}
                 ) returns ()
                     raw_code {
@@ -1242,6 +1262,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             ty,
                             source_place.clone().into(),
                             &Into::<vir_low::Expression>::into(source_address.clone()),
+                            Some(source_permission.clone().into()),
                             source_value.clone().into(),
                             position,
                         )?;
@@ -1257,7 +1278,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         });
                         let to_bytes = ty! { Bytes };
                         let memory_block_bytes =
-                            self.encode_memory_block_bytes_expression(address, size_of.clone())?;
+                            self.encode_memory_block_bytes_expression(
+                                address, size_of.clone()
+                            )?;
                         statements.push(stmtp! { position =>
                             assert ([memory_block_bytes] == (Snap<ty>::to_bytes(source_value)))
                         });
@@ -1272,14 +1295,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             ty,
                             source_place.clone().into(),
                             &Into::<vir_low::Expression>::into(source_address.clone()),
+                            Some(source_permission.clone().into()),
                             source_value.clone().into(),
                             position,
                         )?;
                     }
+                    requires ([vir_low::Expression::no_permission()] < source_permission);
                     requires (acc(MemoryBlock((ComputeAddress::compute_address(target_place, target_address)), [size_of])));
-                    requires (acc(OwnedNonAliased<ty>(source_place, source_address, source_value)));
+                    requires (acc(OwnedNonAliased<ty>(source_place, source_address, source_value), source_permission));
                     ensures (acc(OwnedNonAliased<ty>(target_place, target_address, source_value)));
-                    ensures (acc(OwnedNonAliased<ty>(source_place, source_address, source_value)));
+                    ensures (acc(OwnedNonAliased<ty>(source_place, source_address, source_value), source_permission));
             };
             method.body = if ty.is_reference() {
                 None
@@ -2000,6 +2025,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             position =>
                             unfold OwnedNonAliased<ty>(place, root_address, value; lifetime_exprs)
                         });
+                        let (memory_block_value, ref to_bytes_type) = if let vir_mid::Type::Reference(_) = ty {
+                            (
+                                self.reference_address_snapshot(
+                                    ty,
+                                    value.clone().into(),
+                                    position,
+                                )?,
+                                self.reference_address_type(ty)?
+                            )
+                        } else {
+                            (value.clone().into(), ty.clone())
+                        };
                         match type_decl {
                             vir_mid::TypeDecl::Bool
                             | vir_mid::TypeDecl::Int(_)
@@ -2128,9 +2165,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             vir_mid::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),
                         };
                     }
-                    requires ([ self.acc_owned_non_aliased(ty, place, root_address, value.clone(), lifetimes_copy)? ]);
+                    requires ([ self.acc_owned_non_aliased(ty, place, root_address, value, lifetimes_copy)? ]);
                     ensures (acc(MemoryBlock([address], [size_of])));
-                    ensures (([bytes]) == (Snap<ty>::to_bytes(value)));
+                    ensures (([bytes]) == (Snap<to_bytes_type>::to_bytes([memory_block_value])));
             };
             method.body = Some(statements);
             self.declare_method(method)?;
@@ -2263,8 +2300,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             };
             let position = vir_low::Position::default();
             let deref_place = self.reference_deref_place(place.clone().into(), position)?;
-            let address_snapshot =
-                self.reference_address_snapshot(ty, snapshot.clone().into(), position)?;
+            let address_snapshot = self.reference_address(ty, snapshot.clone().into(), position)?;
             let current_snapshot =
                 self.reference_target_current_snapshot(ty, snapshot.clone().into(), position)?;
 
@@ -2518,8 +2554,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 snapshot: {ty.to_snapshot(self)?}
             };
             let deref_place = self.reference_deref_place(place.clone().into(), position)?;
-            let address_snapshot =
-                self.reference_address_snapshot(ty, snapshot.clone().into(), position)?;
+            let address_snapshot = self.reference_address(ty, snapshot.clone().into(), position)?;
             let current_snapshot =
                 self.reference_target_current_snapshot(ty, snapshot.clone().into(), position)?;
             let final_snapshot =
