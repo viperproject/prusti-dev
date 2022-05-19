@@ -688,12 +688,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
-    fn encode_close_mut_ref(
+    fn encode_close_reference(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
         deref_base: &Option<vir_high::Expression>,
-        object: vir_high::Expression,
+        place: vir_high::Expression,
+        permission: Option<vir_high::VariableDecl>,
     ) -> SpannedEncodingResult<()> {
         if let Some(base) = deref_base {
             if let vir_high::ty::Type::Reference(vir_high::ty::Reference {
@@ -709,7 +710,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         vir_high::Statement::close_mut_ref_no_pos(
                             lifetime.clone(),
                             self.rd_perm,
-                            object,
+                            place,
                         ),
                     )?);
                 } else {
@@ -719,7 +720,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         vir_high::Statement::close_frac_ref_no_pos(
                             lifetime.clone(),
                             self.rd_perm,
-                            object,
+                            place,
+                            permission.unwrap(),
                         ),
                     )?);
                 }
@@ -730,13 +732,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
-    fn encode_open_mut_ref(
+    fn encode_open_reference(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
         deref_base: &Option<vir_high::Expression>,
-        object: vir_high::Expression,
-    ) -> SpannedEncodingResult<()> {
+        place: vir_high::Expression,
+    ) -> SpannedEncodingResult<Option<vir_high::VariableDecl>> {
+        let mut variable = None;
         if let Some(base) = deref_base {
             if let vir_high::ty::Type::Reference(vir_high::ty::Reference {
                 lifetime,
@@ -751,25 +754,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         vir_high::Statement::open_mut_ref_no_pos(
                             lifetime.clone(),
                             self.rd_perm,
-                            object,
+                            place,
                         ),
                     )?);
                 } else {
+                    let permission =
+                        self.fresh_ghost_variable("tmp_frac_ref_perm", vir_high::Type::MPerm);
+                    variable = Some(permission.clone());
                     block_builder.add_statement(self.set_statement_error(
                         location,
                         ErrorCtxt::OpenFracRef,
                         vir_high::Statement::open_frac_ref_no_pos(
                             lifetime.clone(),
+                            permission,
                             self.rd_perm,
-                            object,
+                            place,
                         ),
                     )?);
                 }
             } else {
                 unreachable!();
             }
-        }
-        Ok(())
+        };
+        Ok(variable)
     }
 
     fn encode_assign_operand(
@@ -785,7 +792,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vir_high::Expression::Deref(vir_high::Deref { box base, .. }) => Some(base.clone()),
             _ => None,
         };
-        self.encode_open_mut_ref(block_builder, location, &deref_base, encoded_target.clone())?;
+        let target_permission = self.encode_open_reference(
+            block_builder,
+            location,
+            &deref_base,
+            encoded_target.clone(),
+        )?;
 
         match operand {
             mir::Operand::Move(source) => {
@@ -805,7 +817,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     }
                     _ => None,
                 };
-                self.encode_open_mut_ref(
+                let source_permission = self.encode_open_reference(
                     block_builder,
                     location,
                     &deref_base,
@@ -818,10 +830,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir_high::Statement::copy_place_no_pos(
                         encoded_target.clone(),
                         encoded_source.clone(),
+                        source_permission.clone(),
                     ),
                 )?);
 
-                self.encode_close_mut_ref(block_builder, location, &deref_base, encoded_source)?;
+                self.encode_close_reference(
+                    block_builder,
+                    location,
+                    &deref_base,
+                    encoded_source,
+                    source_permission,
+                )?;
             }
             mir::Operand::Constant(constant) => {
                 let encoded_constant = self
@@ -839,7 +858,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
 
-        self.encode_close_mut_ref(block_builder, location, &deref_base, encoded_target)?;
+        self.encode_close_reference(
+            block_builder,
+            location,
+            &deref_base,
+            encoded_target,
+            target_permission,
+        )?;
 
         Ok(())
     }
@@ -1721,6 +1746,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let name = format!("label_{}_old", self.fresh_id_generator);
         self.fresh_id_generator += 1;
         name
+    }
+
+    fn fresh_ghost_variable(
+        &mut self,
+        name_template: &str,
+        ty: vir_high::Type,
+    ) -> vir_high::VariableDecl {
+        let name = format!("{}${}", name_template, self.fresh_id_generator);
+        self.fresh_id_generator += 1;
+        vir_high::VariableDecl::new(name, ty)
     }
 
     fn register_error(&self, location: mir::Location, error_ctxt: ErrorCtxt) -> vir_high::Position {

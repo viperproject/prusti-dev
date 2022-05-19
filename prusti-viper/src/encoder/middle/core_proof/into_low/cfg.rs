@@ -336,6 +336,12 @@ impl IntoLow for vir_mid::Statement {
                 let target_address = lowerer.extract_root_address(&statement.target)?;
                 let source_place = lowerer.encode_expression_as_place(&statement.source)?;
                 let source_address = lowerer.extract_root_address(&statement.source)?;
+                let source_permission = if let Some(source_permission) = statement.source_permission
+                {
+                    source_permission.to_procedure_snapshot(lowerer)?.into()
+                } else {
+                    vir_low::Expression::full_permission()
+                };
                 let value = statement.source.to_procedure_snapshot(lowerer)?;
                 let mut statements = vec![stmtp! { statement.position =>
                     call copy_place<target_ty>(
@@ -343,6 +349,7 @@ impl IntoLow for vir_mid::Statement {
                         [target_address],
                         [source_place],
                         [source_address],
+                        [source_permission],
                         [value.clone()]
                     )
                 }];
@@ -497,13 +504,14 @@ impl IntoLow for vir_mid::Statement {
                 let ty = place.get_type();
                 lowerer.encode_frac_bor_atomic_acc_method(ty)?;
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
-                let perm_amount = vir_low::Expression::fractional_permission(statement.rd_perm);
+                let perm_amount =
+                    vir_low::Expression::fractional_permission(statement.token_permission_amount);
                 let reference_place = lowerer.encode_expression_as_place(place)?;
                 let reference_value = place.to_procedure_snapshot(lowerer)?;
-                let tmp_var_name = format!("tmp_frac_ref_perm${}", lifetime.name);
-                let tmp_frac_ref_perm =
-                    lowerer.create_variable(tmp_var_name, vir_low::Type::Perm)?;
-                let targets = vec![vir_low::Expression::local_no_pos(tmp_frac_ref_perm)];
+                let targets = vec![statement
+                    .predicate_permission_amount
+                    .to_procedure_snapshot(lowerer)?
+                    .into()];
                 Ok(vec![Statement::method_call(
                     method_name!(frac_bor_atomic_acc<ty>),
                     vec![
@@ -520,7 +528,8 @@ impl IntoLow for vir_mid::Statement {
                 let place = statement.place.get_parent_ref().unwrap();
                 let ty = place.get_type();
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
-                let perm_amount = vir_low::Expression::fractional_permission(statement.rd_perm);
+                let perm_amount =
+                    vir_low::Expression::fractional_permission(statement.token_permission_amount);
                 let reference_place = lowerer.encode_expression_as_place(place)?;
                 let deref_place =
                     lowerer.reference_deref_place(reference_place, statement.position)?;
@@ -531,10 +540,10 @@ impl IntoLow for vir_mid::Statement {
                     statement.position,
                 )?;
                 let address_snapshot =
-                    lowerer.reference_address_snapshot(ty, reference_value, statement.position)?;
-                let tmp_var_name = format!("tmp_frac_ref_perm${}", lifetime.name);
-                let tmp_frac_ref_perm =
-                    lowerer.create_variable(tmp_var_name, vir_low::Type::Perm)?;
+                    lowerer.reference_address(ty, reference_value, statement.position)?;
+                let tmp_frac_ref_perm = statement
+                    .predicate_permission_amount
+                    .to_procedure_snapshot(lowerer)?;
                 let type_decl = lowerer.encoder.get_type_decl_mid(ty)?;
                 let target_type = &type_decl.unwrap_reference().target_type;
                 Ok(vec![stmtp! {
@@ -549,7 +558,8 @@ impl IntoLow for vir_mid::Statement {
                 let ty = place.get_type();
                 lowerer.encode_open_close_mut_ref_methods(ty)?;
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
-                let perm_amount = vir_low::Expression::fractional_permission(statement.rd_perm);
+                let perm_amount =
+                    vir_low::Expression::fractional_permission(statement.token_permission_amount);
                 let reference_place = lowerer.encode_expression_as_place(place)?;
                 let reference_value = place.to_procedure_snapshot(lowerer)?;
                 let statements = vec![stmtp! { statement.position =>
@@ -567,16 +577,14 @@ impl IntoLow for vir_mid::Statement {
                 let ty = place.get_type();
                 lowerer.encode_open_close_mut_ref_methods(ty)?;
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
-                let perm_amount = vir_low::Expression::fractional_permission(statement.rd_perm);
+                let perm_amount =
+                    vir_low::Expression::fractional_permission(statement.token_permission_amount);
                 let reference_place = lowerer.encode_expression_as_place(place)?;
                 let reference_value = place.to_procedure_snapshot(lowerer)?;
                 let deref_place =
                     lowerer.reference_deref_place(reference_place, statement.position)?;
-                let address_snapshot = lowerer.reference_address_snapshot(
-                    ty,
-                    reference_value.clone(),
-                    statement.position,
-                )?;
+                let address_snapshot =
+                    lowerer.reference_address(ty, reference_value.clone(), statement.position)?;
                 let current_snapshot = lowerer.reference_target_current_snapshot(
                     ty,
                     reference_value.clone(),
