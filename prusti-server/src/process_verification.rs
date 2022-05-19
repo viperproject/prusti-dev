@@ -8,7 +8,7 @@ use crate::{VerificationRequest, ViperBackendConfig};
 use log::info;
 use prusti_common::{config, report::log::report, vir::ToViper, Stopwatch};
 use std::{fs::create_dir_all, path::PathBuf};
-use viper::{Cache, VerificationBackend, VerificationContext};
+use viper::{Cache, VerificationBackend, VerificationContext, VerificationResult};
 
 pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v VerificationContext<'t>,
@@ -18,7 +18,11 @@ pub fn process_verification_request<'v, 't: 'v>(
     let ast_utils = verification_context.new_ast_utils();
 
     let hash = request.get_hash();
-    info!("Verification request hash: {}", hash);
+    info!(
+        "Verification request hash: {} - for program {}",
+        hash,
+        request.program.get_name()
+    );
 
     let build_or_dump_viper_program = || {
         let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
@@ -52,6 +56,13 @@ pub fn process_verification_request<'v, 't: 'v>(
     // Early return in case of cache hit
     if config::enable_cache() {
         if let Some(result) = cache.get(hash) {
+            if result != VerificationResult::Success {
+                info!(
+                    "cached result {:?} for program {}",
+                    &result,
+                    request.program.get_name()
+                );
+            }
             if config::dump_viper_program() {
                 ast_utils.with_local_frame(16, || {
                     let _ = build_or_dump_viper_program();
@@ -73,6 +84,13 @@ pub fn process_verification_request<'v, 't: 'v>(
         let result = verifier.verify(viper_program);
 
         if config::enable_cache() {
+            if result != VerificationResult::Success {
+                info!(
+                    "storing new cached result {:?} for program {}",
+                    &result,
+                    request.program.get_name()
+                );
+            }
             cache.insert(hash, result.clone());
         }
 

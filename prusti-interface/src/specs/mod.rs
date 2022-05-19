@@ -32,9 +32,10 @@ struct ProcedureSpecRefs {
     trusted: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct TypeSpecRefs {
     invariants: Vec<LocalDefId>,
+    trusted: bool,
 }
 
 /// Specification collector, intended to be applied as a visitor over the crate
@@ -177,6 +178,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
             def_spec.type_specs.insert(type_id.to_def_id(), typed::TypeSpecification {
                 invariant: SpecificationItem::Inherent(refs.invariants.clone()),
+                trusted: SpecificationItem::Inherent(refs.trusted),
             });
         }
     }
@@ -290,18 +292,32 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 self.loop_specs.push(local_id);
             }
 
+            // TODO: (invariants and trusted flag) visit the struct itself?
+            // For now, a method is used to mark the type as "trusted".
+
             // Collect type invariants
             if has_prusti_attr(attrs, "type_invariant_spec") {
-                // TODO(inv): visit the struct itself instead?
                 let self_id = fn_decl.inputs[0].hir_id;
                 let hir = self.tcx.hir();
                 let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
-                    .or_insert(TypeSpecRefs { invariants: vec![] })
+                    .or_default()
                     .invariants
                     .push(local_id);
+            }
+
+            // Collect trusted type flag
+            if has_prusti_attr(attrs, "trusted_type") {
+                let self_id = fn_decl.inputs[0].hir_id;
+                let hir = self.tcx.hir();
+                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                self.type_specs
+                    .entry(type_id.as_local().unwrap())
+                    .or_default()
+                    .trusted = true;
             }
         } else {
             // Don't collect specs "for" spec items

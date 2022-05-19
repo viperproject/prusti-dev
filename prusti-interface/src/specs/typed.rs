@@ -92,12 +92,14 @@ pub struct LoopSpecification {
 #[derive(Debug, Clone)]
 pub struct TypeSpecification {
     pub invariant: SpecificationItem<Vec<LocalDefId>>,
+    pub trusted: SpecificationItem<bool>,
 }
 
 impl TypeSpecification {
     pub fn empty() -> Self {
         TypeSpecification {
             invariant: SpecificationItem::Empty,
+            trusted: SpecificationItem::Inherent(false),
         }
     }
 }
