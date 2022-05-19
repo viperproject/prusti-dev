@@ -501,7 +501,7 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
             #item_impl
         }
     } else {
-        rewrite_prusti_attributes(SpecAttributeKind::Trusted, attr.into(), tokens.into()).into()
+        rewrite_prusti_attributes(SpecAttributeKind::Trusted, attr, tokens)
     }
 }
 
@@ -558,12 +558,10 @@ pub fn extern_spec(attr: TokenStream, tokens:TokenStream) -> TokenStream {
         syn::Item::Mod(mut item_mod) => {
             handle_result!(extern_spec_rewriter::mods::rewrite_extern_spec(&mut item_mod))
         }
-        _ => {
-            return syn::Error::new(
-                attr.span(),
-                "Extern specs cannot be attached to this item",
-            ).to_compile_error();
-        }
+        _ => syn::Error::new(
+            attr.span(),
+            "Extern specs cannot be attached to this item",
+        ).to_compile_error(),
     }
 }
 
@@ -579,11 +577,9 @@ pub fn type_model(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         syn::Item::Struct(item_struct) => {
             handle_result!(type_model::rewrite(item_struct))
         }
-        _ => {
-            return syn::Error::new(
-                attr.span(),
-                "Only structs can be attributed with a type model",
-            ).to_compile_error();
-        }
+        _ => syn::Error::new(
+            attr.span(),
+            "Only structs can be attributed with a type model",
+        ).to_compile_error(),
     }
 }
