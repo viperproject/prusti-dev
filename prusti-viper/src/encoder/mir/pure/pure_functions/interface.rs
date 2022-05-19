@@ -307,7 +307,11 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                     }
                 };
 
-                let needs_patching = matches!(proc_kind, ProcedureSpecificationKind::Pure);
+                let needs_patching = matches!(
+                    proc_kind,
+                    ProcedureSpecificationKind::Pure
+                        | ProcedureSpecificationKind::Predicate(Some(_)),
+                );
                 if needs_patching {
                     self.mirror_encoder
                         .borrow_mut()
