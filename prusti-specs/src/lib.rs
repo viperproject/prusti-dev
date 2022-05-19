@@ -496,7 +496,7 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     }
 }
 
-pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
+pub fn extern_spec(attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     match item {
         syn::Item::Impl(item_impl) => {
@@ -508,7 +508,12 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
         syn::Item::Mod(mut item_mod) => {
             handle_result!(extern_spec_rewriter::mods::rewrite_extern_spec(&mut item_mod))
         }
-        _ => { unimplemented!() }
+        _ => {
+            return syn::Error::new(
+                attr.span(),
+                "Extern specs cannot be attached to this item",
+            ).to_compile_error();
+        }
     }
 }
 
@@ -517,7 +522,7 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
     parsed.into_token_stream()
 }
 
-pub fn type_model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+pub fn type_model(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
 
     match item {
@@ -525,7 +530,10 @@ pub fn type_model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
             handle_result!(type_model::rewrite(item_struct))
         }
         _ => {
-            unimplemented!("Only structs can be attributed with 'model'")
+            return syn::Error::new(
+                attr.span(),
+                "Only structs can be attributed with a type model",
+            ).to_compile_error();
         }
     }
 }
