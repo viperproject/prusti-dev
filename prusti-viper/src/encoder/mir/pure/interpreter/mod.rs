@@ -628,14 +628,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 assert_eq!(encoded_args.len(), 2);
                 match encoded_args[0].get_type() {
                     Type::Reference(Reference {
-                        target_type: box Type::Map(map),
+                        target_type: box Type::Map(_),
                         ..
                     }) => {
-                        let ref_type = Type::reference(
-                            LifetimeConst::erased(),
-                            Uniqueness::Shared,
-                            (*map.val_type).clone(),
-                        );
+                        // let ref_type = Type::reference(
+                        //     LifetimeConst::erased(),
+                        //     Uniqueness::Shared,
+                        //     (*map.val_type).clone(),
+                        // );
+                        let ref_type = encoded_lhs.get_type().clone();
                         builtin((LookupMap, ref_type))
                     }
                     _ => self

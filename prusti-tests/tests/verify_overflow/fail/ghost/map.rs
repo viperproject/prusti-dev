@@ -43,8 +43,11 @@ fn map_len2() {}
 #[ensures(Map::empty().insert(0, 1).insert(0, 2).lookup(0) == 2)]
 fn map_lookup() {}
 
-#[ensures(Map::empty().insert(0, 0)[0] == 0)]
+#[ensures(Map::empty()[0] == 0)]
 fn index1() {}
+
+#[ensures(Map::empty().insert(0, 0)[0] == 0)]
+fn index2() {}
 
 fn map_construction() {
     let map = Map::empty();

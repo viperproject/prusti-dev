@@ -4,7 +4,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         references::ReferencesInterface,
-        snapshots::{SnapshotDomainsInterface, SnapshotValuesInterface},
+        snapshots::{SnapshotDomainsInterface, SnapshotValuesInterface}, types::TypesInterface,
     },
 };
 use vir_crate::{
@@ -407,17 +407,28 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         let ty_args = app
             .type_arguments
             .iter()
-            .map(|ty| self.type_to_snapshot(lowerer, ty))
+            .map(|ty| {
+                self.type_to_snapshot(lowerer, ty)
+            })
             .collect::<Result<Vec<_>, _>>()?;
         let mut args =
             self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
+        if !app.arguments.is_empty() {
+            let first_arg_type = app.arguments[0].get_type();
+            if first_arg_type.is_reference() {
+                // The first argument is a reference, dereference it.
+                args[0] = lowerer.reference_target_current_snapshot(first_arg_type, args[0].clone(), app.position)?;
+            }
+        }
+        lowerer.ensure_type_definition(&app.return_type)?;
 
         let map = |low_kind| {
             let map_ty = vir_low::Type::map(ty_args[0].clone(), ty_args[1].clone());
+            let args = args.clone();
             Ok(vir_low::Expression::map_op(
                 map_ty,
                 low_kind,
-                args.clone(),
+                args,
                 app.position,
             ))
         };
@@ -443,7 +454,14 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         match app.function {
             BuiltinFunc::EmptyMap => map(MapOpKind::Empty),
             BuiltinFunc::UpdateMap => map(MapOpKind::Update),
-            BuiltinFunc::LookupMap => map(MapOpKind::Lookup),
+            BuiltinFunc::LookupMap => {
+                let value = map(MapOpKind::Lookup)?;
+                if app.return_type.is_reference() {
+                    lowerer.shared_non_alloc_reference_snapshot_constructor(&app.return_type, value, app.position)
+                } else {
+                    Ok(value)
+                }
+            },
             BuiltinFunc::MapLen => {
                 let value = map(MapOpKind::Len)?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
@@ -477,6 +495,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Type> {
+        lowerer.ensure_type_definition(ty)?;
         // This ensures that the domain is included into the program.
         lowerer.encode_snapshot_domain_type(ty)
     }
