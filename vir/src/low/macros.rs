@@ -298,6 +298,22 @@ pub macro stmt {
             Vec::new(),
         )
     },
+    (fold acc(
+        $predicate_name:ident<$ty:tt>(
+            $($argument:tt),*
+            $(; $argument_list:ident )?
+        ),
+        $permission_amount:tt
+    )) => {
+        $crate::low::ast::statement::Statement::fold_no_pos(
+            $crate::low::macros::expr!(
+                acc(
+                    $predicate_name<$ty>( $($argument),* $(; $argument_list )? ),
+                    $permission_amount
+                )
+            )
+        )
+    },
     (fold $predicate_name:ident<$ty:tt>(
         $($argument:tt),*
         $(; $argument_list:ident )?
@@ -316,6 +332,22 @@ pub macro stmt {
                 $crate::low::macros::stmt!{ unfold $predicate_name<$ty>( $($argument),* $(; $argument_list )? ) }
             ],
             Vec::new(),
+        )
+    },
+    (unfold acc(
+        $predicate_name:ident<$ty:tt>(
+            $($argument:tt),*
+            $(; $argument_list:ident )?
+        ),
+        $permission_amount:tt
+    )) => {
+        $crate::low::ast::statement::Statement::unfold_no_pos(
+            $crate::low::macros::expr!(
+                acc(
+                    $predicate_name<$ty>( $($argument),* $(; $argument_list )? ),
+                    $permission_amount
+                )
+            )
         )
     },
     (unfold $predicate_name:ident<$ty:tt>(

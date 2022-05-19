@@ -172,12 +172,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 vir_mid::TypeDecl::Array(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Reference(_) => {
                     if place.is_deref() {
-                        let old_address_snapshot = self.reference_address_snapshot(
+                        let old_address_snapshot = self.reference_address(
                             parent_type,
                             old_snapshot.clone(),
                             Default::default(),
                         )?;
-                        let new_address_snapshot = self.reference_address_snapshot(
+                        let new_address_snapshot = self.reference_address(
                             parent_type,
                             new_snapshot.clone(),
                             Default::default(),

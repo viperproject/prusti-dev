@@ -70,11 +70,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AddressesInterface for Lowerer<'p, 'v, 'tcx> {
             vir_mid::Expression::LabelledOld(_) => unimplemented!(),
             vir_mid::Expression::Deref(deref) => {
                 let base_snapshot = deref.base.to_procedure_snapshot(self)?;
-                self.reference_address_snapshot(
-                    deref.base.get_type(),
-                    base_snapshot,
-                    Default::default(),
-                )?
+                self.reference_address(deref.base.get_type(), base_snapshot, Default::default())?
             }
             _ => self.extract_root_address(place.get_parent_ref().unwrap())?,
         };
