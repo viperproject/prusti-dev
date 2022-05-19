@@ -183,11 +183,20 @@ pub struct MovePlace {
     pub position: Position,
 }
 
-#[display(fmt = "copy {} ← {}", target, source)]
+#[display(
+    fmt = "copy{} {} ← {}",
+    "display::option!(source_permission, \"({})\", \"\")",
+    target,
+    source
+)]
 /// Copy assignment.
+///
+/// If `source_permission` is `None`, it means `write`. Otherwise, it is a
+/// variable denoting the permission amount.
 pub struct CopyPlace {
     pub target: Expression,
     pub source: Expression,
+    pub source_permission: Option<VariableDecl>,
     pub position: Position,
 }
 
@@ -258,34 +267,62 @@ pub struct LifetimeReturn {
     pub position: Position,
 }
 
-#[display(fmt = "open_mut_ref({}, rd({}), {})", lifetime, rd_perm, place)]
+#[display(
+    fmt = "open_mut_ref({}, rd({}), {})",
+    lifetime,
+    token_permission_amount,
+    place
+)]
 pub struct OpenMutRef {
     pub lifetime: LifetimeConst,
-    pub rd_perm: u32,
+    pub token_permission_amount: u32,
     pub place: Expression,
     pub position: Position,
 }
 
-#[display(fmt = "open_frac_ref({}, rd({}), {})", lifetime, rd_perm, place)]
+#[display(
+    fmt = "{} := open_frac_ref({}, rd({}), {})",
+    predicate_permission_amount,
+    lifetime,
+    token_permission_amount,
+    place
+)]
 pub struct OpenFracRef {
     pub lifetime: LifetimeConst,
-    pub rd_perm: u32,
+    /// The permission amount that we get for accessing `Owned`.
+    pub predicate_permission_amount: VariableDecl,
+    /// The permission amount taken from the token.
+    pub token_permission_amount: u32,
     pub place: Expression,
     pub position: Position,
 }
 
-#[display(fmt = "close_mut_ref({}, rd({}), {})", lifetime, rd_perm, place)]
+#[display(
+    fmt = "close_mut_ref({}, rd({}), {})",
+    lifetime,
+    token_permission_amount,
+    place
+)]
 pub struct CloseMutRef {
     pub lifetime: LifetimeConst,
-    pub rd_perm: u32,
+    pub token_permission_amount: u32,
     pub place: Expression,
     pub position: Position,
 }
 
-#[display(fmt = "close_frac_ref({}, rd({}), {})", lifetime, rd_perm, place)]
+#[display(
+    fmt = "close_frac_ref({}, rd({}), {}, {})",
+    lifetime,
+    token_permission_amount,
+    place,
+    predicate_permission_amount
+)]
 pub struct CloseFracRef {
     pub lifetime: LifetimeConst,
-    pub rd_perm: u32,
+    /// The permission amount taken from the token.
+    pub token_permission_amount: u32,
     pub place: Expression,
+    /// The permission amount that we get for accessing `Owned`.
+    pub predicate_permission_amount: VariableDecl,
     pub position: Position,
 }
