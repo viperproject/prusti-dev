@@ -456,6 +456,55 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     }
 }
 
+pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    if !attr.is_empty() {
+        return syn::Error::new(
+            attr.span(),
+            "the `#[trusted]` attribute does not take parameters",
+        ).to_compile_error();
+    }
+
+    // `#[trusted]` can be applied to both types and to methods, figure out
+    // which one by trying to parse a `DeriveInput`.
+    if syn::parse2::<syn::DeriveInput>(tokens.clone()).is_ok() {
+        // TODO: reduce duplication with `invariant`
+        let mut rewriter = rewriter::AstRewriter::new();
+        let spec_id = rewriter.generate_spec_id();
+        let spec_id_str = spec_id.to_string();
+
+        let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
+        let item_span = item.span();
+        let item_ident = item.ident.clone();
+        let item_name = syn::Ident::new(
+            &format!("prusti_trusted_item_{}_{}", item_ident, spec_id),
+            item_span,
+        );
+
+        let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+            #[allow(unused_variables, dead_code, non_snake_case)]
+            #[prusti::spec_only]
+            #[prusti::trusted_type]
+            #[prusti::spec_id = #spec_id_str]
+            fn #item_name(self) {}
+        };
+
+        let generics = item.generics.clone();
+        // TODO: remove constraints from the second "generics"
+        // TODO: similarly to extern_specs, don't generate an actual impl
+        let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
+            impl #generics #item_ident #generics {
+                #spec_item
+            }
+        };
+        quote_spanned! { item_span =>
+            #item
+            #item_impl
+        }
+    } else {
+        rewrite_prusti_attributes(SpecAttributeKind::Trusted, attr.into(), tokens.into()).into()
+    }
+}
+
 pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
@@ -485,6 +534,7 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
     let generics = item.generics.clone();
     // TODO: remove constraints from the second "generics"
+    // TODO: similarly to extern_specs, don't generate an actual impl
     let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
         impl #generics #item_ident #generics {
             #spec_item
