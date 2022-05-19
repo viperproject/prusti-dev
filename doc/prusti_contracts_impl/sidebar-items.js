@@ -1,1 +1,1 @@
-initSidebarItems({"attr":[["after_expiry",""],["assert_on_expiry",""],["ensures",""],["extern_spec",""],["ghost_constraint",""],["model",""],["pure",""],["refine_trait_spec",""],["requires",""],["trusted",""]],"macro":[["body_invariant",""],["ghost",""],["predicate",""]]});
+initSidebarItems({"attr":[["after_expiry",""],["assert_on_expiry",""],["ensures",""],["extern_spec",""],["ghost_constraint",""],["invariant",""],["model",""],["pure",""],["refine_trait_spec",""],["requires",""],["trusted",""]],"macro":[["body_invariant",""],["ghost",""],["predicate",""]]});
