@@ -1,4 +1,5 @@
-// ignore-test
+// FIXME: remove this compile flag when the new encoder is finished
+// compile-flags: -Puse_new_encoder=false
 
 // error-pattern: Precondition of function snap$__$TY$__Snap$struct$m_A$ might not hold
 // FIXME: https://github.com/viperproject/prusti-dev/issues/729

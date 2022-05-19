@@ -105,6 +105,7 @@ lazy_static! {
         settings.set_default("unsafe_core_proof", false).unwrap();
         settings.set_default("only_memory_safety", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
+        settings.set_default("use_new_encoder", true).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -551,6 +552,18 @@ pub fn unsafe_core_proof() -> bool {
 /// **Note:** This should be used only when `UNSAFE_CORE_PROOF` is enabled.
 pub fn only_memory_safety() -> bool {
     read_setting("only_memory_safety")
+}
+
+/// When enabled, Prusti uses the new VIR encoder.
+///
+/// This is a temporary configuration flag.
+/// The new VIR encoder is still a work in progress,
+/// once finished this will become the only encoder.
+///
+/// If you run into `todo!()` or `unreachable!()`,
+/// then setting this flag to `false` may help.
+pub fn use_new_encoder() -> bool {
+    read_setting("use_new_encoder")
 }
 
 /// The given basic blocks will be replaced with `assume false`.

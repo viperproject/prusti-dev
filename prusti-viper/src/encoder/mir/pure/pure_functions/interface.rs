@@ -8,6 +8,7 @@ use crate::encoder::{
     stub_function_encoder::StubFunctionEncoder,
 };
 use log::{debug, trace};
+use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
 use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_middle::ty::subst::SubstsRef;
@@ -292,13 +293,15 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                         }
                         ProcedureSpecificationKind::Pure => {
                             let function = pure_function_encoder.encode_function()?;
-                            // Test the new encoding.
-                            let _ = super::new_encoder::encode_function_decl(
-                                self,
-                                proc_def_id,
-                                proc_def_id,
-                                substs,
-                            )?;
+                            if config::use_new_encoder() {
+                                // Test the new encoding.
+                                let _ = super::new_encoder::encode_function_decl(
+                                    self,
+                                    proc_def_id,
+                                    proc_def_id,
+                                    substs,
+                                )?;
+                            }
                             function
                         }
                         ProcedureSpecificationKind::Impure => {
