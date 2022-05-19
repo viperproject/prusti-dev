@@ -35,7 +35,7 @@ pub fn pure(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    rewrite_prusti_attributes(SpecAttributeKind::Trusted, attr.into(), tokens.into()).into()
+    prusti_specs::trusted(attr.into(), tokens.into()).into()
 }
 
 #[proc_macro]
