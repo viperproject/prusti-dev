@@ -1,67 +1,64 @@
-use super::{
-    graphviz::{Graph, NodeBuilder},
-    lifetimes::Lifetimes,
+use super::borrowck::{
+    facts::{AllInputFacts, LocationTable, RichLocation},
+    lifetimes::{Lifetimes, LifetimesGraphviz},
 };
-use crate::environment::{mir_dump::graphviz::ToText, Environment, Procedure};
-use rustc_borrowck::consumers::RichLocation;
+use crate::environment::debug_utils::to_text::{
+    loan_containment_to_text, loans_to_text, point_to_text, points_to_text, ToText,
+};
 use rustc_middle::mir;
-use rustc_span::def_id::DefId;
+use vir::common::graphviz::{Graph, NodeBuilder};
 
-pub(super) fn populate_graph(env: &Environment<'_>, def_id: DefId) -> Option<Graph> {
-    eprintln!("populate_graph: {:?}", def_id);
-    let procedure = Procedure::new(env, def_id);
-    let mir = procedure.get_mir();
-    if let Some(facts) = env.try_get_local_mir_borrowck_facts(def_id.expect_local()) {
-        let lifetimes = Lifetimes::new(facts);
+pub fn to_graphviz<'tcx>(
+    borrowck_input_facts: &AllInputFacts,
+    location_table: &LocationTable,
+    mir: &mir::Body<'tcx>,
+) -> Graph {
+    let lifetimes = Lifetimes::new(borrowck_input_facts.clone(), location_table.clone());
 
-        lifetimes.debug_borrowck_in_facts();
-        lifetimes.debug_borrowck_out_facts();
+    let mut graph = Graph::with_columns(&[
+        "location",
+        "point",
+        "cfg_in",
+        "cfg_out",
+        "statement",
+        "subset_base",
+        "subset",
+        "origin_live_on_entry",
+        "original lifetimes",
+        "derived lifetimes",
+    ]);
 
-        let mut graph = Graph::with_columns(&[
-            "location",
-            "statement",
-            "subset_base",
-            "subset",
-            "origin_live_on_entry",
-            "original lifetimes",
-            "derived lifetimes",
-        ]);
-
-        let mut opaque_lifetimes_table = graph.create_table("Opaque lifetimes", &["lifetime"]);
-        for lifetime in lifetimes.get_opaque_lifetimes_with_inclusions() {
-            opaque_lifetimes_table.add_row(vec![lifetime.to_text()]);
-        }
-        opaque_lifetimes_table.build();
-
-        let mut original_lifetimes_table = graph.create_table("Original lifetimes", &["lifetime"]);
-        for lifetime in lifetimes.get_original_lifetimes() {
-            original_lifetimes_table.add_row(vec![lifetime.to_text()]);
-        }
-        original_lifetimes_table.build();
-
-        let mut parameters_table =
-            graph.create_table("Function parameters", &["parameter", "type"]);
-        for parameter in mir.args_iter() {
-            parameters_table.add_row(vec![
-                parameter.to_text(),
-                mir.local_decls[parameter].ty.to_text(),
-            ]);
-        }
-        parameters_table.add_row(vec!["result".to_text(), mir.return_ty().to_text()]);
-        parameters_table.build();
-
-        let mut locals_table = graph.create_table("Function locals", &["local", "type"]);
-        for local in mir.vars_and_temps_iter() {
-            locals_table.add_row(vec![local.to_text(), mir.local_decls[local].ty.to_text()]);
-        }
-        locals_table.build();
-
-        visit_body(&mut graph, mir, &lifetimes);
-
-        Some(graph)
-    } else {
-        None
+    let mut opaque_lifetimes_table = graph.create_table("Opaque lifetimes", &["lifetime"]);
+    for lifetime in lifetimes.get_opaque_lifetimes_with_inclusions() {
+        opaque_lifetimes_table.add_row(vec![lifetime.to_text()]);
     }
+    opaque_lifetimes_table.build();
+
+    let mut original_lifetimes_table = graph.create_table("Original lifetimes", &["lifetime"]);
+    for lifetime in lifetimes.get_original_lifetimes() {
+        original_lifetimes_table.add_row(vec![lifetime.to_text()]);
+    }
+    original_lifetimes_table.build();
+
+    let mut parameters_table = graph.create_table("Function parameters", &["parameter", "type"]);
+    for parameter in mir.args_iter() {
+        parameters_table.add_row(vec![
+            parameter.to_text(),
+            mir.local_decls[parameter].ty.to_text(),
+        ]);
+    }
+    parameters_table.add_row(vec!["result".to_text(), mir.return_ty().to_text()]);
+    parameters_table.build();
+
+    let mut locals_table = graph.create_table("Function locals", &["local", "type"]);
+    for local in mir.vars_and_temps_iter() {
+        locals_table.add_row(vec![local.to_text(), mir.local_decls[local].ty.to_text()]);
+    }
+    locals_table.build();
+
+    visit_body(&mut graph, mir, &lifetimes);
+
+    graph
 }
 
 fn visit_body(graph: &mut Graph, mir: &mir::Body<'_>, lifetimes: &Lifetimes) {
@@ -111,6 +108,12 @@ fn visit_statement(
     statement_text: String,
     lifetimes: &Lifetimes,
 ) {
+    let point_start = lifetimes.location_to_point(RichLocation::Start(location));
+    let point_mid = lifetimes.location_to_point(RichLocation::Mid(location));
+    let cfg_in_start = lifetimes.get_cfg_incoming(point_start);
+    let cfg_out_start = lifetimes.get_cfg_outgoing(point_start);
+    let cfg_in_mid = lifetimes.get_cfg_incoming(point_mid);
+    let cfg_out_mid = lifetimes.get_cfg_outgoing(point_mid);
     let subset_base_start = lifetimes.get_subset_base(RichLocation::Start(location));
     let subset_base_mid = lifetimes.get_subset_base(RichLocation::Mid(location));
     let subset_start = lifetimes.get_subset(RichLocation::Start(location));
@@ -127,33 +130,33 @@ fn visit_statement(
 
     let mut row_builder_start = node_builder.create_row();
     row_builder_start.set("location", location.to_text());
+    row_builder_start.set("point", point_to_text(&point_start));
+    row_builder_start.set("cfg_in", points_to_text(&cfg_in_start));
+    row_builder_start.set("cfg_out", points_to_text(&cfg_out_start));
     row_builder_start.set("statement", statement_text);
     row_builder_start.set("subset_base", subset_base_start.to_text());
     row_builder_start.set("subset", subset_start.to_text());
     row_builder_start.set("origin_live_on_entry", origin_live_on_entry_start.to_text());
-    row_builder_start.set(
-        "original lifetimes",
-        super::graphviz::loans_to_text(&loan_live_at_start),
-    );
+    row_builder_start.set("original lifetimes", loans_to_text(&loan_live_at_start));
     row_builder_start.set(
         "derived lifetimes",
-        super::graphviz::loan_containment_to_text(&origin_contains_loan_at_start),
+        loan_containment_to_text(&origin_contains_loan_at_start),
     );
     row_builder_start.build();
 
     let mut row_builder_end = node_builder.create_row();
     row_builder_end.set("location", "".to_text());
+    row_builder_end.set("point", point_to_text(&point_mid));
+    row_builder_end.set("cfg_in", points_to_text(&cfg_in_mid));
+    row_builder_end.set("cfg_out", points_to_text(&cfg_out_mid));
     row_builder_end.set("statement", "".to_text());
     row_builder_end.set("subset_base", subset_base_mid.to_text());
     row_builder_end.set("subset", subset_mid.to_text());
     row_builder_end.set("origin_live_on_entry", origin_live_on_entry_mid.to_text());
-    row_builder_end.set(
-        "original lifetimes",
-        super::graphviz::loans_to_text(&loan_live_at_mid),
-    );
+    row_builder_end.set("original lifetimes", loans_to_text(&loan_live_at_mid));
     row_builder_end.set(
         "derived lifetimes",
-        super::graphviz::loan_containment_to_text(&origin_contains_loan_at_mid),
+        loan_containment_to_text(&origin_contains_loan_at_mid),
     );
     row_builder_end.build();
 }
