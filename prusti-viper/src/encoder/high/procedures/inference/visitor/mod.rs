@@ -89,6 +89,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         let new_procedure = vir_mid::ProcedureDecl {
             name: self.procedure_name.take().unwrap(),
             entry: self.entry_label.take().unwrap(),
+            exit: self.lower_label(&procedure.exit),
             basic_blocks: std::mem::take(&mut self.basic_blocks),
         };
         Ok(new_procedure)

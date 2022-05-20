@@ -46,9 +46,8 @@ struct GhostVarFixer {
 
 impl GhostVarFixer {
     fn fix_name(&self, mut local_var: ast::LocalVar) -> ast::LocalVar {
-        local_var
-            .name
-            .push_str(&format!("$p{}", self.package_stmt_count));
+        use std::fmt::Write;
+        write!(local_var.name, "$p{}", self.package_stmt_count).unwrap();
         local_var
     }
 }

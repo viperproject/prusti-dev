@@ -33,7 +33,7 @@ mod loops_utils;
 pub mod mir_analyses;
 pub mod mir_storage;
 pub mod mir_utils;
-pub mod place_set;
+pub mod mir_sets;
 pub mod polonius_info;
 mod procedure;
 pub mod mir_dump;
@@ -44,7 +44,7 @@ use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
 use rustc_hir::intravisit::Visitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
-pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block};
+pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block, is_loop_invariant_block, get_loop_invariant};
 use self::borrowck::facts::BorrowckFacts;
 // use config;
 use crate::data::ProcedureDefId;
@@ -224,10 +224,17 @@ impl<'tcx> Environment<'tcx> {
         result
     }
 
+    pub fn get_local_attributes(&self, def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
+        crate::utils::get_local_attributes(self.tcx(), def_id)
+    }
+
+    pub fn get_attributes(&self, def_id: ProcedureDefId) -> &[rustc_ast::ast::Attribute] {
+        crate::utils::get_attributes(self.tcx(), def_id)
+    }
+
     /// Find whether the procedure has a particular `prusti::<name>` attribute.
     pub fn has_prusti_attribute(&self, def_id: ProcedureDefId, name: &str) -> bool {
-        let tcx = self.tcx();
-        crate::utils::has_prusti_attr(tcx.get_attrs(def_id), name)
+        crate::utils::has_prusti_attr(self.get_attributes(def_id), name)
     }
 
     /// Dump various information from the borrow checker.
@@ -307,7 +314,7 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| body.base_body.clone().subst(self.tcx, substs))
+            .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
             .clone()
     }
 
@@ -341,7 +348,7 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| body.base_body.clone().subst(self.tcx, substs))
+            .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
             .clone()
     }
 
@@ -445,7 +452,7 @@ impl<'tcx> Environment<'tcx> {
         // above) with call substs, so that we get the trait's type parameters
         // more precisely. We can do this directly with `impl_method_substs`
         // because they contain the substs for the `impl` block as a prefix.
-        let call_trait_substs = trait_ref.substs.subst(self.tcx, impl_method_substs);
+        let call_trait_substs = ty::EarlyBinder(trait_ref.substs).subst(self.tcx, impl_method_substs);
         let impl_substs = self.identity_substs(impl_def_id);
         let trait_method_substs = self.tcx.mk_substs(call_trait_substs.iter()
             .chain(impl_method_substs.iter().skip(impl_substs.len())));

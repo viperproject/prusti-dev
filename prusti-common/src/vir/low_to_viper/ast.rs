@@ -275,6 +275,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Constant {
                 expression::ConstantValue::Int(value) => match value {
                     0 => ast.no_perm(),
                     1 => ast.full_perm(),
+                    -1 => ast.wildcard_perm(),
                     _ => unimplemented!("value: {}", value),
                 },
                 expression::ConstantValue::BigInt(_) => {

@@ -104,6 +104,8 @@ lazy_static! {
         settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
         settings.set_default("only_memory_safety", false).unwrap();
+        settings.set_default("enable_type_invariants", false).unwrap();
+        settings.set_default("use_new_encoder", true).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -552,6 +554,18 @@ pub fn only_memory_safety() -> bool {
     read_setting("only_memory_safety")
 }
 
+/// When enabled, Prusti uses the new VIR encoder.
+///
+/// This is a temporary configuration flag.
+/// The new VIR encoder is still a work in progress,
+/// once finished this will become the only encoder.
+///
+/// If you run into `todo!()` or `unreachable!()`,
+/// then setting this flag to `false` may help.
+pub fn use_new_encoder() -> bool {
+    read_setting("use_new_encoder")
+}
+
 /// The given basic blocks will be replaced with `assume false`.
 pub fn delete_basic_blocks() -> Vec<String> {
     read_setting("delete_basic_blocks")
@@ -596,7 +610,20 @@ pub fn intern_names() -> bool {
     read_setting("intern_names")
 }
 
-/// Enables ghost constraint parsing and resolving.
+/// When enabled, ghost constraints can be used in Prusti specifications.
+///
+/// Ghost constraints allow for specifications which are only active if a
+/// certain "constraint" (i.e. a trait bound on a generic type parameter) is
+/// satisfied.
+///
+/// **This is an experimental feature**, because it is currently possible to
+/// introduce unsound verification behavior.
 pub fn enable_ghost_constraints() -> bool {
     read_setting("enable_ghost_constraints")
+}
+
+/// When enabled, type invariants can be declared on types using the
+/// `#[invariant(...)]` attribute.
+pub fn enable_type_invariants() -> bool {
+    read_setting("enable_type_invariants")
 }

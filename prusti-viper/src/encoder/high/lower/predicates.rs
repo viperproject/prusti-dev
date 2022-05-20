@@ -106,7 +106,7 @@ impl IntoPredicates for vir_high::type_decl::Tuple {
             .enumerate()
             .map(|(field_num, ty)| {
                 let field_name = format!("tuple_{}", field_num);
-                vir_high::FieldDecl::new(field_name, ty.clone()).lower(encoder)
+                vir_high::FieldDecl::new(field_name, field_num, ty.clone()).lower(encoder)
             })
             .collect();
         let predicate = Predicate::new_struct(ty.lower(encoder), fields);
@@ -236,7 +236,7 @@ impl IntoPredicates for vir_high::type_decl::Closure {
             .enumerate()
             .map(|(field_num, ty)| {
                 let field_name = format!("closure_{}", field_num);
-                vir_high::FieldDecl::new(field_name, ty.clone()).lower(encoder)
+                vir_high::FieldDecl::new(field_name, field_num, ty.clone()).lower(encoder)
             })
             .collect();
         let predicate = Predicate::new_struct(ty.lower(encoder), fields);

@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::utils;
-use crate::environment::place_set::PlaceSet;
+use crate::environment::mir_sets::PlaceSet;
 use crate::environment::procedure::BasicBlockIndex;
 use rustc_middle::mir;
 use rustc_middle::mir::visit::Visitor;

@@ -22,9 +22,6 @@ impl std::fmt::Display for VariableVersionMap {
 }
 
 impl VariableVersionMap {
-    pub(super) fn get(&self, variable: &str) -> Option<u64> {
-        self.variable_versions.get(variable).cloned()
-    }
     pub(super) fn get_or_default(&self, variable: &str) -> u64 {
         self.variable_versions.get(variable).cloned().unwrap_or(0)
     }

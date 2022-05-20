@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-use super::place_set::PlaceSet;
+use super::mir_sets::PlaceSet;
 use crate::utils;
 use rustc_middle::{mir, ty::TyCtxt};
 use std::fmt;

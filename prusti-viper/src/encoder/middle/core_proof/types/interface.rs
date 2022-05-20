@@ -83,7 +83,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 // function is generated, but nothing else.
             }
             vir_mid::TypeDecl::Sequence(_) | vir_mid::TypeDecl::Map(_) => {
-                unreachable!()
+                // FIXME: we should generate validity and to_bytes functions.
+                // The ghost containers should be valid iff the values they
+                // contain are valid.
             }
             vir_mid::TypeDecl::Tuple(decl) => {
                 let mut parameters = Vec::new();
@@ -257,13 +259,7 @@ pub(in super::super) trait TypesInterface {
 
 impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
     fn ensure_type_definition(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        if matches!(
-            ty,
-            vir_mid::Type::MBool
-                | vir_mid::Type::MInt
-                | vir_mid::Type::Map(_)
-                | vir_mid::Type::Sequence(_)
-        ) {
+        if matches!(ty, vir_mid::Type::MBool | vir_mid::Type::MInt) {
             // Natively supported types, nothing to do.
             return Ok(());
         }

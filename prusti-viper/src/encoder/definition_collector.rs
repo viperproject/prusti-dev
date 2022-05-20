@@ -280,6 +280,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                 self.used_mirror_functions
                     .contains(&function.get_identifier().into())
             });
+            mirror_domain
+                .functions
+                .sort_by_cached_key(|func| func.get_identifier());
             domains.push(mirror_domain);
         }
         domains.sort_by_cached_key(|domain| domain.name.clone());
@@ -406,6 +409,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
                 || self.contains_unfolded_parameters(&function.formal_args);
             // TODO: this post-condition check can be removed once verification of Viper functions is disabled,
             // TODO: this is just a temporary fix for https://github.com/viperproject/prusti-dev/issues/770
+            // note that for now this is also true for any pure or predicate
+            // function because a mirror postcondition is inserted
             let post_conditions_depend_on_result = function.posts.iter().any(|postcondition| {
                 postcondition.find(&vir::Expr::from(
                     vir_local! { __result: { function.return_type.clone() } },

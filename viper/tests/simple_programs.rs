@@ -66,7 +66,7 @@ fn failure_with_assert_false() {
             errors[0].full_id,
             "assert.failed:assertion.false".to_string()
         );
-        assert_eq!(errors[0].pos_id, Some("pos-id:123".to_string()));
+        assert_eq!(errors[0].offending_pos_id, Some("pos-id:123".to_string()));
     } else {
         unreachable!()
     }
@@ -210,7 +210,7 @@ fn failure_with_assign_if_and_assert() {
             errors[0].full_id,
             "assert.failed:assertion.false".to_string()
         );
-        assert_eq!(errors[0].pos_id, Some("then".to_string()));
+        assert_eq!(errors[0].offending_pos_id, Some("then".to_string()));
     } else {
         unreachable!()
     }

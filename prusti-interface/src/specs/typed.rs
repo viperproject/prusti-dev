@@ -13,6 +13,7 @@ use rustc_span::Span;
 pub struct DefSpecificationMap {
     pub proc_specs: HashMap<DefId, SpecGraph<ProcedureSpecification>>,
     pub loop_specs: HashMap<DefId, LoopSpecification>,
+    pub type_specs: HashMap<DefId, TypeSpecification>,
 }
 
 impl DefSpecificationMap {
@@ -26,6 +27,10 @@ impl DefSpecificationMap {
 
     pub fn get_proc_spec(&self, def_id: &DefId) -> Option<&SpecGraph<ProcedureSpecification>> {
         self.proc_specs.get(def_id)
+    }
+
+    pub fn get_type_spec(&self, def_id: &DefId) -> Option<&TypeSpecification> {
+        self.type_specs.get(def_id)
     }
 }
 
@@ -81,6 +86,22 @@ impl Display for ProcedureSpecificationKind {
 #[derive(Debug, Clone)]
 pub struct LoopSpecification {
     pub invariant: LocalDefId,
+}
+
+/// Specification of a type.
+#[derive(Debug, Clone)]
+pub struct TypeSpecification {
+    pub invariant: SpecificationItem<Vec<LocalDefId>>,
+    pub trusted: SpecificationItem<bool>,
+}
+
+impl TypeSpecification {
+    pub fn empty() -> Self {
+        TypeSpecification {
+            invariant: SpecificationItem::Empty,
+            trusted: SpecificationItem::Inherent(false),
+        }
+    }
 }
 
 /// The base container to store a contract of a procedure.
@@ -258,7 +279,7 @@ impl SpecGraph<ProcedureSpecification> {
         spec: LocalDefId,
         env: &Environment<'tcx>,
     ) -> Option<SpecConstraintKind> {
-        let attrs = env.tcx().get_attrs(spec.to_def_id());
+        let attrs = env.get_local_attributes(spec);
         if has_trait_bounds_ghost_constraint(attrs) {
             return Some(SpecConstraintKind::ResolveGenericParamTraitBounds);
         }

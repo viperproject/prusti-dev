@@ -172,10 +172,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
         // TODO: move this to a signatures module
         use crate::rustc_middle::ty::subst::Subst;
-        let sig = encoder
-            .env()
-            .tcx()
-            .fn_sig(proc_def_id)
+        let sig = ty::EarlyBinder(encoder.env().tcx().fn_sig(proc_def_id))
             .subst(encoder.env().tcx(), substs);
         let sig = encoder
             .env()

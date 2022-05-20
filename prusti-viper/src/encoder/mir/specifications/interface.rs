@@ -89,6 +89,9 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// `prusti::loop_body_invariant_spec` attribute.
     fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification>;
 
+    /// Get the specifications attached to the `def_id` type.
+    fn get_type_specs(&self, def_id: DefId) -> Option<typed::TypeSpecification>;
+
     /// Get the specifications attached to a function.
     fn get_procedure_specs(
         &self,
@@ -181,6 +184,14 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .cloned()
     }
 
+    fn get_type_specs(&self, def_id: DefId) -> Option<typed::TypeSpecification> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_type_spec(&def_id)
+            .cloned()
+    }
+
     fn get_procedure_specs(
         &self,
         def_id: DefId,
@@ -209,7 +220,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn is_spec_closure(&self, def_id: DefId) -> bool {
-        has_spec_only_attr(self.env().tcx().get_attrs(def_id))
+        has_spec_only_attr(self.env().get_attributes(def_id))
     }
 
     fn get_spec_span(&self, def_id: DefId) -> Span {
