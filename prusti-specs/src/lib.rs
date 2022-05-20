@@ -489,10 +489,17 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         };
 
         let generics = item.generics.clone();
-        // TODO: remove constraints from the second "generics"
+        let generics_idents = generics
+            .params
+            .iter()
+            .filter_map(|generic_param| match generic_param {
+                syn::GenericParam::Type(type_param) => Some(type_param.ident.clone()),
+                _ => None,
+            })
+            .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
         // TODO: similarly to extern_specs, don't generate an actual impl
         let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
-            impl #generics #item_ident #generics {
+            impl #generics #item_ident #generics_idents {
                 #spec_item
             }
         };
@@ -533,10 +540,17 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     };
 
     let generics = item.generics.clone();
-    // TODO: remove constraints from the second "generics"
+    let generics_idents = generics
+        .params
+        .iter()
+        .filter_map(|generic_param| match generic_param {
+            syn::GenericParam::Type(type_param) => Some(type_param.ident.clone()),
+            _ => None,
+        })
+        .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
     // TODO: similarly to extern_specs, don't generate an actual impl
     let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
-        impl #generics #item_ident #generics {
+        impl #generics #item_ident < #generics_idents > {
             #spec_item
         }
     };
