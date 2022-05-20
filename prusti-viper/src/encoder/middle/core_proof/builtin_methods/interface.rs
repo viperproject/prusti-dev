@@ -38,8 +38,10 @@ pub(in super::super) struct BuiltinMethodsState {
     encoded_move_place_methods: FxHashSet<vir_mid::Type>,
     encoded_copy_place_methods: FxHashSet<vir_mid::Type>,
     encoded_write_address_methods: FxHashSet<vir_mid::Type>,
+    encoded_owned_non_aliased_havoc_methods: FxHashSet<vir_mid::Type>,
     encoded_memory_block_split_methods: FxHashSet<vir_mid::Type>,
     encoded_memory_block_join_methods: FxHashSet<vir_mid::Type>,
+    encoded_memory_block_havoc_methods: FxHashSet<vir_mid::Type>,
     encoded_into_memory_block_methods: FxHashSet<vir_mid::Type>,
     encoded_assign_methods: FxHashSet<String>,
     encoded_consume_operand_methods: FxHashSet<String>,
@@ -87,6 +89,10 @@ trait Private {
     fn encode_consume_operand_method_name(
         &self,
         operand: &vir_mid::Operand,
+    ) -> SpannedEncodingResult<String>;
+    fn encode_havoc_owned_non_aliased_method_name(
+        &self,
+        ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<String>;
     fn encode_assign_method(
         &mut self,
@@ -258,6 +264,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         operand: &vir_mid::Operand,
     ) -> SpannedEncodingResult<String> {
         Ok(format!("consume${}", operand.get_identifier()))
+    }
+    fn encode_havoc_owned_non_aliased_method_name(
+        &self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<String> {
+        Ok(format!("havoc_owned${}", ty.get_identifier()))
     }
     fn encode_assign_method(
         &mut self,
@@ -672,32 +684,49 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         };
         let lifetime_token =
             self.encode_lifetime_token(operand_lifetime.clone(), lifetime_perm.clone().into())?;
-        let snapshot = if value.is_mut {
-            self.reference_target_final_snapshot(
-                result_type,
-                result_value.clone().into(),
-                position,
-            )?
-        } else {
-            self.reference_target_current_snapshot(
-                result_type,
-                result_value.clone().into(),
-                position,
-            )?
-        };
-        let validity = self.encode_snapshot_valid_call_for_type(snapshot.clone(), ty)?;
-        let restoration = expr! {
-            wand(
-                (acc(DeadLifetimeToken(operand_lifetime))) --* (
-                    (acc(OwnedNonAliased<ty>(operand_place, operand_address, [snapshot]))) &&
-                    [validity] &&
-                    // DeadLifetimeToken is duplicable and does not get consumed.
-                    (acc(DeadLifetimeToken(operand_lifetime)))
+        let restoration = {
+            let restoration_snapshot = if value.is_mut {
+                self.reference_target_final_snapshot(
+                    result_type,
+                    result_value.clone().into(),
+                    position,
+                )?
+            } else {
+                self.reference_target_current_snapshot(
+                    result_type,
+                    result_value.clone().into(),
+                    position,
+                )?
+            };
+            let validity =
+                self.encode_snapshot_valid_call_for_type(restoration_snapshot.clone(), ty)?;
+            expr! {
+                wand(
+                    (acc(DeadLifetimeToken(operand_lifetime))) --* (
+                        (acc(OwnedNonAliased<ty>(
+                            operand_place, operand_address, [restoration_snapshot]
+                        ))) &&
+                        [validity] &&
+                        // DeadLifetimeToken is duplicable and does not get consumed.
+                        (acc(DeadLifetimeToken(operand_lifetime)))
+                    )
                 )
-            )
+            }
         };
-        let compute_address = ty!(Address);
-        let _address = expr! { ComputeAddress::compute_address(operand_place, operand_address) };
+        let reference_target_address =
+            self.reference_address(result_type, result_value.clone().into(), position)?;
+        posts.push(expr! {
+            operand_address == [reference_target_address]
+        });
+        // Note: We do not constraint the final snapshot, because it is fresh.
+        let reference_target_current_snapshot = self.reference_target_current_snapshot(
+            result_type,
+            result_value.clone().into(),
+            position,
+        )?;
+        posts.push(expr! {
+            operand_value == [reference_target_current_snapshot]
+        });
         pres.push(expr! {
             [vir_low::Expression::no_permission()] < lifetime_perm
         });
@@ -749,6 +778,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     expr! { acc(OwnedNonAliased<ty>(place, root_address, value)) }
                 } else {
                     if let Some(pre_write_statements) = pre_write_statements {
+                        // FIXME: This is wrong for the case when `ty` contains
+                        // type variables. The correct encoding should
+                        // recursively call copy_place<ty> or move_place<ty>,
+                        // which then could be implemented as bodyless methods
+                        // in case `ty` is a type variable.
                         self.encode_into_memory_block_method(ty)?;
                         pre_write_statements
                             .push(stmt! { call into_memory_block<ty>(place, root_address, value) });
@@ -802,9 +836,15 @@ pub(in super::super) trait BuiltinMethodsInterface {
     fn encode_move_place_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_copy_place_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_write_place_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
+    fn encode_havoc_owned_non_aliased_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()>;
     fn encode_memory_block_split_method(&mut self, ty: &vir_mid::Type)
         -> SpannedEncodingResult<()>;
     fn encode_memory_block_join_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
+    fn encode_havoc_memory_block_method(&mut self, ty: &vir_mid::Type)
+        -> SpannedEncodingResult<()>;
     fn encode_into_memory_block_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_assign_method_call(
         &mut self,
@@ -817,6 +857,12 @@ pub(in super::super) trait BuiltinMethodsInterface {
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         operand: vir_mid::Operand,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()>;
+    fn encode_havoc_method_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        predicate: vir_mid::Predicate,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
     fn encode_frac_bor_atomic_acc_method(
@@ -1185,12 +1231,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         target_address: Address,
                         source_place: Place,
                         source_address: Address,
+                        source_permission: Perm,
                         source_value: {ty.to_snapshot(self)?}
                     ) returns ()
+                    requires ([vir_low::Expression::no_permission()] < source_permission);
                     requires (acc(MemoryBlock((ComputeAddress::compute_address(target_place, target_address)), [size_of])));
-                    requires (acc(OwnedNonAliased<ty>(source_place, source_address, source_value)));
+                    requires (acc(OwnedNonAliased<ty>(source_place, source_address, source_value), source_permission));
                     ensures (acc(OwnedNonAliased<ty>(target_place, target_address, source_value)));
-                    ensures (acc(OwnedNonAliased<ty>(source_place, source_address, source_value)));
+                    ensures (acc(OwnedNonAliased<ty>(source_place, source_address, source_value), source_permission));
                 };
                 method.body = None;
                 self.declare_method(method)?;
@@ -1205,6 +1253,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     target_address: Address,
                     source_place: Place,
                     source_address: Address,
+                    source_permission: Perm,
                     source_value: {ty.to_snapshot(self)?}
                 ) returns ()
                     raw_code {
@@ -1213,6 +1262,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             ty,
                             source_place.clone().into(),
                             &Into::<vir_low::Expression>::into(source_address.clone()),
+                            Some(source_permission.clone().into()),
                             source_value.clone().into(),
                             position,
                         )?;
@@ -1228,7 +1278,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         });
                         let to_bytes = ty! { Bytes };
                         let memory_block_bytes =
-                            self.encode_memory_block_bytes_expression(address, size_of.clone())?;
+                            self.encode_memory_block_bytes_expression(
+                                address, size_of.clone()
+                            )?;
                         statements.push(stmtp! { position =>
                             assert ([memory_block_bytes] == (Snap<ty>::to_bytes(source_value)))
                         });
@@ -1243,14 +1295,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             ty,
                             source_place.clone().into(),
                             &Into::<vir_low::Expression>::into(source_address.clone()),
+                            Some(source_permission.clone().into()),
                             source_value.clone().into(),
                             position,
                         )?;
                     }
+                    requires ([vir_low::Expression::no_permission()] < source_permission);
                     requires (acc(MemoryBlock((ComputeAddress::compute_address(target_place, target_address)), [size_of])));
-                    requires (acc(OwnedNonAliased<ty>(source_place, source_address, source_value)));
+                    requires (acc(OwnedNonAliased<ty>(source_place, source_address, source_value), source_permission));
                     ensures (acc(OwnedNonAliased<ty>(target_place, target_address, source_value)));
-                    ensures (acc(OwnedNonAliased<ty>(source_place, source_address, source_value)));
+                    ensures (acc(OwnedNonAliased<ty>(source_place, source_address, source_value), source_permission));
             };
             method.body = if ty.is_reference() {
                 None
@@ -1499,6 +1553,45 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             self.declare_method(method.set_default_position(position))?;
             self.builtin_methods_state
                 .encoded_write_place_methods
+                .insert(ty.clone());
+        }
+        Ok(())
+    }
+    fn encode_havoc_owned_non_aliased_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()> {
+        let mut ty_without_lifetime = ty.clone();
+        ty_without_lifetime.erase_lifetime();
+        if !self
+            .builtin_methods_state
+            .encoded_owned_non_aliased_havoc_methods
+            .contains(ty)
+        {
+            use vir_low::macros::*;
+            let method_name = self.encode_havoc_owned_non_aliased_method_name(ty)?;
+            var_decls! {
+                place: Place,
+                root_address: Address,
+                old_value: {ty.to_snapshot(self)?},
+                fresh_value: {ty.to_snapshot(self)?}
+            };
+            let validity =
+                self.encode_snapshot_valid_call_for_type(fresh_value.clone().into(), ty)?;
+            let method = vir_low::MethodDecl::new(
+                method_name,
+                vec![place.clone(), root_address.clone(), old_value.clone()],
+                vec![fresh_value.clone()],
+                vec![expr! { (acc(OwnedNonAliased<ty>(place, root_address, old_value))) }],
+                vec![
+                    expr! { (acc(OwnedNonAliased<ty>(place, root_address, fresh_value))) },
+                    validity,
+                ],
+                None,
+            );
+            self.declare_method(method)?;
+            self.builtin_methods_state
+                .encoded_owned_non_aliased_havoc_methods
                 .insert(ty.clone());
         }
         Ok(())
@@ -1855,6 +1948,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+    fn encode_havoc_memory_block_method(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<()> {
+        let mut ty_without_lifetime = ty.clone();
+        ty_without_lifetime.erase_lifetime();
+        if !self
+            .builtin_methods_state
+            .encoded_memory_block_havoc_methods
+            .contains(&ty_without_lifetime)
+        {
+            use vir_low::macros::*;
+            self.encode_snapshot_to_bytes_function(ty)?;
+            let size_of = self.encode_type_size_expression(&ty_without_lifetime)?;
+            let method = method! {
+                havoc_memory_block<ty>(
+                    address: Address
+                ) returns ()
+                    requires (acc(MemoryBlock((address), [size_of.clone()])));
+                    ensures (acc(MemoryBlock((address), [size_of])));
+            };
+            self.declare_method(method)?;
+            self.builtin_methods_state
+                .encoded_memory_block_havoc_methods
+                .insert(ty_without_lifetime);
+        }
+        Ok(())
+    }
     // FIXME: This method has to be inlined if the converted type has a resource
     // invariant in it. Otherwise, that resource would be leaked.
     fn encode_into_memory_block_method(
@@ -1904,6 +2025,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             position =>
                             unfold OwnedNonAliased<ty>(place, root_address, value; lifetime_exprs)
                         });
+                        let (memory_block_value, ref to_bytes_type) = if let vir_mid::Type::Reference(_) = ty {
+                            (
+                                self.reference_address_snapshot(
+                                    ty,
+                                    value.clone().into(),
+                                    position,
+                                )?,
+                                self.reference_address_type(ty)?
+                            )
+                        } else {
+                            (value.clone().into(), ty.clone())
+                        };
                         match type_decl {
                             vir_mid::TypeDecl::Bool
                             | vir_mid::TypeDecl::Int(_)
@@ -1914,7 +2047,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             | vir_mid::TypeDecl::Map(_) => {
                                 // Primitive type. Nothing to do.
                             }
-                            vir_mid::TypeDecl::TypeVar(_) => unreachable!("cannot convert abstract type into a generic: {}", ty),
+                            vir_mid::TypeDecl::TypeVar(_) => unreachable!("cannot convert abstract type into a memory block: {}", ty),
                             vir_mid::TypeDecl::Tuple(decl) => {
                                 // TODO: Remove code duplication.
                                 for field in decl.iter_fields() {
@@ -2032,9 +2165,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             vir_mid::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),
                         };
                     }
-                    requires ([ self.acc_owned_non_aliased(ty, place, root_address, value.clone(), lifetimes_copy)? ]);
+                    requires ([ self.acc_owned_non_aliased(ty, place, root_address, value, lifetimes_copy)? ]);
                     ensures (acc(MemoryBlock([address], [size_of])));
-                    ensures (([bytes]) == (Snap<ty>::to_bytes(value)));
+                    ensures (([bytes]) == (Snap<to_bytes_type>::to_bytes([memory_block_value])));
             };
             method.body = Some(statements);
             self.declare_method(method)?;
@@ -2099,7 +2232,50 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         ));
         Ok(())
     }
-
+    fn encode_havoc_method_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        predicate: vir_mid::Predicate,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        match predicate {
+            vir_mid::Predicate::OwnedNonAliased(predicate) => {
+                let ty = predicate.place.get_type();
+                self.mark_owned_non_aliased_as_unfolded(ty)?;
+                self.encode_havoc_owned_non_aliased_method(ty)?;
+                let place = self.encode_expression_as_place(&predicate.place)?;
+                let address = self.extract_root_address(&predicate.place)?;
+                let old_value = predicate.place.to_procedure_snapshot(self)?;
+                let snapshot_type = ty.to_snapshot(self)?;
+                let fresh_value = self.create_new_temporary_variable(snapshot_type)?;
+                let method_name = self.encode_havoc_owned_non_aliased_method_name(ty)?;
+                statements.push(vir_low::Statement::method_call(
+                    method_name,
+                    vec![place, address, old_value],
+                    vec![fresh_value.clone().into()],
+                    position,
+                ));
+                self.encode_snapshot_update(
+                    statements,
+                    &predicate.place,
+                    fresh_value.into(),
+                    position,
+                )?;
+            }
+            vir_mid::Predicate::MemoryBlockStack(predicate) => {
+                let ty = predicate.place.get_type();
+                self.encode_havoc_memory_block_method(ty)?;
+                let address = self.encode_expression_as_place_address(&predicate.place)?;
+                use vir_low::macros::*;
+                statements.push(stmtp! {
+                    position =>
+                    call havoc_memory_block<ty>([address])
+                });
+            }
+            _ => unimplemented!(),
+        }
+        Ok(())
+    }
     fn encode_frac_bor_atomic_acc_method(
         &mut self,
         ty_with_lifetime: &vir_mid::Type,
@@ -2124,8 +2300,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             };
             let position = vir_low::Position::default();
             let deref_place = self.reference_deref_place(place.clone().into(), position)?;
-            let address_snapshot =
-                self.reference_address_snapshot(ty, snapshot.clone().into(), position)?;
+            let address_snapshot = self.reference_address(ty, snapshot.clone().into(), position)?;
             let current_snapshot =
                 self.reference_target_current_snapshot(ty, snapshot.clone().into(), position)?;
 
@@ -2379,8 +2554,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 snapshot: {ty.to_snapshot(self)?}
             };
             let deref_place = self.reference_deref_place(place.clone().into(), position)?;
-            let address_snapshot =
-                self.reference_address_snapshot(ty, snapshot.clone().into(), position)?;
+            let address_snapshot = self.reference_address(ty, snapshot.clone().into(), position)?;
             let current_snapshot =
                 self.reference_target_current_snapshot(ty, snapshot.clone().into(), position)?;
             let final_snapshot =

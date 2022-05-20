@@ -27,4 +27,18 @@ fn test4() {
     assert!(a == 2);    //~ ERROR: the asserted expression might not hold
 }
 
+fn test5() {
+    let a = 1;
+    let b = &a;
+    let c = *b;
+    assert!(c == 1);
+}
+
+fn test6() {
+    let mut a = 1;
+    let b = &mut a;
+    let c = *b;
+    assert!(c == 1);
+}
+
 fn main() {}

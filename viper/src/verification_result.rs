@@ -30,7 +30,11 @@ impl VerificationResult {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct VerificationError {
     pub full_id: String,
+    // Unused since we get pos from the offending_node instead.
+    // Currently calling pos on e.g. `ExhaleFailed` of Silver returns
+    // the exhale expression pos, rather than the Exhale node pos.
     pub pos_id: Option<String>,
+    pub offending_pos_id: Option<String>,
     pub reason_pos_id: Option<String>,
     pub message: String,
     pub counterexample: Option<SiliconCounterexample>,
@@ -40,6 +44,7 @@ impl VerificationError {
     pub fn new(
         full_id: String,
         pos_id: Option<String>,
+        offending_pos_id: Option<String>,
         reason_pos_id: Option<String>,
         message: String,
         counterexample: Option<SiliconCounterexample>,
@@ -47,6 +52,7 @@ impl VerificationError {
         VerificationError {
             full_id,
             pos_id,
+            offending_pos_id,
             reason_pos_id,
             message,
             counterexample,

@@ -7,7 +7,6 @@
 #![feature(rustc_private)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
-#![feature(bool_to_option)]
 #![feature(try_blocks)]
 #![feature(never_type)]
 #![feature(btree_drain_filter)]

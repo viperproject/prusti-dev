@@ -11,6 +11,8 @@ pub enum Type {
     /// Mathematical floats that corresponds to Viper's Float.
     MFloat32,
     MFloat64,
+    /// Viper permission amount.
+    MPerm,
     Lifetime,
     /// Rust's Bool allocated on the Viper heap.
     Bool,
@@ -18,6 +20,7 @@ pub enum Type {
     Int(Int),
     /// A mathematical sequence of values of the same type.
     Sequence(Sequence),
+    /// A mathematical map.
     Map(Map),
     Float(Float),
     TypeVar(TypeVar),

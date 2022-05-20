@@ -86,7 +86,9 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
-            | vir_mid::TypeDecl::Pointer(_) => {
+            | vir_mid::TypeDecl::Pointer(_)
+            | vir_mid::TypeDecl::Sequence(_)
+            | vir_mid::TypeDecl::Map(_) => {
                 predicate! {
                     OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
                     {(
@@ -237,11 +239,14 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 self.lowerer
                     .encode_snapshot_to_bytes_function(address_type)?;
                 self.lowerer.ensure_type_definition(address_type)?;
-                let address_snapshot = self.lowerer.reference_address_snapshot(
+                let target_address_snapshot = self.lowerer.reference_address_snapshot(
                     ty,
                     snapshot.clone().into(),
                     position,
                 )?;
+                let target_address =
+                    self.lowerer
+                        .reference_address(ty, snapshot.clone().into(), position)?;
                 let current_snapshot = self.lowerer.reference_target_current_snapshot(
                     ty,
                     snapshot.clone().into(),
@@ -263,9 +268,9 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     {(
                         ([validity]) &&
                         (acc(MemoryBlock([compute_address], [size_of]))) &&
-                        (([bytes]) == (Snap<ty>::to_bytes(snapshot))) &&
+                        (([bytes]) == (Snap<address_type>::to_bytes([target_address_snapshot]))) &&
                         (acc(UniqueRef<target_type>(
-                            lifetime, [deref_place], [address_snapshot], [current_snapshot], [final_snapshot]
+                            lifetime, [deref_place], [target_address], [current_snapshot], [final_snapshot]
                         )))
                     )}
                 }
@@ -275,11 +280,14 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 self.lowerer
                     .encode_snapshot_to_bytes_function(address_type)?;
                 self.lowerer.ensure_type_definition(address_type)?;
-                let address_snapshot = self.lowerer.reference_address_snapshot(
+                let target_address_snapshot = self.lowerer.reference_address_snapshot(
                     ty,
                     snapshot.clone().into(),
                     position,
                 )?;
+                let target_address =
+                    self.lowerer
+                        .reference_address(ty, snapshot.clone().into(), position)?;
                 let current_snapshot = self.lowerer.reference_target_current_snapshot(
                     ty,
                     snapshot.into(),
@@ -299,9 +307,9 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     {(
                         ([validity]) &&
                         (acc(MemoryBlock([compute_address], [size_of]))) &&
-                        (([bytes]) == (Snap<ty>::to_bytes(snapshot))) &&
+                        (([bytes]) == (Snap<address_type>::to_bytes([target_address_snapshot]))) &&
                         (acc(FracRef<target_type>(
-                            lifetime, [deref_place], [address_snapshot], [current_snapshot]
+                            lifetime, [deref_place], [target_address], [current_snapshot]
                         )))
                     )}
                 }

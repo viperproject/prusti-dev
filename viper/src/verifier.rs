@@ -149,6 +149,8 @@ impl<'a> Verifier<'a> {
 
                 let verification_error_wrapper = silver::verifier::VerificationError::with(self.env);
 
+                let error_node_positioned_wrapper = silver::ast::Positioned::with(self.env);
+
                 let failure_context_wrapper = silver::verifier::FailureContext::with(self.env);
 
                 let has_identifier_wrapper = silver::ast::HasIdentifier::with(self.env);
@@ -282,9 +284,34 @@ impl<'a> Verifier<'a> {
                             None
                         };
 
+                    let offending_node = self
+                        .jni
+                        .unwrap_result(verification_error_wrapper.call_offendingNode(viper_error));
+
+                    let offending_pos = self
+                        .jni
+                        .unwrap_result(error_node_positioned_wrapper.call_pos(offending_node));
+
+                    let offending_pos_id =
+                        if self
+                            .jni
+                            .is_instance_of(offending_pos, "viper/silver/ast/HasIdentifier")
+                        {
+                            Some(self.jni.get_string(
+                                self.jni.unwrap_result(has_identifier_wrapper.call_id(offending_pos)),
+                            ))
+                        } else {
+                            debug!(
+                                "The verifier returned an error whose position has no identifier: {:?}",
+                                self.jni.to_string(viper_error)
+                            );
+                            None
+                        };
+
                     errors.push(VerificationError::new(
                         error_full_id,
                         pos_id,
+                        offending_pos_id,
                         reason_pos_id,
                         message,
                         counterexample,

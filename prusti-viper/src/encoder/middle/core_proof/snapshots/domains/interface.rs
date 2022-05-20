@@ -24,14 +24,15 @@ pub(in super::super::super) trait SnapshotDomainsInterface {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SnapshotDomainsInterface for Lowerer<'p, 'v, 'tcx> {
+    /// Note: Even though we directly use Viper maps and sequences as snapshots
+    /// for `vir_mid::Type::Map(_)` and `vir_mid::Type::Sequence(_)`
+    /// respectively, we still need a domain in which we put their custom
+    /// `validity` and `to_bytes` functions.
     fn encode_snapshot_domain_name(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<String> {
         assert!(
             !matches!(
                 ty,
-                vir_mid::Type::MBool
-                    | vir_mid::Type::MInt
-                    | vir_mid::Type::Map(_)
-                    | vir_mid::Type::Sequence(_)
+                vir_mid::Type::MBool | vir_mid::Type::MInt | vir_mid::Type::MPerm
             ),
             "ty: {}",
             ty
@@ -59,6 +60,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotDomainsInterface for Lowerer<'p, 'v, 'tcx> {
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Type> {
         match ty {
+            vir_mid::Type::MPerm => Ok(vir_low::Type::Perm),
             vir_mid::Type::Sequence(seq) => {
                 let enc_elem = self.encode_snapshot_domain_type(&seq.element_type)?;
                 Ok(vir_low::Type::seq(enc_elem))

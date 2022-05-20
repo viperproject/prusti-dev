@@ -77,4 +77,11 @@ impl<'v, 'tcx> ToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tcx> {
             name: lifetime_const.name,
         })
     }
+
+    fn to_middle_statement_statement_loop_invariant(
+        &self,
+        _: vir_high::LoopInvariant,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("loop invariant statement cannot be lowered")
+    }
 }
