@@ -30,6 +30,7 @@ impl WithIdentifier for ty::Type {
             ty::Type::FunctionDef(ty) => ty.get_identifier(),
             ty::Type::Projection(ty) => ty.get_identifier(),
             ty::Type::Unsupported(ty) => ty.get_identifier(),
+            ty::Type::Trusted(ty) => ty.get_identifier(),
             ty::Type::Lifetime => "Lifetime".to_string(),
         }
     }
@@ -184,5 +185,14 @@ impl WithIdentifier for ty::Projection {
 impl WithIdentifier for ty::Unsupported {
     fn get_identifier(&self) -> String {
         format!("unsupported${}", self.name)
+    }
+}
+
+impl WithIdentifier for ty::Trusted {
+    fn get_identifier(&self) -> String {
+        let mut identifier = self.name.clone();
+        append_type_arguments(&mut identifier, &self.arguments);
+        assert!(!identifier.contains('<'), "identifier: {}", identifier);
+        identifier
     }
 }
