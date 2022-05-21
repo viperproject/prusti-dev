@@ -590,6 +590,20 @@
 <span id="583">583</span>
 <span id="584">584</span>
 <span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">deny</span>(<span class="ident">unused_must_use</span>)]</span>
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">drain_filter</span>)]</span>
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">box_patterns</span>)]</span>
@@ -1081,10 +1095,17 @@
         };
 
         <span class="kw">let</span> <span class="ident">generics</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#475">item</a>.<span class="ident">generics</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="comment">// TODO: remove constraints from the second &quot;generics&quot;</span>
+        <span class="kw">let</span> <span class="ident">generics_idents</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#491">generics</a>
+            .<span class="ident">params</span>
+            .<span class="ident">iter</span>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">generic_param</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#495">generic_param</a> {
+                <span class="ident">syn::GenericParam::Type</span>(<span class="ident">type_param</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#496">type_param</a>.<span class="ident">ident</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+            })
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">syn::punctuated::Punctuated</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="macro">syn::Token!</span>[,]<span class="op">&gt;</span><span class="op">&gt;</span>();
         <span class="comment">// TODO: similarly to extern_specs, don&#39;t generate an actual impl</span>
         <span class="kw">let</span> <span class="ident">item_impl</span>: <a class="ident" href="../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a> <span class="op">=</span> <span class="macro">parse_quote_spanned!</span> {<a class="ident" href="../../src/prusti_specs/lib.rs.html#476">item_span</a>=&gt;
-            <span class="kw">impl</span> #<span class="ident">generics</span> #<span class="ident">item_ident</span> #<span class="ident">generics</span> {
+            <span class="kw">impl</span> #<span class="ident">generics</span> #<span class="ident">item_ident</span> #<span class="ident">generics_idents</span> {
                 #<span class="ident">spec_item</span>
             }
         };
@@ -1099,22 +1120,22 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invariant</span>(<span class="ident">attr</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">tokens</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rewriter</span> <span class="op">=</span> <span class="ident">rewriter::AstRewriter::new</span>();
-    <span class="kw">let</span> <span class="ident">spec_id</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#509">rewriter</a>.<a class="ident" href="../../src/prusti_specs/rewriter.rs.html#46">generate_spec_id</a>();
-    <span class="kw">let</span> <span class="ident">spec_id_str</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#510">spec_id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+    <span class="kw">let</span> <span class="ident">spec_id</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#516">rewriter</a>.<a class="ident" href="../../src/prusti_specs/rewriter.rs.html#46">generate_spec_id</a>();
+    <span class="kw">let</span> <span class="ident">spec_id_str</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#517">spec_id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
-    <span class="kw">let</span> <span class="ident">item</span>: <a class="ident" href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a> <span class="op">=</span> <span class="macro">handle_result!</span>(<span class="ident">syn::parse2</span>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#508">tokens</a>));
-    <span class="kw">let</span> <span class="ident">item_span</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#513">item</a>.<a class="ident" href="../../syn/spanned/trait.Spanned.html">span</a>();
-    <span class="kw">let</span> <span class="ident">item_ident</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#513">item</a>.<span class="ident">ident</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let</span> <span class="ident">item</span>: <a class="ident" href="../../syn/derive/struct.DeriveInput.html">syn::DeriveInput</a> <span class="op">=</span> <span class="macro">handle_result!</span>(<span class="ident">syn::parse2</span>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#515">tokens</a>));
+    <span class="kw">let</span> <span class="ident">item_span</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#520">item</a>.<a class="ident" href="../../syn/spanned/trait.Spanned.html">span</a>();
+    <span class="kw">let</span> <span class="ident">item_ident</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#520">item</a>.<span class="ident">ident</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
     <span class="kw">let</span> <span class="ident">item_name</span> <span class="op">=</span> <span class="ident">syn::Ident::new</span>(
-        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;prusti_invariant_item_{}_{}&quot;</span>, <a class="ident" href="../../src/prusti_specs/lib.rs.html#515">item_ident</a>, <a class="ident" href="../../src/prusti_specs/lib.rs.html#510">spec_id</a>),
-        <a class="ident" href="../../src/prusti_specs/lib.rs.html#514">item_span</a>,
+        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;prusti_invariant_item_{}_{}&quot;</span>, <a class="ident" href="../../src/prusti_specs/lib.rs.html#522">item_ident</a>, <a class="ident" href="../../src/prusti_specs/lib.rs.html#517">spec_id</a>),
+        <a class="ident" href="../../src/prusti_specs/lib.rs.html#521">item_span</a>,
     );
 
-    <span class="kw">let</span> <span class="ident">attr</span> <span class="op">=</span> <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/specifications/preparser.rs.html#17">parse_prusti</a>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#508">attr</a>));
+    <span class="kw">let</span> <span class="ident">attr</span> <span class="op">=</span> <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/specifications/preparser.rs.html#17">parse_prusti</a>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#515">attr</a>));
 
     <span class="comment">// TODO: move some of this to AstRewriter?</span>
     <span class="comment">// see AstRewriter::generate_spec_item_fn for explanation of syntax below</span>
-    <span class="kw">let</span> <span class="ident">spec_item</span>: <a class="ident" href="../../syn/item/struct.ItemFn.html">syn::ItemFn</a> <span class="op">=</span> <span class="macro">parse_quote_spanned!</span> {<a class="ident" href="../../src/prusti_specs/lib.rs.html#514">item_span</a>=&gt;
+    <span class="kw">let</span> <span class="ident">spec_item</span>: <a class="ident" href="../../syn/item/struct.ItemFn.html">syn::ItemFn</a> <span class="op">=</span> <span class="macro">parse_quote_spanned!</span> {<a class="ident" href="../../src/prusti_specs/lib.rs.html#521">item_span</a>=&gt;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_must_use</span>, <span class="ident">unused_parens</span>, <span class="ident">unused_variables</span>, <span class="ident">dead_code</span>, <span class="ident">non_snake_case</span>)]</span>
         <span class="attribute">#[<span class="ident">prusti::spec_only</span>]</span>
         <span class="attribute">#[<span class="ident">prusti::type_invariant_spec</span>]</span>
@@ -1124,53 +1145,60 @@
         }
     };
 
-    <span class="kw">let</span> <span class="ident">generics</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#513">item</a>.<span class="ident">generics</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <span class="comment">// TODO: remove constraints from the second &quot;generics&quot;</span>
+    <span class="kw">let</span> <span class="ident">generics</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#520">item</a>.<span class="ident">generics</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let</span> <span class="ident">generics_idents</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#542">generics</a>
+        .<span class="ident">params</span>
+        .<span class="ident">iter</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">generic_param</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#546">generic_param</a> {
+            <span class="ident">syn::GenericParam::Type</span>(<span class="ident">type_param</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#547">type_param</a>.<span class="ident">ident</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        })
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">syn::punctuated::Punctuated</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="macro">syn::Token!</span>[,]<span class="op">&gt;</span><span class="op">&gt;</span>();
     <span class="comment">// TODO: similarly to extern_specs, don&#39;t generate an actual impl</span>
-    <span class="kw">let</span> <span class="ident">item_impl</span>: <a class="ident" href="../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a> <span class="op">=</span> <span class="macro">parse_quote_spanned!</span> {<a class="ident" href="../../src/prusti_specs/lib.rs.html#514">item_span</a>=&gt;
-        <span class="kw">impl</span> #<span class="ident">generics</span> #<span class="ident">item_ident</span> #<span class="ident">generics</span> {
+    <span class="kw">let</span> <span class="ident">item_impl</span>: <a class="ident" href="../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a> <span class="op">=</span> <span class="macro">parse_quote_spanned!</span> {<a class="ident" href="../../src/prusti_specs/lib.rs.html#521">item_span</a>=&gt;
+        <span class="kw">impl</span> #<span class="ident">generics</span> #<span class="ident">item_ident</span> <span class="op">&lt;</span> #<span class="ident">generics_idents</span> <span class="op">&gt;</span> {
             #<span class="ident">spec_item</span>
         }
     };
-    <span class="macro">quote_spanned!</span> { <a class="ident" href="../../src/prusti_specs/lib.rs.html#514">item_span</a> =&gt;
+    <span class="macro">quote_spanned!</span> { <a class="ident" href="../../src/prusti_specs/lib.rs.html#521">item_span</a> =&gt;
         #<span class="ident">item</span>
         #<span class="ident">item_impl</span>
     }
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extern_spec</span>(<span class="ident">attr</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">tokens</span>:<a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let</span> <span class="ident">item</span>: <a class="ident" href="../../syn/item/enum.Item.html">syn::Item</a> <span class="op">=</span> <span class="macro">handle_result!</span>(<span class="ident">syn::parse2</span>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#549">tokens</a>));
-    <span class="kw">match</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#550">item</a> {
+    <span class="kw">let</span> <span class="ident">item</span>: <a class="ident" href="../../syn/item/enum.Item.html">syn::Item</a> <span class="op">=</span> <span class="macro">handle_result!</span>(<span class="ident">syn::parse2</span>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#563">tokens</a>));
+    <span class="kw">match</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#564">item</a> {
         <span class="ident">syn::Item::Impl</span>(<span class="ident">item_impl</span>) =&gt; {
-            <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/extern_spec_rewriter/impls.rs.html#8">extern_spec_rewriter::impls::rewrite_extern_spec</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_specs/lib.rs.html#552">item_impl</a>))
+            <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/extern_spec_rewriter/impls.rs.html#8">extern_spec_rewriter::impls::rewrite_extern_spec</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_specs/lib.rs.html#566">item_impl</a>))
         }
         <span class="ident">syn::Item::Trait</span>(<span class="ident">item_trait</span>) =&gt; {
-            <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/extern_spec_rewriter/traits.rs.html#28">extern_spec_rewriter::traits::rewrite_extern_spec</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_specs/lib.rs.html#555">item_trait</a>))
+            <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/extern_spec_rewriter/traits.rs.html#28">extern_spec_rewriter::traits::rewrite_extern_spec</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_specs/lib.rs.html#569">item_trait</a>))
         }
         <span class="ident">syn::Item::Mod</span>(<span class="kw-2">mut</span> <span class="ident">item_mod</span>) =&gt; {
-            <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/extern_spec_rewriter/mods.rs.html#15">extern_spec_rewriter::mods::rewrite_extern_spec</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#558">item_mod</a>))
+            <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/extern_spec_rewriter/mods.rs.html#15">extern_spec_rewriter::mods::rewrite_extern_spec</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#572">item_mod</a>))
         }
         <span class="kw">_</span> =&gt; <span class="ident">syn::Error::new</span>(
-            <a class="ident" href="../../src/prusti_specs/lib.rs.html#549">attr</a>.<a class="ident" href="../../syn/spanned/trait.Spanned.html">span</a>(),
+            <a class="ident" href="../../src/prusti_specs/lib.rs.html#563">attr</a>.<a class="ident" href="../../syn/spanned/trait.Spanned.html">span</a>(),
             <span class="string">&quot;Extern specs cannot be attached to this item&quot;</span>,
         ).<span class="ident">to_compile_error</span>(),
     }
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">predicate</span>(<span class="ident">tokens</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#73">predicate::parse_predicate</a>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#568">tokens</a>));
-    <a class="ident" href="../../src/prusti_specs/lib.rs.html#569">parsed</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>()
+    <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/predicate.rs.html#73">predicate::parse_predicate</a>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#582">tokens</a>));
+    <a class="ident" href="../../src/prusti_specs/lib.rs.html#583">parsed</a>.<a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>()
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_model</span>(<span class="ident">attr</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">tokens</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let</span> <span class="ident">item</span>: <a class="ident" href="../../syn/item/enum.Item.html">syn::Item</a> <span class="op">=</span> <span class="macro">handle_result!</span>(<span class="ident">syn::parse2</span>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#573">tokens</a>));
+    <span class="kw">let</span> <span class="ident">item</span>: <a class="ident" href="../../syn/item/enum.Item.html">syn::Item</a> <span class="op">=</span> <span class="macro">handle_result!</span>(<span class="ident">syn::parse2</span>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#587">tokens</a>));
 
-    <span class="kw">match</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#574">item</a> {
+    <span class="kw">match</span> <a class="ident" href="../../src/prusti_specs/lib.rs.html#588">item</a> {
         <span class="ident">syn::Item::Struct</span>(<span class="ident">item_struct</span>) =&gt; {
-            <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/type_model/mod.rs.html#30">type_model::rewrite</a>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#577">item_struct</a>))
+            <span class="macro">handle_result!</span>(<a class="ident" href="../../src/prusti_specs/type_model/mod.rs.html#30">type_model::rewrite</a>(<a class="ident" href="../../src/prusti_specs/lib.rs.html#591">item_struct</a>))
         }
         <span class="kw">_</span> =&gt; <span class="ident">syn::Error::new</span>(
-            <a class="ident" href="../../src/prusti_specs/lib.rs.html#573">attr</a>.<a class="ident" href="../../syn/spanned/trait.Spanned.html">span</a>(),
+            <a class="ident" href="../../src/prusti_specs/lib.rs.html#587">attr</a>.<a class="ident" href="../../syn/spanned/trait.Spanned.html">span</a>(),
             <span class="string">&quot;Only structs can be attributed with a type model&quot;</span>,
         ).<span class="ident">to_compile_error</span>(),
     }
