@@ -2,9 +2,15 @@ use prusti_contracts::*;
 use std::cmp::{Ord, Ordering::{self, Equal, Less, Greater}};
 
 fn main() {
-    let v = 0;
-    let t = Tree::Node(v, Box::new(Tree::Empty), Box::new(Tree::Empty));
-    assert!(t.contains(&v));
+    let mut t = Tree::Empty;
+    t.insert(0);
+    if let Tree::Node(value, left, right) = &t {
+        assert!(matches!(**left, Tree::Empty));
+        assert!(matches!(**right, Tree::Empty));
+        assert!(*value == 0);
+    } else {
+        unreachable!()
+    }
 }
 
 #[invariant(self.bst_invariant())]
@@ -16,6 +22,9 @@ pub enum Tree<T: Ord> {
 #[extern_spec]
 impl Ord for i32 {
     #[pure]
+    #[ensures(matches!(result, Equal) == (*self == *other))]
+    #[ensures(matches!(result, Less) == (*self < *other))]
+    #[ensures(matches!(result, Greater) == (*self > *other))]
     fn cmp(&self, other: &Self) -> Ordering;
 }
 
