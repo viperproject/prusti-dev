@@ -433,7 +433,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 assert_eq!(args.len(), 1);
                                 let encoded_rhs = self
                                     .mir_encoder
-                                    .encode_old_expr(encoded_args[0].clone(), WAND_LHS_LABEL);
+                                    .encode_old_expr(vir::Expr::snap_app(encoded_args[0].clone()), WAND_LHS_LABEL);
                                 let mut state = states[target_block].clone();
                                 state.substitute_value(&encoded_lhs, encoded_rhs);
                                 state
