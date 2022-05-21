@@ -7,7 +7,7 @@
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
 use rustc_span::source_map::SourceMap;
-use rustc_span::MultiSpan;
+use rustc_errors::MultiSpan;
 use log::{debug, trace};
 use prusti_interface::data::ProcedureDefId;
 
@@ -72,6 +72,7 @@ impl<'tcx> PositionManager<'tcx>
     }
 
     pub fn duplicate(&mut self, pos: Position) -> Position {
+        assert!(!pos.is_default());
         self.register_span(
             self.get_def_id(pos).unwrap(),
             self.get_span(pos).cloned().unwrap(),

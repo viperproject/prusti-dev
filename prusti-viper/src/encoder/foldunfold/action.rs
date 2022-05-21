@@ -6,13 +6,13 @@
 
 use crate::encoder::foldunfold::{perm::*, FoldUnfoldError};
 use std::fmt;
-use vir_crate::polymorphic::{self as vir, Fold, Unfold};
+use vir_crate::polymorphic::{self as vir};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[allow(clippy::large_enum_variant)]
 pub enum Action {
-    Fold(Fold),
-    Unfold(Unfold),
+    Fold(vir::Fold),
+    Unfold(vir::Unfold),
     /// The dropped perm and the missing permission that caused this
     /// perm to be dropped.
     Drop(Perm, Perm),
@@ -29,7 +29,7 @@ impl Action {
 
     pub fn to_expr(&self, inner_expr: vir::Expr) -> Result<vir::Expr, FoldUnfoldError> {
         match self {
-            Action::Fold(Fold {
+            Action::Fold(vir::Fold {
                 predicate,
                 arguments,
                 permission,
@@ -46,18 +46,22 @@ impl Action {
                 ))
             }
 
-            Action::Unfold(Unfold {
+            Action::Unfold(vir::Unfold {
                 predicate,
                 arguments,
                 permission,
                 enum_variant,
-            }) => Ok(vir::Expr::unfolding(
-                predicate.clone(),
-                arguments.clone(),
-                inner_expr,
-                *permission,
-                enum_variant.clone(),
-            )),
+            }) => {
+                let pos = inner_expr.pos();
+                Ok(vir::Expr::unfolding_with_pos(
+                    predicate.clone(),
+                    arguments.clone(),
+                    inner_expr,
+                    *permission,
+                    enum_variant.clone(),
+                    pos,
+                ))
+            }
 
             Action::Drop(..) => Ok(inner_expr),
         }

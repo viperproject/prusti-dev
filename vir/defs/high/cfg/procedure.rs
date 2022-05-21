@@ -13,6 +13,7 @@ use std::collections::BTreeMap;
 pub struct ProcedureDecl {
     pub name: String,
     pub entry: BasicBlockId,
+    pub exit: BasicBlockId,
     pub basic_blocks: BTreeMap<BasicBlockId, BasicBlock>,
 }
 
@@ -36,4 +37,6 @@ pub enum Successor {
     Goto(BasicBlockId),
     #[display(fmt = "switch")]
     GotoSwitch(Vec<(Expression, BasicBlockId)>),
+    #[display(fmt = "non-det-switch")]
+    NonDetChoice(BasicBlockId, BasicBlockId),
 }

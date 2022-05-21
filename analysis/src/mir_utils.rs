@@ -166,7 +166,7 @@ pub(crate) fn expand_one_level<'tcx>(
             let kind = &current_place.ty(mir, tcx).ty.kind();
             if let ty::TyKind::Adt(adt, _) = kind {
                 (
-                    tcx.mk_place_downcast(*current_place, adt, variant).into(),
+                    tcx.mk_place_downcast(*current_place, *adt, variant).into(),
                     Vec::new(),
                 )
             } else {

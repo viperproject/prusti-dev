@@ -68,7 +68,7 @@ After that, we used `#[ensures(...)]` to attach two [postconditions](verify/prep
 The syntax of specifications is a superset of Rust expressions, where `result` is a keyword referring to the function's return value. 
 
 Again, verifying the above code with Prusti should succeed. 
-Notice that Prusti assumes by default that integer types are unbounded; it thus ignores [overflow and underflow checks](verify/overflow.md) unless corresponding options are provided.
+Notice that Prusti assumes by default that integer types are bounded; it thus performs [overflow and underflow checks](verify/overflow.md) unless corresponding options are provided.
 
 Next, we add a second function `max3` which returns the maximum of three instead of two integers; we reuse the already verified function `max` in the new function's specification to show that this function is implemented correctly.
 

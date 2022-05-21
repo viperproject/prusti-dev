@@ -16,6 +16,7 @@ import time
 import json 
 import signal
 import shutil
+import datetime
 
 verbose = False
 dry_run = False
@@ -46,6 +47,8 @@ RUSTFMT_PATHS = [
     'prusti-common/src/vir/low_to_viper/mod.rs',
     'prusti-common/src/vir/optimizations/mod.rs',
     'prusti-interface/src/environment/mir_dump/mod.rs',
+    'prusti-interface/src/environment/mir_analyses/mod.rs',
+    'prusti-interface/src/environment/mir_sets/mod.rs',
     'prusti-tests/tests/verify_partial/**/*.rs',
     'prusti-viper/src/encoder/foldunfold/mod.rs',
     'prusti-viper/src/encoder/mir/mod.rs',
@@ -210,11 +213,23 @@ def get_env():
     return env
 
 
-def run_command(args, env=None, cwd=None):
-    """Run a command with the given arguments."""
+def run_command(args, env=None, cwd=None, on_exit=None, report_time=False):
+    """Run a command with the given arguments.
+
+    +   ``env`` – an environment in which to run.
+    +   ``cwd`` – the path at which to run.
+    +   ``on_exit`` – function to be executed on exit.
+    +   ``report_time`` – whether to report how long it took to execute
+        the command.
+    """
     if env is None:
         env = get_env()
+    start_time = datetime.datetime.now()
     completed = subprocess.run(args, env=env, cwd=cwd)
+    if report_time:
+        print(datetime.datetime.now() - start_time)
+    if on_exit is not None:
+        on_exit()
     if completed.returncode != 0:
         sys.exit(completed.returncode)
 
@@ -472,7 +487,56 @@ def verify_test(args):
     else:
         env['PRUSTI_CHECK_OVERFLOWS'] = 'false'
     report("env: PRUSTI_CHECK_OVERFLOWS={}", env['PRUSTI_CHECK_OVERFLOWS'])
-    run_command([prusti_path, '--edition=2018', test_path] + compile_flags, env)
+    os.makedirs('log/config', exist_ok=True)
+    env['PRUSTI_RUSTC_LOG_ARGS'] = 'log/config/prusti-rustc-args'
+    env['PRUSTI_RUSTC_LOG_ENV'] = 'log/config/prusti-rustc-env'
+    run_command(
+        [prusti_path, '--edition=2018', test_path] + compile_flags,
+        env,
+        on_exit=lambda : generate_launch_json('log/config/prusti-rustc-args', 'log/config/prusti-rustc-env'),
+        report_time=True,
+    )
+
+def generate_launch_json(args_file, env_file):
+    """Generates debugging configuration for VS Code extension CodeLLDB.
+
+    https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb
+    """
+    with open(args_file) as fp:
+        args = fp.read().splitlines()
+    with open(env_file) as fp:
+        env = dict(
+            row.split('=', 1)
+            for row in fp.read().splitlines()
+        )
+    prusti_driver_configuration = {
+        "type": "lldb",
+        "request": "launch",
+        "name": "Debug executable 'prusti-driver'",
+        "cargo": {
+            "args": [
+                "build",
+                "--bin=prusti-driver",
+                "--package=prusti"
+            ],
+            "filter": {
+                "name": "prusti-driver",
+                "kind": "bin"
+            }
+        },
+        "args": args,
+        "cwd": "${workspaceFolder}",
+        "env": env,
+    }
+    content = {
+        "version": "0.2.0",
+        "configurations": [
+            prusti_driver_configuration
+        ]
+    }
+    os.makedirs('.vscode', exist_ok=True)
+    with open('.vscode/launch.json', 'w') as fp:
+        json.dump(content, fp, indent=2)
 
 def clippy_in(cwd):
     """Run cargo clippy in given subproject."""

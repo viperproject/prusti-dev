@@ -11,21 +11,28 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
-
 use log::{error, info, warn, LevelFilter};
 use rustwide::{cmd, logging, logging::LogStorage, Crate, Toolchain, WorkspaceBuilder};
 use serde::Deserialize;
+use clap::Parser;
+
+/// How a crate should be tested. All tests use `check_panics=false`, `check_overflows=false` and
+/// `skip_unsupported_features=true`.
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+enum TestKind {
+    /// Test that Prusti does not crash nor generate "internal/invalid" errors.
+    NoErrors,
+    /// Test that Prusti does not crash nor generate "invalid" errors.
+    NoCrash,
+    /// Skip the crate. Prusti crashes or the crate does not compile with the standard compiler.
+    Skip,
+}
 
 #[derive(Debug, Deserialize)]
 struct CrateRecord {
     name: String,
     version: String,
-}
-
-impl From<CrateRecord> for Crate {
-    fn from(record: CrateRecord) -> Self {
-        Crate::crates_io(&record.name, &record.version)
-    }
+    test_kind: TestKind,
 }
 
 fn setup_logs() {
@@ -109,9 +116,24 @@ pub fn collect_java_policies() -> Vec<PathBuf> {
         .collect()
 }
 
+/// A tool to test Prusti on a variety of public crates.
+#[derive(Parser, Debug)]
+#[clap(version, about, long_about = None)]
+struct Args {
+    /// Do not check that the crates compile successfully without Prusti
+    #[clap(short, long)]
+    skip_build_check: bool,
+
+    /// If specified, only test crates containing this string in their names
+    #[clap(value_name = "CRATENAME", default_value_t = String::from(""))]
+    filter_crate_name: String,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     color_backtrace::install();
     setup_logs();
+
+    let args = Args::parse();
 
     let workspace_path = Path::new("../workspaces/test-crates-builder");
     let host_prusti_home = if cfg!(debug_assertions) {
@@ -156,13 +178,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     info!("Read lists of crates...");
-    // TODO: do something to freeze the version of the dependencies.
-    let crates_list: Vec<Crate> =
-        csv::Reader::from_reader(fs::File::open("test-crates/successful_crates.csv")?)
+    // TODO: Use the appropriate file from `cargo-locks/` to freeze the version of the dependencies.
+    let crates_list: Vec<(Crate, TestKind)> =
+        csv::Reader::from_reader(fs::File::open("test-crates/crates.csv")?)
             .deserialize()
             .collect::<Result<Vec<CrateRecord>, _>>()?
             .into_iter()
-            .map(|c| c.into())
+            .filter(|record| record.name.contains(&args.filter_crate_name))
+            .map(|record| (Crate::crates_io(&record.name, &record.version), record.test_kind))
             .collect();
 
     // List of crates that don't compile with the standard compiler.
@@ -173,14 +196,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut successful_crates = vec![];
 
     info!("Iterate over all {} crates...", crates_list.len());
-    for (index, krate) in crates_list.iter().enumerate() {
-        info!("Crate {}/{}: {}", index + 1, crates_list.len(), krate);
+    for (index, (krate, test_kind)) in crates_list.iter().enumerate() {
+        info!("Crate {}/{}: {}, test kind: {:?}", index, crates_list.len(), krate, test_kind);
+
+        if let TestKind::Skip = test_kind {
+            info!("Skip crate");
+            // Do not try to verify this crate
+            skipped_crates.push((krate, test_kind));
+            continue;
+        }
 
         info!("Fetch crate...");
         krate.fetch(&workspace)?;
 
-        info!("Build crate...");
-        {
+        if !args.skip_build_check {
+            info!("Build crate...");
             let mut build_dir = workspace.build_dir(&format!("build_{}", index));
 
             let sandbox = cmd::SandboxBuilder::new()
@@ -201,8 +231,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 warn!("Error: {:?}", err);
                 warn!("Output:\n{}", storage);
 
-                // Do not try to verify this crate
-                skipped_crates.push(krate);
+                // Report the failure
+                failed_crates.push((krate, test_kind));
                 continue;
             }
         }
@@ -236,16 +266,25 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let verification_status = build_dir.build(&toolchain, krate, sandbox).run(|build| {
                 logging::capture(&storage, || {
-                    build
-                        .cmd(&cargo_prusti)
+                    let mut command = build.cmd(&cargo_prusti)
                         .env("RUST_BACKTRACE", "1")
                         .env("PRUSTI_ASSERT_TIMEOUT", "60000")
+                        .env("PRUSTI_LOG_DIR", "/tmp/prusti_log")
                         .env("PRUSTI_CHECK_PANICS", "false")
                         .env("PRUSTI_CHECK_OVERFLOWS", "false")
                         // Do not report errors for unsupported language features
-                        .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true")
-                        .env("PRUSTI_LOG_DIR", "/tmp/prusti_log")
-                        .run()?;
+                        .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true");
+                    match test_kind {
+                        TestKind::NoErrors => {},
+                        TestKind::NoCrash => {
+                            // Report internal errors as warnings
+                            command = command.env("PRUSTI_INTERNAL_ERRORS_AS_WARNINGS", "true");
+                        },
+                        TestKind::Skip => {
+                            unreachable!();
+                        }
+                    }
+                    command.run()?;
                     Ok(())
                 })
             });
@@ -253,11 +292,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             if let Err(err) = verification_status {
                 error!("Error: {:?}", err);
                 error!("Output:\n{}", storage);
-
                 // Report the failure
-                failed_crates.push(krate);
+                failed_crates.push((krate, test_kind));
             } else {
-                successful_crates.push(krate);
+                successful_crates.push((krate, test_kind));
             }
         }
     }
@@ -265,20 +303,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Report summary
     if !successful_crates.is_empty() {
         info!("Successfully verified {} crates:", successful_crates.len());
-        for krate in &successful_crates {
-            info!(" - {}", krate);
+        for (krate, test_kind) in &successful_crates {
+            info!(" - {} ({:?})", krate, test_kind);
         }
     }
     if !skipped_crates.is_empty() {
         warn!("Skipped {} crates:", skipped_crates.len());
-        for krate in &skipped_crates {
-            warn!(" - {}", krate);
+        for (krate, test_kind) in &skipped_crates {
+            warn!(" - {} ({:?})", krate, test_kind);
         }
     }
     if !failed_crates.is_empty() {
         error!("Failed to verify {} crates:", failed_crates.len());
-        for krate in &failed_crates {
-            error!(" - {}", krate);
+        for (krate, test_kind) in &failed_crates {
+            error!(" - {} ({:?})", krate, test_kind);
         }
     }
 

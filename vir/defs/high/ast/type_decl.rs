@@ -1,9 +1,14 @@
-pub(crate) use super::{expression::Expression, field::FieldDecl, ty::Type};
+pub(crate) use super::{
+    expression::Expression,
+    field::FieldDecl,
+    ty::{Type, Uniqueness},
+};
 use crate::common::display;
 
 #[derive_helpers]
 #[derive_visitors]
-#[derive(derive_more::From, derive_more::IsVariant)]
+#[derive(derive_more::From, derive_more::IsVariant, derive_more::Unwrap)]
+#[allow(clippy::large_enum_variant)]
 pub enum TypeDecl {
     Bool,
     Int(Int),
@@ -11,12 +16,14 @@ pub enum TypeDecl {
     TypeVar(TypeVar),
     Tuple(Tuple),
     Struct(Struct),
+    Sequence(Sequence),
+    Map(Map),
     Enum(Enum),
-    // Union(Union),
+    Union(Union),
     Array(Array),
     // Slice(Slice),
     Reference(Reference),
-    // Pointer(Pointer),
+    Pointer(Pointer),
     // FnPointer,
     Never,
     // Str,
@@ -45,8 +52,21 @@ pub struct Float {
     pub upper_bound: Option<Box<Expression>>,
 }
 
-pub struct TypeVar {
+#[display(fmt = "{}", name)]
+pub struct LifetimeConst {
     pub name: String,
+}
+
+#[display(fmt = "{}", name)]
+pub struct GenericType {
+    pub name: String,
+}
+
+#[derive_helpers]
+#[derive(derive_more::Unwrap)]
+pub enum TypeVar {
+    Lifetime(LifetimeConst),
+    GenericType(GenericType),
 }
 
 #[display(fmt = "({})", "display::cjoin(arguments)")]
@@ -68,11 +88,24 @@ pub struct Struct {
     pub fields: Vec<FieldDecl>,
 }
 
+pub type DiscriminantValue = i128;
+pub type DiscriminantRange = (DiscriminantValue, DiscriminantValue);
+
 #[display(fmt = "{}", name)]
 pub struct Enum {
     pub name: String,
-    pub discriminant_bounds: Expression,
-    pub discriminant_values: Vec<Expression>,
+    pub discriminant_type: Type,
+    pub discriminant_bounds: Vec<DiscriminantRange>,
+    pub discriminant_values: Vec<DiscriminantValue>,
+    pub variants: Vec<Struct>,
+}
+
+#[display(fmt = "{}", name)]
+pub struct Union {
+    pub name: String,
+    pub discriminant_type: Type,
+    pub discriminant_bounds: Vec<DiscriminantRange>,
+    pub discriminant_values: Vec<DiscriminantValue>,
     pub variants: Vec<Struct>,
 }
 
@@ -82,8 +115,25 @@ pub struct Array {
     pub element_type: Type,
 }
 
-#[display(fmt = "&{}", target_type)]
+#[display(fmt = "Sequence({})", element_type)]
+pub struct Sequence {
+    pub element_type: Type,
+}
+
+#[display(fmt = "Map({} -> {})", key_type, val_type)]
+pub struct Map {
+    pub key_type: Type,
+    pub val_type: Type,
+}
+
+#[display(fmt = "&{} {}", uniqueness, target_type)]
 pub struct Reference {
+    pub uniqueness: Uniqueness,
+    pub target_type: Type,
+}
+
+#[display(fmt = "*{}", target_type)]
+pub struct Pointer {
     pub target_type: Type,
 }
 

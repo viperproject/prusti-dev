@@ -1,5 +1,6 @@
+pub mod cfg;
 pub mod constants;
-pub(crate) mod display;
+pub mod display;
 pub mod expression;
 pub mod graphviz;
 pub mod identifier;
