@@ -69,8 +69,7 @@ impl<T: Ord> Tree<T> {
         if let Tree::Node(value, left, right) = self {
             // Could turn this into a single `forall` if we wanted?
             forall(|i: &T| left.contains(i) == (matches!(i.cmp(value), Less) && self.contains(i))) &&
-            forall(|i: &T| right.contains(i) == (matches!(i.cmp(value), Greater) && self.contains(i))) &&
-            left.bst_invariant() && right.bst_invariant()
+            forall(|i: &T| right.contains(i) == (matches!(i.cmp(value), Greater) && self.contains(i)))
         } else { true }
     }
     }
