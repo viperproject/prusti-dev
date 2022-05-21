@@ -60,8 +60,8 @@ impl<T: Ord> Tree<T> {
     }
     }
 
-    #[ensures(self.contains(&new_value))]
-    #[ensures(forall(|i: &T| !matches!(new_value.cmp(i), Equal) ==> self.contains(i) == old(self).contains(i)))]
+    #[ensures(self.contains(old(&new_value)))]
+    #[ensures(forall(|i: &T| !matches!(old(new_value).cmp(i), Equal) ==> self.contains(i) == old(self).contains(i)))]
     pub fn insert(&mut self, new_value: T) {
         if let Tree::Node(value, left, right) = self {
             match new_value.cmp(value) {
