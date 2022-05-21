@@ -14,6 +14,12 @@ pub enum Tree<T: Ord> {
 }
 
 #[extern_spec]
+impl Ord for i32 {
+    #[pure]
+    fn cmp(&self, other: &Self) -> Ordering;
+}
+
+#[extern_spec]
 trait Ord {
     #[pure]
     #[ensures(match (result, other.cmp(self)) {
