@@ -2,7 +2,7 @@ use super::{ensurer::ensure_required_permissions, state::FoldUnfoldState};
 use crate::encoder::{
     errors::SpannedEncodingResult,
     high::procedures::inference::{
-        action::{Action, ActionState},
+        action::{Action, ConversionState, FoldingActionState, RestorationState},
         permission::PermissionKind,
         semantics::collect_permission_changes,
     },
@@ -14,11 +14,11 @@ use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
 use std::collections::{btree_map::Entry, BTreeMap};
 use vir_crate::{
-    common::position::Positioned,
+    common::{display::cjoin, position::Positioned},
     high::{self as vir_high},
     middle::{
         self as vir_mid,
-        operations::{ToMiddleExpression, ToMiddleStatement},
+        operations::{ToMiddleExpression, ToMiddleStatement, ToMiddleType},
     },
 };
 
@@ -89,6 +89,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         let new_procedure = vir_mid::ProcedureDecl {
             name: self.procedure_name.take().unwrap(),
             entry: self.entry_label.take().unwrap(),
+            exit: self.lower_label(&procedure.exit),
             basic_blocks: std::mem::take(&mut self.basic_blocks),
         };
         Ok(new_procedure)
@@ -109,6 +110,9 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     new_targets.push((new_test, self.lower_label(target)));
                 }
                 vir_mid::Successor::GotoSwitch(new_targets)
+            }
+            vir_high::Successor::NonDetChoice(first, second) => {
+                vir_mid::Successor::NonDetChoice(self.lower_label(first), self.lower_label(second))
             }
         };
         Ok(result)
@@ -163,62 +167,136 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             "Statement has default position: {}",
             statement
         );
-        let (consumed_permissions, produced_permissions) = collect_permission_changes(&statement)?;
-        debug!("lower_statement {}: {:?}", statement, consumed_permissions);
+        let (consumed_permissions, produced_permissions) =
+            collect_permission_changes(self.encoder, &statement)?;
+        debug!(
+            "lower_statement {}: {}",
+            statement,
+            cjoin(&consumed_permissions)
+        );
         let actions = ensure_required_permissions(self, state, consumed_permissions.clone())?;
         for action in actions {
             let statement = match action {
-                Action::Unfold(ActionState {
+                Action::Unfold(FoldingActionState {
                     kind: PermissionKind::Owned,
                     place,
+                    enum_variant: _,
                     condition,
-                }) => vir_mid::Statement::unfold_owned(
-                    place.to_middle_expression(self.encoder)?,
-                    condition,
-                    statement.position(),
-                ),
-                Action::Fold(ActionState {
+                }) => {
+                    let position = place.position();
+                    vir_mid::Statement::unfold_owned(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        position,
+                    )
+                }
+                Action::Fold(FoldingActionState {
                     kind: PermissionKind::Owned,
                     place,
+                    enum_variant: _,
                     condition,
-                }) => vir_mid::Statement::fold_owned(
-                    place.to_middle_expression(self.encoder)?,
-                    condition,
-                    statement.position(),
-                ),
-                Action::Unfold(ActionState {
+                }) => {
+                    let position = place.position();
+                    vir_mid::Statement::fold_owned(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        position,
+                    )
+                }
+                Action::Unfold(FoldingActionState {
                     kind: PermissionKind::MemoryBlock,
                     place,
+                    enum_variant,
                     condition,
-                }) => vir_mid::Statement::split_block(
-                    place.to_middle_expression(self.encoder)?,
-                    condition,
-                    statement.position(),
-                ),
-                Action::Fold(ActionState {
+                }) => {
+                    let position = place.position();
+                    vir_mid::Statement::split_block(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        enum_variant
+                            .map(|variant| variant.to_middle_expression(self.encoder))
+                            .transpose()?,
+                        position,
+                    )
+                }
+                Action::Fold(FoldingActionState {
                     kind: PermissionKind::MemoryBlock,
                     place,
+                    enum_variant,
                     condition,
-                }) => vir_mid::Statement::join_block(
-                    place.to_middle_expression(self.encoder)?,
+                }) => {
+                    let position = place.position();
+                    vir_mid::Statement::join_block(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        enum_variant
+                            .map(|variant| variant.to_middle_expression(self.encoder))
+                            .transpose()?,
+                        position,
+                    )
+                }
+                Action::OwnedIntoMemoryBlock(ConversionState { place, condition }) => {
+                    let position = place.position();
+                    vir_mid::Statement::convert_owned_into_memory_block(
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        position,
+                    )
+                }
+                Action::RestoreMutBorrowed(RestorationState {
+                    lifetime,
+                    place,
                     condition,
-                    statement.position(),
-                ),
+                }) => {
+                    let position = place.position();
+                    vir_mid::Statement::restore_mut_borrowed(
+                        lifetime.to_middle_type(self.encoder)?,
+                        place.to_middle_expression(self.encoder)?,
+                        condition,
+                        position,
+                    )
+                }
             };
             self.current_statements.push(statement);
         }
         state.remove_permissions(&consumed_permissions)?;
         state.insert_permissions(produced_permissions)?;
-        if let vir_high::Statement::LeakAll(vir_high::LeakAll {}) = &statement {
-            // FIXME: Instead of leaking, we should:
-            // 1. Unfold all Owned into MemoryBlock.
-            // 2. Deallocate all MemoryBlock.
-            // 3. Perform a leak check (this actually should be done always at
-            //    the end of the exit block).
-            state.clear()?;
-        } else {
-            self.current_statements
-                .push(statement.to_middle_statement(self.encoder)?);
+        match &statement {
+            vir_high::Statement::LeakAll(vir_high::LeakAll {}) => {
+                // FIXME: Instead of leaking, we should:
+                // 1. Unfold all Owned into MemoryBlock.
+                // 2. Deallocate all MemoryBlock.
+                // 3. Perform a leak check (this actually should be done always at
+                //    the end of the exit block).
+                state.clear()?;
+            }
+            vir_high::Statement::SetUnionVariant(statement) => {
+                let position = statement.position();
+                // Split the memory block for the union itself.
+                let parent = statement.variant_place.get_parent_ref().unwrap();
+                let place = parent
+                    .get_parent_ref()
+                    .unwrap()
+                    .clone()
+                    .to_middle_expression(self.encoder)?;
+                let variant = parent.clone().unwrap_variant().variant_index;
+                let encoded_statement = vir_mid::Statement::split_block(
+                    place,
+                    None,
+                    Some(variant.to_middle_type(self.encoder)?),
+                    position,
+                );
+                self.current_statements.push(encoded_statement);
+                // Split the memory block for the union's field.
+                let place = parent.clone().to_middle_expression(self.encoder)?;
+                let encoded_statement =
+                    vir_mid::Statement::split_block(place, None, None, position);
+                self.current_statements.push(encoded_statement);
+            }
+            _ => {
+                self.current_statements
+                    .push(statement.to_middle_statement(self.encoder)?);
+            }
         }
         let new_block = self
             .basic_blocks

@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::utils;
-use crate::environment::place_set::PlaceSet;
+use crate::environment::mir_sets::PlaceSet;
 use crate::environment::procedure::BasicBlockIndex;
 use rustc_middle::mir;
 use rustc_middle::mir::visit::Visitor;
@@ -139,9 +139,7 @@ fn order_basic_blocks<'tcx>(
         IndexVec::<BasicBlockIndex, bool>::from_elem_n(false, basic_blocks.len());
     let mut temporary_mark = permanent_mark.clone();
 
-    #[allow(clippy::too_many_arguments)]
-    fn visit<'tcx>(
-        basic_blocks: &IndexVec<BasicBlockIndex, mir::BasicBlockData<'tcx>>,
+    fn visit(
         real_edges: &RealEdges,
         back_edges: &FxHashSet<(BasicBlockIndex, BasicBlockIndex)>,
         loop_depth: &dyn Fn(BasicBlockIndex) -> usize,
@@ -171,7 +169,6 @@ fn order_basic_blocks<'tcx>(
                     continue;
                 }
                 visit(
-                    basic_blocks,
                     real_edges,
                     back_edges,
                     loop_depth,
@@ -189,7 +186,6 @@ fn order_basic_blocks<'tcx>(
     while let Some(index) = permanent_mark.iter().position(|x| !*x) {
         let index = BasicBlockIndex::new(index);
         visit(
-            basic_blocks,
             real_edges,
             back_edges,
             loop_depth,

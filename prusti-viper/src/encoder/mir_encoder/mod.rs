@@ -21,10 +21,12 @@ use rustc_index::vec::IndexVec;
 use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
 use prusti_interface::environment::mir_utils::MirPlace;
-use crate::encoder::mir::types::MirTypeEncoderInterface;
-use super::encoder::SubstMap;
+use crate::encoder::mir::{
+    sequences::MirSequencesEncoderInterface,
+    types::MirTypeEncoderInterface,
+};
 use super::high::types::HighTypeEncoderInterface;
-use rustc_span::MultiSpan;
+use rustc_errors::MultiSpan;
 
 mod downcast_detector;
 mod place_encoding;
@@ -116,7 +118,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
                     ty::TyKind::Adt(adt_def, ref subst) if !adt_def.is_box() => {
                         debug!("subst {:?}", subst);
-                        let num_variants = adt_def.variants.len();
+                        let num_variants = adt_def.variants().len();
                         // FIXME: why this can be None?
                         let variant_index = if let Some(num) = opt_variant_index {
                             num
@@ -135,7 +137,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             0
                         };
                         let tcx = self.encoder().env().tcx();
-                        let variant_def = &adt_def.variants[variant_index.into()];
+                        let variant_def = &adt_def.variants()[variant_index.into()];
                         let encoded_variant = if num_variants != 1 {
                             encoded_base.variant(variant_def.ident(tcx).as_str())
                         } else {
@@ -245,12 +247,12 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let offset = *offset as usize;
                         match base_ty.kind() {
                             ty::TyKind::Array(..) => {
-                                let array_type = self.encoder().encode_array_types(base_ty)?;
-                                (array_type.array_len - offset).into()
+                                let array_type = self.encoder().encode_sequence_types(base_ty)?;
+                                (array_type.sequence_len.unwrap() - offset).into()
                             }
                             ty::TyKind::Slice(_) => {
-                                let slice_type = self.encoder().encode_slice_types(base_ty)?;
-                                let slice_len = slice_type.encode_slice_len_call(
+                                let slice_type = self.encoder().encode_sequence_types(base_ty)?;
+                                let slice_len = slice_type.len(
                                     self.encoder(),
                                     encoded_base.clone().try_into_expr()?,
                                 );
@@ -501,7 +503,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     /// Returns an `vir::Type` that corresponds to the type of the value of the operand
-    pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>, tymap: &SubstMap<'tcx>)
+    pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>)
         -> EncodingResult<vir::Type>
     {
         trace!("Encode operand expr {:?}", operand);
@@ -519,7 +521,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         //     }
         // }
         let ty = operand.ty(self.mir, self.encoder.env().tcx());
-        self.encoder.encode_snapshot_type(ty, tymap)
+        self.encoder.encode_snapshot_type(ty)
     }
 
     pub fn encode_bin_op_expr(
@@ -711,7 +713,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
         span: Span,
-        tymap: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
@@ -771,15 +772,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 let encoded_operand = self.encode_operand_expr(operand).with_span(span)?;
                 if config::check_overflows() {
                     // Check the cast
-                    let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty, tymap)
+                    let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty)
                         .with_span(span)?;
                     let encoded_args = vec![encoded_operand];
                     let formal_args = vec![vir::LocalVar::new(
                         String::from("number"),
-                        self.encode_operand_expr_type(operand, tymap).with_span(span)?,
+                        self.encode_operand_expr_type(operand).with_span(span)?,
                     )];
                     let pos = self.register_error(span, ErrorCtxt::TypeCast);
-                    let return_type = self.encoder.encode_snapshot_type(dst_ty, tymap).with_span(span)?;
+                    let return_type = self.encoder.encode_snapshot_type(dst_ty).with_span(span)?;
                     return Ok(vir::Expr::func_app(
                         function_name,
                         vec![], // FIXME: This is probably wrong.

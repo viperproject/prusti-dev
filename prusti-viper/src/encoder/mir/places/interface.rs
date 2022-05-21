@@ -1,5 +1,4 @@
 use crate::encoder::{
-    encoder::SubstMap,
     errors::{
         EncodingError, EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult,
         WithSpan,
@@ -22,13 +21,6 @@ trait PlacesEncoderInterfacePrivate<'tcx> {}
 impl<'v, 'tcx: 'v> PlacesEncoderInterfacePrivate<'tcx> for super::super::super::Encoder<'v, 'tcx> {}
 
 pub(crate) trait PlacesEncoderInterface<'tcx> {
-    fn is_local_copy(
-        &self,
-        mir: &mir::Body<'tcx>,
-        local: mir::Local,
-        param_env: ty::ParamEnv<'tcx>,
-    ) -> SpannedEncodingResult<bool>;
-
     fn get_local_span(
         &self,
         mir: &mir::Body<'tcx>,
@@ -112,22 +104,11 @@ pub(crate) trait PlacesEncoderInterface<'tcx> {
         def_id: DefId,
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
-        tymap: &SubstMap<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression>;
 }
 
 impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
-    fn is_local_copy(
-        &self,
-        mir: &mir::Body<'tcx>,
-        local: mir::Local,
-        param_env: ty::ParamEnv<'tcx>,
-    ) -> SpannedEncodingResult<bool> {
-        let mir_type = self.get_local_type(mir, local)?;
-        Ok(self.env().type_is_copy(mir_type, param_env))
-    }
-
     fn get_local_span(
         &self,
         mir: &mir::Body<'tcx>,
@@ -202,8 +183,21 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     let parent_type = self
                         .encode_place_type_high(parent_mir_type)
                         .with_span(span)?;
-                    let encoded_field = self.encode_field(&parent_type, field).with_span(span)?;
-                    expr.field_no_pos(encoded_field)
+                    if parent_type.is_union() {
+                        // We treat union fields as variants.
+                        let union_decl = self.encode_type_def(&parent_type)?.unwrap_union();
+                        let variant = &union_decl.variants[field.index()];
+                        let variant_index: vir_high::ty::VariantIndex = variant.name.clone().into();
+                        let variant_type = parent_type.variant(variant_index.clone());
+                        let variant_expression =
+                            vir_high::Expression::variant_no_pos(expr, variant_index, variant_type);
+                        let encoded_field = variant.fields[0].clone();
+                        variant_expression.field_no_pos(encoded_field)
+                    } else {
+                        let encoded_field =
+                            self.encode_field(&parent_type, field).with_span(span)?;
+                        expr.field_no_pos(encoded_field)
+                    }
                 }
                 mir::ProjectionElem::Index(index) => {
                     debug!("index: {:?}[{:?}]", expr, index);
@@ -465,7 +459,6 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         def_id: DefId,
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
-        tymap: &SubstMap<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let src_ty = self.get_operand_type(mir, operand)?;
@@ -531,7 +524,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     // Check the cast
                     // FIXME: Should use a high function.
                     let function_name = self
-                        .encode_cast_function_use(src_ty, dst_ty, tymap)
+                        .encode_cast_function_use(src_ty, dst_ty)
                         .with_span(span)?;
                     let position =
                         self.error_manager()

@@ -261,7 +261,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 Entry::Tuple(fields)
             }
             (ty::TyKind::Adt(adt_def, subst), _) if adt_def.is_struct() => {
-                let variant = adt_def.variants.iter().next().unwrap();
+                let variant = adt_def.variants().iter().next().unwrap();
                 let struct_name = variant.ident(self.tcx).name.to_ident_string();
                 let field_entries = self.translate_vardef(
                     variant,
@@ -300,7 +300,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 if let Some(x) = opt_discriminant {
                     // FIXME: should be able to handle larger discriminantes
                     let discriminant = x.parse::<u32>().unwrap();
-                    variant = adt_def.variants.iter().find(|x| get_discriminant_of_vardef(x) == Some(discriminant));
+                    variant = adt_def.variants().iter().find(|x| get_discriminant_of_vardef(x) == Some(discriminant));
                     if let Some(v) = variant {
                         variant_name = v.ident(self.tcx).name.to_ident_string();
                     }

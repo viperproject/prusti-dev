@@ -7,7 +7,7 @@ pub(crate) macro option($option: expr, $some_template: expr, $none_template: exp
     }
 }}
 
-pub(crate) fn cjoin<T: Display>(values: &[T]) -> String {
+pub fn cjoin<T: Display>(values: &[T]) -> String {
     join(", ", values)
 }
 

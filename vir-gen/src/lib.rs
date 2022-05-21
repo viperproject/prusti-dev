@@ -1,3 +1,6 @@
+// This Clippy chcek seems to be always wrong.
+#![allow(clippy::iter_with_drain)]
+
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::mem;
@@ -57,7 +60,7 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
     }
 
     if !error_tokens.is_empty() {
-        unreachable!();
+        unreachable!("{:?}", error_tokens);
     }
 
     quote! { #declarations #error_tokens }

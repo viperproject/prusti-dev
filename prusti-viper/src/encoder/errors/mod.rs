@@ -11,7 +11,7 @@ pub use self::encoding_error::*;
 pub use self::encoding_error_kind::*;
 pub use self::with_span::*;
 pub use self::position_manager::*;
-pub use rustc_span::MultiSpan;
+pub use rustc_errors::MultiSpan;
 
 mod conversions;
 mod spanned_encoding_error;

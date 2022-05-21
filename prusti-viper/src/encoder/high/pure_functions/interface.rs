@@ -12,6 +12,7 @@ pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
     fn encode_discriminant_call(
         &self,
         adt: vir_high::Expression,
+        return_type: vir_high::Type,
     ) -> EncodingResult<vir_high::Expression>;
     fn encode_index_call(
         &self,
@@ -40,6 +41,10 @@ pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
         &self,
         function_identifier: &str,
     ) -> SpannedEncodingResult<(Vec<vir_high::Expression>, Vec<vir_high::Expression>)>;
+    fn get_pure_function_decl_mid(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<vir_mid::FunctionDecl>;
     /// Returns preconditions and postconditions of the specified pure function.
     fn get_pure_function_specs_mid(
         &self,
@@ -54,9 +59,9 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
     fn encode_discriminant_call(
         &self,
         adt: vir_high::Expression,
+        return_type: vir_high::Type,
     ) -> EncodingResult<vir_high::Expression> {
         let name = "discriminant";
-        let return_type = vir_high::Type::Int(vir_high::ty::Int::Isize);
         Ok(vir_high::Expression::function_call(
             name,
             vec![], // FIXME: This is most likely wrong.
@@ -92,7 +97,12 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         // FIXME: Should use encode_builtin_function_use.
         let name = "subslice";
         let element_type = extract_container_element_type(&container)?;
-        let return_type = vir_high::Type::reference(vir_high::Type::slice(element_type.clone()));
+        let pure_lifetime = vir_high::ty::LifetimeConst::erased();
+        let return_type = vir_high::Type::reference(
+            pure_lifetime,
+            vir_high::ty::Uniqueness::Shared,
+            vir_high::Type::slice(element_type.clone()),
+        );
         Ok(vir_high::Expression::function_call(
             name,
             vec![element_type.clone()],
@@ -152,6 +162,35 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         Ok((pres, posts))
     }
 
+    fn get_pure_function_decl_mid(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<vir_mid::FunctionDecl> {
+        let function_decl = self.get_pure_function_decl_high(function_identifier)?;
+        Ok(vir_mid::FunctionDecl {
+            name: function_decl.name.clone(),
+            type_arguments: function_decl
+                .type_arguments
+                .clone()
+                .to_middle_expression(self)?,
+            parameters: function_decl
+                .parameters
+                .clone()
+                .to_middle_expression(self)?,
+            return_type: function_decl
+                .return_type
+                .clone()
+                .to_middle_expression(self)?,
+            pres: function_decl.pres.clone().to_middle_expression(self)?,
+            posts: function_decl.posts.clone().to_middle_expression(self)?,
+            body: function_decl
+                .body
+                .clone()
+                .map(|body| body.to_middle_expression(self))
+                .transpose()?,
+        })
+    }
+
     fn get_pure_function_specs_mid(
         &self,
         function_identifier: &str,
@@ -172,9 +211,11 @@ fn extract_container_element_type(
         | vir_high::Type::Slice(vir_high::ty::Slice { element_type, .. })
         | vir_high::Type::Reference(vir_high::ty::Reference {
             target_type: box vir_high::Type::Array(vir_high::ty::Array { element_type, .. }),
+            ..
         })
         | vir_high::Type::Reference(vir_high::ty::Reference {
             target_type: box vir_high::Type::Slice(vir_high::ty::Slice { element_type, .. }),
+            ..
         }) => Ok(&**element_type),
         container_ty => Err(EncodingError::unsupported(format!(
             "unsupported container: {}",

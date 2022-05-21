@@ -87,6 +87,8 @@ impl Perm {
         }
     }
 
+    // https://github.com/rust-lang/rust-clippy/issues/8542
+    #[allow(clippy::needless_match)]
     pub fn update_perm_amount(self, new_perm: PermAmount) -> Self {
         assert!(self.get_perm_amount().is_valid_for_specs()); // Just a sanity check.
         assert!(new_perm.is_valid_for_specs());

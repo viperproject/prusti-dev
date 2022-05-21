@@ -1,16 +1,16 @@
 // This file was taken from the compiler:
-// https://raw.githubusercontent.com/rust-lang/rust/7be8693984d32d2f65ce9ded4f65b6b7340bddce/compiler/rustc_ty_utils/src/instance.rs
+// https://raw.githubusercontent.com/rust-lang/rust/949b98cab8a186b98bf87e64374b8d0848c55271/compiler/rustc_ty_utils/src/instance.rs
 // This file is licensed under Apache 2.0
-// (https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/LICENSE-APACHE)
+// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-APACHE)
 // and MIT
-// (https://github.com/rust-lang/rust/blob/86f5e177bca8121e1edc9864023a8ea61acf9034/LICENSE-MIT).
+// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-MIT).
 //
 // Changes:
 // + Fix compilation errors.
 // + Use our copy of `codegen_fulfill_obligation` that does not record delayed
 //   span bugs, which is the main motivation for duplication.
+// + `ErrorGuaranteed` changed to `()` (private constructor).
 
-use rustc_errors::ErrorReported;
 use rustc_hir::def_id::DefId;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::ty::subst::SubstsRef;
@@ -102,7 +102,7 @@ impl<'tcx> TypeVisitor<'tcx> for BoundVarsCollector<'tcx> {
     }
 
     fn visit_region(&mut self, r: ty::Region<'tcx>) -> ControlFlow<Self::BreakTy> {
-        match r.kind() {
+        match *r {
             ty::ReLateBound(index, br) if index == self.binder_index => {
                 match self.vars.entry(br.var.as_u32()) {
                     Entry::Vacant(entry) => {
@@ -125,11 +125,12 @@ impl<'tcx> TypeVisitor<'tcx> for BoundVarsCollector<'tcx> {
 pub fn resolve_instance<'tcx>(
     tcx: TyCtxt<'tcx>,
     key: ty::ParamEnvAnd<'tcx, (DefId, SubstsRef<'tcx>)>,
-) -> Result<Option<Instance<'tcx>>, ErrorReported> {
+) -> Result<Option<Instance<'tcx>>, ()> {
     let (param_env, (did, substs)) = key.into_parts();
     if let Some(did) = did.as_local() {
         if let Some(param_did) = tcx.opt_const_param_of(did) {
-            return tcx.resolve_instance_of_const_arg(param_env.and((did, param_did, substs)));
+            return tcx.resolve_instance_of_const_arg(param_env.and((did, param_did, substs)))
+                .map_err(|_| ());
         }
     }
 
@@ -139,7 +140,7 @@ pub fn resolve_instance<'tcx>(
 fn inner_resolve_instance<'tcx>(
     tcx: TyCtxt<'tcx>,
     key: ty::ParamEnvAnd<'tcx, (ty::WithOptConstParam<DefId>, SubstsRef<'tcx>)>,
-) -> Result<Option<Instance<'tcx>>, ErrorReported> {
+) -> Result<Option<Instance<'tcx>>, ()> {
     let (param_env, (def, substs)) = key.into_parts();
 
     let result = if let Some(trait_def_id) = tcx.trait_of_item(def.did) {
@@ -151,14 +152,14 @@ fn inner_resolve_instance<'tcx>(
 
         let def = match *item_type.kind() {
             ty::FnDef(..)
-                if {
-                    let f = item_type.fn_sig(tcx);
-                    f.abi() == Abi::RustIntrinsic || f.abi() == Abi::PlatformIntrinsic
-                } =>
-            {
-                debug!(" => intrinsic");
-                ty::InstanceDef::Intrinsic(def.did)
-            }
+            if {
+                let f = item_type.fn_sig(tcx);
+                f.abi() == Abi::RustIntrinsic || f.abi() == Abi::PlatformIntrinsic
+            } =>
+                {
+                    debug!(" => intrinsic");
+                    ty::InstanceDef::Intrinsic(def.did)
+                }
             ty::FnDef(def_id, substs) if Some(def_id) == tcx.lang_items().drop_in_place_fn() => {
                 let ty = substs.type_at(0);
 
@@ -199,7 +200,7 @@ fn resolve_associated_item<'tcx>(
     param_env: ty::ParamEnv<'tcx>,
     trait_id: DefId,
     rcvr_substs: SubstsRef<'tcx>,
-) -> Result<Option<Instance<'tcx>>, ErrorReported> {
+) -> Result<Option<Instance<'tcx>>, ()> {
     debug!(?trait_item_id, ?param_env, ?trait_id, ?rcvr_substs, "resolve_associated_item");
 
     let trait_ref = ty::TraitRef::from_method(tcx, trait_id, rcvr_substs);
@@ -224,7 +225,7 @@ fn resolve_associated_item<'tcx>(
             let trait_def_id = tcx.trait_id_of_impl(impl_data.impl_def_id).unwrap();
             let trait_def = tcx.trait_def(trait_def_id);
             let leaf_def = trait_def
-                .ancestors(tcx, impl_data.impl_def_id)?
+                .ancestors(tcx, impl_data.impl_def_id).map_err(|_| ())?
                 .leaf_def(tcx, trait_item_id)
                 .unwrap_or_else(|| {
                     panic!("{:?} not found in {:?}", trait_item_id, impl_data.impl_def_id);
@@ -277,7 +278,7 @@ fn resolve_associated_item<'tcx>(
             // we know the error would've been caught (e.g. in an upstream crate).
             //
             // A better approach might be to just introduce a query (returning
-            // `Result<(), ErrorReported>`) for the check that `rustc_typeck`
+            // `Result<(), ErrorGuaranteed>`) for the check that `rustc_typeck`
             // performs (i.e. that the definition's type in the `impl` matches
             // the declaration in the `trait`), so that we can cheaply check
             // here if it failed, instead of approximating it.
@@ -304,7 +305,7 @@ fn resolve_associated_item<'tcx>(
                     let span = tcx.def_span(leaf_def.item.def_id);
                     tcx.sess.delay_span_bug(span, &msg);
 
-                    return Err(ErrorReported);
+                    return Err(());
                 }
             }
 
@@ -374,6 +375,6 @@ fn resolve_associated_item<'tcx>(
         | traits::ImplSource::DiscriminantKind(..)
         | traits::ImplSource::Pointee(..)
         | traits::ImplSource::TraitUpcasting(_)
-        | traits::ImplSource::ConstDrop(_) => None,
+        | traits::ImplSource::ConstDestruct(_) => None,
     })
 }

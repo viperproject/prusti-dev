@@ -3,7 +3,8 @@ use rustc_hir::{
     intravisit::{self, Visitor},
 };
 use rustc_middle::{hir::map::Map};
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
+use rustc_errors::MultiSpan;
 
 use crate::{environment::Environment, PrustiError};
 use std::collections::HashMap;
@@ -27,6 +28,12 @@ pub enum ExternSpecResolverError {
     /// }
     /// ```
     InvalidExternSpecForTraitImpl(DefId, Span),
+
+    /// Occurs when the extern spec is invalid due to mismatched type params.
+    InvalidGenerics(DefId, Span),
+
+    /// Occurs when a trait impl extern spec resolves to the trait method.
+    ResolvedToDefault(DefId, Span),
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone)]
@@ -133,6 +140,33 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
                 unreachable!("External specification declared on a trait implementation did not resolve to a concrete type");
             }
 
+            {
+                // TODO: this resolution happens here but also in SpecCollector
+                // maybe it can be done once only?
+                let (resolved_def_id, _) = self.env.resolve_method_call(
+                    current_def_id,
+                    target_def_id,
+                    substs,
+                );
+                if matches!(extern_spec_kind, ExternSpecKind::TraitImpl)
+                    && resolved_def_id == target_def_id {
+                    // should have resolved but did not: resolved to default
+                    self.errors.push(
+                        ExternSpecResolverError::ResolvedToDefault(target_def_id, span),
+                    );
+                } else {
+                    // A call to the extern spec must be possible with the same exact
+                    // type substitutions applied.
+                    // TODO: there is more that we could check, e.g. that trait
+                    // constraints are the same (otherwise specs might not make sense)
+                    if self.env.identity_substs(resolved_def_id).len() != self.env.identity_substs(current_def_id).len() {
+                        self.errors.push(
+                            ExternSpecResolverError::InvalidGenerics(resolved_def_id, span),
+                        );
+                    }
+                }
+            }
+
             if self.extern_fn_map.contains_key(&extern_spec_decl) {
                 self.register_duplicate_spec(target_def_id, current_def_id, span);
             } else {
@@ -156,7 +190,7 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
         if matches!(extern_spec_kind, ExternSpecKind::InherentImpl) {
             if let ExternSpecDeclaration::TraitImpl(def_id,_) = declared_spec {
                 self.errors.push(
-                    ExternSpecResolverError::InvalidExternSpecForTraitImpl(*def_id, span)
+                    ExternSpecResolverError::InvalidExternSpecForTraitImpl(*def_id, span),
                 );
             }
         }
@@ -170,9 +204,28 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
 
         for error in self.errors.iter() {
             match error {
+                // TODO: branches look very similar
                 ExternSpecResolverError::InvalidExternSpecForTraitImpl(def_id, span) => {
                     let function_name = env.get_item_name(*def_id);
                     let err_note = format!("Defined an external spec for trait method '{}'. Use '#[extern_spec] impl TheTrait for TheStruct {{ ... }}' syntax instead.", function_name);
+                    PrustiError::incorrect(
+                        "Invalid external specification",
+                        MultiSpan::from_span(*span),
+                    ).add_note(err_note, None)
+                        .emit(env);
+                }
+                ExternSpecResolverError::InvalidGenerics(def_id, span) => {
+                    let function_name = env.get_item_name(*def_id);
+                    let err_note = format!("Invalid type parameters for method '{}'. The number of type parameters must match the target method.", function_name);
+                    PrustiError::incorrect(
+                        "Invalid external specification",
+                        MultiSpan::from_span(*span),
+                    ).add_note(err_note, None)
+                        .emit(env);
+                }
+                ExternSpecResolverError::ResolvedToDefault(def_id, span) => {
+                    let function_name = env.get_item_name(*def_id);
+                    let err_note = format!("Specified method ('{}') resolved to the trait's implementation. Add specification to the trait instead.", function_name);
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),
