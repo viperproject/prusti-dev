@@ -16,7 +16,7 @@ use rustc_middle::ty::subst::{Subst, SubstsRef};
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
 
-use rustc_errors::MultiSpan;
+use rustc_errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
 use rustc_span::{Span, symbol::Symbol};
 use std::collections::HashSet;
 use log::{debug, trace};
@@ -76,6 +76,7 @@ pub struct Environment<'tcx> {
     bodies: RefCell<HashMap<LocalDefId, CachedBody<'tcx>>>,
     external_bodies: RefCell<HashMap<DefId, CachedExternalBody<'tcx>>>,
     tcx: TyCtxt<'tcx>,
+    warn_buffer: RefCell<Vec<rustc_errors::Diagnostic>>,
 }
 
 impl<'tcx> Environment<'tcx> {
@@ -85,6 +86,7 @@ impl<'tcx> Environment<'tcx> {
             tcx,
             bodies: RefCell::new(HashMap::new()),
             external_bodies: RefCell::new(HashMap::new()),
+            warn_buffer: RefCell::new(Vec::new()),
         }
     }
 
@@ -142,6 +144,25 @@ impl<'tcx> Environment<'tcx> {
     //     self.state.session.span_err(sp, msg);
     // }
 
+    fn configure_diagnostic<S: Into<MultiSpan> + Clone, T: EmissionGuarantee>(
+        diagnostic: &mut DiagnosticBuilder<T>,
+        sp: S,
+        help: &Option<String>,
+        notes: &[(String, Option<S>)]
+    ) {
+        diagnostic.set_span(sp);
+        if let Some(help_msg) = help {
+            diagnostic.help(help_msg);
+        }
+        for (note_msg, opt_note_sp) in notes {
+            if let Some(note_sp) = opt_note_sp {
+                diagnostic.span_note(note_sp.clone(), note_msg);
+            } else {
+                diagnostic.note(note_msg);
+            }
+        }
+    }
+
     /// Emits an error message.
     pub fn span_err_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
@@ -151,21 +172,14 @@ impl<'tcx> Environment<'tcx> {
         notes: &[(String, Option<S>)],
     ) {
         let mut diagnostic = self.tcx.sess.struct_err(msg);
-        diagnostic.set_span(sp);
-        if let Some(help_msg) = help {
-            diagnostic.help(help_msg);
-        }
-        for (note_msg, opt_note_sp) in notes {
-            if let Some(note_sp) = opt_note_sp {
-                diagnostic.span_note(note_sp.clone(), note_msg);
-            } else {
-                diagnostic.note(note_msg);
-            }
+        Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
+        for warn in self.warn_buffer.borrow_mut().iter_mut() {
+            self.tcx.sess.diagnostic().emit_diagnostic(warn);
         }
         diagnostic.emit();
     }
 
-    /// Emits an error message.
+    /// Emits a warning message.
     pub fn span_warn_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
@@ -174,18 +188,21 @@ impl<'tcx> Environment<'tcx> {
         notes: &[(String, Option<S>)],
     ) {
         let mut diagnostic = self.tcx.sess.struct_warn(msg);
-        diagnostic.set_span(sp);
-        if let Some(help_msg) = help {
-            diagnostic.help(help_msg);
-        }
-        for (note_msg, opt_note_sp) in notes {
-            if let Some(note_sp) = opt_note_sp {
-                diagnostic.span_note(note_sp.clone(), note_msg);
-            } else {
-                diagnostic.note(note_msg);
-            }
-        }
+        Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
         diagnostic.emit();
+    }
+
+    /// Buffers a warning message, to be emitted on error.
+    pub fn span_warn_on_err_with_help_and_notes<S: Into<MultiSpan> + Clone>(
+        &self,
+        sp: S,
+        msg: &str,
+        help: &Option<String>,
+        notes: &[(String, Option<S>)],
+    ) {
+        let mut diagnostic = self.tcx.sess.struct_warn(msg);
+        Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
+        diagnostic.buffer(&mut self.warn_buffer.borrow_mut());
     }
 
     /// Returns true if an error has been emitted
