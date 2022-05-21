@@ -16,13 +16,13 @@ pub enum Tree<T: Ord> {
 #[extern_spec]
 trait Ord {
     #[pure]
-    #[ensures(match (result, Self::cmp(other, self)) {
+    #[ensures(match (result, other.cmp(self)) {
         (Equal, Equal) |
         (Less, Greater) |
         (Greater, Less) => true,
         _ => false,
     })]
-    #[ensures(forall(|x: &Self| match (result, Self::cmp(other, x), Self::cmp(self, x)) {
+    #[ensures(forall(|x: &Self| match (result, other.cmp(x), self.cmp(x)) {
         (Equal, Equal, Equal) => true,
         (Equal, Less, Less) => true,
         (Equal, Greater, Greater) => true,
