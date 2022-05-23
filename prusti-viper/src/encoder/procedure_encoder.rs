@@ -66,6 +66,7 @@ use crate::encoder::mir::types::MirTypeEncoderInterface;
 use crate::encoder::mir::pure::SpecificationEncoderInterface;
 use crate::encoder::mir::specifications::SpecificationsInterface;
 use super::high::generics::HighGenericsEncoderInterface;
+use super::counterexample2::DiscriminantsStateInterface;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,

@@ -33,5 +33,8 @@ mod middle;
 mod purifier;
 mod array_encoder;
 pub mod counterexample;
+pub mod counterexample_refactored;
 pub mod counterexample_translation;
+pub mod counterexample_translation_refactored;
 mod definition_collector;
+mod counterexample2;

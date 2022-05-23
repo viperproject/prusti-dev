@@ -10,6 +10,7 @@ use prusti_common::{
 };
 use crate::encoder::Encoder;
 use crate::encoder::counterexample_translation;
+//use crate::encoder::counterexample_translation_refactored;
 // use prusti_filter::validators::Validator;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
@@ -317,24 +318,47 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
             // annotate with counterexample, if requested
             if config::produce_counterexample() {
-                if let Some(silicon_counterexample) = &verification_error.counterexample {
-                    if let Some(def_id) = error_manager.get_def_id(&verification_error) {
-                        let counterexample = counterexample_translation::backtranslate(
-                            &self.encoder,
-                            def_id,
-                            silicon_counterexample,
-                        );
-                        prusti_error = counterexample.annotate_error(prusti_error);
-                    } else {
-                        prusti_error = prusti_error.add_note(
-                            format!(
-                                "the verifier produced a counterexample for {}, but it could not be mapped to source code",
-                                method
-                            ),
-                            None,
-                        );
+                if config::unsafe_core_proof(){
+                 /* if let Some(silicon_counterexample) = &verification_error.counterexample {
+                        if let Some(def_id) = error_manager.get_def_id(&verification_error) {
+                            let counterexample = counterexample_translation_refactored::backtranslate(
+                                &self.encoder,
+                                error_manager.position_manager(),
+                                def_id,
+                                silicon_counterexample,
+                            );
+                            prusti_error = counterexample.annotate_error(prusti_error);
+                        } else {
+                            prusti_error = prusti_error.add_note(
+                                format!(
+                                    "the verifier produced a counterexample for {}, but it could not be mapped to source code",
+                                    method
+                                ),
+                                None,
+                            );
+                        }
+                    }*/
+                } else {
+                    if let Some(silicon_counterexample) = &verification_error.counterexample {
+                        if let Some(def_id) = error_manager.get_def_id(&verification_error) {
+                            let counterexample = counterexample_translation::backtranslate(
+                                &self.encoder,
+                                def_id,
+                                silicon_counterexample,
+                            );
+                            prusti_error = counterexample.annotate_error(prusti_error);
+                        } else {
+                            prusti_error = prusti_error.add_note(
+                                format!(
+                                    "the verifier produced a counterexample for {}, but it could not be mapped to source code",
+                                    method
+                                ),
+                                None,
+                            );
+                        }
                     }
                 }
+                
             }
 
             prusti_errors.push(prusti_error);
