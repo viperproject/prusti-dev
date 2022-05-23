@@ -5,12 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use ::log::{info, debug, trace};
-use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
 use crate::encoder::foldunfold;
-use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
@@ -26,25 +24,29 @@ use vir_crate::common::identifier::WithIdentifier;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use rustc_middle::ty;
-use rustc_middle::ty::subst::SubstsRef;
 use std::cell::{Cell, RefCell, RefMut, Ref};
 use rustc_hash::FxHashMap;
 use std::io::Write;
 use std::rc::Rc;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
+use prusti_interface::specs::typed::ProcedureSpecificationKind;
 use crate::encoder::name_interner::NameInterner;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::interface::{SnapshotEncoderInterface, SnapshotEncoderState};
 use crate::encoder::purifier;
-use crate::encoder::array_encoder::{SequenceTypesEncoder, EncodedSequenceTypes};
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
-use super::mir::procedures::MirProcedureEncoderState;
-use super::mir::type_layouts::MirTypeLayoutsEncoderState;
 use super::mir::{
+    sequences::{
+        MirSequencesEncoderState, MirSequencesEncoderInterface,
+    },
+    contracts::ContractsEncoderState,
+    procedures::MirProcedureEncoderState,
+    type_invariants::TypeInvariantEncoderState,
+    type_layouts::MirTypeLayoutsEncoderState,
     pure::{
         PureFunctionEncoderState, PureFunctionEncoderInterface,
     },
@@ -63,29 +65,27 @@ use super::counterexample2::{DiscriminantsStateInterface, DiscriminantsState};
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
     error_manager: RefCell<ErrorManager<'tcx>>,
-    procedure_contracts: RefCell<FxHashMap<
-        ProcedureDefId,
-        EncodingResult<ProcedureContractMirDef<'tcx>>
-    >>,
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
     builtin_methods: RefCell<FxHashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     pub(super) high_builtin_function_encoder_state: HighBuiltinFunctionEncoderState,
     procedures: RefCell<FxHashMap<ProcedureDefId, vir::CfgMethod>>,
     programs: Vec<vir::Program>,
+    pub(super) mir_sequences_encoder_state: MirSequencesEncoderState<'tcx>,
+    pub(super) contracts_encoder_state: ContractsEncoderState<'tcx>,
     pub(super) mir_procedure_encoder_state: MirProcedureEncoderState,
     pub(super) mir_type_layouts_encoder_state: MirTypeLayoutsEncoderState,
     pub(super) mid_core_proof_encoder_state: MidCoreProofEncoderState,
     pub(super) mir_type_encoder_state: MirTypeEncoderState<'tcx>,
+    pub(super) type_invariant_encoder_state: TypeInvariantEncoderState<'tcx>,
     pub(super) high_type_encoder_state: HighTypeEncoderState<'tcx>,
     pub(super) pure_function_encoder_state: PureFunctionEncoderState<'v, 'tcx>,
-    pub(super) specifications_state: SpecificationsState,
+    pub(super) specifications_state: SpecificationsState<'tcx>,
     spec_functions: RefCell<FxHashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_discriminant_funcs: RefCell<FxHashMap<String, vir::FunctionIdentifier>>,
     type_cast_functions: RefCell<FxHashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
     pub(super) snapshot_encoder_state: SnapshotEncoderState,
     pub(super) mirror_encoder: RefCell<MirrorEncoder>,
-    array_types_encoder: RefCell<SequenceTypesEncoder<'tcx>>,
     encoding_queue: RefCell<Vec<EncodingTask<'tcx>>>,
     vir_program_before_foldunfold_writer: Option<RefCell<Box<dyn Write>>>,
     vir_program_before_viper_writer: Option<RefCell<Box<dyn Write>>>,
@@ -140,16 +140,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Encoder {
             env,
             error_manager: RefCell::new(ErrorManager::new(env.codemap())),
-            procedure_contracts: RefCell::new(FxHashMap::default()),
             functions: RefCell::new(FxHashMap::default()),
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
             programs: Vec::new(),
+            mir_sequences_encoder_state: Default::default(),
             mir_procedure_encoder_state: Default::default(),
             mir_type_layouts_encoder_state: Default::default(),
             mid_core_proof_encoder_state: Default::default(),
             procedures: RefCell::new(FxHashMap::default()),
+            contracts_encoder_state: Default::default(),
             mir_type_encoder_state: Default::default(),
+            type_invariant_encoder_state: Default::default(),
             high_type_encoder_state: Default::default(),
             pure_function_encoder_state: Default::default(),
             spec_functions: RefCell::new(FxHashMap::default()),
@@ -160,7 +162,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             vir_program_before_viper_writer,
             snapshot_encoder_state: Default::default(),
             mirror_encoder: RefCell::new(MirrorEncoder::new()),
-            array_types_encoder: RefCell::new(SequenceTypesEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
             discriminants_info: RefCell::new(FxHashMap::default()),
@@ -282,18 +283,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.procedures.borrow_mut().drain().map(|(_, value)| value).collect()
     }
 
-    fn get_procedure_contract(
-        &self,
-        proc_def_id: ProcedureDefId,
-        substs: SubstsRef<'tcx>,
-    ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-        let spec = typed::SpecificationSet::Procedure(
-            self.get_procedure_specs(proc_def_id)
-                .unwrap_or_else(typed::ProcedureSpecification::empty)
-        );
-        compute_procedure_contract(proc_def_id, self.env(), spec, substs)
-    }
-
     /// Extract scalar value, invoking const evaluation if necessary.
     pub fn const_eval_intlike(
         &self,
@@ -320,71 +309,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 format!("unsupported constant value: {:?}", value)
             ))
         }
-    }
-
-    pub fn get_mir_procedure_contract_for_def(
-        &self,
-        proc_def_id: ProcedureDefId,
-        substs: SubstsRef<'tcx>,
-    ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-        self.procedure_contracts
-            .borrow_mut()
-            .entry(proc_def_id)
-            .or_insert_with(|| self.get_procedure_contract(proc_def_id, substs))
-            .clone()
-    }
-
-    pub fn get_mir_procedure_contract_for_call(
-        &self,
-        caller_def_id: ProcedureDefId,
-        called_def_id: ProcedureDefId,
-        call_substs: SubstsRef<'tcx>,
-    ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-        let (called_def_id, call_substs) = self.env()
-            .resolve_method_call(caller_def_id, called_def_id, call_substs);
-        let spec = self.get_procedure_specs(called_def_id)
-            .unwrap_or_else(typed::ProcedureSpecification::empty);
-        let contract = compute_procedure_contract(
-            called_def_id,
-            self.env(),
-            typed::SpecificationSet::Procedure(spec),
-            call_substs,
-        )?;
-        Ok(contract)
-    }
-
-    pub fn get_procedure_contract_for_def(
-        &self,
-        proc_def_id: ProcedureDefId,
-        substs: SubstsRef<'tcx>,
-    ) -> EncodingResult<ProcedureContract<'tcx>> {
-        self.procedure_contracts
-            .borrow_mut()
-            .entry(proc_def_id)
-            .or_insert_with(|| self.get_procedure_contract(proc_def_id, substs)).as_ref()
-            .map(|contract| contract.to_def_site_contract())
-            .map_err(|err| err.clone())
-    }
-
-    pub fn get_procedure_contract_for_call(
-        &self,
-        caller_def_id: ProcedureDefId,
-        called_def_id: ProcedureDefId,
-        args: &[places::Local],
-        target: places::Local,
-        call_substs: SubstsRef<'tcx>,
-    ) -> EncodingResult<ProcedureContract<'tcx>> {
-        let (called_def_id, call_substs) = self.env()
-            .resolve_method_call(caller_def_id, called_def_id, call_substs);
-        let spec = self.get_procedure_specs(called_def_id)
-            .unwrap_or_else(typed::ProcedureSpecification::empty);
-        let contract = compute_procedure_contract(
-            called_def_id,
-            self.env(),
-            typed::SpecificationSet::Procedure(spec),
-            call_substs,
-        )?;
-        Ok(contract.to_call_site_contract(args, target))
     }
 
     /// Encodes a value in a field if the base expression is a reference or
@@ -576,7 +500,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<()> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
-            !self.is_trusted(def_id),
+            !self.is_trusted(def_id, None),
             "procedure is marked as trusted: {:?}",
             def_id
         );
@@ -739,67 +663,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_item_name(&self, def_id: DefId) -> String {
         let full_name = format!("m_{}", encode_identifier(self.env.get_unique_item_name(def_id)));
         let short_name = format!("m_{}", encode_identifier(
-            self.env.tcx().opt_item_name(def_id)
-                .map(|s| s.name.to_ident_string())
-                .unwrap_or_else(|| self.env.get_item_name(def_id))
+            self.env.get_item_name(def_id)
         ));
         self.intern_viper_identifier(full_name, short_name)
-    }
-
-    pub fn encode_lifetime_name(&self, region: &ty::Region) -> String {
-        match region.kind() {
-            ty::ReEarlyBound(_) => {
-                unimplemented!("ReEarlyBound: {}", format!("{}", region));
-            },
-            ty::ReLateBound(debruijn, bound_reg) => {
-                format!("lft_late_{}_{}", debruijn.index(), bound_reg.var.index())
-            },
-            ty::ReFree(_) => {
-                unimplemented!("ReFree: {}", format!("{}", region));
-            },
-            ty::ReStatic=> String::from("lft_static"),
-            ty::ReVar(region_vid) => format!("lft_{}", region_vid.index()),
-            ty::RePlaceholder(_) => {
-                unimplemented!("RePlaceholder: {}", format!("{}", region));
-            },
-            ty::ReEmpty(_) => {
-                unimplemented!("ReEmpty: {}", format!("{}", region));
-            },
-            ty::ReErased => String::from("lft_erased"),
-        }
-    }
-
-    pub fn encode_invariant_func_app(
-        &self,
-        ty: ty::Ty<'tcx>,
-        encoded_arg: vir::Expr
-    ) -> EncodingResult<vir::Expr> {
-        trace!("encode_invariant_func_app: {:?}", ty.kind());
-        let type_pred = self.encode_type(ty)
-            .expect("failed to encode unsupported type");
-        Ok(vir::Expr::FuncApp( vir::FuncApp {
-            function_name: self.encode_type_invariant_use(ty)?,
-            type_arguments: vec![],
-            arguments: vec![encoded_arg],
-            // TODO ?
-            formal_arguments: vec![vir_local!{ self: { type_pred } }],
-            return_type: vir::Type::Bool,
-            // TODO
-            position: vir::Position::default(),
-        }))
-    }
-
-    pub fn encode_tag_func_app(&self, ty: ty::Ty<'tcx>) -> vir::Expr {
-        vir::Expr::FuncApp( vir::FuncApp {
-            function_name: self.encode_type_tag_use(ty),
-            type_arguments: vec![],
-            arguments: vec![],
-            // TODO ?
-            formal_arguments: vec![],
-            return_type: vir::Type::Int,
-            // TODO
-            position: vir::Position::default(),
-        })
     }
 
     pub fn get_item_name(&self, proc_def_id: ProcedureDefId) -> String {
@@ -811,7 +677,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .borrow_mut()
             .push((proc_def_id, Vec::new()));
     }
-
 
     pub fn process_encoding_queue(&mut self) {
         self.initialize();
@@ -831,7 +696,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 continue;
             }
 
-            if self.is_pure(proc_def_id) {
+            let proc_kind = self.get_proc_kind(proc_def_id, None);
+
+            if matches!(proc_kind, ProcedureSpecificationKind::Pure) {
                 // Check that the pure Rust function satisfies the basic
                 // requirements by trying to encode it as a Viper function,
                 // which will automatically run the validity checks.
@@ -846,20 +713,33 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     continue;
                 }
             }
-            if self.is_trusted(proc_def_id) {
-                debug!(
-                    "Trusted procedure will not be encoded or verified: {:?}",
-                    proc_def_id
-                );
-            } else if let Err(error) = self.encode_procedure(proc_def_id) {
-                self.register_encoding_error(error);
-                debug!("Error encoding function: {:?}", proc_def_id);
-            } else {
-                match self.finalize_viper_program(proc_name, proc_def_id) {
-                    Ok(program) => self.programs.push(program),
-                    Err(error) => {
+
+            match proc_kind {
+                _ if self.is_trusted(proc_def_id, None) => {
+                    debug!(
+                        "Trusted procedure will not be encoded or verified: {:?}",
+                        proc_def_id
+                    );
+                },
+                ProcedureSpecificationKind::Predicate(_) => {
+                    debug!(
+                        "Predicates will not be encoded or verified: {:?}",
+                        proc_def_id
+                    );
+                },
+                ProcedureSpecificationKind::Pure |
+                ProcedureSpecificationKind::Impure => {
+                    if let Err(error) = self.encode_procedure(proc_def_id) {
                         self.register_encoding_error(error);
-                        debug!("Error finalizing program: {:?}", proc_def_id);
+                        debug!("Error encoding function: {:?}", proc_def_id);
+                    } else {
+                        match self.finalize_viper_program(proc_name, proc_def_id) {
+                            Ok(program) => self.programs.push(program),
+                            Err(error) => {
+                                self.register_encoding_error(error);
+                                debug!("Error finalizing program: {:?}", proc_def_id);
+                            }
+                        }
                     }
                 }
             }
@@ -881,9 +761,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             "sf_{}_{}",
             kind_name,
             encode_identifier(
-                self.env.tcx().opt_item_name(def_id)
-                    .map(|s| s.name.to_ident_string())
-                    .unwrap_or_else(|| self.env.get_item_name(def_id))
+                self.env.get_item_name(def_id)
             )
         );
         self.intern_viper_identifier(full_name, short_name)
@@ -898,15 +776,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             full_name.as_ref().to_string()
         };
         result
-    }
-
-    pub fn encode_sequence_types(
-        &self,
-        sequence_ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<EncodedSequenceTypes<'tcx>> {
-        self.array_types_encoder
-            .borrow_mut()
-            .encode_sequence_types(self, sequence_ty)
     }
 
     pub fn encode_struct_field_value(

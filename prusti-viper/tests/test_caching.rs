@@ -6,7 +6,6 @@
 
 use std::{
     collections::HashMap,
-    env,
     fs,
     path::{PathBuf, Path},
     process::Command,
@@ -65,11 +64,9 @@ fn test_prusti_rustc_caching() {
         let out = Command::new(&prusti_rustc)
             .arg("--edition=2018")
             .arg(program)
-            .env_clear()
             .env("RUST_BACKTRACE", "1")
             .env("PRUSTI_DUMP_VIPER_PROGRAM", "true")
             .env("PRUSTI_PRINT_HASH", "true")
-            .env("PATH", env!("PATH"))
             .output()
             .expect("failed to execute prusti-rustc");
         assert!(out.status.success(), "Failed to compile: {:?}\n{}", program, String::from_utf8(out.stderr).unwrap());

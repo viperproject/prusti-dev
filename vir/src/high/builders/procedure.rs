@@ -91,10 +91,13 @@ impl ProcedureBuilder {
             statements: Vec::new(),
             successor: vir_high::Successor::Exit,
         };
-        assert!(basic_blocks.insert(self.end_label, end_block).is_none());
+        assert!(basic_blocks
+            .insert(self.end_label.clone(), end_block)
+            .is_none());
         vir_high::ProcedureDecl {
             name: self.name,
             entry: self.start_label,
+            exit: self.end_label,
             basic_blocks,
         }
     }
@@ -148,6 +151,11 @@ impl<'a> BasicBlockBuilder<'a> {
     pub fn add_statement(&mut self, statement: vir_high::Statement) {
         statement.check_no_default_position();
         self.statements.push(statement);
+    }
+    pub fn add_statements(&mut self, statements: Vec<vir_high::Statement>) {
+        for statement in statements {
+            self.add_statement(statement);
+        }
     }
     pub fn set_successor(&mut self, successor: SuccessorBuilder) {
         assert!(self.successor == SuccessorBuilder::Undefined);

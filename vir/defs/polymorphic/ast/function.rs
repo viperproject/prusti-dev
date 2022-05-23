@@ -105,7 +105,9 @@ pub fn compute_identifier(
 ) -> String {
     let mut identifier = name.to_string();
     // Include the signature of the function in the function name
-    identifier.push_str("__$TY$__");
+    if !type_arguments.is_empty() {
+        identifier.push_str("__$TY$__");
+    }
     fn type_name(typ: &Type) -> String {
         match typ {
             Type::Int => "$int$".to_string(),
@@ -117,6 +119,11 @@ pub fn compute_identifier(
             Type::Domain(_) => typ.name(),
             Type::Snapshot(_) => format!("Snap${}", typ.name()),
             Type::Seq(seq_type) => format!("Seq${}", type_name(&seq_type.typ)),
+            Type::Map(map) => format!(
+                "Map${}${}",
+                type_name(&map.key_type),
+                type_name(&map.val_type)
+            ),
         }
     }
     for arg in type_arguments {

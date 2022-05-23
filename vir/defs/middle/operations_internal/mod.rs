@@ -9,4 +9,5 @@ copy_module!(crate::high::operations_internal::ty);
 copy_module!(crate::high::operations_internal::type_decl);
 copy_module!(crate::high::operations_internal::special_variables);
 copy_module!(crate::high::operations_internal::rvalue);
+copy_module!(crate::high::operations_internal::function);
 pub mod position;

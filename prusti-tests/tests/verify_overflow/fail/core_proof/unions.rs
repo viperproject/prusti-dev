@@ -23,4 +23,19 @@ fn test3() {
     let _y = unsafe { a.f2 };   //~ ERROR: failed to unpack the capability of union's field
 }
 
+fn test4() {
+    let mut a = MyUnion { f1: 1 };
+    assert!(unsafe { a.f1 == 1});
+    a.f1 = 2;
+    assert!(unsafe { a.f1 == 2});
+}
+
+fn test5() {
+    let mut a = MyUnion { f1: 1 };
+    assert!(unsafe { a.f1 == 1});
+    a.f1 = 2;
+    assert!(unsafe { a.f1 == 2});
+    assert!(unsafe { a.f1 == 3}); //~ ERROR: the asserted expression might not hold
+}
+
 fn main() {}

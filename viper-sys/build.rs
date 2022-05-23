@@ -577,6 +577,9 @@ fn main() {
             java_class!("viper.silver.ast.PermDiv", vec![
                 constructor!(),
             ]),
+            java_class!("viper.silver.ast.Positioned", vec![
+                method!("pos"),
+            ]),
             java_class!("viper.silver.ast.Predicate", vec![
                 constructor!(),
             ]),
@@ -623,6 +626,36 @@ fn main() {
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.SeqUpdate", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapType", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.EmptyMap", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.ExplicitMap", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.Maplet", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapUpdate", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapLookup", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapContains", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapCardinality", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapDomain", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapRange", vec![
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.SetType", vec![
@@ -682,6 +715,7 @@ fn main() {
             ]),
             java_class!("viper.silver.verifier.VerificationError", vec![
                 method!("id"),
+                method!("offendingNode"),
                 method!("pos"),
                 method!("fullId"),
                 method!("reason"),

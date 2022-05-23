@@ -2,7 +2,7 @@ pub(crate) use super::{
     super::{cfg::procedure::BasicBlockId, operations_internal::ty::Typed, Expression, Position},
     predicate::Predicate,
     rvalue::{Operand, Rvalue},
-    ty::{Type, VariantIndex},
+    ty::{LifetimeConst, Type, VariantIndex},
     variable::VariableDecl,
 };
 use crate::common::display;
@@ -13,9 +13,11 @@ use crate::common::display;
 #[allow(clippy::large_enum_variant)]
 pub enum Statement {
     Comment(Comment),
+    OldLabel(OldLabel),
     Inhale(Inhale),
     Exhale(Exhale),
     Consume(Consume),
+    Havoc(Havoc),
     Assume(Assume),
     Assert(Assert),
     FoldOwned(FoldOwned),
@@ -23,16 +25,33 @@ pub enum Statement {
     JoinBlock(JoinBlock),
     SplitBlock(SplitBlock),
     ConvertOwnedIntoMemoryBlock(ConvertOwnedIntoMemoryBlock),
+    RestoreMutBorrowed(RestoreMutBorrowed),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
     WritePlace(WritePlace),
     WriteAddress(WriteAddress),
     Assign(Assign),
+    NewLft(NewLft),
+    EndLft(EndLft),
+    Dead(Dead),
+    LifetimeTake(LifetimeTake),
+    LifetimeReturn(LifetimeReturn),
+    OpenMutRef(OpenMutRef),
+    OpenFracRef(OpenFracRef),
+    CloseMutRef(CloseMutRef),
+    CloseFracRef(CloseFracRef),
 }
 
 #[display(fmt = "// {}", comment)]
 pub struct Comment {
     pub comment: String,
+}
+
+// A label to which it is possible to refer with `LabelledOld` expressions.
+#[display(fmt = "old-label {}", name)]
+pub struct OldLabel {
+    pub name: String,
+    pub position: Position,
 }
 
 /// Inhale the permission denoted by the place.
@@ -53,6 +72,13 @@ pub struct Exhale {
 /// Consume the operand.
 pub struct Consume {
     pub operand: Operand,
+    pub position: Position,
+}
+
+#[display(fmt = "havoc {}", predicate)]
+/// Havoc the permission denoted by the place.
+pub struct Havoc {
+    pub predicate: Predicate,
     pub position: Position,
 }
 
@@ -136,6 +162,20 @@ pub struct ConvertOwnedIntoMemoryBlock {
     pub position: Position,
 }
 
+/// Restore a mutably borrowed place.
+#[display(
+    fmt = "restore-mut-borrowed{} &{} {}",
+    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    lifetime,
+    place
+)]
+pub struct RestoreMutBorrowed {
+    pub lifetime: LifetimeConst,
+    pub place: Expression,
+    pub condition: Option<Vec<BasicBlockId>>,
+    pub position: Position,
+}
+
 #[display(fmt = "move {} ← {}", target, source)]
 pub struct MovePlace {
     pub target: Expression,
@@ -143,11 +183,20 @@ pub struct MovePlace {
     pub position: Position,
 }
 
-#[display(fmt = "copy {} ← {}", target, source)]
+#[display(
+    fmt = "copy{} {} ← {}",
+    "display::option!(source_permission, \"({})\", \"\")",
+    target,
+    source
+)]
 /// Copy assignment.
+///
+/// If `source_permission` is `None`, it means `write`. Otherwise, it is a
+/// variable denoting the permission amount.
 pub struct CopyPlace {
     pub target: Expression,
     pub source: Expression,
+    pub source_permission: Option<VariableDecl>,
     pub position: Position,
 }
 
@@ -171,5 +220,109 @@ pub struct WriteAddress {
 pub struct Assign {
     pub target: Expression,
     pub value: Rvalue,
+    pub position: Position,
+}
+
+#[display(fmt = "{} = newlft()", target)]
+pub struct NewLft {
+    pub target: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "endlft({})", lifetime)]
+pub struct EndLft {
+    pub lifetime: VariableDecl,
+    pub position: Position,
+}
+
+#[display(fmt = "dead({})", target)]
+pub struct Dead {
+    pub target: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "{} := lifetime_take({}, {})",
+    target,
+    "display::cjoin(value)",
+    rd_perm
+)]
+pub struct LifetimeTake {
+    pub target: VariableDecl,
+    pub value: Vec<VariableDecl>,
+    pub rd_perm: u32,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "lifetime_return({}, {}, {})",
+    target,
+    "display::cjoin(value)",
+    rd_perm
+)]
+pub struct LifetimeReturn {
+    pub target: VariableDecl,
+    pub value: Vec<VariableDecl>,
+    pub rd_perm: u32,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "open_mut_ref({}, rd({}), {})",
+    lifetime,
+    token_permission_amount,
+    place
+)]
+pub struct OpenMutRef {
+    pub lifetime: LifetimeConst,
+    pub token_permission_amount: u32,
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "{} := open_frac_ref({}, rd({}), {})",
+    predicate_permission_amount,
+    lifetime,
+    token_permission_amount,
+    place
+)]
+pub struct OpenFracRef {
+    pub lifetime: LifetimeConst,
+    /// The permission amount that we get for accessing `Owned`.
+    pub predicate_permission_amount: VariableDecl,
+    /// The permission amount taken from the token.
+    pub token_permission_amount: u32,
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "close_mut_ref({}, rd({}), {})",
+    lifetime,
+    token_permission_amount,
+    place
+)]
+pub struct CloseMutRef {
+    pub lifetime: LifetimeConst,
+    pub token_permission_amount: u32,
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "close_frac_ref({}, rd({}), {}, {})",
+    lifetime,
+    token_permission_amount,
+    place,
+    predicate_permission_amount
+)]
+pub struct CloseFracRef {
+    pub lifetime: LifetimeConst,
+    /// The permission amount taken from the token.
+    pub token_permission_amount: u32,
+    pub place: Expression,
+    /// The permission amount that we get for accessing `Owned`.
+    pub predicate_permission_amount: VariableDecl,
     pub position: Position,
 }

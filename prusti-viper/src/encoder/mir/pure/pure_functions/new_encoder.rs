@@ -1,8 +1,8 @@
 use super::{encoder::FunctionCallInfoHigh, PureEncodingContext};
 use crate::encoder::{
-    borrows::ProcedureContractMirDef,
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
+        contracts::{ContractsEncoderInterface, ProcedureContractMirDef},
         generics::MirGenericsEncoderInterface,
         pure::{
             interpreter::ExpressionBackwardInterpreter,
@@ -14,7 +14,6 @@ use crate::encoder::{
     mir_interpreter::run_backward_interpretation,
     Encoder,
 };
-
 use log::{debug, trace};
 use prusti_common::vir_high_local;
 use rustc_hir::def_id::DefId;
@@ -129,7 +128,7 @@ pub(super) fn encode_function_call_info<'p, 'v: 'p, 'tcx: 'v>(
     );
     Ok(FunctionCallInfoHigh {
         name: encoder.encode_function_name(),
-        _parameters: encoder.encode_parameters()?,
+        type_arguments: encoder.encode_type_arguments()?,
         return_type: encoder.encode_return_type()?,
     })
 }
@@ -147,7 +146,7 @@ pub(super) struct PureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// Span of the function declaration.
     span: Span,
     /// Signature of the function to be encoded.
-    sig: ty::FnSig<'tcx>,
+    sig: ty::PolyFnSig<'tcx>,
     /// Spans of MIR locals, when encoding a local pure function.
     local_spans: Option<Vec<Span>>,
 }
@@ -173,12 +172,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
         // TODO: move this to a signatures module
         use crate::rustc_middle::ty::subst::Subst;
+        let sig = ty::EarlyBinder(encoder.env().tcx().fn_sig(proc_def_id))
+            .subst(encoder.env().tcx(), substs);
         let sig = encoder
             .env()
-            .tcx()
-            .fn_sig(proc_def_id)
-            .subst(encoder.env().tcx(), substs)
-            .skip_binder();
+            .resolve_assoc_types(sig, encoder.env().tcx().param_env(proc_def_id));
 
         Self {
             encoder,
@@ -194,32 +192,39 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
     fn encode_function_decl(&self) -> SpannedEncodingResult<vir_high::FunctionDecl> {
         trace!("[enter] encode_function_decl({:?})", self.proc_def_id);
-        let mir = self
-            .encoder
-            .env()
-            .local_mir(self.proc_def_id.expect_local(), self.substs);
-        let interpreter = ExpressionBackwardInterpreter::new(
-            self.encoder,
-            &mir,
-            self.proc_def_id,
-            self.pure_encoding_context,
-            self.parent_def_id,
-            self.substs,
-        );
+        let is_bodyless = self.encoder.is_trusted(self.proc_def_id, Some(self.substs))
+            || !self.encoder.env().tcx().is_mir_available(self.proc_def_id)
+            || self.encoder.env().tcx().is_constructor(self.proc_def_id);
+        let body = if is_bodyless {
+            None
+        } else {
+            let mir = self
+                .encoder
+                .env()
+                .local_mir(self.proc_def_id.expect_local(), self.substs);
+            let interpreter = ExpressionBackwardInterpreter::new(
+                self.encoder,
+                &mir,
+                self.proc_def_id,
+                self.pure_encoding_context,
+                self.parent_def_id,
+                self.substs,
+            );
 
-        let state = run_backward_interpretation(&mir, &interpreter)?.ok_or_else(|| {
-            SpannedEncodingError::incorrect(
-                format!("procedure {:?} contains a loop", self.proc_def_id),
-                self.encoder.env().get_def_span(self.proc_def_id),
-            )
-        })?;
-        let body = state.into_expr().ok_or_else(|| {
-            SpannedEncodingError::internal(
-                format!("failed to encode function's body: {:?}", self.proc_def_id),
-                self.encoder.env().get_def_span(self.proc_def_id),
-            )
-        })?;
-        let function = self.encode_function_decl_given_body(Some(body));
+            let state = run_backward_interpretation(&mir, &interpreter)?.ok_or_else(|| {
+                SpannedEncodingError::incorrect(
+                    format!("procedure {:?} contains a loop", self.proc_def_id),
+                    self.encoder.env().get_def_span(self.proc_def_id),
+                )
+            })?;
+            Some(state.into_expr().ok_or_else(|| {
+                SpannedEncodingError::internal(
+                    format!("failed to encode function's body: {:?}", self.proc_def_id),
+                    self.encoder.env().get_def_span(self.proc_def_id),
+                )
+            })?)
+        };
+        let function = self.encode_function_decl_given_body(body);
         trace!("[exit] encode_function_decl({:?})", self.proc_def_id);
         function
     }
@@ -275,11 +280,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         for local in self.args_iter() {
             let ty = self.get_local_ty(local);
             let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
-            if !self
-                .encoder
-                .env()
-                .type_is_allowed_in_pure_functions(ty, param_env)
-            {
+            if !self.encoder.env().type_is_copy(ty, param_env) {
                 return Err(SpannedEncodingError::incorrect(
                     "all types used in pure functions must be Copy",
                     self.get_local_span(local),
@@ -307,18 +308,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
 
         let span = self.get_return_span();
         let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
-        if !self
-            .encoder
-            .env()
-            .type_is_allowed_in_pure_functions(ty, param_env)
-        {
+        if !self.encoder.env().type_is_copy(ty, param_env) {
             return Err(SpannedEncodingError::incorrect(
                 "return type of pure function does not implement Copy",
                 span,
             ));
         }
 
-        self.encoder.encode_type_high(ty)
+        self.encoder.encode_type_high(ty.skip_binder())
     }
 
     fn encode_precondition_expr(
@@ -393,36 +390,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
     }
 
     fn args_iter(&self) -> impl Iterator<Item = mir::Local> {
-        (0..self.sig.inputs().len()).map(|idx| mir::Local::from_usize(1 + idx))
+        (0..self.sig.inputs().skip_binder().len()).map(|idx| mir::Local::from_usize(1 + idx))
     }
 
     /// Encodes a VIR local with the original MIR type.
     fn encode_mir_local(&self, local: mir::Local) -> SpannedEncodingResult<vir_high::VariableDecl> {
         let ty = self.get_local_ty(local);
         let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
-        if !self
-            .encoder
-            .env()
-            .type_is_allowed_in_pure_functions(ty, param_env)
-        {
+        if !self.encoder.env().type_is_copy(ty, param_env) {
             return Err(SpannedEncodingError::incorrect(
                 "pure function parameters must be Copy",
                 self.get_local_span(local),
             ));
         }
         let var_name = format!("{:?}", local);
-        let var_type = self.encoder.encode_type_high(ty)?;
+        let var_type = self.encoder.encode_type_high(ty.skip_binder())?;
         Ok(vir_high::VariableDecl {
             name: var_name,
             ty: var_type,
         })
     }
 
-    fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
+    fn get_local_ty(&self, local: mir::Local) -> ty::Binder<'tcx, ty::Ty<'tcx>> {
         if local.as_usize() == 0 {
             self.sig.output()
         } else {
-            self.sig.inputs()[local.as_usize() - 1]
+            self.sig.input(local.as_usize() - 1)
         }
     }
 

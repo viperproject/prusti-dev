@@ -12,8 +12,18 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
             vir_high::Type::MInt => vir_poly::Type::Int,
             vir_high::Type::MFloat32 => vir_poly::Type::Float(F32),
             vir_high::Type::MFloat64 => vir_poly::Type::Float(F64),
+            vir_high::Type::MPerm => {
+                unreachable!("Permissions are used only in the unsafe core proof")
+            }
             vir_high::Type::Bool => vir_poly::Type::typed_ref("bool"),
             vir_high::Type::Int(int) => vir_poly::Type::typed_ref(int.to_string().to_lowercase()),
+            vir_high::Type::Sequence(ty) => vir_poly::Type::Seq(vir_poly::SeqType {
+                typ: box ty.element_type.lower(encoder),
+            }),
+            vir_high::Type::Map(ty) => vir_poly::Type::Map(vir_poly::MapType {
+                key_type: box ty.key_type.lower(encoder),
+                val_type: box ty.val_type.lower(encoder),
+            }),
             vir_high::Type::Float(float) => {
                 vir_poly::Type::typed_ref(float.to_string().to_lowercase())
             }
@@ -33,6 +43,7 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
             vir_high::Type::FunctionDef(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
             vir_high::Type::Projection(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
             vir_high::Type::Unsupported(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
+            vir_high::Type::Lifetime => unreachable!("Lifetimes ignored"),
         })
     }
 }
@@ -54,7 +65,9 @@ impl IntoPolymorphic<vir_poly::TypeVar> for vir_high::ty::TypeVar {
         vir_poly::TypeVar {
             label: match self {
                 vir_high::ty::TypeVar::GenericType(generic_type) => generic_type.get_identifier(),
-                vir_high::ty::TypeVar::Lifetime(lifetime) => lifetime.get_identifier(),
+                vir_high::ty::TypeVar::LifetimeConst(lifetime_const) => {
+                    lifetime_const.get_identifier()
+                }
             },
         }
     }

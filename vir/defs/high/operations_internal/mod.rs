@@ -1,4 +1,5 @@
 pub mod expression;
+pub mod function;
 pub mod graphviz;
 pub mod identifier;
 pub mod position;
