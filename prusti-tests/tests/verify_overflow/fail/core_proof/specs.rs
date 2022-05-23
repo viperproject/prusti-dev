@@ -1,7 +1,7 @@
 // compile-flags: -Punsafe_core_proof=true
 
 use prusti_contracts::*;
-/*
+
 #[requires(true)]
 #[ensures(true)]
 fn test1() {
@@ -15,16 +15,11 @@ fn test2() {
 #[requires(a + a == b)]
 #[ensures(2 * a == b)]
 fn test3(a: u32, b: u32) {}
-*/
+
 #[requires(a + a == b)]
-#[ensures(result == b)]  //~ ERROR: postcondition might not hold.
-fn test4(a: u32, b: u32) -> u32{
-    let mut c = 0;
-    c = 1;
-    c = a;
-    c
-}
-/*
+#[ensures(3 * a == b)]  //~ ERROR: postcondition might not hold.
+fn test4(a: u32, b: u32) {}
+
 fn test5() {
     test3(1, 3);    //~ ERROR: precondition might not hold.
 }
@@ -32,6 +27,6 @@ fn test5() {
 fn test6() {
     test4(1, 2);
     assert!(false);
-}*/
-fn main() {}
+}
 
+fn main() {}
