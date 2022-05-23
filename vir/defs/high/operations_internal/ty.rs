@@ -1,6 +1,7 @@
 use super::super::ast::{
     expression::{visitors::ExpressionFolder, *},
     ty::{visitors::TypeFolder, *},
+    type_decl::DiscriminantValue,
 };
 use rustc_hash::FxHashMap;
 
@@ -75,9 +76,23 @@ impl Type {
     }
     pub fn erase_lifetime(&mut self) {
         if let Type::Reference(reference) = self {
-            reference.lifetime = Lifetime {
-                name: String::from("pure_erased"),
-            };
+            reference.lifetime = LifetimeConst::erased();
+        }
+    }
+    pub fn erase_lifetimes(self) -> Self {
+        struct DefaultLifetimeEraser {}
+        impl TypeFolder for DefaultLifetimeEraser {
+            fn fold_lifetime_const(&mut self, _lifetime: LifetimeConst) -> LifetimeConst {
+                LifetimeConst::erased()
+            }
+        }
+        DefaultLifetimeEraser {}.fold_type(self)
+    }
+    pub fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+        if let Type::Reference(reference) = self {
+            vec![reference.lifetime.clone()]
+        } else {
+            Vec::new()
         }
     }
 }
@@ -106,28 +121,36 @@ impl super::super::ast::type_decl::Enum {
             })
         }
     }
-    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<&Expression> {
+    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<DiscriminantValue> {
         self.iter_discriminant_variants()
             .find(|(_, variant)| variant_index.as_ref() == variant.name)
             .map(|(discriminant, _)| discriminant)
     }
     pub fn iter_discriminant_variants(
         &self,
-    ) -> impl Iterator<Item = (&Expression, &super::super::ast::type_decl::Struct)> {
-        self.discriminant_values.iter().zip(&self.variants)
+    ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
+        self.discriminant_values.iter().cloned().zip(&self.variants)
     }
 }
 
 impl super::super::ast::type_decl::Union {
-    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<&Expression> {
+    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<DiscriminantValue> {
         self.iter_discriminant_variants()
             .find(|(_, variant)| variant_index.as_ref() == variant.name)
             .map(|(discriminant, _)| discriminant)
     }
     pub fn iter_discriminant_variants(
         &self,
-    ) -> impl Iterator<Item = (&Expression, &super::super::ast::type_decl::Struct)> {
-        self.discriminant_values.iter().zip(&self.variants)
+    ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
+        self.discriminant_values.iter().cloned().zip(&self.variants)
+    }
+}
+
+impl LifetimeConst {
+    pub fn erased() -> Self {
+        LifetimeConst {
+            name: String::from("pure_erased"),
+        }
     }
 }
 
@@ -240,6 +263,7 @@ impl Typed for Expression {
             Expression::Quantifier(expression) => expression.get_type(),
             Expression::LetExpr(expression) => expression.get_type(),
             Expression::FuncApp(expression) => expression.get_type(),
+            Expression::BuiltinFuncApp(expression) => expression.get_type(),
             Expression::Downcast(expression) => expression.get_type(),
         }
     }
@@ -261,6 +285,7 @@ impl Typed for Expression {
             Expression::Quantifier(expression) => expression.set_type(new_type),
             Expression::LetExpr(expression) => expression.set_type(new_type),
             Expression::FuncApp(expression) => expression.set_type(new_type),
+            Expression::BuiltinFuncApp(expression) => expression.set_type(new_type),
             Expression::Downcast(expression) => expression.set_type(new_type),
         }
     }
@@ -362,7 +387,8 @@ impl Typed for BinaryOp {
             | BinaryOpKind::Sub
             | BinaryOpKind::Mul
             | BinaryOpKind::Div
-            | BinaryOpKind::Mod => {
+            | BinaryOpKind::Mod
+            | BinaryOpKind::LifetimeIntersection => {
                 let ty1 = self.left.get_type();
                 let ty2 = self.right.get_type();
                 assert_eq!(ty1, ty2, "expr: {:?}", self);
@@ -426,6 +452,15 @@ impl Typed for LetExpr {
 }
 
 impl Typed for FuncApp {
+    fn get_type(&self) -> &Type {
+        &self.return_type
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.return_type = new_type;
+    }
+}
+
+impl Typed for BuiltinFuncApp {
     fn get_type(&self) -> &Type {
         &self.return_type
     }

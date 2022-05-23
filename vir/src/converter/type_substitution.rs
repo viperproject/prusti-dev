@@ -37,6 +37,11 @@ impl Generic for Type {
                 *seq.typ = typ.substitute(map);
                 Type::Seq(seq)
             }
+            Type::Map(mut m) => {
+                *m.key_type = m.key_type.substitute(map);
+                *m.val_type = m.val_type.substitute(map);
+                Type::Map(m)
+            }
             Type::TypedRef(mut typed_ref) => {
                 typed_ref.arguments = typed_ref
                     .arguments
@@ -150,6 +155,7 @@ impl Generic for Expr {
             Expr::BinOp(bin_op) => Expr::BinOp(bin_op.substitute(map)),
             Expr::ContainerOp(container_op) => Expr::ContainerOp(container_op.substitute(map)),
             Expr::Seq(seq) => Expr::Seq(seq.substitute(map)),
+            Expr::Map(emap) => Expr::Map(emap.substitute(map)),
             Expr::Unfolding(unfolding) => Expr::Unfolding(unfolding.substitute(map)),
             Expr::Cond(cond) => Expr::Cond(cond.substitute(map)),
             Expr::ForAll(for_all) => Expr::ForAll(for_all.substitute(map)),
@@ -278,6 +284,19 @@ impl Generic for Seq {
             .map(|element| element.substitute(map))
             .collect();
         seq
+    }
+}
+
+impl Generic for Map {
+    fn substitute(self, sub: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut map = self;
+        map.typ = map.typ.substitute(sub);
+        map.elements = map
+            .elements
+            .into_iter()
+            .map(|element| element.substitute(sub))
+            .collect();
+        map
     }
 }
 

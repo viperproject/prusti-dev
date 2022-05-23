@@ -21,9 +21,12 @@ use rustc_index::vec::IndexVec;
 use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
 use prusti_interface::environment::mir_utils::MirPlace;
-use crate::encoder::mir::types::MirTypeEncoderInterface;
+use crate::encoder::mir::{
+    sequences::MirSequencesEncoderInterface,
+    types::MirTypeEncoderInterface,
+};
 use super::high::types::HighTypeEncoderInterface;
-use rustc_span::MultiSpan;
+use rustc_errors::MultiSpan;
 
 mod downcast_detector;
 mod place_encoding;

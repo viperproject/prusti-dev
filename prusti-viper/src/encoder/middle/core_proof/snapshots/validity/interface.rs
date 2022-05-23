@@ -64,6 +64,13 @@ pub(in super::super::super) trait SnapshotValidityInterface {
         parameters: Vec<vir_low::VariableDecl>,
         invariant: vir_low::Expression,
     ) -> SpannedEncodingResult<()>;
+    fn encode_validity_axioms_struct_alternative_constructor(
+        &mut self,
+        domain_name: &str,
+        variant_name: &str,
+        parameters: Vec<vir_low::VariableDecl>,
+        invariant: vir_low::Expression,
+    ) -> SpannedEncodingResult<()>;
     /// `variants` is `(variant_name, variant_domain, discriminant)`.
     fn encode_validity_axioms_enum(
         &mut self,
@@ -71,7 +78,7 @@ pub(in super::super::super) trait SnapshotValidityInterface {
         domain_name: &str,
         variants: Vec<(String, String, vir_low::Expression)>,
         invariant: vir_low::Expression,
-        discriminant_bounds: vir_low::Expression,
+        discriminant_bounds: &[vir_mid::DiscriminantRange],
     ) -> SpannedEncodingResult<()>;
     fn encode_validity_axioms_enum_variant(
         &mut self,
@@ -122,6 +129,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         parameters: Vec<vir_low::VariableDecl>,
         invariant: vir_low::Expression,
     ) -> SpannedEncodingResult<()> {
+        self.encode_validity_axioms_struct_alternative_constructor(
+            domain_name,
+            "",
+            parameters,
+            invariant,
+        )
+    }
+    fn encode_validity_axioms_struct_alternative_constructor(
+        &mut self,
+        domain_name: &str,
+        variant_name: &str,
+        parameters: Vec<vir_low::VariableDecl>,
+        invariant: vir_low::Expression,
+    ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
         let mut valid_parameters = Vec::new();
         for parameter in &parameters {
@@ -129,8 +150,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 valid_parameters.push(valid_call(domain_name, parameter)?);
             }
         }
-        let constructor_call = self.adt_constructor_main_call(
+        let constructor_call = self.adt_constructor_variant_call(
             domain_name,
+            variant_name,
             parameters
                 .iter()
                 .map(|parameter| parameter.clone().into())
@@ -185,7 +207,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 },
             );
             let axiom_top_down = vir_low::DomainAxiomDecl {
-                name: format!("{}$validity_axiom_top_down", domain_name),
+                name: format!("{}${}$validity_axiom_top_down", domain_name, variant_name),
                 body: axiom_top_down_body,
             };
             self.declare_axiom(domain_name, axiom_top_down)?;
@@ -204,7 +226,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         // The axiom that allows proving that the data structure is
         // valid if we know that its fields are valid.
         let axiom_bottom_up = vir_low::DomainAxiomDecl {
-            name: format!("{}$validity_axiom_bottom_up", domain_name),
+            name: format!("{}${}$validity_axiom_bottom_up", domain_name, variant_name),
             body: axiom_bottom_up_body,
         };
         self.declare_axiom(domain_name, axiom_bottom_up)?;
@@ -216,7 +238,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         domain_name: &str,
         variants: Vec<(String, String, vir_low::Expression)>,
         invariant: vir_low::Expression,
-        discriminant_bounds: vir_low::Expression,
+        discriminant_bounds: &[vir_mid::DiscriminantRange],
     ) -> SpannedEncodingResult<()> {
         // We generate a single top-down validity axiom for all variants.
         {
@@ -245,7 +267,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                     ([ discriminant_call.clone() ] == [ discriminant.clone() ]) ==> [ valid_variant ]
                 });
             }
-            let discriminant_bounds = discriminant_bounds.replace_discriminant(&discriminant_call);
+            let discriminant_bounds =
+                discriminant_call.generate_discriminant_bounds(discriminant_bounds);
             triggers.push(vir_low::Trigger::new(vec![
                 valid_constructor.clone(),
                 discriminant_call,

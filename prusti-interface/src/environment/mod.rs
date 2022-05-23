@@ -12,11 +12,12 @@ use rustc_middle::mir;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt};
-use rustc_middle::ty::subst::SubstsRef;
+use rustc_middle::ty::subst::{Subst, SubstsRef};
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
 
-use rustc_span::{MultiSpan, Span, symbol::Symbol};
+use rustc_errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
+use rustc_span::{Span, symbol::Symbol};
 use std::collections::HashSet;
 use log::{debug, trace};
 use std::rc::Rc;
@@ -32,7 +33,7 @@ mod loops_utils;
 pub mod mir_analyses;
 pub mod mir_storage;
 pub mod mir_utils;
-pub mod place_set;
+pub mod mir_sets;
 pub mod polonius_info;
 mod procedure;
 pub mod mir_dump;
@@ -43,7 +44,7 @@ use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
 use rustc_hir::intravisit::Visitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
-pub use self::procedure::{BasicBlockIndex, Procedure};
+pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block, is_loop_invariant_block, get_loop_invariant};
 use self::borrowck::facts::BorrowckFacts;
 // use config;
 use crate::data::ProcedureDefId;
@@ -75,6 +76,7 @@ pub struct Environment<'tcx> {
     bodies: RefCell<HashMap<LocalDefId, CachedBody<'tcx>>>,
     external_bodies: RefCell<HashMap<DefId, CachedExternalBody<'tcx>>>,
     tcx: TyCtxt<'tcx>,
+    warn_buffer: RefCell<Vec<rustc_errors::Diagnostic>>,
 }
 
 impl<'tcx> Environment<'tcx> {
@@ -84,6 +86,7 @@ impl<'tcx> Environment<'tcx> {
             tcx,
             bodies: RefCell::new(HashMap::new()),
             external_bodies: RefCell::new(HashMap::new()),
+            warn_buffer: RefCell::new(Vec::new()),
         }
     }
 
@@ -141,6 +144,25 @@ impl<'tcx> Environment<'tcx> {
     //     self.state.session.span_err(sp, msg);
     // }
 
+    fn configure_diagnostic<S: Into<MultiSpan> + Clone, T: EmissionGuarantee>(
+        diagnostic: &mut DiagnosticBuilder<T>,
+        sp: S,
+        help: &Option<String>,
+        notes: &[(String, Option<S>)]
+    ) {
+        diagnostic.set_span(sp);
+        if let Some(help_msg) = help {
+            diagnostic.help(help_msg);
+        }
+        for (note_msg, opt_note_sp) in notes {
+            if let Some(note_sp) = opt_note_sp {
+                diagnostic.span_note(note_sp.clone(), note_msg);
+            } else {
+                diagnostic.note(note_msg);
+            }
+        }
+    }
+
     /// Emits an error message.
     pub fn span_err_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
@@ -150,21 +172,14 @@ impl<'tcx> Environment<'tcx> {
         notes: &[(String, Option<S>)],
     ) {
         let mut diagnostic = self.tcx.sess.struct_err(msg);
-        diagnostic.set_span(sp);
-        if let Some(help_msg) = help {
-            diagnostic.help(help_msg);
-        }
-        for (note_msg, opt_note_sp) in notes {
-            if let Some(note_sp) = opt_note_sp {
-                diagnostic.span_note(note_sp.clone(), note_msg);
-            } else {
-                diagnostic.note(note_msg);
-            }
+        Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
+        for warn in self.warn_buffer.borrow_mut().iter_mut() {
+            self.tcx.sess.diagnostic().emit_diagnostic(warn);
         }
         diagnostic.emit();
     }
 
-    /// Emits an error message.
+    /// Emits a warning message.
     pub fn span_warn_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
@@ -173,23 +188,26 @@ impl<'tcx> Environment<'tcx> {
         notes: &[(String, Option<S>)],
     ) {
         let mut diagnostic = self.tcx.sess.struct_warn(msg);
-        diagnostic.set_span(sp);
-        if let Some(help_msg) = help {
-            diagnostic.help(help_msg);
-        }
-        for (note_msg, opt_note_sp) in notes {
-            if let Some(note_sp) = opt_note_sp {
-                diagnostic.span_note(note_sp.clone(), note_msg);
-            } else {
-                diagnostic.note(note_msg);
-            }
-        }
+        Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
         diagnostic.emit();
+    }
+
+    /// Buffers a warning message, to be emitted on error.
+    pub fn span_warn_on_err_with_help_and_notes<S: Into<MultiSpan> + Clone>(
+        &self,
+        sp: S,
+        msg: &str,
+        help: &Option<String>,
+        notes: &[(String, Option<S>)],
+    ) {
+        let mut diagnostic = self.tcx.sess.struct_warn(msg);
+        Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
+        diagnostic.buffer(&mut self.warn_buffer.borrow_mut());
     }
 
     /// Returns true if an error has been emitted
     pub fn has_errors(&self) -> bool {
-        self.tcx.sess.has_errors()
+        self.tcx.sess.has_errors().is_some()
     }
 
     /// Get ids of Rust procedures that are annotated with a Prusti specification
@@ -206,10 +224,17 @@ impl<'tcx> Environment<'tcx> {
         result
     }
 
+    pub fn get_local_attributes(&self, def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
+        crate::utils::get_local_attributes(self.tcx(), def_id)
+    }
+
+    pub fn get_attributes(&self, def_id: ProcedureDefId) -> &[rustc_ast::ast::Attribute] {
+        crate::utils::get_attributes(self.tcx(), def_id)
+    }
+
     /// Find whether the procedure has a particular `prusti::<name>` attribute.
     pub fn has_prusti_attribute(&self, def_id: ProcedureDefId, name: &str) -> bool {
-        let tcx = self.tcx();
-        crate::utils::has_prusti_attr(tcx.get_attrs(def_id), name)
+        crate::utils::has_prusti_attr(self.get_attributes(def_id), name)
     }
 
     /// Dump various information from the borrow checker.
@@ -289,10 +314,7 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| {
-                use crate::rustc_middle::ty::subst::Subst;
-                body.base_body.clone().subst(self.tcx, substs)
-            })
+            .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
             .clone()
     }
 
@@ -326,10 +348,7 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| {
-                use crate::rustc_middle::ty::subst::Subst;
-                body.base_body.clone().subst(self.tcx, substs)
-            })
+            .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
             .clone()
     }
 
@@ -424,12 +443,18 @@ impl<'tcx> Environment<'tcx> {
         // - identity for the impl:        `[A, B, C]`
         // - identity for Struct::f:       `[A, B, C, X, Y, Z]`
         //
-        // What we need is a substs suitable for a call to Trait::f, whic is in
+        // What we need is a substs suitable for a call to Trait::f, which is in
         // this case `[Struct<B, C>, A, X, Y, Z]`. More generally, it is the
         // concatenation of the trait ref substs with the identity of the impl
         // method after skipping the identity of the impl.
+        //
+        // We also need to subst the prefix (`[Struct<B, C>, A]` in the example
+        // above) with call substs, so that we get the trait's type parameters
+        // more precisely. We can do this directly with `impl_method_substs`
+        // because they contain the substs for the `impl` block as a prefix.
+        let call_trait_substs = ty::EarlyBinder(trait_ref.substs).subst(self.tcx, impl_method_substs);
         let impl_substs = self.identity_substs(impl_def_id);
-        let trait_method_substs = self.tcx.mk_substs(trait_ref.substs.iter()
+        let trait_method_substs = self.tcx.mk_substs(call_trait_substs.iter()
             .chain(impl_method_substs.iter().skip(impl_substs.len())));
 
         // sanity check: do we now have the correct number of substs?
@@ -492,39 +517,27 @@ impl<'tcx> Environment<'tcx> {
             .unwrap_or((called_def_id, call_substs))
     }
 
-    pub fn type_is_allowed_in_pure_functions(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
-        match ty.kind() {
-            ty::TyKind::Never => {
-                true
-            }
-            _ => {
-                self.type_is_copy(ty, param_env)
-            }
-        }
-    }
-
-    pub fn type_is_copy(&self, ty: ty::Ty<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
-        let copy_trait = self.tcx.lang_items().copy_trait();
-        if let Some(copy_trait_def_id) = copy_trait {
-            // We need this check because `type_implements_trait`
-            // panics when called on reference types.
-            if let ty::TyKind::Ref(_, _, mutability) = ty.kind() {
-                // Shared references are copy, mutable references are not.
-                matches!(mutability, mir::Mutability::Not)
-            } else {
-                self.type_implements_trait(ty, copy_trait_def_id, param_env)
-            }
-        } else {
-            false
-        }
+    /// Checks whether `ty` is copy.
+    /// The type is wrapped into a `Binder` to handle regions correctly.
+    pub fn type_is_copy(&self, ty: ty::Binder<'tcx, ty::Ty<'tcx>>, param_env: ty::ParamEnv<'tcx>) -> bool {
+        // Normalize the type to account for associated types
+        let ty = self.resolve_assoc_types(ty, param_env);
+        let ty = self.tcx.erase_late_bound_regions(ty);
+        ty.is_copy_modulo_regions(self.tcx.at(rustc_span::DUMMY_SP), param_env)
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
     pub fn type_implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId, param_env: ty::ParamEnv<'tcx>) -> bool {
+        self.type_implements_trait_with_trait_substs(ty, trait_def_id, ty::List::empty(), param_env)
+    }
+
+    /// Checks whether the given type implements the trait with the given DefId.
+    /// Accounts for generic params on the trait by the given `trait_substs`.
+    pub fn type_implements_trait_with_trait_substs(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId, trait_substs: ty::subst::SubstsRef<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool {
         assert!(self.tcx.is_trait(trait_def_id));
         self.tcx.infer_ctxt().enter(|infcx|
             infcx
-                .type_implements_trait(trait_def_id, ty, ty::List::empty(), param_env)
+                .type_implements_trait(trait_def_id, ty, trait_substs, param_env)
                 .must_apply_considering_regions()
         )
     }
@@ -533,5 +546,45 @@ impl<'tcx> Environment<'tcx> {
     /// generic maps to itself.
     pub fn identity_substs(&self, def_id: ProcedureDefId) -> SubstsRef<'tcx> {
         ty::List::identity_for_item(self.tcx, def_id)
+    }
+
+    /// Evaluates the provided [ty::Predicate].
+    /// Returns true if the predicate is fulfilled.
+    /// Returns false if the predicate is not fulfilled or it could not be evaluated.
+    pub fn evaluate_predicate(&self, predicate: ty::Predicate<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool{
+        debug!("Evaluating predicate {:?}", predicate);
+        use rustc_trait_selection::traits;
+        use crate::rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
+
+        let obligation = traits::Obligation::new(
+            traits::ObligationCause::dummy(),
+            param_env,
+            predicate,
+        );
+
+        self.tcx.infer_ctxt().enter(|infcx| {
+            infcx.predicate_must_hold_considering_regions(&obligation)
+        })
+    }
+
+    /// Normalizes associated types in foldable types,
+    /// i.e. this resolves projection types ([ty::TyKind::Projection]s)
+    /// **Important:** Regions while be erased during this process
+    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug + Copy>(&self, normalizable: T, param_env: ty::ParamEnv<'tcx>) -> T {
+        let norm_res = self.tcx.try_normalize_erasing_regions(
+            param_env,
+            normalizable
+        );
+
+        match norm_res {
+            Ok(normalized) => {
+                debug!("Normalized {:?}: {:?}", normalizable, normalized);
+                normalized
+            },
+            Err(err) => {
+                debug!("Error while resolving associated types for {:?}: {:?}", normalizable, err);
+                normalizable
+            }
+        }
     }
 }
