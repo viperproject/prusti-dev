@@ -100,6 +100,7 @@ pub enum Entry {
     Bool(bool),
     Char(char),
     Ref(Box<Entry>),
+    Box(Box<Entry>),
     Struct {
         name: String,
         field_entries: Vec<(String, Entry)>,
@@ -120,6 +121,67 @@ impl Entry {
         match self {
             Entry::Tuple(fields) => fields.is_empty(),
             _ => false,
+        }
+    }
+    pub fn merge(&self, other: &Entry) -> Entry{
+        match (self, other) {
+            (Entry::Int(x),_) => Entry::Int(x.clone()),
+            (Entry::Float(x),_) => Entry::Float(x.clone()),
+            (Entry::Bool(x),_) => Entry::Bool(x.clone()),
+            (Entry::Char(x),_) => Entry::Char(x.clone()),
+            (Entry::Ref(entry),_) => Entry::Ref(box entry.merge(other)),
+            (Entry::Box(entry),_) => Entry::Box(box entry.merge(other)),
+            (Entry::Struct{name: name1, field_entries: field_entries1}, Entry::Struct{name: name2, field_entries: field_entries2}) => {
+                if name1.to_string() == name2.to_string() && field_entries1.len() == field_entries2.len(){
+                    let mut other_iter = field_entries2.iter();
+                        let new_field_entries = field_entries1.iter().map(|x| {
+                            let next = other_iter.next().unwrap();
+                            (x.0.clone(), x.1.merge(&next.1))
+                        }).collect();
+                        return Entry::Struct{
+                            name: name1.to_string(),
+                            field_entries: new_field_entries,
+                        };
+                } else {
+                    //impossible to reach
+                    Entry::Unknown
+                }
+            },
+            (Entry::Enum { super_name: super_name1, name: name1,  field_entries: field_entries1 },
+                Entry::Enum { super_name: super_name2, name: name2,  field_entries: field_entries2 }) => {
+                    if super_name1.to_string() == super_name2.to_string() {
+                        if name1.to_string() == "?".to_string() {
+                            return other.clone();
+                        }
+
+                        if name1.to_string() == name2.to_string() && field_entries1.len() == field_entries2.len() {
+                            let mut other_iter = field_entries2.iter();
+                            let new_field_entries = field_entries1.iter().map(|x| {
+                                let next = other_iter.next().unwrap();
+                                (x.0.clone(), x.1.merge(&next.1))
+                            }).collect();
+                            return Entry::Enum{
+                                super_name: super_name1.to_string(),
+                                name: name1.to_string(),
+                                field_entries: new_field_entries,
+                            };
+                        }
+                    } 
+                    self.clone()
+                },
+            (Entry::Tuple(entries1), Entry::Tuple(entries2)) => {
+                if entries1.len() == entries2.len(){
+                    let mut other_iter = entries2.iter();
+                        let new_entries = entries1.iter().map(|x| {
+                            let next = other_iter.next().unwrap();
+                            x.merge(next)
+                        }).collect();
+                        Entry::Tuple(new_entries)
+                } else {
+                    self.clone()
+                }
+            }
+        _ => other.clone(),
         }
     }
 }
@@ -145,6 +207,7 @@ impl fmt::Debug for Entry {
                 }
             }
             Entry::Ref(el) => write!(f, "ref({:#?})", el),
+            Entry::Box(el) => write!(f, "box({:#?})", el),
             Entry::Enum { super_name, name, field_entries } => {
                 let named_fields = !field_entries.is_empty() && field_entries[0].0.parse::<usize>().is_err();
                 let enum_name = format!("{}::{}", super_name, name);

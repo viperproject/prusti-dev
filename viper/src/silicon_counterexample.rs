@@ -1,3 +1,5 @@
+//use std::default;
+
 use rustc_hash::FxHashMap;
 
 use jni::{objects::JObject, JNIEnv};
@@ -98,6 +100,30 @@ pub struct DomainEntry{
     pub functions: Functions,
 }
 
+impl FunctionEntry{
+    pub fn get_function_value(&self, params: &Vec<Option<ModelEntry>>) -> &Option<ModelEntry>{
+        for option in &self.options{
+            debug!("posssible option: {:?}", &option.0);
+            debug!("params: {:?}", params);
+            if &option.0 == params{
+                debug!("option found");
+                return &option.1
+            }
+        } 
+        &None
+    }
+    pub fn get_function_value_with_default(&self, params: &Vec<Option<ModelEntry>>) -> &Option<ModelEntry>{
+        for option in &self.options{
+            debug!("posssible option: {:?}", &option.0);
+            debug!("params: {:?}", params);
+            if &option.0 == params{
+                debug!("option found");
+                return &option.1
+            }
+        } 
+        &self.default
+    }
+}
 
 
 // methods unwrapping scala converter to newly defined structures
@@ -148,11 +174,16 @@ fn unwrap_counterexample<'a>(
     let functions_scala = jni.unwrap_result(converter_wrapper.call_non__domain__functions(converter_original));
     debug!("Print functions: {:?}", jni.to_string(functions_scala));
     let functions = unwrap_functions(env, jni, functions_scala);
-    
+    debug!("Print translated functions: {:?}", functions);
+
+
     let domains_scala = jni.unwrap_result(converter_wrapper.call_domains(converter_original));
     debug!("Print domains: {:?}", jni.to_string(domains_scala));
     let domains = unwrap_domains(env, jni, domains_scala);
+    debug!("Print translated domains: {:?}", domains);
 
+    debug!("label order: {:?}", jni.stringmap_to_keyvec(old_models_scala));
+    debug!("old models : {:?}", old_models);
 
     SiliconCounterexample {
         //heap,
@@ -376,19 +407,19 @@ fn unwrap_option_entry<'a>(
     let product_wrapper = scala::Product::with(env);
     let args_scala = jni.unwrap_result(product_wrapper.call_productElement(entry, 0));
     let result_scala = jni.unwrap_result(product_wrapper.call_productElement(entry, 1));
-    debug!("args: {:?}", jni.to_string(args_scala));
-    debug!("result: {:?}", jni.to_string(result_scala));
+    //debug!("args: {:?}", jni.to_string(args_scala));
+    //debug!("result: {:?}", jni.to_string(result_scala));
     let args = jni.list_to_vec(args_scala).into_iter()
     .map(| arg | {
         let mut tmp = FxHashMap::default();
         let arg = unwrap_model_entry(env, jni, arg, &mut tmp);
         arg
     }).collect::<Vec<_>>();
-    debug!("args translated: {:?}", args);
+    //debug!("args translated: {:?}", args);
     let mut tmp = FxHashMap::default(); //We don't care about recusivley unwrapped ModelEntries
     //Since default is always a ConstantEntry, tmp is empty anyway
     let result = unwrap_model_entry(env, jni, result_scala, &mut tmp);
-    debug!("result translated: {:?}", result);
+    //debug!("result translated: {:?}", result);
     (args, result)
 }
 
@@ -399,10 +430,10 @@ fn unwrap_domains<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, domains: JObject<'
     for entry_scala in entries_scala{
         let dname = jni.to_string(jni.unwrap_result(domains_wrapper.call_name(entry_scala)));
 
-        debug!("Domain Name: {:?}", dname);
+        //debug!("Domain Name: {:?}", dname);
         let functions_scala = jni.unwrap_result(domains_wrapper.call_functions(entry_scala));
         let entry = unwrap_functions(env, jni, functions_scala);
-        debug!("functions from domain: {:?}", entry);
+        //debug!("functions from domain: {:?}", entry);
         entries.insert(dname,DomainEntry{functions: entry});
     }
     Domains{entries}
