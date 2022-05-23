@@ -1,13 +1,13 @@
 use prusti_interface::data::ProcedureDefId;
-use rustc_span::MultiSpan;
+use rustc_errors::MultiSpan;
 use crate::encoder::Encoder;
 use vir_crate::low::{self as vir_low};
-use crate::encoder::counterexample2::interface::MirProcedureMappingInterface;
+use super::interface::MirProcedureMappingInterface;
 use crate::encoder::errors::PositionManager;
-use crate::encoder::counterexample2::mapping::vir_low::ast::statement::Assume;//FIXME incorrect import
-use crate::encoder::counterexample2::mapping::vir_low::ast::statement::Inhale;
-use crate::encoder::counterexample2::mapping::vir_low::ast::expression::BinaryOp;
-use crate::encoder::counterexample2::mapping::vir_low::ast::expression::BinaryOpKind;
+use super::mapping::vir_low::ast::statement::Assume;//FIXME incorrect import
+use super::mapping::vir_low::ast::statement::Inhale;
+use super::mapping::vir_low::ast::expression::BinaryOp;
+use super::mapping::vir_low::ast::expression::BinaryOpKind;
 use rustc_hash::{FxHashMap};
 use log::{info};
 
@@ -36,7 +36,7 @@ pub(crate) trait VarMappingInterface {
 
 }
 
-impl<'ce, 'tcx> VarMappingInterface for super::super::counterexample_translation_refactored::CounterexampleTranslator<'ce, 'tcx> {
+impl<'ce, 'tcx> VarMappingInterface for super::counterexample_translation_snapshot::CounterexampleTranslator<'ce, 'tcx> {
     fn create_mapping(&mut self, proc_def_id: ProcedureDefId, encoder: &Encoder){
         let name = encoder.env().get_absolute_item_name(proc_def_id);
         //let mut mapping:FxHashMap<String, FxHashMap<String, Vec<SnapshotVar>>> = FxHashMap::default();

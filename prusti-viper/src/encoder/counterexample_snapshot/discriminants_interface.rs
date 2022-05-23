@@ -1,6 +1,4 @@
-use vir_crate::low::{self as vir_low};
 use rustc_hash::{FxHashMap};
-use log::{info};
 use prusti_interface::data::ProcedureDefId;
 use std::cell::RefCell;
 
@@ -21,13 +19,13 @@ impl<'v, 'tcx: 'v> DiscriminantsStateInterface for super::super::Encoder<'v, 'tc
         discr_id: String,
         proc_def_id: ProcedureDefId,
     ) {
-        self.discriminantsState.discriminants_info
+        self.discriminants_state.discriminants_info
             .borrow_mut()
             .entry((proc_def_id, enum_id))
             .or_default()
             .push(discr_id);
     }
     fn discriminants_info(&self) -> FxHashMap<(ProcedureDefId, String), Vec<String>> {
-        self.discriminantsState.discriminants_info.borrow().clone()
+        self.discriminants_state.discriminants_info.borrow().clone()
     }
 }

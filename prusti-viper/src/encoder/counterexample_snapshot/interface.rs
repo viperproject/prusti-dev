@@ -18,7 +18,7 @@ pub(crate) struct MirProcedureMapping {
 pub(crate) struct BasicBlock {
     //2 options to store labels:
     //either here for all procedures, drawback store for all procedures even if they don't have fail
-    //or in silicon_counterexample_refactored line 101 //would need a new method in silicon because the current has a lot of unnecessary overhead
+    //or in silicon_counterexample_snapshot line 101 //would need a new method in silicon because the current has a lot of unnecessary overhead
     pub(crate) label: String, 
 
     pub(crate) successor: Vec<String>,

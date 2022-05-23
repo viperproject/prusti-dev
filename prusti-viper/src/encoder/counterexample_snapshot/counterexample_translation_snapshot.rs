@@ -1,20 +1,20 @@
 use rustc_hash::{FxHashMap};
-use super::counterexample2::{VarMappingInterface, VarMapping};
-use super::counterexample2::DiscriminantsStateInterface;
+use super::{VarMappingInterface, VarMapping};
+//use super::DiscriminantsStateInterface;
 use crate::encoder::errors::PositionManager;
 
 use log::{debug};
 
-use viper::silicon_counterexample_refactored::*;
+//use viper::silicon_counterexample_snapshot::*;
+use viper::silicon_counterexample::*;
 
 use prusti_interface::data::ProcedureDefId;
 use crate::encoder::Encoder;
 use crate::encoder::places::{Local, LocalVariableManager};
-//use crate::encoder::counterexample::*;
-use crate::encoder::counterexample_refactored::*;
+use super::counterexample_snapshot2::*;
 
 use rustc_middle::mir::{self, VarDebugInfo};
-use rustc_span::MultiSpan;
+use rustc_errors::MultiSpan;
 use rustc_middle::ty::{self, Ty, TyCtxt};
 
 
@@ -38,12 +38,12 @@ pub fn backtranslate(
 }
 
 pub struct CounterexampleTranslator<'ce, 'tcx> {
-    mir: mir::Body<'tcx>,
-    def_id: ProcedureDefId,
+    //mir: mir::Body<'tcx>, //not used
+    //def_id: ProcedureDefId,
     silicon_counterexample: &'ce SiliconCounterexample,
-    tcx: TyCtxt<'tcx>, //not used
-    is_pure: bool,  //not used
-    pub(super) disc_info: FxHashMap<(ProcedureDefId, String), Vec<String>>, //not used anymore
+    tcx: TyCtxt<'tcx>, 
+    //is_pure: bool,  //not used
+    //pub(super) disc_info: FxHashMap<(ProcedureDefId, String), Vec<String>>, //not used anymore
     var_debug_info: Vec<VarDebugInfo<'tcx>>,
     local_variable_manager: LocalVariableManager<'tcx>, 
     translated_domains: FxHashMap<String, Entry>, // will be used
@@ -61,13 +61,13 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         let var_debug_info = mir.var_debug_info.clone();
         let local_variable_manager = LocalVariableManager::new(&mir.local_decls);
         Self {
-            mir,
-            def_id,
+            //mir,
+            //def_id,
             silicon_counterexample,
             tcx: encoder.env().tcx(),
-            is_pure: false, // No verified functions are pure. encoder.is_pure(def_id),
+            //is_pure: false, // No verified functions are pure. encoder.is_pure(def_id),
                             // TODO: This assumption should allow simplifying the translator quite a bit.
-            disc_info: encoder.discriminants_info(),
+            //disc_info: encoder.discriminants_info(),
             var_debug_info,
             local_variable_manager,
             translated_domains: FxHashMap::default(),
@@ -140,7 +140,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
 
     fn process_entry(&self, trace: &Vec<(String, String, MultiSpan)>, ty: Ty<'tcx>) -> Vec<(Entry,MultiSpan)> {
         let mut entries = vec![];
-        for (snapshot_var, domain_name, span) in trace{
+        for (snapshot_var, _domain_name, span) in trace{ //FIXME is domain_name really needed?
             let model_entry = self.silicon_counterexample.model.entries.get(snapshot_var);
             entries.push((self.translate_snapshot_entry(model_entry, Some(ty)), span.clone()));
         }        
@@ -216,7 +216,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 _ => Entry::Ref(box Entry::Unknown),
                }
            },*/
-           (Some(ModelEntry::DomainValue(domain_name, var_entry)), Some(ty::TyKind::Tuple(subst))) => {
+           (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Tuple(subst))) => {
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 let len = subst.len();
                 let mut fields = vec![];
@@ -239,7 +239,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 let entry = self.translate_silicon_entry_with_snapshot(new_typ, snapshot_var, encoded_typ_option, translated_domains).unwrap_or_default();
                 Entry::Box(box entry)
             } ,*/
-            (Some(ModelEntry::DomainValue(domain_name, var_entry)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
+            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
                 debug!("typ is struct");
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
@@ -258,7 +258,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     field_entries,
                 }
             },
-            (Some(ModelEntry::DomainValue(domain_name, var_entry)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_enum() => {
+            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_enum() => {
                 debug!("typ is enum");
 
                 let disc_function_name = format!("discriminant$__$TY$__$");
@@ -296,7 +296,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     field_entries: vec![],
                 }
             },
-            (Some(ModelEntry::DomainValue(domain_name, var_entry)), _) => { //snapshot typ for primitive typ
+            (Some(ModelEntry::DomainValue(domain_name, _)), _) => { //snapshot typ for primitive typ
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 debug!("domain for primitive type: {:?}", domain_name);
