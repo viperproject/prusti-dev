@@ -4041,13 +4041,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 assertion = assertion.replace_place(&original_expr, &old_expr);
             } else {
                 // If the argument is not a reference, we wrap entire path into old.
-                assertion = assertion.fold_places(|place| {
-                    let base: vir::Expr = place.get_base().into();
-                    if encoded_arg == &base {
-                        place.old(pre_label)
-                    } else {
-                        place
+                assertion = assertion.fold_expr(|e| {
+                    if let vir::Expr::FuncApp(vir::FuncApp { function_name, arguments, .. }) = &e {
+                        // If `assertion` is e.g. a `foo(snap(_1))` with an `_1: T` and `fn foo(x: &T)` we cannot
+                        // wrap `foo(snap(old[pre](_1)))`, but should instead wrap as `foo(old[pre](snap(_1)))`
+                        // TODO: this could all be fixed by making all arguments into fields (e.g. `_1.local`).
+                        // This would also make mutating of arguments sound.
+                        if function_name == "snap$" && &arguments[0] == encoded_arg {
+                            return e.old(pre_label);
+                        }
+                    } else if e.is_place() {
+                        // Check the base of the path matches the current arg:
+                        let base: vir::Expr = e.get_base().into();
+                        if encoded_arg == &base {
+                            return e.old(pre_label);
+                        }
                     }
+                    e
                 });
             }
         }
