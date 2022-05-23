@@ -16,10 +16,11 @@ use crate::encoder::{
     Encoder,
 };
 use prusti_common::config;
+use rustc_errors::MultiSpan;
 use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{ty, ty::subst::SubstsRef};
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
 use vir_crate::polymorphic::ExprIterator;
 
 // TODO: this variant (poly) should not need to exist, eventually should be
@@ -81,15 +82,16 @@ pub(super) fn inline_spec_item<'tcx>(
         let local_span = mir_encoder.get_local_span(arg_local);
         let local = mir_encoder.encode_local(arg_local).unwrap();
         let local_ty = mir.local_decls[arg_local].ty;
+        let is_return_arg = target_return.is_some() && arg_idx == mir.arg_count - 1;
         body_replacements.push((
-            if targets_are_values {
+            if targets_are_values && !is_return_arg {
                 encoder
                     .encode_value_expr(vir_crate::polymorphic::Expr::local(local), local_ty)
                     .with_span(local_span)?
             } else {
                 vir_crate::polymorphic::Expr::local(local)
             },
-            if target_return.is_some() && arg_idx == mir.arg_count - 1 {
+            if is_return_arg {
                 target_return.unwrap().clone()
             } else {
                 target_args[arg_idx].clone()

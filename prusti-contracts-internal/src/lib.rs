@@ -35,7 +35,7 @@ pub fn pure(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    rewrite_prusti_attributes(SpecAttributeKind::Trusted, attr.into(), tokens.into()).into()
+    prusti_specs::trusted(attr.into(), tokens.into()).into()
 }
 
 #[proc_macro]
@@ -58,7 +58,32 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::extern_spec(attr.into(), tokens.into()).into()
 }
 
+#[proc_macro_attribute]
+pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    prusti_specs::invariant(attr.into(), tokens.into()).into()
+}
+
 #[proc_macro]
 pub fn predicate(tokens: TokenStream) -> TokenStream {
     prusti_specs::predicate(tokens.into()).into()
+}
+
+#[proc_macro_attribute]
+pub fn model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    prusti_specs::type_model(_attr.into(), tokens.into()).into()
+}
+
+#[proc_macro_attribute]
+pub fn ghost_constraint(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(
+        SpecAttributeKind::GhostConstraint,
+        attr.into(),
+        tokens.into(),
+    )
+    .into()
+}
+
+#[proc_macro]
+pub fn ghost(tokens: TokenStream) -> TokenStream {
+    tokens
 }

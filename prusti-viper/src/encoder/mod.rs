@@ -6,7 +6,6 @@
 
 pub use self::encoder::Encoder;
 
-mod borrows;
 mod builtin_encoder;
 #[allow(clippy::module_inception)]
 mod encoder;
@@ -31,7 +30,6 @@ mod mir;
 mod high;
 mod middle;
 mod purifier;
-mod array_encoder;
 pub mod counterexample;
 pub mod counterexample_refactored;
 pub mod counterexample_translation;

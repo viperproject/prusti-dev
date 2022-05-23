@@ -36,32 +36,43 @@ struct OurCompilerCalls {
     args: Vec<String>,
 }
 
+fn get_attributes(tcx: ty::TyCtxt<'_>, def_id: DefId) -> &[rustc_ast::ast::Attribute] {
+    if let Some(local_def_id) = def_id.as_local() {
+        tcx.hir()
+            .attrs(tcx.hir().local_def_id_to_hir_id(local_def_id))
+    } else {
+        tcx.item_attrs(def_id)
+    }
+}
+
 fn get_attribute<'tcx>(
     tcx: ty::TyCtxt<'tcx>,
     def_id: DefId,
     segment1: &str,
     segment2: &str,
 ) -> Option<&'tcx Attribute> {
-    tcx.get_attrs(def_id).iter().find(|attr| match &attr.kind {
-        ast::AttrKind::Normal(
-            ast::AttrItem {
-                path:
-                    ast::Path {
-                        span: _,
-                        segments,
-                        tokens: _,
-                    },
-                args: ast::MacArgs::Empty,
-                tokens: _,
-            },
-            _,
-        ) => {
-            segments.len() == 2
-                && segments[0].ident.as_str() == segment1
-                && segments[1].ident.as_str() == segment2
-        }
-        _ => false,
-    })
+    get_attributes(tcx, def_id)
+        .iter()
+        .find(|attr| match &attr.kind {
+            ast::AttrKind::Normal(
+                ast::AttrItem {
+                    path:
+                        ast::Path {
+                            span: _,
+                            segments,
+                            tokens: _,
+                        },
+                    args: ast::MacArgs::Empty,
+                    tokens: _,
+                },
+                _,
+            ) => {
+                segments.len() == 2
+                    && segments[0].ident.as_str() == segment1
+                    && segments[1].ident.as_str() == segment2
+            }
+            _ => false,
+        })
 }
 
 mod mir_storage {

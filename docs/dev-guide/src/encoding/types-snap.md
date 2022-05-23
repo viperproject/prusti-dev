@@ -41,7 +41,7 @@ domain Snap$SomeStruct { // (1)
   axiom Snap$SomeStruct$injectivity {
     forall
       a1: Int, b1: Int, a2: Int, b2: Int :: { cons$SomeStruct(a1, b1), cons$SomeStruct(a2, b2) }
-      cons$SomeStruct(a1, b1) == cons$SomeStruct(a2, b2) ==> a1 == b1 && a2 == b2
+      cons$SomeStruct(a1, b1) == cons$SomeStruct(a2, b2) ==> a1 == a2 && b1 == b2
   }
 
 }

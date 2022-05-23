@@ -416,6 +416,19 @@ pub trait ExprFolder: Sized {
         })
     }
 
+    fn fold_map(&mut self, expr: Map) -> Expr {
+        let Map {
+            typ,
+            elements,
+            position,
+        } = expr;
+        Expr::Map(Map {
+            typ,
+            elements: elements.into_iter().map(|e| self.fold(e)).collect(),
+            position,
+        })
+    }
+
     fn fold_cast(&mut self, expr: Cast) -> Expr {
         Expr::Cast(Cast {
             kind: expr.kind,
@@ -455,6 +468,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::SnapApp(snap_app) => this.fold_snap_app(snap_app),
         Expr::ContainerOp(container_op) => this.fold_container_op(container_op),
         Expr::Seq(seq) => this.fold_seq(seq),
+        Expr::Map(map) => this.fold_map(map),
         Expr::Cast(cast) => this.fold_cast(cast),
     }
 }
@@ -469,85 +483,85 @@ pub trait ExprWalker: Sized {
         self.walk_type(&var.typ);
     }
 
-    fn walk_local(&mut self, statement: &Local) {
-        let Local { variable, .. } = statement;
+    fn walk_local(&mut self, expr: &Local) {
+        let Local { variable, .. } = expr;
         self.walk_local_var(variable);
     }
-    fn walk_variant(&mut self, statement: &Variant) {
+    fn walk_variant(&mut self, expr: &Variant) {
         let Variant {
             base,
             variant_index,
             ..
-        } = statement;
+        } = expr;
         self.walk(base);
         self.walk_type(&variant_index.typ);
     }
-    fn walk_field(&mut self, statement: &FieldExpr) {
-        let FieldExpr { base, field, .. } = statement;
+    fn walk_field(&mut self, expr: &FieldExpr) {
+        let FieldExpr { base, field, .. } = expr;
         self.walk(base);
         self.walk_type(&field.typ);
     }
-    fn walk_addr_of(&mut self, statement: &AddrOf) {
+    fn walk_addr_of(&mut self, expr: &AddrOf) {
         let AddrOf {
             base, addr_type, ..
-        } = statement;
+        } = expr;
         self.walk(base);
         self.walk_type(addr_type);
     }
     fn walk_const(&mut self, _const_expr: &ConstExpr) {}
-    fn walk_labelled_old(&mut self, statement: &LabelledOld) {
-        let LabelledOld { base, .. } = statement;
+    fn walk_labelled_old(&mut self, expr: &LabelledOld) {
+        let LabelledOld { base, .. } = expr;
         self.walk(base);
     }
-    fn walk_magic_wand(&mut self, statement: &MagicWand) {
-        let MagicWand { left, right, .. } = statement;
+    fn walk_magic_wand(&mut self, expr: &MagicWand) {
+        let MagicWand { left, right, .. } = expr;
         self.walk(left);
         self.walk(right);
     }
-    fn walk_predicate_access_predicate(&mut self, statement: &PredicateAccessPredicate) {
-        let PredicateAccessPredicate { argument, .. } = statement;
+    fn walk_predicate_access_predicate(&mut self, expr: &PredicateAccessPredicate) {
+        let PredicateAccessPredicate { argument, .. } = expr;
         self.walk(argument);
     }
-    fn walk_field_access_predicate(&mut self, statement: &FieldAccessPredicate) {
-        let FieldAccessPredicate { base, .. } = statement;
+    fn walk_field_access_predicate(&mut self, expr: &FieldAccessPredicate) {
+        let FieldAccessPredicate { base, .. } = expr;
         self.walk(base);
     }
-    fn walk_unary_op(&mut self, statement: &UnaryOp) {
-        let UnaryOp { argument, .. } = statement;
+    fn walk_unary_op(&mut self, expr: &UnaryOp) {
+        let UnaryOp { argument, .. } = expr;
         self.walk(argument)
     }
-    fn walk_bin_op(&mut self, statement: &BinOp) {
-        let BinOp { left, right, .. } = statement;
+    fn walk_bin_op(&mut self, expr: &BinOp) {
+        let BinOp { left, right, .. } = expr;
         self.walk(left);
         self.walk(right);
     }
-    fn walk_unfolding(&mut self, statement: &Unfolding) {
+    fn walk_unfolding(&mut self, expr: &Unfolding) {
         let Unfolding {
             arguments, base, ..
-        } = statement;
+        } = expr;
         for arg in arguments {
             self.walk(arg);
         }
         self.walk(base);
     }
-    fn walk_cond(&mut self, statement: &Cond) {
+    fn walk_cond(&mut self, expr: &Cond) {
         let Cond {
             guard,
             then_expr,
             else_expr,
             ..
-        } = statement;
+        } = expr;
         self.walk(guard);
         self.walk(then_expr);
         self.walk(else_expr);
     }
-    fn walk_forall(&mut self, statement: &ForAll) {
+    fn walk_forall(&mut self, expr: &ForAll) {
         let ForAll {
             variables,
             triggers,
             body,
             ..
-        } = statement;
+        } = expr;
         for set in triggers {
             for expr in set.elements() {
                 self.walk(expr);
@@ -558,13 +572,13 @@ pub trait ExprWalker: Sized {
         }
         self.walk(body);
     }
-    fn walk_exists(&mut self, statement: &Exists) {
+    fn walk_exists(&mut self, expr: &Exists) {
         let Exists {
             variables,
             triggers,
             body,
             ..
-        } = statement;
+        } = expr;
         for set in triggers {
             for expr in set.elements() {
                 self.walk(expr);
@@ -575,24 +589,24 @@ pub trait ExprWalker: Sized {
         }
         self.walk(body);
     }
-    fn walk_let_expr(&mut self, statement: &LetExpr) {
+    fn walk_let_expr(&mut self, expr: &LetExpr) {
         let LetExpr {
             variable,
             def,
             body,
             ..
-        } = statement;
+        } = expr;
         self.walk_local_var(variable);
         self.walk(def);
         self.walk(body);
     }
-    fn walk_func_app(&mut self, statement: &FuncApp) {
+    fn walk_func_app(&mut self, expr: &FuncApp) {
         let FuncApp {
             arguments,
             formal_arguments,
             return_type,
             ..
-        } = statement;
+        } = expr;
         for arg in arguments {
             self.walk(arg)
         }
@@ -601,12 +615,12 @@ pub trait ExprWalker: Sized {
         }
         self.walk_type(return_type);
     }
-    fn walk_domain_func_app(&mut self, statement: &DomainFuncApp) {
+    fn walk_domain_func_app(&mut self, expr: &DomainFuncApp) {
         let DomainFuncApp {
             domain_function,
             arguments,
             ..
-        } = statement;
+        } = expr;
         for arg in arguments {
             self.walk(arg)
         }
@@ -632,44 +646,52 @@ pub trait ExprWalker: Sized {
         }
     }
     */
-    fn walk_inhale_exhale(&mut self, statement: &InhaleExhale) {
+    fn walk_inhale_exhale(&mut self, expr: &InhaleExhale) {
         let InhaleExhale {
             inhale_expr,
             exhale_expr,
             ..
-        } = statement;
+        } = expr;
         self.walk(inhale_expr);
         self.walk(exhale_expr);
     }
 
-    fn walk_downcast(&mut self, statement: &DowncastExpr) {
+    fn walk_downcast(&mut self, expr: &DowncastExpr) {
         let DowncastExpr {
             base, enum_place, ..
-        } = statement;
+        } = expr;
         self.walk(base);
         self.walk(enum_place);
     }
-    fn walk_snap_app(&mut self, statement: &SnapApp) {
-        let SnapApp { base, .. } = statement;
+    fn walk_snap_app(&mut self, expr: &SnapApp) {
+        let SnapApp { base, .. } = expr;
         self.walk(base);
     }
 
-    fn walk_container_op(&mut self, statement: &ContainerOp) {
-        let ContainerOp { left, right, .. } = statement;
+    fn walk_container_op(&mut self, expr: &ContainerOp) {
+        let ContainerOp { left, right, .. } = expr;
         self.walk(left);
         self.walk(right);
     }
 
-    fn walk_seq(&mut self, statement: &Seq) {
-        let Seq { typ, elements, .. } = statement;
+    fn walk_seq(&mut self, expr: &Seq) {
+        let Seq { typ, elements, .. } = expr;
         for elem in elements {
             self.walk(elem);
         }
         self.walk_type(typ);
     }
 
-    fn walk_cast(&mut self, statement: &Cast) {
-        let Cast { base, .. } = statement;
+    fn walk_map(&mut self, expr: &Map) {
+        let Map { typ, elements, .. } = expr;
+        for elem in elements {
+            self.walk(elem);
+        }
+        self.walk_type(typ);
+    }
+
+    fn walk_cast(&mut self, expr: &Cast) {
+        let Cast { base, .. } = expr;
         self.walk(base);
     }
 }
@@ -704,6 +726,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::SnapApp(snap_app) => this.walk_snap_app(snap_app),
         Expr::ContainerOp(container_op) => this.walk_container_op(container_op),
         Expr::Seq(seq) => this.walk_seq(seq),
+        Expr::Map(map) => this.walk_map(map),
         Expr::Cast(cast) => this.walk_cast(cast),
     }
 }
@@ -1084,6 +1107,22 @@ pub trait FallibleExprFolder: Sized {
         }))
     }
 
+    fn fallible_fold_map(&mut self, expr: Map) -> Result<Expr, Self::Error> {
+        let Map {
+            typ,
+            elements,
+            position,
+        } = expr;
+        Ok(Expr::Map(Map {
+            typ,
+            elements: elements
+                .into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<_, _>>()?,
+            position,
+        }))
+    }
+
     fn fallible_fold_cast(&mut self, expr: Cast) -> Result<Expr, Self::Error> {
         let Cast {
             kind,
@@ -1131,6 +1170,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::SnapApp(snap_app) => this.fallible_fold_snap_app(snap_app),
         Expr::ContainerOp(container_op) => this.fallible_fold_container_op(container_op),
         Expr::Seq(seq) => this.fallible_fold_seq(seq),
+        Expr::Map(map) => this.fallible_fold_map(map),
         Expr::Cast(cast) => this.fallible_fold_cast(cast),
     }
 }
@@ -1149,96 +1189,96 @@ pub trait FallibleExprWalker: Sized {
         self.fallible_walk_type(&var.typ)
     }
 
-    fn fallible_walk_local(&mut self, statement: &Local) -> Result<(), Self::Error> {
-        let Local { variable, .. } = statement;
+    fn fallible_walk_local(&mut self, expr: &Local) -> Result<(), Self::Error> {
+        let Local { variable, .. } = expr;
         self.fallible_walk_local_var(variable)
     }
-    fn fallible_walk_variant(&mut self, statement: &Variant) -> Result<(), Self::Error> {
+    fn fallible_walk_variant(&mut self, expr: &Variant) -> Result<(), Self::Error> {
         let Variant {
             base,
             variant_index,
             ..
-        } = statement;
+        } = expr;
         self.fallible_walk(base)?;
         self.fallible_walk_type(&variant_index.typ)
     }
-    fn fallible_walk_field(&mut self, statement: &FieldExpr) -> Result<(), Self::Error> {
-        let FieldExpr { base, field, .. } = statement;
+    fn fallible_walk_field(&mut self, expr: &FieldExpr) -> Result<(), Self::Error> {
+        let FieldExpr { base, field, .. } = expr;
         self.fallible_walk(base)?;
         self.fallible_walk_type(&field.typ)
     }
-    fn fallible_walk_addr_of(&mut self, statement: &AddrOf) -> Result<(), Self::Error> {
+    fn fallible_walk_addr_of(&mut self, expr: &AddrOf) -> Result<(), Self::Error> {
         let AddrOf {
             base, addr_type, ..
-        } = statement;
+        } = expr;
         self.fallible_walk(base)?;
         self.fallible_walk_type(addr_type)
     }
     fn fallible_walk_const(&mut self, _const_expr: &ConstExpr) -> Result<(), Self::Error> {
         Ok(())
     }
-    fn fallible_walk_labelled_old(&mut self, statement: &LabelledOld) -> Result<(), Self::Error> {
-        let LabelledOld { base, .. } = statement;
+    fn fallible_walk_labelled_old(&mut self, expr: &LabelledOld) -> Result<(), Self::Error> {
+        let LabelledOld { base, .. } = expr;
         self.fallible_walk(base)
     }
-    fn fallible_walk_magic_wand(&mut self, statement: &MagicWand) -> Result<(), Self::Error> {
-        let MagicWand { left, right, .. } = statement;
+    fn fallible_walk_magic_wand(&mut self, expr: &MagicWand) -> Result<(), Self::Error> {
+        let MagicWand { left, right, .. } = expr;
         self.fallible_walk(left)?;
         self.fallible_walk(right)?;
         Ok(())
     }
     fn fallible_walk_predicate_access_predicate(
         &mut self,
-        statement: &PredicateAccessPredicate,
+        expr: &PredicateAccessPredicate,
     ) -> Result<(), Self::Error> {
-        let PredicateAccessPredicate { argument, .. } = statement;
+        let PredicateAccessPredicate { argument, .. } = expr;
         self.fallible_walk(argument)
     }
     fn fallible_walk_field_access_predicate(
         &mut self,
-        statement: &FieldAccessPredicate,
+        expr: &FieldAccessPredicate,
     ) -> Result<(), Self::Error> {
-        let FieldAccessPredicate { base, .. } = statement;
+        let FieldAccessPredicate { base, .. } = expr;
         self.fallible_walk(base)
     }
-    fn fallible_walk_unary_op(&mut self, statement: &UnaryOp) -> Result<(), Self::Error> {
-        let UnaryOp { argument, .. } = statement;
+    fn fallible_walk_unary_op(&mut self, expr: &UnaryOp) -> Result<(), Self::Error> {
+        let UnaryOp { argument, .. } = expr;
         self.fallible_walk(argument)
     }
-    fn fallible_walk_bin_op(&mut self, statement: &BinOp) -> Result<(), Self::Error> {
-        let BinOp { left, right, .. } = statement;
+    fn fallible_walk_bin_op(&mut self, expr: &BinOp) -> Result<(), Self::Error> {
+        let BinOp { left, right, .. } = expr;
         self.fallible_walk(left)?;
         self.fallible_walk(right)?;
         Ok(())
     }
-    fn fallible_walk_unfolding(&mut self, statement: &Unfolding) -> Result<(), Self::Error> {
+    fn fallible_walk_unfolding(&mut self, expr: &Unfolding) -> Result<(), Self::Error> {
         let Unfolding {
             arguments, base, ..
-        } = statement;
+        } = expr;
         for arg in arguments {
             self.fallible_walk(arg)?;
         }
         self.fallible_walk(base)
     }
-    fn fallible_walk_cond(&mut self, statement: &Cond) -> Result<(), Self::Error> {
+    fn fallible_walk_cond(&mut self, expr: &Cond) -> Result<(), Self::Error> {
         let Cond {
             guard,
             then_expr,
             else_expr,
             ..
-        } = statement;
+        } = expr;
         self.fallible_walk(guard)?;
         self.fallible_walk(then_expr)?;
         self.fallible_walk(else_expr)?;
         Ok(())
     }
-    fn fallible_walk_forall(&mut self, statement: &ForAll) -> Result<(), Self::Error> {
+    fn fallible_walk_forall(&mut self, expr: &ForAll) -> Result<(), Self::Error> {
         let ForAll {
             variables,
             triggers,
             body,
             ..
-        } = statement;
+        } = expr;
         for var in variables {
             self.fallible_walk_local_var(var)?;
         }
@@ -1249,13 +1289,13 @@ pub trait FallibleExprWalker: Sized {
         }
         self.fallible_walk(body)
     }
-    fn fallible_walk_exists(&mut self, statement: &Exists) -> Result<(), Self::Error> {
+    fn fallible_walk_exists(&mut self, expr: &Exists) -> Result<(), Self::Error> {
         let Exists {
             variables,
             triggers,
             body,
             ..
-        } = statement;
+        } = expr;
         for var in variables {
             self.fallible_walk_local_var(var)?;
         }
@@ -1266,25 +1306,25 @@ pub trait FallibleExprWalker: Sized {
         }
         self.fallible_walk(body)
     }
-    fn fallible_walk_let_expr(&mut self, statement: &LetExpr) -> Result<(), Self::Error> {
+    fn fallible_walk_let_expr(&mut self, expr: &LetExpr) -> Result<(), Self::Error> {
         let LetExpr {
             variable,
             def,
             body,
             ..
-        } = statement;
+        } = expr;
         self.fallible_walk_local_var(variable)?;
         self.fallible_walk(def)?;
         self.fallible_walk(body)?;
         Ok(())
     }
-    fn fallible_walk_func_app(&mut self, statement: &FuncApp) -> Result<(), Self::Error> {
+    fn fallible_walk_func_app(&mut self, expr: &FuncApp) -> Result<(), Self::Error> {
         let FuncApp {
             arguments,
             formal_arguments,
             return_type,
             ..
-        } = statement;
+        } = expr;
         for arg in arguments {
             self.fallible_walk(arg)?;
         }
@@ -1293,15 +1333,12 @@ pub trait FallibleExprWalker: Sized {
         }
         self.fallible_walk_type(return_type)
     }
-    fn fallible_walk_domain_func_app(
-        &mut self,
-        statement: &DomainFuncApp,
-    ) -> Result<(), Self::Error> {
+    fn fallible_walk_domain_func_app(&mut self, expr: &DomainFuncApp) -> Result<(), Self::Error> {
         let DomainFuncApp {
             domain_function,
             arguments,
             ..
-        } = statement;
+        } = expr;
         for arg in arguments {
             self.fallible_walk(arg)?;
         }
@@ -1327,48 +1364,56 @@ pub trait FallibleExprWalker: Sized {
         }
     }
     */
-    fn fallible_walk_inhale_exhale(&mut self, statement: &InhaleExhale) -> Result<(), Self::Error> {
+    fn fallible_walk_inhale_exhale(&mut self, expr: &InhaleExhale) -> Result<(), Self::Error> {
         let InhaleExhale {
             inhale_expr,
             exhale_expr,
             ..
-        } = statement;
+        } = expr;
         self.fallible_walk(inhale_expr)?;
         self.fallible_walk(exhale_expr)?;
         Ok(())
     }
 
-    fn fallible_walk_downcast(&mut self, statement: &DowncastExpr) -> Result<(), Self::Error> {
+    fn fallible_walk_downcast(&mut self, expr: &DowncastExpr) -> Result<(), Self::Error> {
         let DowncastExpr {
             base, enum_place, ..
-        } = statement;
+        } = expr;
         self.fallible_walk(base)?;
         self.fallible_walk(enum_place)?;
         Ok(())
     }
 
-    fn fallible_walk_snap_app(&mut self, statement: &SnapApp) -> Result<(), Self::Error> {
-        let SnapApp { base, .. } = statement;
+    fn fallible_walk_snap_app(&mut self, expr: &SnapApp) -> Result<(), Self::Error> {
+        let SnapApp { base, .. } = expr;
         self.fallible_walk(base)
     }
 
-    fn fallible_walk_container_op(&mut self, statement: &ContainerOp) -> Result<(), Self::Error> {
-        let ContainerOp { left, right, .. } = statement;
+    fn fallible_walk_container_op(&mut self, expr: &ContainerOp) -> Result<(), Self::Error> {
+        let ContainerOp { left, right, .. } = expr;
         self.fallible_walk(left)?;
         self.fallible_walk(right)?;
         Ok(())
     }
 
-    fn fallible_walk_seq(&mut self, statement: &Seq) -> Result<(), Self::Error> {
-        let Seq { typ, elements, .. } = statement;
+    fn fallible_walk_seq(&mut self, expr: &Seq) -> Result<(), Self::Error> {
+        let Seq { typ, elements, .. } = expr;
         for elem in elements {
             self.fallible_walk(elem)?;
         }
         self.fallible_walk_type(typ)
     }
 
-    fn fallible_walk_cast(&mut self, statement: &Cast) -> Result<(), Self::Error> {
-        let Cast { base, .. } = statement;
+    fn fallible_walk_map(&mut self, expr: &Map) -> Result<(), Self::Error> {
+        let Map { typ, elements, .. } = expr;
+        for elem in elements {
+            self.fallible_walk(elem)?;
+        }
+        self.fallible_walk_type(typ)
+    }
+
+    fn fallible_walk_cast(&mut self, expr: &Cast) -> Result<(), Self::Error> {
+        let Cast { base, .. } = expr;
         self.fallible_walk(base)
     }
 }
@@ -1406,6 +1451,7 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::SnapApp(snap_app) => this.fallible_walk_snap_app(snap_app),
         Expr::ContainerOp(container_op) => this.fallible_walk_container_op(container_op),
         Expr::Seq(seq) => this.fallible_walk_seq(seq),
+        Expr::Map(map) => this.fallible_walk_map(map),
         Expr::Cast(cast) => this.fallible_walk_cast(cast),
     }
 }

@@ -139,4 +139,20 @@ impl Expression {
         let mut replacer = DiscriminantReplacer { new_discriminant };
         replacer.fold_expression(self)
     }
+    pub fn full_permission() -> Self {
+        Self::constant_no_pos(1.into(), Type::Perm)
+    }
+    pub fn no_permission() -> Self {
+        Self::constant_no_pos(0.into(), Type::Perm)
+    }
+    pub fn wildcard_permission() -> Self {
+        Self::constant_no_pos((-1i64).into(), Type::Perm)
+    }
+    pub fn fractional_permission(denominator: u32) -> Self {
+        Self::perm_binary_op_no_pos(
+            PermBinaryOpKind::Div,
+            Self::full_permission(),
+            denominator.into(),
+        )
+    }
 }

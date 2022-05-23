@@ -1,13 +1,17 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-pub(in super::super::super) trait ToText {
+pub trait ToText {
     fn to_text(&self) -> String;
 }
 
-pub(in super::super::super) fn to_sorted_text<S: ToText>(texts: &[S]) -> Vec<String> {
+pub(in super::super) fn to_sorted_text<S: ToText>(texts: &[S]) -> Vec<String> {
     let mut strings: Vec<_> = texts.iter().map(ToText::to_text).collect();
     strings.sort();
     strings
+}
+
+pub fn opaque_lifetime_string(index: usize) -> String {
+    format!("bw{}", index)
 }
 
 fn escape_html<S: ToString>(s: S) -> String {
@@ -40,7 +44,7 @@ impl ToText for rustc_middle::mir::Local {
 
 impl ToText for rustc_middle::ty::RegionVid {
     fn to_text(&self) -> String {
-        format!("'{}", self.index())
+        format!("lft_{}", self.index())
     }
 }
 
@@ -92,7 +96,7 @@ pub(in super::super) fn loans_to_text(
     strings.join(", ")
 }
 
-pub(super) fn loan_set_to_text(
+pub(in super::super) fn loan_set_to_text(
     loans: &BTreeSet<crate::environment::borrowck::facts::Loan>,
 ) -> String {
     let strings: Vec<_> = loans.iter().map(loan_to_text).collect();
@@ -139,5 +143,30 @@ impl<'tcx> ToText for rustc_middle::mir::Terminator<'tcx> {
 impl<'tcx> ToText for rustc_middle::ty::Ty<'tcx> {
     fn to_text(&self) -> String {
         escape_html(format!("{:?}", self))
+    }
+}
+
+impl<'tcx> ToText for rustc_middle::ty::Region<'tcx> {
+    fn to_text(&self) -> String {
+        match self.kind() {
+            rustc_middle::ty::ReEarlyBound(reg) => {
+                format!("lft_early_bound_{}", reg.index)
+            }
+            rustc_middle::ty::ReLateBound(debruijn, bound_reg) => {
+                format!("lft_late_{}_{}", debruijn.index(), bound_reg.var.index())
+            }
+            rustc_middle::ty::ReFree(_) => {
+                unimplemented!("ReFree: {}", format!("{}", self));
+            }
+            rustc_middle::ty::ReStatic => String::from("lft_static"),
+            rustc_middle::ty::ReVar(region_vid) => format!("lft_{}", region_vid.index()),
+            rustc_middle::ty::RePlaceholder(_) => {
+                unimplemented!("RePlaceholder: {}", format!("{}", self));
+            }
+            rustc_middle::ty::ReEmpty(_) => {
+                unimplemented!("ReEmpty: {}", format!("{}", self));
+            }
+            rustc_middle::ty::ReErased => String::from("lft_erased"),
+        }
     }
 }

@@ -1,15 +1,20 @@
-use std::collections::{BTreeMap, BTreeSet};
-
-use super::permission::{Permission, PermissionKind};
+use super::permission::{MutBorrowed, Permission, PermissionKind};
 use crate::encoder::errors::SpannedEncodingResult;
 use log::debug;
-use std::fmt::Write;
-use vir_crate::{high as vir_high, middle as vir_mid};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt::Write,
+};
+use vir_crate::{
+    high::{self as vir_high},
+    middle as vir_mid,
+};
 
 #[derive(Clone, Default)]
 pub(super) struct PredicateState {
     owned_non_aliased: BTreeSet<vir_high::Expression>,
     memory_block_stack: BTreeSet<vir_high::Expression>,
+    mut_borrowed: BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
 }
 
 #[derive(Clone)]
@@ -42,6 +47,10 @@ impl std::fmt::Display for PredicateState {
         writeln!(f, "memory_block_stack ({}):", self.memory_block_stack.len())?;
         for place in &self.memory_block_stack {
             writeln!(f, "  {}", place)?;
+        }
+        writeln!(f, "mut_borrowed ({}):", self.mut_borrowed.len())?;
+        for (place, lifetime) in &self.mut_borrowed {
+            writeln!(f, "  &{} {}", lifetime, place)?;
         }
         Ok(())
     }
@@ -79,6 +88,19 @@ impl PredicateState {
             "not found: {} in {:?}",
             place,
             kind
+        );
+        Ok(())
+    }
+
+    pub(super) fn remove_mut_borrowed(
+        &mut self,
+        place: &vir_high::Expression,
+    ) -> SpannedEncodingResult<()> {
+        assert!(place.is_place());
+        assert!(
+            self.mut_borrowed.remove(place).is_some(),
+            "not found in mut_borrowed: {}",
+            place,
         );
         Ok(())
     }
@@ -171,6 +193,13 @@ impl PredicateState {
         Ok(collected_places)
     }
 
+    pub(super) fn contains_blocked(
+        &self,
+        place: &vir_high::Expression,
+    ) -> SpannedEncodingResult<Option<vir_high::ty::LifetimeConst>> {
+        Ok(self.mut_borrowed.get(place).cloned())
+    }
+
     fn clear(&mut self) -> SpannedEncodingResult<()> {
         self.owned_non_aliased.clear();
         self.memory_block_stack.clear();
@@ -185,6 +214,9 @@ impl PredicateState {
             .chain(&self.memory_block_stack)
         {
             expr.check_no_default_position();
+        }
+        for place in self.mut_borrowed.keys() {
+            place.check_no_default_position();
         }
     }
 }
@@ -350,6 +382,20 @@ impl FoldUnfoldState {
         Ok(())
     }
 
+    pub(in super::super) fn insert_mut_borrowed(
+        &mut self,
+        borrow: MutBorrowed,
+    ) -> SpannedEncodingResult<()> {
+        assert!(borrow.place.is_place());
+        assert!(self
+            .unconditional
+            .mut_borrowed
+            .insert(borrow.place, borrow.lifetime)
+            .is_none());
+        self.check_no_default_position();
+        Ok(())
+    }
+
     pub(in super::super) fn remove_memory_block(
         &mut self,
         place: &vir_high::Expression,
@@ -397,6 +443,7 @@ impl FoldUnfoldState {
         match permission {
             Permission::MemoryBlock(place) => self.insert_memory_block(place)?,
             Permission::Owned(place) => self.insert_owned(place)?,
+            Permission::MutBorrowed(borrow) => self.insert_mut_borrowed(borrow)?,
         }
         self.check_no_default_position();
         Ok(())
@@ -421,6 +468,7 @@ impl FoldUnfoldState {
         match permission {
             Permission::MemoryBlock(place) => self.remove_memory_block(place)?,
             Permission::Owned(place) => self.remove_owned(place)?,
+            Permission::MutBorrowed(_) => unreachable!(),
         }
         Ok(())
     }

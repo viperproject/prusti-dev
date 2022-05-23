@@ -35,4 +35,13 @@ impl PlaceExpressionDomainEncoder for PlaceEncoder {
         lowerer.encode_compute_address_for_place_root(&place_root)?;
         Ok(place_root)
     }
+
+    fn encode_deref(
+        &mut self,
+        deref: &vir_mid::expression::Deref,
+        lowerer: &mut Lowerer,
+        arg: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        lowerer.encode_deref_place(arg, deref.position)
+    }
 }
