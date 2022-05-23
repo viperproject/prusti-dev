@@ -52,11 +52,17 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::Consume(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::Havoc(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
             vir_high::Statement::Assume(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::Assert(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::LoopInvariant(_) => {
+                unreachable!("LoopInvariant statement should have been removed before.");
             }
             vir_high::Statement::MovePlace(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
@@ -94,7 +100,13 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::OpenMutRef(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::OpenFracRef(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
             vir_high::Statement::CloseMutRef(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::CloseFracRef(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::LifetimeReturn(statement) => {
@@ -180,6 +192,19 @@ impl CollectPermissionChanges for vir_high::Consume {
     ) -> SpannedEncodingResult<()> {
         self.operand
             .collect(encoder, consumed_permissions, produced_permissions)?;
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::Havoc {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.extend(extract_managed_predicate_place(&self.predicate)?);
+        produced_permissions.extend(extract_managed_predicate_place(&self.predicate)?);
         Ok(())
     }
 }
@@ -569,7 +594,33 @@ impl CollectPermissionChanges for vir_high::OpenMutRef {
     }
 }
 
+impl CollectPermissionChanges for vir_high::OpenFracRef {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
 impl CollectPermissionChanges for vir_high::CloseMutRef {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::CloseFracRef {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,

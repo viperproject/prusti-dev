@@ -24,6 +24,8 @@ pub enum Expression {
     PermBinaryOp(PermBinaryOp),
     /// Container operation on a Viper container (e.g. Seq index).
     ContainerOp(ContainerOp),
+    /// Map operations
+    MapOp(MapOp),
     /// Viper sequence constructor.
     Seq(Seq),
     Conditional(Conditional),
@@ -173,6 +175,21 @@ pub enum ContainerOpKind {
     SeqIndex,
     SeqConcat,
     SeqLen,
+}
+
+#[display(fmt = "Map{}({})", kind, "display::cjoin(operands)")]
+pub struct MapOp {
+    pub map_ty: Type,
+    pub kind: MapOpKind,
+    pub operands: Vec<Expression>,
+    pub position: Position,
+}
+
+pub enum MapOpKind {
+    Empty,
+    Update,
+    Lookup,
+    Len,
 }
 
 #[display(fmt = "Seq({})", "display::cjoin(elements)")]

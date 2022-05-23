@@ -119,8 +119,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
         {
             use vir_low::macros::*;
             let mut function = function! {
-                f(address: Address, size: {ty! {{ self.size_type()? }}}): Bytes
-                    requires (acc(MemoryBlock((address), (size))));
+                bytes(
+                    address: Address,
+                    size: {ty! {{ self.size_type()? }}}
+                ): Bytes
+                    requires (acc(
+                        MemoryBlock(address, size),
+                        [vir_low::Expression::wildcard_permission()]
+                    ));
             };
             function.name = "MemoryBlock$bytes".to_string();
             self.declare_function(function)?;

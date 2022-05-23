@@ -16,7 +16,7 @@ use rustc_middle::ty::subst::{Subst, SubstsRef};
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
 
-use rustc_errors::MultiSpan;
+use rustc_errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
 use rustc_span::{Span, symbol::Symbol};
 use std::collections::HashSet;
 use log::{debug, trace};
@@ -33,7 +33,7 @@ mod loops_utils;
 pub mod mir_analyses;
 pub mod mir_storage;
 pub mod mir_utils;
-pub mod place_set;
+pub mod mir_sets;
 pub mod polonius_info;
 mod procedure;
 pub mod mir_dump;
@@ -44,7 +44,7 @@ use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
 use rustc_hir::intravisit::Visitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
-pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block};
+pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block, is_loop_invariant_block, get_loop_invariant};
 use self::borrowck::facts::BorrowckFacts;
 // use config;
 use crate::data::ProcedureDefId;
@@ -76,6 +76,7 @@ pub struct Environment<'tcx> {
     bodies: RefCell<HashMap<LocalDefId, CachedBody<'tcx>>>,
     external_bodies: RefCell<HashMap<DefId, CachedExternalBody<'tcx>>>,
     tcx: TyCtxt<'tcx>,
+    warn_buffer: RefCell<Vec<rustc_errors::Diagnostic>>,
 }
 
 impl<'tcx> Environment<'tcx> {
@@ -85,6 +86,7 @@ impl<'tcx> Environment<'tcx> {
             tcx,
             bodies: RefCell::new(HashMap::new()),
             external_bodies: RefCell::new(HashMap::new()),
+            warn_buffer: RefCell::new(Vec::new()),
         }
     }
 
@@ -142,6 +144,25 @@ impl<'tcx> Environment<'tcx> {
     //     self.state.session.span_err(sp, msg);
     // }
 
+    fn configure_diagnostic<S: Into<MultiSpan> + Clone, T: EmissionGuarantee>(
+        diagnostic: &mut DiagnosticBuilder<T>,
+        sp: S,
+        help: &Option<String>,
+        notes: &[(String, Option<S>)]
+    ) {
+        diagnostic.set_span(sp);
+        if let Some(help_msg) = help {
+            diagnostic.help(help_msg);
+        }
+        for (note_msg, opt_note_sp) in notes {
+            if let Some(note_sp) = opt_note_sp {
+                diagnostic.span_note(note_sp.clone(), note_msg);
+            } else {
+                diagnostic.note(note_msg);
+            }
+        }
+    }
+
     /// Emits an error message.
     pub fn span_err_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
@@ -151,21 +172,14 @@ impl<'tcx> Environment<'tcx> {
         notes: &[(String, Option<S>)],
     ) {
         let mut diagnostic = self.tcx.sess.struct_err(msg);
-        diagnostic.set_span(sp);
-        if let Some(help_msg) = help {
-            diagnostic.help(help_msg);
-        }
-        for (note_msg, opt_note_sp) in notes {
-            if let Some(note_sp) = opt_note_sp {
-                diagnostic.span_note(note_sp.clone(), note_msg);
-            } else {
-                diagnostic.note(note_msg);
-            }
+        Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
+        for warn in self.warn_buffer.borrow_mut().iter_mut() {
+            self.tcx.sess.diagnostic().emit_diagnostic(warn);
         }
         diagnostic.emit();
     }
 
-    /// Emits an error message.
+    /// Emits a warning message.
     pub fn span_warn_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
@@ -174,18 +188,21 @@ impl<'tcx> Environment<'tcx> {
         notes: &[(String, Option<S>)],
     ) {
         let mut diagnostic = self.tcx.sess.struct_warn(msg);
-        diagnostic.set_span(sp);
-        if let Some(help_msg) = help {
-            diagnostic.help(help_msg);
-        }
-        for (note_msg, opt_note_sp) in notes {
-            if let Some(note_sp) = opt_note_sp {
-                diagnostic.span_note(note_sp.clone(), note_msg);
-            } else {
-                diagnostic.note(note_msg);
-            }
-        }
+        Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
         diagnostic.emit();
+    }
+
+    /// Buffers a warning message, to be emitted on error.
+    pub fn span_warn_on_err_with_help_and_notes<S: Into<MultiSpan> + Clone>(
+        &self,
+        sp: S,
+        msg: &str,
+        help: &Option<String>,
+        notes: &[(String, Option<S>)],
+    ) {
+        let mut diagnostic = self.tcx.sess.struct_warn(msg);
+        Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
+        diagnostic.buffer(&mut self.warn_buffer.borrow_mut());
     }
 
     /// Returns true if an error has been emitted
@@ -207,10 +224,17 @@ impl<'tcx> Environment<'tcx> {
         result
     }
 
+    pub fn get_local_attributes(&self, def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
+        crate::utils::get_local_attributes(self.tcx(), def_id)
+    }
+
+    pub fn get_attributes(&self, def_id: ProcedureDefId) -> &[rustc_ast::ast::Attribute] {
+        crate::utils::get_attributes(self.tcx(), def_id)
+    }
+
     /// Find whether the procedure has a particular `prusti::<name>` attribute.
     pub fn has_prusti_attribute(&self, def_id: ProcedureDefId, name: &str) -> bool {
-        let tcx = self.tcx();
-        crate::utils::has_prusti_attr(tcx.get_attrs(def_id), name)
+        crate::utils::has_prusti_attr(self.get_attributes(def_id), name)
     }
 
     /// Dump various information from the borrow checker.
@@ -292,7 +316,7 @@ impl<'tcx> Environment<'tcx> {
             .entry(substs)
             .or_insert_with(|| {
                 let param_env = self.tcx.param_env(def_id);
-                let substituted = body.base_body.clone().subst(self.tcx, substs);
+                let substituted = ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs);
                 self.resolve_assoc_types(substituted.clone(), param_env)
             })
             .clone()
@@ -328,7 +352,7 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| body.base_body.clone().subst(self.tcx, substs))
+            .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
             .clone()
     }
 
@@ -432,7 +456,7 @@ impl<'tcx> Environment<'tcx> {
         // above) with call substs, so that we get the trait's type parameters
         // more precisely. We can do this directly with `impl_method_substs`
         // because they contain the substs for the `impl` block as a prefix.
-        let call_trait_substs = trait_ref.substs.subst(self.tcx, impl_method_substs);
+        let call_trait_substs = ty::EarlyBinder(trait_ref.substs).subst(self.tcx, impl_method_substs);
         let impl_substs = self.identity_substs(impl_def_id);
         let trait_method_substs = self.tcx.mk_substs(call_trait_substs.iter()
             .chain(impl_method_substs.iter().skip(impl_substs.len())));

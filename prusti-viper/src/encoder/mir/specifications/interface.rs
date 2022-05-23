@@ -89,6 +89,9 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// `prusti::loop_body_invariant_spec` attribute.
     fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification>;
 
+    /// Get the specifications attached to the `def_id` type.
+    fn get_type_specs(&self, def_id: DefId) -> Option<typed::TypeSpecification>;
+
     /// Get the specifications attached to a function.
     fn get_procedure_specs(
         &self,
@@ -115,10 +118,18 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let kind = self.get_proc_kind(def_id, substs);
-        let pure = matches!(
+        let mut pure = matches!(
             kind,
             ProcedureSpecificationKind::Pure | ProcedureSpecificationKind::Predicate(_)
         );
+
+        let func_name = self.env().get_unique_item_name(def_id);
+        if func_name.starts_with("prusti_contracts::prusti_contracts::Map")
+            || func_name.starts_with("prusti_contracts::prusti_contracts::Seq")
+        {
+            pure = true;
+        }
+
         trace!("is_pure {:?} = {}", def_id, pure);
         pure
     }
@@ -173,6 +184,14 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .cloned()
     }
 
+    fn get_type_specs(&self, def_id: DefId) -> Option<typed::TypeSpecification> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_type_spec(&def_id)
+            .cloned()
+    }
+
     fn get_procedure_specs(
         &self,
         def_id: DefId,
@@ -201,7 +220,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn is_spec_closure(&self, def_id: DefId) -> bool {
-        has_spec_only_attr(self.env().tcx().get_attrs(def_id))
+        has_spec_only_attr(self.env().get_attributes(def_id))
     }
 
     fn get_spec_span(&self, def_id: DefId) -> Span {

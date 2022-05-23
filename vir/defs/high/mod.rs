@@ -5,9 +5,9 @@ pub(crate) mod operations_internal;
 pub use self::{
     ast::{
         expression::{
-            self, visitors, AddrOf, BinaryOp, BinaryOpKind, Conditional, Constant, Constructor,
-            ContainerOp, Deref, Downcast, Expression, Field, FuncApp, LabelledOld, LetExpr, Local,
-            Quantifier, Seq, Trigger, UnaryOp, UnaryOpKind, Variant,
+            self, visitors, AddrOf, BinaryOp, BinaryOpKind, BuiltinFunc, Conditional, Constant,
+            Constructor, ContainerOp, Deref, Downcast, Expression, Field, FuncApp, LabelledOld,
+            LetExpr, Local, Quantifier, Seq, Trigger, UnaryOp, UnaryOpKind, Variant,
         },
         field::FieldDecl,
         function::FunctionDecl,
@@ -17,9 +17,10 @@ pub use self::{
         },
         rvalue::{Operand, OperandKind, Rvalue},
         statement::{
-            Assert, Assign, Assume, CloseMutRef, Comment, Consume, CopyPlace, Dead, EndLft, Exhale,
-            Inhale, LeakAll, LifetimeReturn, LifetimeTake, MovePlace, NewLft, OldLabel, OpenMutRef,
-            SetUnionVariant, Statement, WriteAddress, WritePlace,
+            Assert, Assign, Assume, CloseFracRef, CloseMutRef, Comment, Consume, CopyPlace, Dead,
+            EndLft, Exhale, Havoc, Inhale, LeakAll, LifetimeReturn, LifetimeTake, LoopInvariant,
+            MovePlace, NewLft, OldLabel, OpenFracRef, OpenMutRef, SetUnionVariant, Statement,
+            WriteAddress, WritePlace,
         },
         ty::{self, Type},
         type_decl::{self, DiscriminantRange, DiscriminantValue, TypeDecl},

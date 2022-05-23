@@ -8,6 +8,7 @@ use crate::encoder::{
     stub_function_encoder::StubFunctionEncoder,
 };
 use log::{debug, trace};
+use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
 use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_middle::ty::subst::SubstsRef;
@@ -292,13 +293,15 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                         }
                         ProcedureSpecificationKind::Pure => {
                             let function = pure_function_encoder.encode_function()?;
-                            // Test the new encoding.
-                            let _ = super::new_encoder::encode_function_decl(
-                                self,
-                                proc_def_id,
-                                proc_def_id,
-                                substs,
-                            )?;
+                            if config::use_new_encoder() {
+                                // Test the new encoding.
+                                let _ = super::new_encoder::encode_function_decl(
+                                    self,
+                                    proc_def_id,
+                                    proc_def_id,
+                                    substs,
+                                )?;
+                            }
                             function
                         }
                         ProcedureSpecificationKind::Impure => {
@@ -307,7 +310,11 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                     }
                 };
 
-                let needs_patching = matches!(proc_kind, ProcedureSpecificationKind::Pure);
+                let needs_patching = matches!(
+                    proc_kind,
+                    ProcedureSpecificationKind::Pure
+                        | ProcedureSpecificationKind::Predicate(Some(_)),
+                );
                 if needs_patching {
                     self.mirror_encoder
                         .borrow_mut()
@@ -482,7 +489,9 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             )?;
 
             // FIXME: Refactor encode_pure_function_use to depend on this function.
-            let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, substs)?;
+            if !prusti_common::config::unsafe_core_proof() {
+                let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, substs)?;
+            }
 
             call_infos.insert(key.clone(), function_call_info);
         }

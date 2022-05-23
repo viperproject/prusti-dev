@@ -58,12 +58,16 @@ pub enum ErrorCtxt {
     AssertMethodPostconditionTypeInvariants,
     /// A Viper `exhale expr` that encodes the end of a Rust procedure with postcondition `expr`
     ExhaleMethodPostcondition,
+    /// A generic loop invariant error.
+    LoopInvariant,
     /// A Viper `exhale expr` that exhales the permissions of a loop invariant `expr`
     ExhaleLoopInvariantOnEntry,
     ExhaleLoopInvariantAfterIteration,
     /// A Viper `assert expr` that asserts the functional specification of a loop invariant `expr`
     AssertLoopInvariantOnEntry,
     AssertLoopInvariantAfterIteration,
+    /// An error when assuming the loop invariant on entry.
+    UnexpectedAssumeLoopInvariantOnEntry,
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
     /// Arguments: the message of the Rust assertion
     AssertTerminator(String),
@@ -132,10 +136,14 @@ pub enum ErrorCtxt {
     LifetimeTake,
     /// Failed to encode LifetimeReturn
     LifetimeReturn,
-    /// Failed to encode CloseMutRef
-    CloseMutRef,
     /// Failed to encode OpenMutRef
     OpenMutRef,
+    /// Failed to encode OpenFracRef
+    OpenFracRef,
+    /// Failed to encode CloseMutRef
+    CloseMutRef,
+    /// Failed to encode CloseFracRef
+    CloseFracRef,
     /// Failed to set an active variant of an union.
     SetEnumVariant,
 }
@@ -209,14 +217,14 @@ impl<'tcx> ErrorManager<'tcx> {
     }
 
     pub fn get_def_id(&self, ver_error: &VerificationError) -> Option<ProcedureDefId> {
-        ver_error.pos_id.as_ref()
+        ver_error.offending_pos_id.as_ref()
             .and_then(|id| id.parse().ok())
             .and_then(|id| self.position_manager.def_id.get(&id).copied())
     }
 
     pub fn translate_verification_error(&self, ver_error: &VerificationError) -> PrustiError {
         debug!("Verification error: {:?}", ver_error);
-        let opt_pos_id: Option<u64> = match ver_error.pos_id {
+        let opt_pos_id: Option<u64> = match ver_error.offending_pos_id {
             Some(ref viper_pos_id) => {
                 match viper_pos_id.parse() {
                     Ok(pos_id) => Some(pos_id),

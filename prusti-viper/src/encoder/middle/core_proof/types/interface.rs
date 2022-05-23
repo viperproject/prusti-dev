@@ -82,6 +82,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 // FIXME: we should make sure that the snapshot and validity
                 // function is generated, but nothing else.
             }
+            vir_mid::TypeDecl::Sequence(_) | vir_mid::TypeDecl::Map(_) => {
+                // FIXME: we should generate validity and to_bytes functions.
+                // The ghost containers should be valid iff the values they
+                // contain are valid.
+            }
             vir_mid::TypeDecl::Tuple(decl) => {
                 let mut parameters = Vec::new();
                 for field in decl.iter_fields() {

@@ -8,6 +8,7 @@ impl Positioned for Statement {
             Self::OldLabel(statement) => statement.position(),
             Self::Inhale(statement) => statement.position(),
             Self::Exhale(statement) => statement.position(),
+            Self::Havoc(statement) => statement.position(),
             Self::Assume(statement) => statement.position(),
             Self::Assert(statement) => statement.position(),
             Self::FoldOwned(statement) => statement.position(),
@@ -28,7 +29,9 @@ impl Positioned for Statement {
             Self::LifetimeTake(statement) => statement.position(),
             Self::LifetimeReturn(statement) => statement.position(),
             Self::OpenMutRef(statement) => statement.position(),
+            Self::OpenFracRef(statement) => statement.position(),
             Self::CloseMutRef(statement) => statement.position(),
+            Self::CloseFracRef(statement) => statement.position(),
         }
     }
 }
@@ -52,6 +55,12 @@ impl Positioned for Inhale {
 }
 
 impl Positioned for Exhale {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for Havoc {
     fn position(&self) -> Position {
         self.position
     }
@@ -177,7 +186,19 @@ impl Positioned for OpenMutRef {
     }
 }
 
+impl Positioned for OpenFracRef {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
 impl Positioned for CloseMutRef {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for CloseFracRef {
     fn position(&self) -> Position {
         self.position
     }

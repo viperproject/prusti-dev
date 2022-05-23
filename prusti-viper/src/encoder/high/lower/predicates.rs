@@ -32,6 +32,8 @@ impl IntoPredicates for vir_high::TypeDecl {
             vir_high::TypeDecl::Enum(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Union(_ty_decl) => unreachable!("Unions are not supported"),
             vir_high::TypeDecl::Array(ty_decl) => ty_decl.lower(ty, encoder),
+            vir_high::TypeDecl::Sequence(_ty_decl) => unimplemented!(),
+            vir_high::TypeDecl::Map(_ty_decl) => unimplemented!(),
             vir_high::TypeDecl::Reference(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Pointer(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Never => construct_never_predicate(encoder),
@@ -104,7 +106,7 @@ impl IntoPredicates for vir_high::type_decl::Tuple {
             .enumerate()
             .map(|(field_num, ty)| {
                 let field_name = format!("tuple_{}", field_num);
-                vir_high::FieldDecl::new(field_name, ty.clone()).lower(encoder)
+                vir_high::FieldDecl::new(field_name, field_num, ty.clone()).lower(encoder)
             })
             .collect();
         let predicate = Predicate::new_struct(ty.lower(encoder), fields);
@@ -234,7 +236,7 @@ impl IntoPredicates for vir_high::type_decl::Closure {
             .enumerate()
             .map(|(field_num, ty)| {
                 let field_name = format!("closure_{}", field_num);
-                vir_high::FieldDecl::new(field_name, ty.clone()).lower(encoder)
+                vir_high::FieldDecl::new(field_name, field_num, ty.clone()).lower(encoder)
             })
             .collect();
         let predicate = Predicate::new_struct(ty.lower(encoder), fields);
