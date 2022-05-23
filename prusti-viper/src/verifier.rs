@@ -10,7 +10,7 @@ use prusti_common::{
 };
 use crate::encoder::Encoder;
 use crate::encoder::counterexample_translation;
-//use crate::encoder::counterexample_translation_refactored;
+use crate::encoder::counterexample_snapshot::counterexample_translation_snapshot;
 // use prusti_filter::validators::Validator;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
@@ -317,11 +317,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             let mut prusti_error = error_manager.translate_verification_error(&verification_error);
 
             // annotate with counterexample, if requested
-            if config::produce_counterexample() {
+            if config::counterexample() {
                 if config::unsafe_core_proof(){
-                 /* if let Some(silicon_counterexample) = &verification_error.counterexample {
+                    if let Some(silicon_counterexample) = &verification_error.counterexample {
                         if let Some(def_id) = error_manager.get_def_id(&verification_error) {
-                            let counterexample = counterexample_translation_refactored::backtranslate(
+                            let counterexample = counterexample_translation_snapshot::backtranslate(
                                 &self.encoder,
                                 error_manager.position_manager(),
                                 def_id,
@@ -337,7 +337,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                                 None,
                             );
                         }
-                    }*/
+                    }
                 } else {
                     if let Some(silicon_counterexample) = &verification_error.counterexample {
                         if let Some(def_id) = error_manager.get_def_id(&verification_error) {

@@ -4,7 +4,7 @@ use log::{debug};
 
 use viper::silicon_counterexample::*;
 use super::high::types::HighTypeEncoderInterface;
-use super::counterexample2::DiscriminantsStateInterface;
+use super::counterexample_snapshot::DiscriminantsStateInterface;
 use prusti_interface::data::ProcedureDefId;
 use crate::encoder::Encoder;
 use crate::encoder::places::{Local, LocalVariableManager};
@@ -361,7 +361,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 debug!("heap: print sil_entry: {:?}", sil_entry);
                 Entry::Box(box entry)
             }
-            (ty::TyKind::Adt(adt_def, subst),_) if adt_def.is_box() => Entry::Box(box Entry::Unknown),
+            (ty::TyKind::Adt(adt_def, _),_) if adt_def.is_box() => Entry::Box(box Entry::Unknown),
             (ty::TyKind::Adt(adt_def, subst), _) if adt_def.is_struct() => {
                 let variant = adt_def.variants().iter().next().unwrap();
                 let struct_name = variant.ident(self.tcx).name.to_ident_string();
@@ -566,7 +566,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             Some(ModelEntry::Ref(name, _))=> {  
                 let encoded_typ = encoded_typ_option.unwrap_or_default();
                 debug!("ref entry: {:?}", &encoded_typ);
-                if let Some(domain) = self.silicon_counterexample.domains.entries.get(&encoded_typ) {  //need a domain to extract a counterexample
+                if let Some(_) = self.silicon_counterexample.domains.entries.get(&encoded_typ) {  //need a domain to extract a counterexample
                     let hd_function_param = vec![Some(ModelEntry::Var(name.clone()))];
                     let snapshot_var = self.get_hd_function_value(&encoded_typ, &hd_function_param);
                     debug!("snapshot found: {:?}", &snapshot_var);
@@ -597,7 +597,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     //only push if typ is not ref or box 
                     match typ.kind(){
                         ty::TyKind::Ref(..) => (),
-                        ty::TyKind::Adt(adt_def, subst) if adt_def.is_box() => (),
+                        ty::TyKind::Adt(adt_def, _) if adt_def.is_box() => (),
                         _ => translated_domains.in_progress.push((name.clone(), var.clone())),
                     }
                     debug!("translated domains cached: {:?}", translated_domains.cached_domains);
@@ -655,7 +655,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                         let field_name = format!("tuple_{}", i);
                         debug!("field name: {:?}", &field_name);
                         let sil_fn_name = format!("{}$0$field${}__$TY$__", &encoded_typ, &field_name);
-                        let field_entry = self.extract_field_value(&sil_fn_name, &encoded_typ, field_typ, snapshot_var, sil_domain, translated_domains);
+                        let field_entry = self.extract_field_value(&sil_fn_name, field_typ, snapshot_var, sil_domain, translated_domains);
                         fields.push(field_entry.unwrap_or_default());
                     }
                     Entry::Tuple(fields)
@@ -754,7 +754,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                         let field_typ = f.ty(self.tcx, subst);
                         debug!("field typ: {:?}", &field_typ.kind());
                         let sil_fn_name = format!("{}$0$field$f${}__$TY$__", &encoded_typ, &field_name);
-                        let field_entry = self.extract_field_value(&sil_fn_name, &encoded_typ, field_typ, snapshot_var, sil_domain, translated_domains);
+                        let field_entry = self.extract_field_value(&sil_fn_name, field_typ, snapshot_var, sil_domain, translated_domains);
                         fields.push((field_name, field_entry.unwrap_or_default()));
                     }
                     debug!("list of fields: {:?}", &fields);
@@ -768,7 +768,6 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
     }
     fn extract_field_value(&self, 
     sil_fn_name: &String,
-    encoded_typ: &String,
     field_typ: Ty<'tcx>,
     snapshot_var: Option<&ModelEntry>,
     sil_domain: &DomainEntry,
@@ -784,7 +783,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         };
         debug!("field value: {:?}", &field_value);
         let encoded_typ_field = match field_value  {
-            Some(ModelEntry::DomainValue(domain, var)) => Some(domain.clone()),
+            Some(ModelEntry::DomainValue(domain, _)) => Some(domain.clone()),
             _ => None,
         };
         debug!("encoded type field: {:?}", &encoded_typ_field);

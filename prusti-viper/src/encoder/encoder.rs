@@ -59,8 +59,8 @@ use super::mir::{
     }
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
-use super::counterexample2::{MirProcedureMappingInterface, MirProcedureMapping};
-use super::counterexample2::{DiscriminantsStateInterface, DiscriminantsState};
+use super::counterexample_snapshot::{MirProcedureMappingInterface, MirProcedureMapping};
+use super::counterexample_snapshot::DiscriminantsState;
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -92,8 +92,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
     /// Maps locals to the local of their discriminant.
-    discriminants_info: RefCell<FxHashMap<(ProcedureDefId, String), Vec<String>>>,
-    pub(super) discriminantsState: DiscriminantsState,
+    pub(super) discriminants_state: DiscriminantsState,
     pub(super) mir_procedure_mapping: MirProcedureMapping,
     /// Whether the current pure expression that's being encoded sits inside a trigger closure.
     /// Viper limits the type of expressions that are allowed in quantifier triggers and
@@ -164,11 +163,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             mirror_encoder: RefCell::new(MirrorEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
-            discriminants_info: RefCell::new(FxHashMap::default()),
             is_encoding_trigger: Cell::new(false),
             specifications_state: SpecificationsState::new(def_spec),
             mir_procedure_mapping: Default::default(),
-            discriminantsState: Default::default(),
+            discriminants_state: Default::default(),
         }
     }
 
@@ -227,7 +225,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn get_core_proof_programs(&mut self) -> Vec<prusti_common::vir::program::Program> {
-        if config::produce_counterexample()&& config::unsafe_core_proof(){
+        if config::counterexample()&& config::unsafe_core_proof(){
             self.take_core_proof_programs().into_iter().map(
                 | program | {
                     self.add_mapping(&program);
