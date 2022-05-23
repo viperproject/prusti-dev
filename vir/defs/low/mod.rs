@@ -3,13 +3,12 @@
 
 pub mod ast;
 pub mod cfg;
-pub(crate) mod derived_operations;
 pub mod domain;
 pub mod program;
 
 pub use self::{
     ast::{
-        expression::{self, BinaryOpKind, Expression, PermAmount, Trigger, UnaryOpKind},
+        expression::{self, BinaryOpKind, ConstantValue, Expression, Trigger, UnaryOpKind},
         field::FieldDecl,
         function::FunctionDecl,
         position::Position,

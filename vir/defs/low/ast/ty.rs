@@ -6,9 +6,11 @@ use crate::common::display;
 pub enum Type {
     Int,
     Bool,
+    Perm,
     Float(Float),
     BitVector(BitVector),
     Seq(Seq),
+    Map(Map),
     Ref,
     Domain(Domain),
 }
@@ -37,4 +39,10 @@ pub struct Seq {
 
 pub struct Domain {
     pub name: String,
+}
+
+#[display(fmt = "Map({} -> {})", key_type, val_type)]
+pub struct Map {
+    pub key_type: Box<Type>,
+    pub val_type: Box<Type>,
 }

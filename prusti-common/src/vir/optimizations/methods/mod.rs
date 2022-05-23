@@ -46,7 +46,15 @@ pub fn optimize_method_encoding(
             }
         };
     }
-    let cfg = apply!(purify_vars, cfg);
+    let cfg = if !crate::config::enable_purification_optimization() {
+        // Skip the variable purification optimization in case the more complete
+        // purification optimization is enabled.
+
+        // FIXME: We should have only one purification optimization.
+        apply!(purify_vars, cfg)
+    } else {
+        cfg
+    };
     let cfg = apply!(fix_unfoldings, cfg);
     let cfg = apply!(fix_quantifiers, cfg);
     let cfg = apply!(remove_empty_if, cfg);

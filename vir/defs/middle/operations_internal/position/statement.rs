@@ -5,8 +5,10 @@ impl Positioned for Statement {
     fn position(&self) -> Position {
         match self {
             Self::Comment(statement) => statement.position(),
+            Self::OldLabel(statement) => statement.position(),
             Self::Inhale(statement) => statement.position(),
             Self::Exhale(statement) => statement.position(),
+            Self::Havoc(statement) => statement.position(),
             Self::Assume(statement) => statement.position(),
             Self::Assert(statement) => statement.position(),
             Self::FoldOwned(statement) => statement.position(),
@@ -14,12 +16,22 @@ impl Positioned for Statement {
             Self::JoinBlock(statement) => statement.position(),
             Self::SplitBlock(statement) => statement.position(),
             Self::ConvertOwnedIntoMemoryBlock(statement) => statement.position(),
+            Self::RestoreMutBorrowed(statement) => statement.position(),
             Self::MovePlace(statement) => statement.position(),
             Self::CopyPlace(statement) => statement.position(),
             Self::WritePlace(statement) => statement.position(),
             Self::WriteAddress(statement) => statement.position(),
             Self::Assign(statement) => statement.position(),
             Self::Consume(statement) => statement.position(),
+            Self::NewLft(statement) => statement.position(),
+            Self::EndLft(statement) => statement.position(),
+            Self::Dead(statement) => statement.position(),
+            Self::LifetimeTake(statement) => statement.position(),
+            Self::LifetimeReturn(statement) => statement.position(),
+            Self::OpenMutRef(statement) => statement.position(),
+            Self::OpenFracRef(statement) => statement.position(),
+            Self::CloseMutRef(statement) => statement.position(),
+            Self::CloseFracRef(statement) => statement.position(),
         }
     }
 }
@@ -30,6 +42,12 @@ impl Positioned for Comment {
     }
 }
 
+impl Positioned for OldLabel {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
 impl Positioned for Inhale {
     fn position(&self) -> Position {
         self.position
@@ -37,6 +55,12 @@ impl Positioned for Inhale {
 }
 
 impl Positioned for Exhale {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for Havoc {
     fn position(&self) -> Position {
         self.position
     }
@@ -84,6 +108,12 @@ impl Positioned for ConvertOwnedIntoMemoryBlock {
     }
 }
 
+impl Positioned for RestoreMutBorrowed {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
 impl Positioned for MovePlace {
     fn position(&self) -> Position {
         self.position
@@ -115,6 +145,60 @@ impl Positioned for Assign {
 }
 
 impl Positioned for Consume {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for NewLft {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for EndLft {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for Dead {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for LifetimeTake {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for LifetimeReturn {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for OpenMutRef {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for OpenFracRef {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for CloseMutRef {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for CloseFracRef {
     fn position(&self) -> Position {
         self.position
     }

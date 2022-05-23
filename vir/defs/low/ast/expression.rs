@@ -21,8 +21,11 @@ pub enum Expression {
     Unfolding(Unfolding),
     UnaryOp(UnaryOp),
     BinaryOp(BinaryOp),
+    PermBinaryOp(PermBinaryOp),
     /// Container operation on a Viper container (e.g. Seq index).
     ContainerOp(ContainerOp),
+    /// Map operations
+    MapOp(MapOp),
     /// Viper sequence constructor.
     Seq(Seq),
     Conditional(Conditional),
@@ -80,22 +83,15 @@ pub struct MagicWand {
 pub struct PredicateAccessPredicate {
     pub name: String,
     pub arguments: Vec<Expression>,
-    pub permission: PermAmount,
+    pub permission: Box<Expression>,
     pub position: Position,
 }
 
 #[display(fmt = "acc({}, {})", base, permission)]
 pub struct FieldAccessPredicate {
     pub base: Box<Expression>,
-    pub permission: PermAmount,
+    pub permission: Box<Expression>,
     pub position: Position,
-}
-
-pub enum PermAmount {
-    Read,
-    Write,
-    /// The permission remaining after ``Read`` was subtracted from ``Write``.
-    Remaining,
 }
 
 #[display(
@@ -108,7 +104,7 @@ pub enum PermAmount {
 pub struct Unfolding {
     pub predicate: String,
     pub arguments: Vec<Expression>,
-    pub permission: PermAmount,
+    pub permission: Box<Expression>,
     pub base: Box<Expression>,
     pub position: Position,
 }
@@ -151,6 +147,22 @@ pub struct BinaryOp {
     pub position: Position,
 }
 
+#[derive(Copy)]
+pub enum PermBinaryOpKind {
+    Add,
+    Sub,
+    Mul,
+    Div,
+}
+
+#[display(fmt = "({}) {} ({})", left, op_kind, right)]
+pub struct PermBinaryOp {
+    pub op_kind: PermBinaryOpKind,
+    pub left: Box<Expression>,
+    pub right: Box<Expression>,
+    pub position: Position,
+}
+
 #[display(fmt = "{}{}{}", left, op_kind, right)]
 pub struct ContainerOp {
     pub op_kind: ContainerOpKind,
@@ -163,6 +175,21 @@ pub enum ContainerOpKind {
     SeqIndex,
     SeqConcat,
     SeqLen,
+}
+
+#[display(fmt = "Map{}({})", kind, "display::cjoin(operands)")]
+pub struct MapOp {
+    pub map_ty: Type,
+    pub kind: MapOpKind,
+    pub operands: Vec<Expression>,
+    pub position: Position,
+}
+
+pub enum MapOpKind {
+    Empty,
+    Update,
+    Lookup,
+    Len,
 }
 
 #[display(fmt = "Seq({})", "display::cjoin(elements)")]

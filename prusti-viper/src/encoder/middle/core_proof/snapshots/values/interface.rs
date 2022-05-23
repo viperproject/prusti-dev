@@ -8,7 +8,7 @@ use crate::encoder::{
     },
 };
 use vir_crate::{
-    common::identifier::WithIdentifier,
+    common::{expression::UnaryOperationHelpers, identifier::WithIdentifier},
     low::{self as vir_low},
     middle::{self as vir_mid},
 };
@@ -114,7 +114,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let domain_name = self.encode_snapshot_domain_name(base_type)?;
-        let return_type = field.ty.create_snapshot(self)?;
+        let return_type = field.ty.to_snapshot(self)?;
         Ok(self
             .snapshot_destructor_struct_call(&domain_name, &field.name, return_type, base_snapshot)?
             .set_default_position(position))
@@ -128,7 +128,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let domain_name = self.encode_snapshot_domain_name(base_type)?;
         let variant_ty = base_type.clone().variant(variant.clone());
-        let return_type = variant_ty.create_snapshot(self)?;
+        let return_type = variant_ty.to_snapshot(self)?;
         Ok(self
             .snapshot_destructor_enum_variant_call(
                 &domain_name,
@@ -174,6 +174,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
             vir_mid::Type::Pointer(_) => self.address_type()?,
+            vir_mid::Type::Reference(_) => self.address_type()?,
             x => unimplemented!("{:?}", x),
         };
         vir_low::operations::ty::Typed::set_type(&mut argument, low_type);
@@ -188,19 +189,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         argument: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        // FIXME: Encode evaluation and simplification axioms.
-        let domain_name = self.encode_snapshot_domain_name(ty)?;
-        let variant = self.encode_unary_op_variant(op, ty)?;
-        let function_name =
-            self.snapshot_constructor_struct_alternative_name(&domain_name, &variant)?;
-        let return_type = ty.create_snapshot(self)?;
-        self.create_domain_func_app(
-            domain_name,
-            function_name,
-            vec![argument],
-            return_type,
-            position,
-        )
+        if ty == &vir_mid::Type::MBool {
+            Ok(vir_low::Expression::not(argument).set_default_position(position))
+        } else {
+            // FIXME: Encode evaluation and simplification axioms.
+            let domain_name = self.encode_snapshot_domain_name(ty)?;
+            let variant = self.encode_unary_op_variant(op, ty)?;
+            let function_name =
+                self.snapshot_constructor_struct_alternative_name(&domain_name, &variant)?;
+            let return_type = ty.to_snapshot(self)?;
+            self.create_domain_func_app(
+                domain_name,
+                function_name,
+                vec![argument],
+                return_type,
+                position,
+            )
+        }
     }
     fn construct_binary_op_snapshot(
         &mut self,
@@ -211,19 +216,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         right: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        // FIXME: Encode evaluation and simplification axioms.
-        let domain_name = self.encode_snapshot_domain_name(ty)?;
-        let variant = self.encode_binary_op_variant(op, arg_type)?;
-        let function_name =
-            self.snapshot_constructor_struct_alternative_name(&domain_name, &variant)?;
-        let return_type = ty.create_snapshot(self)?;
-        self.create_domain_func_app(
-            domain_name,
-            function_name,
-            vec![left, right],
-            return_type,
-            position,
-        )
+        if ty == &vir_mid::Type::MBool {
+            Ok(vir_low::Expression::binary_op(
+                op.to_snapshot(self)?,
+                left,
+                right,
+                position,
+            ))
+        } else {
+            // FIXME: Encode evaluation and simplification axioms.
+            let domain_name = self.encode_snapshot_domain_name(ty)?;
+            let variant = self.encode_binary_op_variant(op, arg_type)?;
+            let function_name =
+                self.snapshot_constructor_struct_alternative_name(&domain_name, &variant)?;
+            let return_type = ty.to_snapshot(self)?;
+            self.create_domain_func_app(
+                domain_name,
+                function_name,
+                vec![left, right],
+                return_type,
+                position,
+            )
+        }
     }
 
     fn construct_struct_snapshot(
@@ -234,7 +248,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let domain_name = self.encode_snapshot_domain_name(ty)?;
         let function_name = self.snapshot_constructor_struct_name(&domain_name)?;
-        let return_type = ty.create_snapshot(self)?;
+        let return_type = ty.to_snapshot(self)?;
         self.create_domain_func_app(domain_name, function_name, arguments, return_type, position)
     }
     fn construct_enum_snapshot(
@@ -252,7 +266,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         let domain_name = self.encode_snapshot_domain_name(&enum_ty)?;
         let function_name =
             self.snapshot_constructor_enum_variant_name(&domain_name, variant_name)?;
-        let return_type = enum_ty.create_snapshot(self)?;
+        let return_type = enum_ty.to_snapshot(self)?;
         self.create_domain_func_app(
             domain_name,
             function_name,
