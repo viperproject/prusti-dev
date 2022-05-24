@@ -135,15 +135,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         debug!("ProcedureEncoder constructor");
 
         let mir = procedure.get_mir();
-        let def_id = procedure.get_id();
+        let proc_def_id = procedure.get_id();
+        let substs = encoder.env().identity_substs(proc_def_id);
         let tcx = encoder.env().tcx();
-        let mir_encoder = MirEncoder::new(encoder, mir, def_id);
-        let init_info = InitInfo::new(mir, tcx, def_id, &mir_encoder)
+        let mir_encoder = MirEncoder::new(encoder, mir, proc_def_id);
+        let init_info = InitInfo::new(mir, tcx, proc_def_id, &mir_encoder)
             .with_default_span(procedure.get_span())?;
 
         let cfg_method = vir::CfgMethod::new(
             // method name
-            encoder.encode_item_name(def_id),
+            encoder.encode_item_name(proc_def_id),
             // formal args
             mir.arg_count,
             // formal returns
@@ -156,7 +157,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         Ok(ProcedureEncoder {
             encoder,
-            proc_def_id: def_id,
+            proc_def_id,
             procedure,
             mir,
             cfg_method,
@@ -181,7 +182,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             old_to_ghost_var: FxHashMap::default(),
             old_ghost_vars: FxHashMap::default(),
             cached_loop_invariant_block: FxHashMap::default(),
-            substs: encoder.env().identity_substs(def_id),
+            substs,
         })
     }
 
@@ -3035,12 +3036,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             match encoded_operand {
                 Some(place) => {
                     debug!("arg: {} {}", arg_place, place);
-                    type_invs.push(
-                        self.encoder.encode_invariant_func_app(
-                            arg_ty,
-                            vir::Expr::snap_app(place.clone()),
-                        ).with_span(call_site_span)?,
-                    );
+                    if !self.encoder.is_pure(called_def_id, Some(substs)) {
+                        type_invs.push(
+                            self.encoder.encode_invariant_func_app(
+                                arg_ty,
+                                vir::Expr::snap_app(place.clone()),
+                            ).with_span(call_site_span)?,
+                        );
+                    }
                     fake_exprs.insert(arg_place, place);
                 }
                 None => {
@@ -3673,7 +3676,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // FIXME: this is somewhat hacky to avoid consistency errors with raw_ref args. this
             // assumes that invariants for raw_ref types are always empty.
             let ty = self.locals.get_type(*arg);
-            if !ty.is_unsafe_ptr() {
+            if !ty.is_unsafe_ptr() && !self.encoder.is_pure(contract.def_id, Some(substs)) {
                 invs_spec.push(
                     self.encoder.encode_invariant_func_app(
                         ty,
@@ -3926,11 +3929,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ).with_span(span)?;
                 let vir_access =
                     vir::Expr::pred_permission(place_expr.clone().old(label), perm_amount).unwrap();
-                let inv = self
-                    .encoder
-                    .encode_invariant_func_app(place_ty, place_expr.old(label))
-                    .with_span(span)?;
-                Ok(vir::Expr::and(vir_access, inv))
+                if !self.encoder.is_pure(contract.def_id, Some(substs)) {
+                    let inv = self
+                        .encoder
+                        .encode_invariant_func_app(place_ty, place_expr.old(label))
+                        .with_span(span)?;
+                    Ok(vir::Expr::and(vir_access, inv))
+                } else {
+                    Ok(vir_access)
+                }
             };
             let mut lhs: Vec<_> = borrow_info
                 .blocking_paths
@@ -4123,12 +4130,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
                 Mutability::Mut => {
                     add_type_spec(vir::PermAmount::Write);
-                    let inv = self
-                        .encoder
-                        .encode_invariant_func_app(place_ty, old_place_expr)
-                        // TODO: Use a better span
-                        .with_span(self.mir.span)?;
-                    invs_spec.push(inv);
+                    if !self.encoder.is_pure(contract.def_id, Some(substs)) {
+                        let inv = self
+                            .encoder
+                            .encode_invariant_func_app(place_ty, old_place_expr)
+                            // TODO: Use a better span
+                            .with_span(self.mir.span)?;
+                        invs_spec.push(inv);
+                    }
                 }
             };
         }
@@ -4216,12 +4225,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let func_spec_pos = self.mir_encoder.register_span(postcondition_span.clone());
 
         // Encode invariant for return value
-        invs_spec.push(
-            self.encoder.encode_invariant_func_app(
-                self.locals.get_type(contract.returned_value),
-                encoded_return,
-            ).with_span(postcondition_span)?
-        );
+        if !self.encoder.is_pure(contract.def_id, Some(substs)) {
+            invs_spec.push(
+                self.encoder.encode_invariant_func_app(
+                    self.locals.get_type(contract.returned_value),
+                    encoded_return,
+                ).with_span(postcondition_span)?
+            );
+        }
 
         let full_func_spec = func_spec.into_iter().conjoin()
             .set_default_pos(func_spec_pos);
@@ -4956,11 +4967,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for permission in &permissions {
             if let vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {predicate_type, argument, ..}) = permission {
                 let ty = self.encoder.decode_type_predicate_type(predicate_type)?;
-                let inv_func_app = self.encoder.encode_invariant_func_app(
-                    ty,
-                    (**argument).clone(),
-                )?;
-                invs_spec.push(inv_func_app);
+                if !self.encoder.is_pure(self.proc_def_id, Some(self.substs)) {
+                    let inv_func_app = self.encoder.encode_invariant_func_app(
+                        ty,
+                        (**argument).clone(),
+                    )?;
+                    invs_spec.push(inv_func_app);
+                }
             }
         }
 
