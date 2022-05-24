@@ -146,6 +146,8 @@ pub enum ErrorCtxt {
     CloseFracRef,
     /// Failed to set an active variant of an union.
     SetEnumVariant,
+    /// A user assumption raised an error
+    Assumption,
 }
 
 /// The error manager
