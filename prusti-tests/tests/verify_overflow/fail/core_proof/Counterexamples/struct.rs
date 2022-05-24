@@ -1,6 +1,9 @@
+// compile-flags: -Punsafe_core_proof=true -Pcounterexample=true
+
 use prusti_contracts::*;
 
-#[derive(Copy, Clone)]
+
+//#[derive(Copy, Clone)]
 struct X{
     a: i32, 
     b: i32,

@@ -3,6 +3,7 @@ use super::{VarMappingInterface, VarMapping};
 //use super::DiscriminantsStateInterface;
 use crate::encoder::errors::PositionManager;
 
+
 use log::{debug};
 
 //use viper::silicon_counterexample_snapshot::*;
@@ -16,6 +17,7 @@ use super::counterexample_snapshot2::*;
 use rustc_middle::mir::{self, VarDebugInfo};
 use rustc_errors::MultiSpan;
 use rustc_middle::ty::{self, Ty, TyCtxt};
+use std::iter;
 
 
 pub fn backtranslate(
@@ -37,9 +39,17 @@ pub fn backtranslate(
     Counterexample::new(counterexample_entry_vec)
 }
 
+//Cache for domains
+#[derive(Default)]
+struct TranslatedDomains{
+    in_progress: Vec<(String, String)>, //(domain name, var name)
+    cached_domains: FxHashMap<(String, String), Entry>,
+}
+
 pub struct CounterexampleTranslator<'ce, 'tcx> {
     //mir: mir::Body<'tcx>, //not used
     //def_id: ProcedureDefId,
+    //lowerer: Lowerer, //for name encodings
     silicon_counterexample: &'ce SiliconCounterexample,
     tcx: TyCtxt<'tcx>, 
     //is_pure: bool,  //not used
@@ -63,6 +73,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         Self {
             //mir,
             //def_id,
+            //lowerer: Lowerer::new(encoder),
             silicon_counterexample,
             tcx: encoder.env().tcx(),
             //is_pure: false, // No verified functions are pure. encoder.is_pure(def_id),
@@ -89,7 +100,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         ).collect::<FxHashMap<String, bool>>()
     }
 
-    fn get_trace_of_var(&self, position_manager: &PositionManager, var: &String, label_markers: &FxHashMap<String, bool>) -> Vec<(String, String, MultiSpan)>{//Option<MultiSpan>)>{
+    fn get_trace_of_var(&self, position_manager: &PositionManager, var: &String, label_markers: &FxHashMap<String, bool>) -> Vec<(String, MultiSpan)>{//Option<MultiSpan>)>{
         let mut label = &format!("start_label");
         let mut snapshot_var_vec = Vec::new();
         if let Some(label_snapshot_mapping) = self.var_mapping.var_snaphot_mapping.get(var){
@@ -97,7 +108,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 debug!("value of next {:?}: ", next);
                 if let Some(snapshot_vars) = label_snapshot_mapping.get(label){ //misssing .name, Span);
                     debug!("value of snapshot_vars {:?}: ", snapshot_vars);
-                    snapshot_var_vec.extend(snapshot_vars.iter().map(|x| (x.name.clone(), x.ty.clone(), self.get_span(position_manager, &x.position))));
+                    snapshot_var_vec.extend(snapshot_vars.iter().map(|x| (x.name.clone(), self.get_span(position_manager, &x.position))));
                 }
                 label = next;
             }
@@ -107,6 +118,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
     }
 
     fn process_entries(&self, position_manager: &PositionManager, label_markers: &FxHashMap<String, bool>) -> Vec< CounterexampleEntry> {
+        let mut translated_domains = TranslatedDomains::default();
         let mut entries = vec![];
 
         for vdi in &self.var_debug_info{ //variables and params
@@ -125,7 +137,11 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             let typ = self.local_variable_manager.get_type(var_local);
             let vir_name = self.local_variable_manager.get_name(var_local);
             let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
-            let history = self.process_entry(&trace, typ);
+            let history = self.process_entry(&trace, typ, &mut translated_domains);
+            debug!("rust name: {:?}", &rust_name);
+            debug!("rust typ: {:?}", &typ.kind());
+            debug!("vir name: {:?}", &vir_name);
+            debug!("trace: {:?}", &trace);
             entries.push( CounterexampleEntry::new(Some(rust_name), history))
         } 
         //result
@@ -133,16 +149,28 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         let return_local = Local::from(mir::Local::from_usize(0));
         let typ = self.local_variable_manager.get_type(return_local);
         let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
-        let history = self.process_entry(&trace, typ);
+        let history = self.process_entry(&trace, typ, &mut translated_domains);
         entries.push( CounterexampleEntry::new(None, history));
         entries
     }
 
-    fn process_entry(&self, trace: &Vec<(String, String, MultiSpan)>, ty: Ty<'tcx>) -> Vec<(Entry,MultiSpan)> {
+    fn process_entry(&self, trace: &Vec<(String, MultiSpan)>, ty: Ty<'tcx>, translated_domains: &mut TranslatedDomains) -> Vec<(Entry,MultiSpan)> {
         let mut entries = vec![];
-        for (snapshot_var, _domain_name, span) in trace{ //FIXME is domain_name really needed?
+        for (snapshot_var, span) in trace{ //FIXME is domain_name really needed?
+            debug!("start translation for {:?}", snapshot_var);
             let model_entry = self.silicon_counterexample.model.entries.get(snapshot_var);
-            entries.push((self.translate_snapshot_entry(model_entry, Some(ty)), span.clone()));
+            let entry = if trace.len() == 1 && snapshot_var.contains("snapshot$0"){
+                self.translate_snapshot_entry(model_entry, Some(ty), translated_domains,true)
+            } else {
+                self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, true)
+            };
+            entries.push((entry, span.clone()));
+            /*if let Some(other) = domain_name {
+                debug!("found other: {:?}", other);
+                let model_entry_other = self.silicon_counterexample.model.entries.get(other);
+                let entry_other = self.translate_snapshot_entry(model_entry, Some(ty), true);
+                entries.push((entry_other, span.clone()));
+            }*/
         }        
         entries
     }
@@ -189,35 +217,26 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         translated_domains: &mut TranslatedDomains,*/
         model_entry: Option<&ModelEntry>,
         typ: Option<Ty<'tcx>>,
+        translated_domains: &mut TranslatedDomains,
+        default: bool, //if we use default cases
     ) -> Entry {
-        let tmp = match typ {
-            Some(x) => Some(x.kind()),
-            None => None
-        };
-        debug!("typ: {:?}", tmp);
-        match (model_entry,tmp){
+        debug!("typ: {:?}", typ.and_then(|x| Some(x.kind())));
+        match (model_entry, typ.and_then(|x| Some(x.kind()))){
             (Some(ModelEntry::LitInt(string)),_) => Entry::Int(string.clone()),
             (Some(ModelEntry::LitFloat(string)),_) => Entry::Float(string.clone()),
             (Some(ModelEntry::LitBool(bool)),_) => Entry::Bool(bool.clone()),
-           /*ty::TyKind::Ref(_, typ, _) => {
-               match snapshot_var{
-                    Some(ModelEntry::Ref(_, map)) => {
-                    debug!("ty is ref");
-                    if let Some(encoded_typ) = encoded_typ_option{
-                        let new_encoded_typ = Some(encoded_typ.replacen("ref$", "", 1)); //remove a ref
-                        debug!("new encoded_typ: {:?}", &new_encoded_typ);
-                        let sil_entry = map.get("val_ref");
-                        debug!("new silicon Entry: {:?} ", sil_entry);
-                        Entry::Ref(box self.translate_silicon_entry_with_snapshot(typ.clone(), sil_entry, new_encoded_typ, translated_domains).unwrap_or_default())
-                    } else {
-                       Entry::Ref(box Entry::Unknown)
-                    }
-                },
-                _ => Entry::Ref(box Entry::Unknown),
-               }
-           },*/
-           (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Tuple(subst))) => {
+            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Ref(_, typ, _))) => {
+                debug!("typ is ref");
+                //this should never fail since a DomainValue can only exist if the corresponding domain exists
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                debug!("domain for ref type: {:?}", domain_name);
+                let sil_fn_name = format!("destructor${}$$target_current", domain_name);
+                Entry::Ref(box self.extract_field_value(&sil_fn_name, Some(typ.clone()), model_entry, sil_domain, translated_domains, default))
+            },
+           (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Tuple(subst))) => {
+                debug!("typ is struct");
+                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                debug!("silicon domain: {:?}", sil_domain);
                 let len = subst.len();
                 let mut fields = vec![];
                 for i in 0..len {
@@ -225,8 +244,8 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     debug!("field typ: {:?}", &field_typ.kind());
                     let field_name = format!("tuple_{}", i);
                     debug!("field name: {:?}", &field_name);
-                    let sil_fn_name = format!("$0$field${}__$TY$__", &field_name);
-                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain);
+                    let sil_fn_name = format!("destructor${}$${}", domain_name, &field_name);
+                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, translated_domains, default);
                     fields.push(field_entry);
                 }
                 Entry::Tuple(fields)
@@ -239,19 +258,19 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 let entry = self.translate_silicon_entry_with_snapshot(new_typ, snapshot_var, encoded_typ_option, translated_domains).unwrap_or_default();
                 Entry::Box(box entry)
             } ,*/
-            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
+            (Some(ModelEntry::DomainValue(..)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
                 debug!("typ is struct");
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
-                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
-                debug!("Domain entry: {:?}", sil_domain);
+                //let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name);
+                //debug!("Domain entry: {:?}", sil_domain);
                 let variant = adt_def.variants().iter().next().unwrap();
                 let struct_name = variant.ident(self.tcx).name.to_ident_string();
                 let field_entries = self.translate_snapshot_adt_fields(
-                    domain_name,
                     variant,
                     model_entry,
-                    sil_domain,
                     subst,
+                    translated_domains,
+                    default, 
                 );
                 Entry::Struct {
                     name: struct_name,
@@ -260,14 +279,15 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             },
             (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_enum() => {
                 debug!("typ is enum");
-
-                let disc_function_name = format!("discriminant$__$TY$__$");
+                debug!("domain name: {:?}", domain_name);
+                let disc_function_name = format!("discriminant${}", domain_name);//domain_name.strip_prefix("Snap$").unwrap_or_default());
+                //self.lowerer.encode_discriminant_name(domain_name).ok().unwrap();
                 debug!("discriminant function: {:?}", disc_function_name);
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 let sil_fn_param = vec![model_entry.cloned()];
                 if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name){
-                    match disc_function.get_function_value(&sil_fn_param){
+                    match disc_function.get_function_value_with_default(&sil_fn_param){
                         Some(ModelEntry::LitInt(disc_value)) => {
                             let super_name = format!("{:?}", adt_def);
                             debug!("enum name: {:?}", &super_name);
@@ -277,12 +297,27 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                                 debug!("variant found");
                                 let variant_name = variant.ident(self.tcx).name.to_ident_string();
                                 debug!("variant name: {:?}", &variant_name);
-                                let field_entries = self.translate_snapshot_adt_fields(domain_name, variant, model_entry, sil_domain, subst);
-                                return Entry::Enum {
-                                    super_name,
-                                    name: variant_name,
-                                    field_entries,
-                                };
+                                //let variant_domain_name = format!("{}${}$", domain_name, &variant_name);
+                                //debug!("variant domain name: {:?}", &variant_domain_name);
+                                //let variant_domain_option = self.silicon_counterexample.domains.entries.get(&variant_domain_name);
+                                //debug!("variant domain: {:?}", variant_domain_option);
+                                let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
+                                 if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
+                                    debug!("destructor found: {:?}", &value_function);
+                                    let domain_entry = if default {
+                                        value_function.get_function_value_with_default(&sil_fn_param)
+                                    } else {
+                                        value_function.get_function_value(&sil_fn_param)
+                                    };
+                                    debug!("new Model entry: {:?}", &domain_entry);
+                                    let field_entries = self.translate_snapshot_adt_fields(&variant, domain_entry.as_ref(), subst, translated_domains, default);
+                                    debug!("list of fields: {:?}", &field_entries);
+                                    return Entry::Enum {
+                                        super_name,
+                                        name: variant_name,
+                                        field_entries,
+                                    };
+                                }
                             }
                         },
                         _ =>  // should not be possible
@@ -301,38 +336,47 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 debug!("domain for primitive type: {:?}", domain_name);
                 let sil_fn_name = format!("destructor${}$$value", domain_name);
-                self.extract_field_value(&sil_fn_name, None, model_entry, sil_domain)
-                
+                self.extract_field_value(&sil_fn_name, None, model_entry, sil_domain, translated_domains, default)
             }  
             _ => Entry::Unknown,
         }
     }
+    
     fn translate_snapshot_adt_fields(&self,
-    domain_name: &String,
+    //domain_name: &String,
     variant: &ty::VariantDef,
     model_entry: Option<&ModelEntry>,
-    sil_domain: &DomainEntry, 
+    //sil_domain_option: Option<&DomainEntry>, 
     subst: ty::subst::SubstsRef<'tcx>,
+    translated_domains: &mut TranslatedDomains,
+    default: bool, //if we use default cases
     ) -> Vec<(String, Entry)> {
-        debug!("translate fields");
-        let mut fields = vec![];
-        for f in &variant.fields {
-            let field_name = f.ident(self.tcx).name.to_ident_string();
-            debug!("field name: {:?}", &field_name);
-            let field_typ = f.ty(self.tcx, subst);
-            debug!("field typ: {:?}", &field_typ.kind());
-            let sil_fn_name = format!("destructor${}$$f${}", domain_name, &field_name);
-            /* if domain_name.ends_with("$"){
-                format!("destructor${}$$f${}", domain_name, &field_name)
-            } else { 
-                format!("destructor${}$$value", domain_name)
-            };*/
-            let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain);
+        match model_entry {
+            Some(ModelEntry::DomainValue(domain_name, _)) => {
+                //this should never fail since a DomainValue can only exist if the corresponding domain exists
+                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                debug!("translate fields");
+                let mut fields = vec![];
+                for f in &variant.fields {
+                    let field_name = f.ident(self.tcx).name.to_ident_string();
+                    debug!("field name: {:?}", &field_name);
+                    let field_typ = f.ty(self.tcx, subst);
+                    debug!("field typ: {:?}", &field_typ.kind());
+                    let sil_fn_name = format!("destructor${}$$f${}", domain_name, &field_name);
+                    /* if domain_name.ends_with("$"){
+                        format!("destructor${}$$f${}", domain_name, &field_name)
+                    } else { 
+                        format!("destructor${}$$value", domain_name)
+                    };*/
+                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, translated_domains, default);
 
-            fields.push((field_name, field_entry));
+                    fields.push((field_name, field_entry));
+                }
+                debug!("list of fields: {:?}", &fields);
+                fields
+            },
+            _ => iter::zip(variant.fields.iter().map(|x| x.ident(self.tcx).name.to_ident_string()), iter::repeat(Entry::Unknown)).collect()
         }
-        debug!("list of fields: {:?}", &fields);
-        fields
     }  
 
     fn extract_field_value(&self, 
@@ -340,17 +384,24 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
     field_typ: Option<Ty<'tcx>>,
     model_entry: Option<&ModelEntry>,
     sil_domain: &DomainEntry,
+    translated_domains: &mut TranslatedDomains,
+    default: bool, //if we use default cases
     ) -> Entry {
         debug!("function name: {:?}", &sil_fn_name);
         let sil_fn_param = vec![model_entry.cloned()];
         let field_value = if let Some(function) = sil_domain.functions.entries.get(sil_fn_name){
-                function.get_function_value(&sil_fn_param)
+            if default {
+                debug!("without default");
+                function.get_function_value_with_default(&sil_fn_param)
             } else {
-                &None
+                debug!("with default");
+                function.get_function_value(&sil_fn_param)
+            }    
+        } else {
+            &None
         };
-        //get new domain_name
         debug!("field value: {:?}", field_value);
-        self.translate_snapshot_entry(field_value.as_ref(), field_typ)
+        self.translate_snapshot_entry(field_value.as_ref(), field_typ, translated_domains, default)
     }
 }
 

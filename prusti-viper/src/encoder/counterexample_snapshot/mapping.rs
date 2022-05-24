@@ -7,6 +7,7 @@ use crate::encoder::errors::PositionManager;
 use super::mapping::vir_low::ast::statement::Assume;//FIXME incorrect import
 use super::mapping::vir_low::ast::statement::Inhale;
 use super::mapping::vir_low::ast::expression::BinaryOp;
+use super::mapping::vir_low::ast::expression::DomainFuncApp;
 use super::mapping::vir_low::ast::expression::BinaryOpKind;
 use rustc_hash::{FxHashMap};
 use log::{info};
@@ -15,13 +16,13 @@ use log::{info};
 pub(crate) struct VarMapping{
     pub(crate) var_snaphot_mapping: FxHashMap<String, FxHashMap<String, Vec<SnapshotVar>>>, //Mapping from mir var to list of ssa snapshot vars per basic block
     pub(crate) labels_successor_mapping: FxHashMap<String, Vec<String>>, //Mapping of all labels and its successors
+    pub(crate) equality: FxHashMap<String, Vec<String>> //keeps track of all 
     //asserts: FxHasMap<>, //
 }
 
 #[derive(Debug)]
 pub(crate) struct SnapshotVar{
     pub(crate) name: String, 
-    pub(crate) ty: String,
     pub(crate) position: vir_low::Position
 }
 
@@ -49,8 +50,38 @@ impl<'ce, 'tcx> VarMappingInterface for super::counterexample_translation_snapsh
                         vir_low::Statement::Assume(assume ) => self.extract_var_from_assume(assume),
                         _ => None,
                     };
+
                     if let Some(snapshot_var) = snapshot_var_option{
                         let mir_var = snapshot_var.name.split_once("$").unwrap().0.to_string();
+                        /*if let Some(other) = snapshot_var.other.as_ref(){
+                            let mir_var_other = other.split_once("$").unwrap().0.to_string();
+                            let snapshot_var_other = SnapshotVar{
+                                name: other.to_string(),
+                                other: Some(snapshot_var.name.clone()),
+                                position: snapshot_var.position.clone(),
+                            };
+                            match self.var_mapping.var_snaphot_mapping.get_mut(&mir_var_other) {
+                                Some(label_snapshot_mapping) => {
+                                    match label_snapshot_mapping.get_mut(label){
+                                        Some(snapshot_var_vec) => {
+                                            snapshot_var_vec.push(snapshot_var_other);
+                                        } 
+                                        None => {
+                                            let snapshot_var_vec = vec![snapshot_var_other];
+                                            label_snapshot_mapping.insert(label.clone(), snapshot_var_vec);
+                                        }
+                                    }
+                                }
+                                None => {
+                                    let snapshot_var_vec = vec![snapshot_var_other];
+                                    let mut label_snapshot_mapping = FxHashMap::default();
+                                    label_snapshot_mapping.insert(label.clone(), snapshot_var_vec);
+                                    //mapping.insert(mir_var, FxHashMap::from([(label, snapshot_var_vec)]));          
+                                    self.var_mapping.var_snaphot_mapping.insert(mir_var_other, label_snapshot_mapping);          
+                                }   
+                            }
+                        }*/
+
                         match self.var_mapping.var_snaphot_mapping.get_mut(&mir_var) {
                             Some(label_snapshot_mapping) => {
                                 match label_snapshot_mapping.get_mut(label){
@@ -77,6 +108,7 @@ impl<'ce, 'tcx> VarMappingInterface for super::counterexample_translation_snapsh
         }
         info!("Print mapping: {:?}", self.var_mapping.var_snaphot_mapping);
     }
+
     fn get_successor(&self, label: &String, label_markers: &FxHashMap<String, bool>) -> Option<&String>{
         match self.var_mapping.labels_successor_mapping.get(label){
             Some(possible_successors) => {
@@ -99,19 +131,38 @@ impl<'ce, 'tcx> VarMappingInterface for super::counterexample_translation_snapsh
     }
     fn extract_var_from_assume(&self, statement: &Assume) -> Option<SnapshotVar>{
         match &statement.expression {
+            
+            /*vir_low::Expression::BinaryOp(BinaryOp{ op_kind:BinaryOpKind::EqCmp ,  left:box vir_low::Expression::Local(local_1 ), right:box vir_low::Expression::Local(local_2),.. }) => {
+                info!("equality");
+                if local_1.variable.name.contains("snapshot") && local_2.variable.name.contains("snapshot"){
+                    Some(SnapshotVar{
+                        name: local_1.variable.name.clone(),
+                        other: Some(local_2.variable.name.clone()),
+                        position: local_1.position.clone(),
+                    })
+                } else {
+                    None
+                }
+            },*/
             vir_low::Expression::Local(local) | 
             vir_low::Expression::BinaryOp(BinaryOp{ op_kind:BinaryOpKind::EqCmp ,  left:box vir_low::Expression::Local(local), .. }) => {
-                info!("Assume statement lhs: {:?}", local);
+                info!("local assume stmt: {:?}", local);
                 if local.variable.name.contains("snapshot"){
-                    let ty = match &local.variable.ty{
+                    /*let ty = match &local.variable.ty{
                         vir_low::Type::Domain(domain) => domain.name.clone(),
                         _ => "".to_string() //snapshot var always has domain type unreachable
-                    };
+                    };*/
                     Some(SnapshotVar{
                         name: local.variable.name.clone(),
-                        ty,
                         position: local.position.clone(),
                     })
+                } else {
+                    None
+                }
+            }, 
+            vir_low::Expression::BinaryOp(BinaryOp{ op_kind:BinaryOpKind::EqCmp ,  left:box vir_low::Expression::DomainFuncApp(DomainFuncApp{domain_name: _, function_name, arguments, .. }), ..}) => {
+                if arguments.len() == 1 && function_name.contains("target_current") { //difference between target_final and target_current
+                    self.extract_var_from_assume(&Assume{expression: arguments.first().unwrap().clone(), position: vir_low::Position::default()})
                 } else {
                     None
                 }
