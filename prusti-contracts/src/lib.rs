@@ -26,6 +26,12 @@ mod private {
     /// A macro for writing a loop body invariant.
     pub use prusti_contracts_impl::body_invariant;
 
+    /// A macro for writing assertions using the full prusti specifications
+    pub use prusti_contracts_impl::prusti_assert;
+
+    /// A macro for writing assumptions using prusti syntax
+    pub use prusti_contracts_impl::prusti_assume;
+
     /// A macro for defining a closure with a specification.
     /// Note: this is a declarative macro defined in this crate
     /// because declarative macros can't be exported from
@@ -99,6 +105,12 @@ mod private {
 
     /// A macro for writing a loop body invariant.
     pub use prusti_contracts_internal::body_invariant;
+
+    /// A macro for writing assertions using the full prusti specifications
+    pub use prusti_contracts_internal::prusti_assert;
+
+    /// A macro for writing assumptions using prusti syntax
+    pub use prusti_contracts_internal::prusti_assume;
 
     /// A macro for defining a closure with a specification.
     pub use prusti_contracts_internal::closure;

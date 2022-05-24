@@ -43,6 +43,16 @@ pub fn body_invariant(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 
+#[proc_macro]
+pub fn prusti_assert(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[proc_macro]
+pub fn prusti_assume(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
 #[proc_macro_attribute]
 pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
