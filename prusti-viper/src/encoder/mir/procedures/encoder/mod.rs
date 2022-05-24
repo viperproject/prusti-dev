@@ -1897,7 +1897,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .get_definition_span(assumption.assumption.to_def_id());
 
                 // I don't expect an assumption to raise an error
-                let error_ctxt = ErrorCtxt::Unexpected;
+                let error_ctxt = ErrorCtxt::Assumption;
 
                 let expr = self.encoder.set_expression_error_ctxt(
                     self.encoder
