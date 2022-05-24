@@ -59,6 +59,7 @@ pub struct SpecCollector<'a, 'tcx: 'a> {
     loop_specs: Vec<LocalDefId>,
     type_specs: HashMap<LocalDefId, TypeSpecRefs>,
     prusti_assertions: Vec<LocalDefId>,
+    prusti_assumptions: Vec<LocalDefId>,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -73,6 +74,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             loop_specs: vec![],
             type_specs: HashMap::new(),
             prusti_assertions: vec![],
+            prusti_assumptions: vec![],
         }
     }
 
@@ -83,6 +85,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_loop_specs(&mut def_spec);
         self.determine_type_specs(&mut def_spec);
         self.determine_prusti_assertions(&mut def_spec);
+        self.determine_prusti_assumptions(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
 
         def_spec
@@ -218,6 +221,16 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 local_id.to_def_id(),
                 typed::PrustiAssertion {
                     assertion: *local_id,
+                },
+            );
+        }
+    }
+    fn determine_prusti_assumptions(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for local_id in self.prusti_assumptions.iter() {
+            def_spec.prusti_assumptions.insert(
+                local_id.to_def_id(),
+                typed::PrustiAssumption {
+                    assumption: *local_id,
                 },
             );
         }
@@ -367,6 +380,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             if has_prusti_attr(attrs, "prusti_assertion") {
                 self.prusti_assertions.push(local_id);
+            }
+
+            if has_prusti_attr(attrs, "prusti_assumption") {
+                self.prusti_assumptions.push(local_id);
             }
         } else {
             // Don't collect specs "for" spec items

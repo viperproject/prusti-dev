@@ -99,11 +99,17 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                     .values()
                     .map(|spec| format!("{:?}", spec))
                     .collect();
+                let assumptions: Vec<_> = def_spec
+                    .prusti_assumptions
+                    .values()
+                    .map(|spec| format!("{:?}", spec))
+                    .collect();
                 let mut values = Vec::new();
                 values.extend(loop_specs);
                 values.extend(proc_specs);
                 values.extend(type_specs);
                 values.extend(asserts);
+                values.extend(assumptions);
                 if config::hide_uuids() {
                     let uuid =
                         Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}")

@@ -49,4 +49,33 @@ fn loop_shouldnt_crash() {
     }
 }
 
+fn assume1() {
+    prusti_assume!(true);
+}
+
+fn assume2() {
+    // asserting false after assuming false is valid
+    prusti_assume!(false);
+    prusti_assert!(false);
+}
+
+fn arg_assumption(x: i32, y: i32) {
+    prusti_assume!(x > 0 && x < 100);
+    prusti_assume!(y > -100 && y < 100);
+
+    let z = x * y;
+    prusti_assert!((z > 0) == (y > 0));
+}
+
+fn more_wrong_assumptions() {
+    prusti_assume!(1 < 0);
+    prusti_assert!(1 > 0);
+    prusti_assert!(1 < 0);
+    prusti_assert!(false);
+}
+
+fn prusti_syntax_in_assumptions(x: i32) {
+    prusti_assume!(x > 0 ==> x > -1);
+}
+
 fn main() {}
