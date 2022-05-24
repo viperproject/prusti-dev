@@ -92,6 +92,12 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the specifications attached to the `def_id` type.
     fn get_type_specs(&self, def_id: DefId) -> Option<typed::TypeSpecification>;
 
+    /// Get the prusti assertion
+    fn get_prusti_assertion(&self, def_id: DefId) -> Option<typed::PrustiAssertion>;
+
+    /// Get the prusti assumption
+    fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption>;
+
     /// Get the specifications attached to a function.
     fn get_procedure_specs(
         &self,
@@ -189,6 +195,22 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specs
             .borrow()
             .get_type_spec(&def_id)
+            .cloned()
+    }
+
+    fn get_prusti_assertion(&self, def_id: DefId) -> Option<typed::PrustiAssertion> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_assertion(&def_id)
+            .cloned()
+    }
+
+    fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_assumption(&def_id)
             .cloned()
     }
 

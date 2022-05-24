@@ -8,32 +8,34 @@
 
 #[macro_use]
 mod common;
-mod parse_quote_spanned;
-mod span_overrider;
 mod extern_spec_rewriter;
-mod rewriter;
-mod parse_closure_macro;
-mod predicate;
-mod spec_attribute_kind;
 mod ghost_constraints;
+mod parse_closure_macro;
+mod parse_quote_spanned;
+mod predicate;
+mod rewriter;
+mod span_overrider;
+mod spec_attribute_kind;
+pub mod specifications;
 mod type_model;
 mod user_provided_type_params;
-pub mod specifications;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote_spanned, ToTokens};
-use syn::spanned::Spanned;
+use rewriter::AstRewriter;
 use std::convert::TryInto;
+use syn::spanned::Spanned;
 
-use specifications::common::SpecificationId;
-use specifications::untyped;
-use parse_closure_macro::ClosureWithSpec;
-pub use spec_attribute_kind::SpecAttributeKind;
-use prusti_utils::force_matches;
+use crate::{
+    common::{merge_generics, RewritableReceiver, SelfTypeRewriter},
+    predicate::{is_predicate_macro, ParsedPredicate},
+    specifications::preparser::{parse_ghost_constraint, parse_prusti, NestedSpec},
+};
 pub use extern_spec_rewriter::ExternSpecKind;
-use crate::common::{merge_generics, RewritableReceiver, SelfTypeRewriter};
-use crate::specifications::preparser::{NestedSpec, parse_prusti, parse_ghost_constraint};
-use crate::predicate::{is_predicate_macro, ParsedPredicate};
+use parse_closure_macro::ClosureWithSpec;
+use prusti_utils::force_matches;
+pub use spec_attribute_kind::SpecAttributeKind;
+use specifications::{common::SpecificationId, untyped};
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
@@ -45,7 +47,7 @@ macro_rules! handle_result {
 }
 
 fn extract_prusti_attributes(
-    item: &mut untyped::AnyFnItem
+    item: &mut untyped::AnyFnItem,
 ) -> Vec<(SpecAttributeKind, TokenStream)> {
     let mut prusti_attributes = Vec::new();
     let mut regular_attributes = Vec::new();
@@ -99,9 +101,7 @@ pub fn rewrite_prusti_attributes(
     let mut item: untyped::AnyFnItem = handle_result!(syn::parse2(item_tokens));
 
     // Start with the outer attribute
-    let mut prusti_attributes = vec![
-        (outer_attr_kind, outer_attr_tokens)
-    ];
+    let mut prusti_attributes = vec![(outer_attr_kind, outer_attr_tokens)];
 
     // Collect the remaining Prusti attributes, removing them from `item`.
     prusti_attributes.extend(extract_prusti_attributes(&mut item));
@@ -114,12 +114,12 @@ pub fn rewrite_prusti_attributes(
         return syn::Error::new(
             item.span(),
             "`predicate!` is incompatible with other Prusti attributes",
-        ).to_compile_error();
+        )
+        .to_compile_error();
     }
 
-    let (generated_spec_items, generated_attributes) = handle_result!(
-        generate_spec_and_assertions(prusti_attributes, &item)
-    );
+    let (generated_spec_items, generated_attributes) =
+        handle_result!(generate_spec_and_assertions(prusti_attributes, &item));
 
     quote_spanned! {item.span()=>
         #(#generated_spec_items)*
@@ -166,12 +166,8 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
-    let spec_item = rewriter.process_assertion(
-        rewriter::SpecItemType::Precondition,
-        spec_id,
-        attr,
-        item,
-    )?;
+    let spec_item =
+        rewriter.process_assertion(rewriter::SpecItemType::Precondition, spec_id, attr, item)?;
     Ok((
         vec![spec_item],
         vec![parse_quote_spanned! {item.span()=>
@@ -185,12 +181,8 @@ fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
-    let spec_item = rewriter.process_assertion(
-        rewriter::SpecItemType::Postcondition,
-        spec_id,
-        attr,
-        item,
-    )?;
+    let spec_item =
+        rewriter.process_assertion(rewriter::SpecItemType::Postcondition, spec_id, attr, item)?;
     Ok((
         vec![spec_item],
         vec![parse_quote_spanned! {item.span()=>
@@ -220,15 +212,18 @@ fn generate_for_assert_on_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -
     let spec_id_lhs_str = spec_id_lhs.to_string();
     let spec_id_rhs = rewriter.generate_spec_id();
     let spec_id_rhs_str = spec_id_rhs.to_string();
-    let (spec_item_lhs, spec_item_rhs) = rewriter.process_assert_pledge(spec_id_lhs, spec_id_rhs, attr, item)?;
+    let (spec_item_lhs, spec_item_rhs) =
+        rewriter.process_assert_pledge(spec_id_lhs, spec_id_rhs, attr, item)?;
     Ok((
         vec![spec_item_lhs, spec_item_rhs],
-        vec![parse_quote_spanned! {item.span()=>
-            #[prusti::assert_pledge_spec_id_ref_lhs = #spec_id_lhs_str]
-        },
-        parse_quote_spanned! {item.span()=>
-            #[prusti::assert_pledge_spec_id_ref_rhs = #spec_id_rhs_str]
-        }],
+        vec![
+            parse_quote_spanned! {item.span()=>
+                #[prusti::assert_pledge_spec_id_ref_lhs = #spec_id_lhs_str]
+            },
+            parse_quote_spanned! {item.span()=>
+                #[prusti::assert_pledge_spec_id_ref_rhs = #spec_id_rhs_str]
+            },
+        ],
     ))
 }
 
@@ -237,7 +232,7 @@ fn generate_for_pure(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedR
     if !attr.is_empty() {
         return Err(syn::Error::new(
             attr.span(),
-            "the `#[pure]` attribute does not take parameters"
+            "the `#[pure]` attribute does not take parameters",
         ));
     }
 
@@ -254,7 +249,7 @@ fn generate_for_trusted(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
     if !attr.is_empty() {
         return Err(syn::Error::new(
             attr.span(),
-            "the `#[trusted]` attribute does not take parameters"
+            "the `#[trusted]` attribute does not take parameters",
         ));
     }
 
@@ -267,14 +262,31 @@ fn generate_for_trusted(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
 }
 
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_loop_invariant, tokens)
+}
+
+pub fn prusti_assertion(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_assertion, tokens)
+}
+
+pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_prusti_assumption, tokens)
+}
+
+/// Generates the TokenStream encoding an expression using prusti syntax
+/// Used for body invariants, assertions, and assumptions
+fn generate_expression_closure(
+    fun: &dyn Fn(&mut AstRewriter, SpecificationId, TokenStream) -> syn::Result<TokenStream>,
+    tokens: TokenStream,
+) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
-    let invariant = handle_result!(rewriter.process_loop_invariant(spec_id, tokens));
+    let closure = handle_result!(fun(&mut rewriter, spec_id, tokens));
     let callsite_span = Span::call_site();
     quote_spanned! {callsite_span=>
         #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
         if false {
-            #invariant
+            #closure
         }
     }
 }
@@ -291,7 +303,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
     let callsite_span = Span::call_site();
 
     if drop_spec {
-        return cl_spec.cl.into_token_stream()
+        return cl_spec.cl.into_token_stream();
     }
 
     let mut rewriter = rewriter::AstRewriter::new();
@@ -303,10 +315,8 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
     for r in cl_spec.pres {
         let spec_id = rewriter.generate_spec_id();
-        let precond = handle_result!(rewriter.process_closure_assertion(
-            spec_id,
-            r.to_token_stream(),
-        ));
+        let precond =
+            handle_result!(rewriter.process_closure_assertion(spec_id, r.to_token_stream(),));
         preconds.push((spec_id, precond));
         let spec_id_str = spec_id.to_string();
         cl_annotations.extend(quote_spanned! {callsite_span=>
@@ -316,10 +326,8 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
     for e in cl_spec.posts {
         let spec_id = rewriter.generate_spec_id();
-        let postcond = handle_result!(rewriter.process_closure_assertion(
-            spec_id,
-            e.to_token_stream(),
-        ));
+        let postcond =
+            handle_result!(rewriter.process_closure_assertion(spec_id, e.to_token_stream(),));
         postconds.push((spec_id, postcond));
         let spec_id_str = spec_id.to_string();
         cl_annotations.extend(quote_spanned! {callsite_span=>
@@ -328,8 +336,15 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
     }
 
     let syn::ExprClosure {
-        attrs, asyncness, movability, capture, or1_token,
-        inputs, or2_token, output, body
+        attrs,
+        asyncness,
+        movability,
+        capture,
+        or1_token,
+        inputs,
+        or2_token,
+        output,
+        body,
     } = cl_spec.cl;
 
     let output_type: syn::Type = match output {
@@ -337,15 +352,11 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             return syn::Error::new(output.span(), "closure must specify return type")
                 .to_compile_error();
         }
-        syn::ReturnType::Type(_, ref ty) => (**ty).clone()
+        syn::ReturnType::Type(_, ref ty) => (**ty).clone(),
     };
 
-    let (spec_toks_pre, spec_toks_post) = handle_result!(rewriter.process_closure(
-        inputs.clone(),
-        output_type,
-        preconds,
-        postconds,
-    ));
+    let (spec_toks_pre, spec_toks_post) =
+        handle_result!(rewriter.process_closure(inputs.clone(), output_type, preconds, postconds,));
 
     let mut attrs_ts = TokenStream::new();
     for a in attrs {
@@ -383,7 +394,10 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 
     let trait_path: syn::TypePath = match &impl_block.trait_ {
         Some((_, trait_path, _)) => parse_quote_spanned!(trait_path.span()=>#trait_path),
-        None => handle_result!(Err(syn::Error::new(impl_block.span(), "Can refine trait specifications only on trait implementation blocks"))),
+        None => handle_result!(Err(syn::Error::new(
+            impl_block.span(),
+            "Can refine trait specifications only on trait implementation blocks"
+        ))),
     };
 
     let self_type_path: &syn::TypePath = match &*impl_block.self_ty {
@@ -399,12 +413,16 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                 let mut method_item = untyped::AnyFnItem::ImplMethod(method);
                 let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item);
 
-                let illegal_attribute_span = prusti_attributes.iter()
+                let illegal_attribute_span = prusti_attributes
+                    .iter()
                     .filter(|(kind, _)| kind == &SpecAttributeKind::GhostConstraint)
                     .map(|(_, tokens)| tokens.span())
                     .next();
                 if let Some(span) = illegal_attribute_span {
-                    let err = Err(syn::Error::new(span, "Ghost constraints in trait spec refinements not supported"));
+                    let err = Err(syn::Error::new(
+                        span,
+                        "Ghost constraints in trait spec refinements not supported",
+                    ));
                     handle_result!(err);
                 }
 
@@ -412,7 +430,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                     generate_spec_and_assertions(prusti_attributes, &method_item)
                 );
 
-                spec_items.into_iter()
+                spec_items
+                    .into_iter()
                     .map(|spec_item| match spec_item {
                         syn::Item::Fn(spec_item_fn) => spec_item_fn,
                         x => unimplemented!("Unexpected variant: {:?}", x),
@@ -424,9 +443,10 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                     #method_item
                 };
                 new_items.push(new_item);
-            },
+            }
             syn::ImplItem::Macro(makro) if is_predicate_macro(&makro) => {
-                let parsed_predicate = handle_result!(predicate::parse_predicate_in_impl(makro.mac.tokens.clone()));
+                let parsed_predicate =
+                    handle_result!(predicate::parse_predicate_in_impl(makro.mac.tokens.clone()));
 
                 let predicate = force_matches!(parsed_predicate, ParsedPredicate::Impl(p) => p);
 
@@ -437,7 +457,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 
                 // Add patched predicate function to new items
                 new_items.push(syn::ImplItem::Method(predicate.patched_function));
-            },
+            }
             _ => new_items.push(item),
         }
     }
@@ -461,7 +481,8 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         return syn::Error::new(
             attr.span(),
             "the `#[trusted]` attribute does not take parameters",
-        ).to_compile_error();
+        )
+        .to_compile_error();
     }
 
     // `#[trusted]` can be applied to both types and to methods, figure out
@@ -560,22 +581,24 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     }
 }
 
-pub fn extern_spec(attr: TokenStream, tokens:TokenStream) -> TokenStream {
+pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     match item {
         syn::Item::Impl(item_impl) => {
             handle_result!(extern_spec_rewriter::impls::rewrite_extern_spec(&item_impl))
         }
         syn::Item::Trait(item_trait) => {
-            handle_result!(extern_spec_rewriter::traits::rewrite_extern_spec(&item_trait))
+            handle_result!(extern_spec_rewriter::traits::rewrite_extern_spec(
+                &item_trait
+            ))
         }
         syn::Item::Mod(mut item_mod) => {
-            handle_result!(extern_spec_rewriter::mods::rewrite_extern_spec(&mut item_mod))
+            handle_result!(extern_spec_rewriter::mods::rewrite_extern_spec(
+                &mut item_mod
+            ))
         }
-        _ => syn::Error::new(
-            attr.span(),
-            "Extern specs cannot be attached to this item",
-        ).to_compile_error(),
+        _ => syn::Error::new(attr.span(), "Extern specs cannot be attached to this item")
+            .to_compile_error(),
     }
 }
 
@@ -594,6 +617,7 @@ pub fn type_model(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         _ => syn::Error::new(
             attr.span(),
             "Only structs can be attributed with a type model",
-        ).to_compile_error(),
+        )
+        .to_compile_error(),
     }
 }
