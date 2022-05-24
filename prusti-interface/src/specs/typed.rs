@@ -17,6 +17,7 @@ pub struct DefSpecificationMap {
     pub loop_specs: HashMap<DefId, LoopSpecification>,
     pub type_specs: HashMap<DefId, TypeSpecification>,
     pub prusti_assertions: HashMap<DefId, PrustiAssertion>,
+    pub prusti_assumptions: HashMap<DefId, PrustiAssumption>,
 }
 
 impl DefSpecificationMap {
@@ -38,6 +39,10 @@ impl DefSpecificationMap {
 
     pub fn get_assertion(&self, def_id: &DefId) -> Option<&PrustiAssertion> {
         self.prusti_assertions.get(def_id)
+    }
+
+    pub fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
+        self.prusti_assumptions.get(def_id)
     }
 }
 
@@ -114,6 +119,11 @@ impl TypeSpecification {
 #[derive(Debug, Clone)]
 pub struct PrustiAssertion {
     pub assertion: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct PrustiAssumption {
+    pub assumption: LocalDefId,
 }
 
 /// The base container to store a contract of a procedure.

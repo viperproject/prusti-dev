@@ -49,6 +49,11 @@ pub fn prusti_assert(tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
+pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
+    prusti_specs::prusti_assume(tokens.into()).into()
+}
+
+#[proc_macro]
 pub fn closure(tokens: TokenStream) -> TokenStream {
     prusti_specs::closure(tokens.into(), false).into()
 }
