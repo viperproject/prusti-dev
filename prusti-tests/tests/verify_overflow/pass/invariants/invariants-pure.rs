@@ -1,4 +1,5 @@
 // compile-flags: -Penable_type_invariants=true
+// ignore-test Unnecessary postcondition on `double` since it's pure.
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
