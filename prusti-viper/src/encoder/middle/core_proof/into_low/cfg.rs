@@ -460,14 +460,15 @@ impl IntoLow for vir_mid::Statement {
                             lifetime.to_procedure_snapshot(lowerer)?,
                         ));
                     }
-                    arguments.push(vir_low::Expression::fractional_permission(
-                        statement.rd_perm,
-                    ));
+                    let perm_amount = statement
+                        .lifetime_token_permission
+                        .to_procedure_snapshot(lowerer)?;
+                    arguments.push(perm_amount);
                     let target = vec![vir_low::Expression::local_no_pos(
                         statement.target.to_procedure_snapshot(lowerer)?,
                     )];
                     Ok(vec![Statement::method_call(
-                        String::from("lft_tok_sep_take"),
+                        format!("lft_tok_sep_take${}", statement.value.len()),
                         arguments,
                         target,
                         statement.position,
@@ -486,11 +487,12 @@ impl IntoLow for vir_mid::Statement {
                             lifetime.to_procedure_snapshot(lowerer)?,
                         ));
                     }
-                    arguments.push(vir_low::Expression::fractional_permission(
-                        statement.rd_perm,
-                    ));
+                    let perm_amount = statement
+                        .lifetime_token_permission
+                        .to_procedure_snapshot(lowerer)?;
+                    arguments.push(perm_amount);
                     Ok(vec![Statement::method_call(
-                        String::from("lft_tok_sep_take"),
+                        format!("lft_tok_sep_return${}", statement.value.len()),
                         arguments,
                         vec![],
                         statement.position,
@@ -504,8 +506,9 @@ impl IntoLow for vir_mid::Statement {
                 let ty = place.get_type();
                 lowerer.encode_frac_bor_atomic_acc_method(ty)?;
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
-                let perm_amount =
-                    vir_low::Expression::fractional_permission(statement.token_permission_amount);
+                let perm_amount = statement
+                    .lifetime_token_permission
+                    .to_procedure_snapshot(lowerer)?;
                 let reference_place = lowerer.encode_expression_as_place(place)?;
                 let reference_value = place.to_procedure_snapshot(lowerer)?;
                 let targets = vec![statement
@@ -528,8 +531,9 @@ impl IntoLow for vir_mid::Statement {
                 let place = statement.place.get_parent_ref().unwrap();
                 let ty = place.get_type();
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
-                let perm_amount =
-                    vir_low::Expression::fractional_permission(statement.token_permission_amount);
+                let perm_amount = statement
+                    .lifetime_token_permission
+                    .to_procedure_snapshot(lowerer)?;
                 let reference_place = lowerer.encode_expression_as_place(place)?;
                 let deref_place =
                     lowerer.reference_deref_place(reference_place, statement.position)?;
@@ -558,8 +562,9 @@ impl IntoLow for vir_mid::Statement {
                 let ty = place.get_type();
                 lowerer.encode_open_close_mut_ref_methods(ty)?;
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
-                let perm_amount =
-                    vir_low::Expression::fractional_permission(statement.token_permission_amount);
+                let perm_amount = statement
+                    .lifetime_token_permission
+                    .to_procedure_snapshot(lowerer)?;
                 let reference_place = lowerer.encode_expression_as_place(place)?;
                 let reference_value = place.to_procedure_snapshot(lowerer)?;
                 let statements = vec![stmtp! { statement.position =>
@@ -577,8 +582,9 @@ impl IntoLow for vir_mid::Statement {
                 let ty = place.get_type();
                 lowerer.encode_open_close_mut_ref_methods(ty)?;
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
-                let perm_amount =
-                    vir_low::Expression::fractional_permission(statement.token_permission_amount);
+                let perm_amount = statement
+                    .lifetime_token_permission
+                    .to_procedure_snapshot(lowerer)?;
                 let reference_place = lowerer.encode_expression_as_place(place)?;
                 let reference_value = place.to_procedure_snapshot(lowerer)?;
                 let deref_place =
@@ -620,6 +626,13 @@ impl IntoLow for vir_mid::Predicate {
         use vir_low::macros::*;
         use vir_mid::Predicate;
         let result = match self {
+            Predicate::LifetimeToken(predicate) => {
+                lowerer.encode_lifetime_token_predicate()?;
+                let lifetime = lowerer.encode_lifetime_const_into_variable(predicate.lifetime)?;
+                let permission = predicate.permission.to_procedure_snapshot(lowerer)?;
+                expr! { acc(LifetimeToken([lifetime.into()]), [permission])}
+                    .set_default_position(predicate.position)
+            }
             Predicate::MemoryBlockStack(predicate) => {
                 lowerer.encode_memory_block_predicate()?;
                 let place = lowerer.encode_expression_as_place_address(&predicate.place)?;

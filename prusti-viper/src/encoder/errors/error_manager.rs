@@ -136,6 +136,10 @@ pub enum ErrorCtxt {
     LifetimeTake,
     /// Failed to encode LifetimeReturn
     LifetimeReturn,
+    /// An error when inhaling lifetimes
+    LifetimeInhale,
+    /// An error when exhaling lifetimes
+    LifetimeExhale,
     /// Failed to encode OpenMutRef
     OpenMutRef,
     /// Failed to encode OpenFracRef

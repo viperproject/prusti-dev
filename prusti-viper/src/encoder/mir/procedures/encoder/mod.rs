@@ -57,6 +57,7 @@ mod elaborate_drops;
 mod initialisation;
 mod lifetimes;
 mod loops;
+mod scc;
 mod specification_blocks;
 
 pub(super) fn encode_procedure<'v, 'tcx: 'v>(
@@ -80,10 +81,12 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let move_env = self::initialisation::create_move_data_param_env(tcx, mir, def_id);
     let init_data = InitializationData::new(tcx, mir, &move_env);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
-    let rd_perm = lifetimes.lifetime_count();
     let specification_blocks = SpecificationBlocks::build(tcx, mir, &procedure);
     let initialization = compute_definitely_initialized(def_id, mir, encoder.env().tcx());
     let allocation = compute_definitely_allocated(def_id, mir);
+    let lifetime_count = lifetimes.lifetime_count();
+    let lifetime_token_permission = None;
+    let function_call_ctr: usize = 0;
     let mut procedure_encoder = ProcedureEncoder {
         encoder,
         def_id,
@@ -101,7 +104,9 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         check_panics: config::check_panics(),
         locals_without_explicit_allocation,
         fresh_id_generator: 0,
-        rd_perm,
+        lifetime_count,
+        lifetime_token_permission,
+        function_call_ctr,
     };
     procedure_encoder.encode()
 }
@@ -130,7 +135,9 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// the entire body of the function.
     locals_without_explicit_allocation: BTreeSet<mir::Local>,
     fresh_id_generator: usize,
-    rd_perm: u32,
+    lifetime_count: usize,
+    lifetime_token_permission: Option<vir_high::VariableDecl>,
+    function_call_ctr: usize,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -138,16 +145,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let name = self.encoder.encode_item_name(self.def_id);
         let (allocate_parameters, deallocate_parameters) = self.encode_parameters()?;
         let (allocate_returns, deallocate_returns) = self.encode_returns()?;
+        self.lifetime_token_permission =
+            Some(self.fresh_ghost_variable("positive_perm_amount", vir_high::Type::MPerm));
         let (assume_preconditions, assert_postconditions) =
             self.encode_functional_specifications()?;
+        let (assume_lifetime_preconditions, assert_lifetime_postconditions) =
+            self.encode_lifetime_specifications()?;
         let mut procedure_builder = ProcedureBuilder::new(
             name,
             allocate_parameters,
             allocate_returns,
             assume_preconditions,
+            assume_lifetime_preconditions,
             deallocate_parameters,
             deallocate_returns,
             assert_postconditions,
+            assert_lifetime_postconditions,
         );
         self.encode_body(&mut procedure_builder)?;
         self.encode_implicit_allocations(&mut procedure_builder)?;
@@ -450,6 +463,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location.statement_index += 1;
         }
         if let Some(terminator) = terminator {
+            self.encode_lft_for_statement(
+                &mut block_builder,
+                location,
+                &mut original_lifetimes,
+                &mut derived_lifetimes,
+            )?;
             self.encode_terminator(&mut block_builder, location, terminator)?;
         }
         if let Some(statement) = self.loop_invariant_encoding.remove(&bb) {
@@ -545,7 +564,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     encoded_place,
                     vir_high::ty::LifetimeConst::new(region_name),
                     is_mut,
-                    self.rd_perm,
+                    self.lifetime_token_fractional_permission(self.lifetime_count),
                     encoded_target.clone(),
                 );
                 let assign_statement = vir_high::Statement::assign(
@@ -709,7 +728,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ErrorCtxt::CloseMutRef,
                         vir_high::Statement::close_mut_ref_no_pos(
                             lifetime.clone(),
-                            self.rd_perm,
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
                             place,
                         ),
                     )?);
@@ -719,7 +738,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ErrorCtxt::CloseFracRef,
                         vir_high::Statement::close_frac_ref_no_pos(
                             lifetime.clone(),
-                            self.rd_perm,
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
                             place,
                             permission.unwrap(),
                         ),
@@ -753,7 +772,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ErrorCtxt::OpenMutRef,
                         vir_high::Statement::open_mut_ref_no_pos(
                             lifetime.clone(),
-                            self.rd_perm,
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
                             place,
                         ),
                     )?);
@@ -767,7 +786,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         vir_high::Statement::open_frac_ref_no_pos(
                             lifetime.clone(),
                             permission,
-                            self.rd_perm,
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
                             place,
                         ),
                     )?);
@@ -1559,6 +1578,82 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .env()
                 .resolve_method_call(self.def_id, called_def_id, call_substs);
 
+        // find static lifetime to exhale
+        let mut lifetimes_to_exhale_inhale: Vec<String> = Vec::new();
+        let opaque_lifetimes: BTreeMap<String, BTreeSet<String>> =
+            self.lifetimes.get_opaque_lifetimes_with_inclusions_names();
+        for (lifetime, derived_from) in opaque_lifetimes {
+            if derived_from.is_empty() {
+                lifetimes_to_exhale_inhale.push(lifetime.to_text());
+            }
+        }
+        assert_eq!(lifetimes_to_exhale_inhale.len(), 1); // there must be exactly one static lifetime
+
+        // find generic argument lifetimes
+        let mut subst_lifetimes: Vec<String> = call_substs
+            .iter()
+            .filter_map(|generic| match generic.unpack() {
+                ty::subst::GenericArgKind::Lifetime(region) => Some(region.to_text()),
+                _ => None,
+            })
+            .collect();
+        if subst_lifetimes.is_empty() {
+            // If subst_lifetimes is empty, check args for a lifetime
+            for arg in args {
+                if let mir::Operand::Move(place) = arg {
+                    let place_high = self.encoder.encode_place_high(self.mir, *place)?;
+                    let lifetime_name = self.lifetime_name(place_high);
+                    if let Some(lifetime_name) = lifetime_name {
+                        subst_lifetimes.push(lifetime_name);
+                    }
+                }
+            }
+        }
+        for lifetime in subst_lifetimes {
+            lifetimes_to_exhale_inhale.push(lifetime);
+        }
+
+        // construct function lifetime
+        self.function_call_ctr += 1;
+        let function_call_lifetime_name = format!("lft_function_call_{}", self.function_call_ctr);
+        let function_call_lifetime = vir_high::VariableDecl {
+            name: function_call_lifetime_name.clone(),
+            ty: vir_high::ty::Type::Lifetime,
+        };
+        let mut derived_from: Vec<vir_high::VariableDecl> = Vec::new();
+        for name in &lifetimes_to_exhale_inhale {
+            derived_from.push(self.encode_lft_variable(name.to_string())?);
+        }
+        let function_lifetime_take = vir_high::Statement::lifetime_take_no_pos(
+            function_call_lifetime,
+            derived_from,
+            self.lifetime_token_fractional_permission(self.lifetime_count),
+        );
+        block_builder.add_statement(self.set_statement_error(
+            location,
+            ErrorCtxt::LifetimeEncoding,
+            function_lifetime_take,
+        )?);
+        lifetimes_to_exhale_inhale.push(function_call_lifetime_name);
+
+        // encode subset_base conditions which contain a lifetime which we are going to exhale
+        // FIXME: Ideally, before a function call, assert *exactly* what is assumed in the function.
+        //   In this case, that is the opaque lifetimes conditions. Finding the right lifetimes
+        //   which correspond to the the lifetimes in the function seems to be hard.
+        let subset_base: Vec<(String, String)> = self
+            .lifetimes
+            .get_subset_base_at_mid(location)
+            .iter()
+            .map(|(x, y)| (x.to_text(), y.to_text()))
+            .collect();
+        for (lifetime_lhs, lifetime_rhs) in subset_base {
+            if lifetimes_to_exhale_inhale.contains(&lifetime_lhs)
+                || lifetimes_to_exhale_inhale.contains(&lifetime_rhs)
+            {
+                self.encode_lft_assert_subset(block_builder, location, lifetime_lhs, lifetime_rhs)?;
+            }
+        }
+
         let old_label = self.fresh_old_label();
         block_builder.add_statement(self.encoder.set_statement_error_ctxt(
             vir_high::Statement::old_label_no_pos(old_label.clone()),
@@ -1579,6 +1674,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 statement,
                 span,
                 ErrorCtxt::ProcedureCall,
+                self.def_id,
+            )?);
+        }
+        for lifetime in &lifetimes_to_exhale_inhale {
+            block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                vir_high::Statement::exhale_no_pos(vir_high::Predicate::lifetime_token_no_pos(
+                    vir_high::ty::LifetimeConst {
+                        name: lifetime.clone(),
+                    },
+                    self.lifetime_token_fractional_permission(self.lifetime_count),
+                )),
+                self.mir.span,
+                ErrorCtxt::LifetimeEncoding,
                 self.def_id,
             )?);
         }
@@ -1649,6 +1757,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ErrorCtxt::ProcedureCall,
                     self.def_id,
                 )?);
+
+                for lifetime in &lifetimes_to_exhale_inhale {
+                    let statement = self.encode_inhale_lifetime_token(
+                        vir_high::ty::LifetimeConst {
+                            name: lifetime.clone(),
+                        },
+                        self.lifetime_token_fractional_permission(self.lifetime_count),
+                    )?;
+                    post_call_block_builder.add_statement(statement);
+                }
+
                 for expression in postcondition_expressions {
                     let assume_statement = self.encoder.set_statement_error_ctxt(
                         vir_high::Statement::assume_no_pos(expression),
@@ -1708,6 +1827,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ErrorCtxt::ProcedureCall,
                         self.def_id,
                     )?);
+
+                    for lifetime in &lifetimes_to_exhale_inhale {
+                        let statement = self.encode_inhale_lifetime_token(
+                            vir_high::ty::LifetimeConst {
+                                name: lifetime.clone(),
+                            },
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
+                        )?;
+                        cleanup_block_builder.add_statement(statement);
+                    }
+
                     cleanup_block_builder.build();
                     block_builder.set_successor_jump(vir_high::Successor::NonDetChoice(
                         fresh_destination_label,

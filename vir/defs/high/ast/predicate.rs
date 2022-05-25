@@ -1,5 +1,5 @@
 pub(crate) use super::super::{
-    ast::{expression::Expression, position::Position},
+    ast::{expression::Expression, position::Position, ty::LifetimeConst},
     operations_internal::ty::Typed,
 };
 
@@ -7,11 +7,19 @@ pub(crate) use super::super::{
 #[derive_visitors]
 #[derive(derive_more::From, derive_more::IsVariant)]
 pub enum Predicate {
+    LifetimeToken(LifetimeToken),
     MemoryBlockStack(MemoryBlockStack),
     MemoryBlockStackDrop(MemoryBlockStackDrop),
     MemoryBlockHeap(MemoryBlockHeap),
     MemoryBlockHeapDrop(MemoryBlockHeapDrop),
     OwnedNonAliased(OwnedNonAliased),
+}
+
+#[display(fmt = "acc(LifetimeToken({}), {})", lifetime, permission)]
+pub struct LifetimeToken {
+    pub lifetime: LifetimeConst,
+    pub permission: Expression,
+    pub position: Position,
 }
 
 /// A memory block on the stack allocated with `StorageLive`.
