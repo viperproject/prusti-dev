@@ -177,7 +177,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 self.encode_place_arguments(arguments, &value.place)?;
                 let lifetime = self.encode_lifetime_const_into_variable(value.lifetime.clone())?;
                 arguments.push(lifetime.into());
-                let perm_amount = vir_low::Expression::fractional_permission(value.rd_perm);
+                let perm_amount = value
+                    .lifetime_token_permission
+                    .to_procedure_snapshot(self)?;
                 arguments.push(perm_amount);
             }
             vir_mid::Rvalue::AddressOf(value) => {
@@ -773,7 +775,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             vir_mid::OperandKind::Copy | vir_mid::OperandKind::Move => {
                 let place = self.encode_assign_operand_place(operand_counter)?;
                 let root_address = self.encode_assign_operand_address(operand_counter)?;
-                pres.push(expr! { acc(OwnedNonAliased<ty>(place, root_address, value)) });
+                if let vir_mid::ty::Type::Reference(reference) = ty {
+                    let lifetime =
+                        self.encode_lifetime_const_into_variable(reference.lifetime.clone())?;
+                    pres.push(
+                        expr! { acc(OwnedNonAliased<ty>(place, root_address, value, lifetime)) },
+                    );
+                } else {
+                    pres.push(expr! { acc(OwnedNonAliased<ty>(place, root_address, value)) });
+                }
                 let post_predicate = if operand.kind == vir_mid::OperandKind::Copy {
                     expr! { acc(OwnedNonAliased<ty>(place, root_address, value)) }
                 } else {
@@ -799,6 +809,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         }
         pres.push(self.encode_snapshot_valid_call_for_type(value.clone().into(), ty)?);
         parameters.push(value.clone());
+        if let vir_mid::ty::Type::Reference(reference) = ty {
+            let lifetime = self.encode_lifetime_const_into_variable(reference.lifetime.clone())?;
+            parameters.push(lifetime);
+        }
         Ok(value)
     }
     fn encode_assign_operand_place(
@@ -2224,6 +2238,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         self.encode_consume_operand_method(&method_name, &operand)?;
         let mut arguments = Vec::new();
         self.encode_operand_arguments(&mut arguments, &operand)?;
+        let ty = operand.expression.get_type();
+        if let vir_mid::ty::Type::Reference(reference) = ty {
+            let lifetime = self.encode_lifetime_const_into_variable(reference.lifetime.clone())?;
+            arguments.push(lifetime.into());
+        }
         statements.push(vir_low::Statement::method_call(
             method_name,
             arguments,

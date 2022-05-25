@@ -429,4 +429,10 @@ impl Expression {
         let position = self.position();
         self.variant(variant_name, ty, position)
     }
+    pub fn none_permission() -> Self {
+        Self::constant_no_pos(ConstantValue::Int(0), Type::MPerm)
+    }
+    pub fn full_permission() -> Self {
+        Self::constant_no_pos(ConstantValue::Int(1), Type::MPerm)
+    }
 }

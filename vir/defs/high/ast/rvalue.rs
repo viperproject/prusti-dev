@@ -31,7 +31,7 @@ pub struct Ref {
     pub place: Expression,
     pub lifetime: LifetimeConst,
     pub is_mut: bool,
-    pub rd_perm: u32,
+    pub lifetime_token_permission: Expression,
     pub target: Expression,
 }
 
