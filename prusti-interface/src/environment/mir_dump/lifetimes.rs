@@ -1,3 +1,5 @@
+// FIXME: Delete this file.
+
 use crate::environment::{
     borrowck::facts::{AllInputFacts, AllOutputFacts, BorrowckFacts, Loan, PointIndex, Region},
     mir_dump::graphviz::{loan_to_text, opaque_lifetime_string, to_sorted_text, ToText},
