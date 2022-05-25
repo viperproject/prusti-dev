@@ -91,13 +91,13 @@ fn visit_basic_block(
         visit_statement(
             &mut node_builder,
             location,
-            &statements[location.statement_index],
+            statements[location.statement_index].to_text(),
             lifetimes,
         );
         location.statement_index += 1;
     }
     if let Some(terminator) = terminator {
-        node_builder.add_row_single(terminator.to_text());
+        visit_statement(&mut node_builder, location, terminator.to_text(), lifetimes);
     }
     node_builder.build();
     if let Some(terminator) = terminator {
@@ -108,7 +108,7 @@ fn visit_basic_block(
 fn visit_statement(
     node_builder: &mut NodeBuilder,
     location: mir::Location,
-    statement: &mir::Statement<'_>,
+    statement_text: String,
     lifetimes: &Lifetimes,
 ) {
     let subset_base_start = lifetimes.get_subset_base(RichLocation::Start(location));
@@ -127,7 +127,7 @@ fn visit_statement(
 
     let mut row_builder_start = node_builder.create_row();
     row_builder_start.set("location", location.to_text());
-    row_builder_start.set("statement", statement.to_text());
+    row_builder_start.set("statement", statement_text);
     row_builder_start.set("subset_base", subset_base_start.to_text());
     row_builder_start.set("subset", subset_start.to_text());
     row_builder_start.set("origin_live_on_entry", origin_live_on_entry_start.to_text());

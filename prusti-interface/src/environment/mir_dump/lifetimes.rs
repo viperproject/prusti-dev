@@ -1,3 +1,5 @@
+// FIXME: Delete this file.
+
 use crate::environment::{
     borrowck::facts::{AllInputFacts, AllOutputFacts, BorrowckFacts, Loan, PointIndex, Region},
     mir_dump::graphviz::{loan_to_text, opaque_lifetime_string, to_sorted_text, ToText},
@@ -68,18 +70,44 @@ impl Lifetimes {
             })
             .collect()
     }
-    pub fn lifetime_count(&self) -> u32 {
-        let original_lifetimes_count: u32 = self.get_original_lifetimes().len().try_into().unwrap();
+    pub fn lifetime_count(&self) -> usize {
+        let original_lifetimes_count = self.get_original_lifetimes().len();
         let borrowck_in_facts = self.borrowck_in_facts();
         let subset_lifetimes: BTreeSet<Region> = borrowck_in_facts
             .subset_base
             .iter()
             .flat_map(|&(r1, r2, _)| [r1, r2])
             .collect();
-        let subset_lifetimes_count: u32 = subset_lifetimes.len().try_into().unwrap();
-        original_lifetimes_count + subset_lifetimes_count
+        let opaque_lifetimes_count = self
+            .get_opaque_lifetimes_with_inclusions_names()
+            .keys()
+            .count();
+        let subset_lifetimes_count = subset_lifetimes.len();
+        original_lifetimes_count + subset_lifetimes_count + opaque_lifetimes_count
     }
-
+    pub fn get_opaque_lifetimes_with_inclusions_names(&self) -> BTreeMap<String, BTreeSet<String>> {
+        let opaque_lifetimes = self.get_opaque_lifetimes_with_inclusions();
+        let mut result = BTreeMap::new();
+        for lifetime_with_inclusions in opaque_lifetimes {
+            result.insert(
+                lifetime_with_inclusions.lifetime.to_text(),
+                lifetime_with_inclusions
+                    .included_in
+                    .iter()
+                    .map(|x| x.to_text())
+                    .collect(),
+            );
+        }
+        result
+    }
+    pub fn get_subset_base_at_start(&self, location: mir::Location) -> Vec<(Region, Region)> {
+        let rich_location = RichLocation::Start(location);
+        self.get_subset_base(rich_location)
+    }
+    pub fn get_subset_base_at_mid(&self, location: mir::Location) -> Vec<(Region, Region)> {
+        let rich_location = RichLocation::Mid(location);
+        self.get_subset_base(rich_location)
+    }
     fn borrowck_in_facts(&self) -> Ref<AllInputFacts> {
         Ref::map(self.facts.input_facts.borrow(), |facts| {
             facts.as_ref().unwrap()
