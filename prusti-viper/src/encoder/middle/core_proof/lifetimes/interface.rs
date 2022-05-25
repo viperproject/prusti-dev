@@ -125,7 +125,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             self.lifetimes_state
                 .encoded_lifetime_intersect
                 .insert(lft_count);
-
+            self.encode_lifetime_included()?;
+            self.encode_lifetime_included_intersect_axiom(lft_count)?;
             let return_type = self.domain_type("Lifetime")?;
             let arguments = self.create_lifetime_expressions(lft_count).unwrap();
             self.create_domain_func_app(
