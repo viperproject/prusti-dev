@@ -87,10 +87,24 @@ impl IntoLow for vir_mid::Statement {
                 statement.expression.to_procedure_bool_expression(lowerer)?,
                 statement.position,
             )]),
-            Self::Assert(statement) => Ok(vec![Statement::assert(
-                statement.expression.to_procedure_bool_expression(lowerer)?,
-                statement.position,
-            )]),
+            Self::Assert(statement) => {
+                let assert = Statement::assert(
+                    statement.expression.to_procedure_bool_expression(lowerer)?,
+                    statement.position,
+                );
+                let low_statement = if let Some(condition) = statement.condition {
+                    let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                    Statement::conditional(
+                        low_condition,
+                        vec![assert],
+                        Vec::new(),
+                        statement.position,
+                    )
+                } else {
+                    assert
+                };
+                Ok(vec![low_statement])
+            }
             Self::FoldOwned(statement) => {
                 let ty = statement.place.get_type();
                 lowerer.mark_owned_non_aliased_as_unfolded(ty)?;

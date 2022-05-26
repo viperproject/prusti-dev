@@ -49,7 +49,8 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
         | vir::Type::Never
         | vir::Type::Str
         | vir::Type::Projection(_)
-        | vir::Type::Unsupported(_) => {
+        | vir::Type::Unsupported(_)
+        | vir::Type::Trusted(_) => {
             return Err(EncodingError::unsupported(format!(
                 "{} type is not supported",
                 ty

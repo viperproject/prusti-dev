@@ -30,6 +30,7 @@ pub enum TypeDecl {
     Closure(Closure),
     // Projection(Projection),
     Unsupported(Unsupported),
+    Trusted(Trusted),
 }
 
 #[display(
@@ -147,4 +148,9 @@ pub struct Closure {
 #[display(fmt = "{}", ty)]
 pub struct Unsupported {
     pub ty: Type,
+}
+
+#[display(fmt = "{}", name)]
+pub struct Trusted {
+    pub name: String,
 }

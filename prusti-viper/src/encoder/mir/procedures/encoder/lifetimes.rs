@@ -5,7 +5,7 @@ use crate::encoder::{
         procedures::encoder::{scc::*, ProcedureEncoder},
     },
 };
-use prusti_interface::environment::mir_dump::graphviz::ToText;
+use prusti_interface::environment::debug_utils::to_text::ToText;
 use rustc_middle::mir;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::high::{self as vir_high, builders::procedure::BasicBlockBuilder};

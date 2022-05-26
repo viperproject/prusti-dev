@@ -509,7 +509,7 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
             fn #item_name(self) {}
         };
 
-        let generics = item.generics.clone();
+        let generics = &item.generics;
         let generics_idents = generics
             .params
             .iter()
@@ -520,7 +520,7 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
             .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
         // TODO: similarly to extern_specs, don't generate an actual impl
         let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
-            impl #generics #item_ident #generics_idents {
+            impl #generics #item_ident <#generics_idents> {
                 #spec_item
             }
         };

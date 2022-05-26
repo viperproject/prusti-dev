@@ -15,7 +15,7 @@ pub use self::{
         position::Position,
         predicate::Predicate,
         rvalue::{Operand, OperandKind, Rvalue},
-        statement::Statement,
+        statement::{self, BlockMarkerCondition, BlockMarkerConditionElement, Statement},
         ty::{self, Type},
         type_decl::{self, DiscriminantRange, DiscriminantValue, TypeDecl},
         variable::VariableDecl,

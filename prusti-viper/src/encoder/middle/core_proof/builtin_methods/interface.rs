@@ -984,8 +984,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         call write_address<ty>([target_address], source_value)
                     });
                 }
-                vir_mid::TypeDecl::TypeVar(_) => {
-                    // move_place of a generic variable has no body
+                vir_mid::TypeDecl::TypeVar(_) | vir_mid::TypeDecl::Trusted(_) => {
+                    // move_place of a generic or trusted type has no body
                 }
                 vir_mid::TypeDecl::Tuple(decl) => {
                     if decl.arguments.is_empty() {
@@ -1006,6 +1006,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             call write_address<ty>([target_address], source_value)
                         });
                     } else {
+                        assert!(
+                            !ty.is_trusted() && !ty.is_type_var(),
+                            "Trying to split an abstract type."
+                        );
                         self.encode_memory_block_split_method(ty)?;
                         statements.push(stmtp! {
                             position =>
@@ -1199,7 +1203,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             }
 
             // FIXME: Add method body for move_place for references
-            let body = if ty.is_type_var() || ty.is_reference() {
+            let body = if ty.is_type_var() || ty.is_trusted() || ty.is_reference() {
                 None
             } else {
                 Some(statements)
@@ -1378,6 +1382,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 }
                 vir_mid::TypeDecl::TypeVar(_) => {
                     unreachable!("Cannot write constants to variables of generic type.");
+                }
+                vir_mid::TypeDecl::Trusted(_) => {
+                    unreachable!("Cannot write constants to variables of trusted type.");
                 }
                 vir_mid::TypeDecl::Tuple(decl) => {
                     if decl.arguments.is_empty() {
@@ -1619,6 +1626,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             .encoded_memory_block_split_methods
             .contains(ty)
         {
+            assert!(
+                !ty.is_trusted() && !ty.is_type_var(),
+                "Trying to split an abstract type."
+            );
             use vir_low::macros::*;
             let method = if ty.has_variants() {
                 // TODO: remove code duplication with encode_memory_block_join_method
@@ -2062,6 +2073,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                 // Primitive type. Nothing to do.
                             }
                             vir_mid::TypeDecl::TypeVar(_) => unreachable!("cannot convert abstract type into a memory block: {}", ty),
+                            vir_mid::TypeDecl::Trusted(_) => {
+                                // into_memory_block for trusted types is
+                                // trusted and has no statements.
+                            },
                             vir_mid::TypeDecl::Tuple(decl) => {
                                 // TODO: Remove code duplication.
                                 for field in decl.iter_fields() {
@@ -2183,7 +2198,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     ensures (acc(MemoryBlock([address], [size_of])));
                     ensures (([bytes]) == (Snap<to_bytes_type>::to_bytes([memory_block_value])));
             };
-            method.body = Some(statements);
+            if !ty.is_trusted() {
+                method.body = Some(statements);
+            }
             self.declare_method(method)?;
         }
         Ok(())

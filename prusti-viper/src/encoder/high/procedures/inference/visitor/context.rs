@@ -78,6 +78,7 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
             vir_high::TypeDecl::Never => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),
+            vir_high::TypeDecl::Trusted(_) => unimplemented!("ty: {}", ty),
         };
         Ok(expansion)
     }

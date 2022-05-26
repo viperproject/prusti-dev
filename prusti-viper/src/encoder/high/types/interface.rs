@@ -259,6 +259,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
             | vir_mid::TypeDecl::TypeVar(_)
+            | vir_mid::TypeDecl::Trusted(_)
             | vir_mid::TypeDecl::Reference(_)
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
