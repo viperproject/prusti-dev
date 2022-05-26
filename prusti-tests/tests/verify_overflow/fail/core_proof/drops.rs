@@ -10,6 +10,10 @@ struct T2 {
     f: u32,
 }
 
+struct T3 {
+    g: T,
+}
+
 impl Drop for T {
     fn drop(&mut self) {}
 }
@@ -25,6 +29,41 @@ fn test2() {
     let b = T2 { f: 4 };
     assert!(b.f == 5);  //~ ERROR the asserted expression might not hold
 }
+
+fn random() -> bool {
+    false
+}
+
+fn test3() {
+    let a = T { f: 4 };
+    if random() {
+        let _b = a;
+    }
+}
+
+fn test4() {
+    let a = T { f: 4 };
+    if random() {
+        let _b = a;
+    }
+    assert!(false);     //~ ERROR the asserted expression might not hold
+}
+
+fn test5() {
+    let a = T { f: 4 };
+    let b = T3 { g: a };
+}
+
+//fn test6() {
+    //let a = T { f: 4 };
+    //let b = T3 { g: a };
+    //let mut c = 4;
+    //let x = &mut c;
+    //if random() {
+        //drop(b.g);
+        //*x = 5;
+    //}
+//}
 
 fn main() {}
 

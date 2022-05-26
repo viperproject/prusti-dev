@@ -152,6 +152,9 @@ pub enum ErrorCtxt {
     SetEnumVariant,
     /// A user assumption raised an error
     Assumption,
+    /// The state that fold-unfold algorithm deduced as unreachable, is actually
+    /// reachable.
+    UnreachableFoldingState,
 }
 
 /// The error manager
@@ -420,6 +423,13 @@ impl<'tcx> ErrorManager<'tcx> {
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => {
                 PrustiError::verification(
                     "loop invariant might not hold after a loop iteration that preserves the loop condition.",
+                    error_span
+                ).push_primary_span(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::DropCall) => {
+                PrustiError::verification(
+                    "the drop handler was called.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }

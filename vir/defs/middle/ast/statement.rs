@@ -89,47 +89,69 @@ pub struct Assume {
     pub position: Position,
 }
 
-#[display(fmt = "assert {}", expression)]
+#[display(
+    fmt = "assert{} {}",
+    "display::option!(condition, \"<{}>\", \"\")",
+    expression
+)]
 /// Assert the boolean expression.
 pub struct Assert {
     pub expression: Expression,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
 #[display(
+    fmt = "{}{}",
+    "display::condition!(*visited, \"\", \"!\")",
+    basic_block_id
+)]
+#[derive(PartialOrd, Ord)]
+pub struct BlockMarkerConditionElement {
+    pub basic_block_id: BasicBlockId,
+    pub visited: bool,
+}
+
+#[display(fmt = "{}", "display::cjoin(elements)")]
+#[derive(PartialOrd, Ord)]
+pub struct BlockMarkerCondition {
+    pub elements: Vec<BlockMarkerConditionElement>,
+}
+
+#[display(
     fmt = "fold{} {}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     place
 )]
 /// Fold `OwnedNonAliased(place)`.
 pub struct FoldOwned {
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
 #[display(
     fmt = "unfold{} {}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     place
 )]
 /// Unfold `OwnedNonAliased(place)`.
 pub struct UnfoldOwned {
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
 #[display(
     fmt = "join{} {}{}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     place,
     "display::option!(enum_variant, \"[{}]\", \"\")"
 )]
 /// Join `MemoryBlock(place)`.
 pub struct JoinBlock {
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     /// If we are joining ex-enum, then we need to know for which variant.
     pub enum_variant: Option<VariantIndex>,
     pub position: Position,
@@ -137,14 +159,14 @@ pub struct JoinBlock {
 
 #[display(
     fmt = "split{} {}{}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     place,
     "display::option!(enum_variant, \"[{}]\", \"\")"
 )]
 /// Split `MemoryBlock(place)`.
 pub struct SplitBlock {
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     /// If we are splitting for enum, then we need to know for which variant.
     pub enum_variant: Option<VariantIndex>,
     pub position: Position,
@@ -153,26 +175,26 @@ pub struct SplitBlock {
 /// Convert `Owned(place)` into `MemoryBlock(place)`.
 #[display(
     fmt = "convert-owned-memory-block{} {}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     place
 )]
 pub struct ConvertOwnedIntoMemoryBlock {
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
 /// Restore a mutably borrowed place.
 #[display(
     fmt = "restore-mut-borrowed{} &{} {}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     lifetime,
     place
 )]
 pub struct RestoreMutBorrowed {
     pub lifetime: LifetimeConst,
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 

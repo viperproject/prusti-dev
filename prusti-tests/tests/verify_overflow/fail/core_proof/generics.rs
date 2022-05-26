@@ -47,4 +47,24 @@ fn test6<T>(a: U1<T>) -> U1<T> {
     a
 }
 
+fn test7<T: Default>() {
+    let a = T::default();
+    let _b = a;
+}
+
+fn test8<T, U: Default>(a: T) -> T {
+    let b = a;
+    let c = U::default();
+    let _d = c;
+    b
+}
+
+fn test9<T, U: Default>(a: T) -> T {
+    let b = a;
+    let c = U::default();
+    let _d = c;
+    assert!(false);  //~ ERROR: the asserted expression might not hold
+    b
+}
+
 fn main() {}

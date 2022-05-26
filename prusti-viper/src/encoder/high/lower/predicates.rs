@@ -39,6 +39,9 @@ impl IntoPredicates for vir_high::TypeDecl {
             vir_high::TypeDecl::Never => construct_never_predicate(encoder),
             vir_high::TypeDecl::Closure(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Unsupported(ty_decl) => ty_decl.lower(ty, encoder),
+            vir_high::TypeDecl::Trusted(_ty_decl) => {
+                unreachable!("Trusted types are not supported")
+            }
         }
     }
 }

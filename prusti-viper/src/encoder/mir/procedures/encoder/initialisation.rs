@@ -2,7 +2,7 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty::TyCtxt};
 use rustc_mir_dataflow::{
     impls::{MaybeInitializedPlaces, MaybeUninitializedPlaces},
-    move_paths::{MoveData, MovePathIndex},
+    move_paths::MoveData,
     Analysis, MoveDataParamEnv, ResultsCursor,
 };
 
@@ -17,7 +17,8 @@ impl<'mir, 'tcx> InitializationData<'mir, 'tcx> {
         body: &'mir mir::Body<'tcx>,
         move_env: &'mir MoveDataParamEnv<'tcx>,
     ) -> Self {
-        let dead_unwinds = super::elaborate_drops::find_dead_unwinds(tcx, body, move_env);
+        let dead_unwinds =
+            super::elaborate_drops::mir_transform::find_dead_unwinds(tcx, body, move_env);
 
         let inits = MaybeInitializedPlaces::new(tcx, body, move_env)
             .into_engine(tcx, body)
@@ -39,10 +40,6 @@ impl<'mir, 'tcx> InitializationData<'mir, 'tcx> {
     pub(super) fn seek_before(&mut self, loc: mir::Location) {
         self.inits.seek_before_primary_effect(loc);
         self.uninits.seek_before_primary_effect(loc);
-    }
-
-    pub(super) fn maybe_live_dead(&self, path: MovePathIndex) -> (bool, bool) {
-        (self.inits.contains(path), self.uninits.contains(path))
     }
 }
 
