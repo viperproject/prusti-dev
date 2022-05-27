@@ -73,6 +73,8 @@ fn main() {
     */
 }
 
+fn appears_once() {}
+
 fn fn1() { fn2(-3); }
 
 #[requires(forall(|a:i32| exists(|b:i32| a-2 > -5 && a*5 < 5 && b == 5 ==> x < a)))]

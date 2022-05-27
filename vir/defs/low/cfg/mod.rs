@@ -4,9 +4,9 @@
     Clone,
     Serialize,
     Deserialize,
-    PartialEq(ignore=[position]),
+    PartialEq,
     Eq,
-    Hash(ignore=[position])
+    Hash
 )]
 #![derive_for_all_structs(new, new_with_pos)]
 
