@@ -109,7 +109,7 @@ impl Expression {
         }
         impl<'a> ExpressionFolder for PlaceReplacer<'a> {
             fn fold_expression(&mut self, expression: Expression) -> Expression {
-                if expression.is_place() && &expression == self.target {
+                if expression.is_place() && expression.eq_place(&self.target) {
                     self.replacement.clone()
                 } else {
                     default_fold_expression(self, expression)
@@ -154,5 +154,35 @@ impl Expression {
             Self::full_permission(),
             denominator.into(),
         )
+    }
+    pub fn eq_place(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Expression::Local(s), Expression::Local(o)) => s.variable == o.variable,
+            (
+                Expression::Field(Field {
+                    base: bs,
+                    field: fs,
+                    ..
+                }),
+                Expression::Field(Field {
+                    base: bo,
+                    field: fo,
+                    ..
+                }),
+            ) => fs == fo && bs.eq_place(bo),
+            (
+                Expression::LabelledOld(LabelledOld {
+                    base: bs,
+                    label: ls,
+                    ..
+                }),
+                Expression::LabelledOld(LabelledOld {
+                    base: bo,
+                    label: lo,
+                    ..
+                }),
+            ) => ls == lo && bs.eq_place(bo),
+            _ => false,
+        }
     }
 }
