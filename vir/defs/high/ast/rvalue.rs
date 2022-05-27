@@ -11,11 +11,11 @@ use crate::common::display;
 #[allow(clippy::large_enum_variant)]
 pub enum Rvalue {
     // Use(Use),
-    // Repeat(Repeat),
+    Repeat(Repeat),
     Ref(Ref),
     // ThreadLocalRef(ThreadLocalRef),
     AddressOf(AddressOf),
-    // Len(Len),
+    Len(Len),
     // Cast(Cast),
     BinaryOp(BinaryOp),
     CheckedBinaryOp(CheckedBinaryOp),
@@ -24,6 +24,13 @@ pub enum Rvalue {
     Discriminant(Discriminant),
     Aggregate(Aggregate),
     // ShallowInitBox(ShallowInitBox),
+}
+
+#[display(fmt = "[{}; {}]", argument, count)]
+pub struct Repeat {
+    pub argument: Operand,
+    /// Repetition count.
+    pub count: u64,
 }
 
 #[display(fmt = "&{} {}", lifetime, place)]
@@ -37,6 +44,11 @@ pub struct Ref {
 
 #[display(fmt = "&raw({})", place)]
 pub struct AddressOf {
+    pub place: Expression,
+}
+
+#[display(fmt = "len({})", place)]
+pub struct Len {
     pub place: Expression,
 }
 

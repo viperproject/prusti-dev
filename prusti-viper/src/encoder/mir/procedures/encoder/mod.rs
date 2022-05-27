@@ -537,7 +537,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Use(operand) => {
                 self.encode_assign_operand(block_builder, location, encoded_target, operand)?;
             }
-            // mir::Rvalue::Repeat(Operand<'tcx>, Const<'tcx>),
+            mir::Rvalue::Repeat(operand, count) => {
+                let encoded_operand = self.encode_statement_operand(location, operand)?;
+                let encoded_count = self.encoder.compute_array_len(*count);
+                let encoded_rvalue = vir_high::Rvalue::repeat(encoded_operand, encoded_count);
+                let assign_statement = vir_high::Statement::assign(
+                    encoded_target,
+                    encoded_rvalue,
+                    self.register_error(location, ErrorCtxt::Assign),
+                );
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::Assign,
+                    assign_statement,
+                )?);
+            }
             mir::Rvalue::Ref(region, borrow_kind, place) => {
                 let is_mut = matches!(
                     borrow_kind,
@@ -575,7 +589,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
                 )?);
             }
-            // mir::Rvalue::Len(Place<'tcx>),
+            mir::Rvalue::Len(place) => {
+                let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
+                let encoded_rvalue = vir_high::Rvalue::len(encoded_place);
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::Assign,
+                    vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
+                )?);
+            }
             // mir::Rvalue::Cast(CastKind, Operand<'tcx>, Ty<'tcx>),
             mir::Rvalue::BinaryOp(op, box (left, right)) => {
                 let encoded_left = self.encode_statement_operand(location, left)?;
@@ -650,8 +672,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         operands: &[mir::Operand<'tcx>],
     ) -> SpannedEncodingResult<()> {
         let ty = match aggregate_kind {
-            mir::AggregateKind::Array(_) => unimplemented!(),
-            mir::AggregateKind::Tuple => encoded_target.get_type().clone(),
+            mir::AggregateKind::Array(_) | mir::AggregateKind::Tuple => {
+                encoded_target.get_type().clone()
+            }
             mir::AggregateKind::Adt(adt_did, variant_index, _substs, _, active_field_index) => {
                 let mut ty = encoded_target.get_type().clone();
                 let tcx = self.encoder.env().tcx();
@@ -817,6 +840,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let encoded_source =
                     self.encoder
                         .encode_place_high(self.mir, *source, Some(span))?;
+                assert!(
+                    encoded_source.is_place(),
+                    "{} is not place (encoded from: {:?}",
+                    encoded_source,
+                    source
+                );
 
                 let deref_base = encoded_source.get_dereference_base().cloned();
                 let source_permission = self.encode_open_reference(

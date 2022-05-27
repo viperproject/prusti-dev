@@ -84,6 +84,14 @@ pub(in super::super::super) trait DomainsLowererInterface {
         variant: &vir_mid::ty::VariantIndex,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
+    fn encode_index_access_function_app(
+        &mut self,
+        domain_name: &str,
+        base: vir_low::Expression,
+        base_type: &vir_mid::Type,
+        index: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterface for Lowerer<'p, 'v, 'tcx> {
@@ -208,6 +216,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterface for Lowerer<'p, 'v, 'tcx> {
                 variant.index
             ),
             vec![base],
+            return_type,
+            position,
+        )
+    }
+    fn encode_index_access_function_app(
+        &mut self,
+        domain_name: &str,
+        base: vir_low::Expression,
+        base_type: &vir_mid::Type,
+        index: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
+        let base_type_identifier = base_type.get_identifier();
+        let return_type = self.domain_type(domain_name)?;
+        self.create_domain_func_app(
+            domain_name,
+            format!(
+                "index_{}$${}",
+                domain_name.to_lowercase(),
+                base_type_identifier,
+            ),
+            vec![base, index],
             return_type,
             position,
         )

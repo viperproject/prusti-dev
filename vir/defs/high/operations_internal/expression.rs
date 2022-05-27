@@ -61,6 +61,11 @@ impl Expression {
             | Expression::Deref(Deref { box ref base, .. })
             | Expression::AddrOf(AddrOf { box ref base, .. }) => Some(base),
             Expression::LabelledOld(_) => None,
+            Expression::BuiltinFuncApp(BuiltinFuncApp {
+                function: BuiltinFunc::Index,
+                arguments,
+                ..
+            }) => Some(&arguments[0]),
             expr => unreachable!("{}", expr),
         }
     }
@@ -89,6 +94,11 @@ impl Expression {
             | Expression::Deref(Deref { base, .. })
             | Expression::AddrOf(AddrOf { base, .. })
             | Expression::LabelledOld(LabelledOld { base, .. }) => base.is_place(),
+            Expression::BuiltinFuncApp(BuiltinFuncApp {
+                function: BuiltinFunc::Index,
+                arguments,
+                ..
+            }) if arguments.len() == 2 => arguments[0].is_place() && arguments[1].is_place(),
             _ => false,
         }
     }
@@ -463,9 +473,34 @@ impl Expression {
         let position = self.position();
         self.variant(variant_name, ty, position)
     }
+
+    /// Assuming that `self` is an array and is a prefix of `guiding_place`,
+    /// return the index that matches the guiding place.
+    pub fn get_index<'a>(&self, guiding_place: &'a Expression) -> &'a Expression {
+        let parent = guiding_place.get_parent_ref().unwrap();
+        if self == parent {
+            match guiding_place {
+                Expression::BuiltinFuncApp(BuiltinFuncApp {
+                    function: BuiltinFunc::Index,
+                    arguments,
+                    ..
+                }) => &arguments[1],
+                _ => unreachable!(
+                    "self: {} ({}), guiding_place: {}",
+                    self,
+                    self.get_type(),
+                    guiding_place
+                ),
+            }
+        } else {
+            self.get_index(parent)
+        }
+    }
+
     pub fn none_permission() -> Self {
         Self::constant_no_pos(ConstantValue::Int(0), Type::MPerm)
     }
+
     pub fn full_permission() -> Self {
         Self::constant_no_pos(ConstantValue::Int(1), Type::MPerm)
     }

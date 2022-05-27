@@ -218,6 +218,7 @@ fn ensure_permission_in_state(
         // The requirement is already satisfied.
         false
     } else if let Some(prefix) = predicate_state.find_prefix(permission_kind, &place) {
+        // The requirement can be satisifed by unfolding.
         if prefix.get_type().is_trusted() {
             // Trusted types cannot be unfolded.
             let place_span = context.get_span(place.position()).unwrap();
@@ -233,7 +234,6 @@ fn ensure_permission_in_state(
             error.set_help("you might want to mark the function as #[trusted]");
             return Err(error);
         }
-        // The requirement can be satisifed by unfolding.
         predicate_state.remove(permission_kind, &prefix)?;
         let expanded_place = context.expand_place(&prefix, &place)?;
         debug!("expand_place(place={}, guiding_place={})", prefix, place);
@@ -255,7 +255,11 @@ fn ensure_permission_in_state(
             context.change_error_context(place.position(), error_ctxt)
         };
         let prefix = prefix.replace_position(position);
-        actions.push(Action::unfold(permission_kind, prefix, enum_variant));
+        actions.push(Action::unfold(
+            permission_kind,
+            prefix.clone(),
+            enum_variant,
+        ));
         for (kind, new_place) in expanded_place {
             debug!("  kind={:?} new_place={}", kind, new_place);
             new_place.check_no_default_position();
@@ -264,19 +268,30 @@ fn ensure_permission_in_state(
                 ExpandedPermissionKind::Same,
                 "This should never lead to unfolding up to memory blocks."
             );
+            if prefix.get_type().is_array() {
+                // To satisfy injectivity requirements, array elements are
+                // wrapped in additional predicates, which we need to unfold
+                // together with the main array predicate.
+                actions.push(Action::unfold_array_element(
+                    permission_kind,
+                    prefix.clone(),
+                    prefix.get_index(&new_place).clone(),
+                ));
+            }
             predicate_state.insert(permission_kind, new_place)?;
         }
         ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?
-    } else if let Some(witness) =
-        predicate_state.contains_non_discriminant_with_prefix(permission_kind, &place)
+    } else if let Some(witness) = predicate_state
+        .contains_non_discriminant_with_prefix(permission_kind, &place)
+        .cloned()
     {
         // The requirement can be satisifed by folding.
         let enum_variant = if place.get_type().has_variants() {
-            Some(place.get_variant_name(witness).clone())
+            Some(place.get_variant_name(&witness).clone())
         } else {
             None
         };
-        for (kind, new_place) in context.expand_place(&place, witness)? {
+        for (kind, new_place) in context.expand_place(&place, &witness)? {
             assert_eq!(kind, ExpandedPermissionKind::Same);
             if ensure_permission_in_state(
                 context,
@@ -288,6 +303,16 @@ fn ensure_permission_in_state(
                 return Ok(true);
             }
             predicate_state.remove(permission_kind, &new_place)?;
+        }
+        if place.get_type().is_array() {
+            // To satisfy injectivity requirements, array elements are wrapped
+            // in additional predicates, which we need to fold together with the
+            // main array predicate.
+            actions.push(Action::fold_array_element(
+                permission_kind,
+                place.clone(),
+                place.get_index(&witness).clone(),
+            ));
         }
         actions.push(Action::fold(permission_kind, place.clone(), enum_variant));
         predicate_state.insert(permission_kind, place)?;
@@ -332,6 +357,23 @@ fn ensure_permission_in_state(
             )?;
             predicate_state.remove(PermissionKind::Owned, &deref_place)?;
             predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
+            to_drop
+        } else if place.get_type().is_array() {
+            // We need to special case arrays, because when the array is
+            // unfolded, we track only a single element of the array and only
+            // that element would be converted. It is fine to require Owned of
+            // the entire array, because either the entire array can be Owned or
+            // MemoryBlock. In Rust, having a mix is not allowed.
+            let to_drop = ensure_permission_in_state(
+                context,
+                predicate_state,
+                place.clone(),
+                PermissionKind::Owned,
+                actions,
+            )?;
+            predicate_state.remove(PermissionKind::Owned, &place)?;
+            predicate_state.insert(PermissionKind::MemoryBlock, place.clone())?;
+            actions.push(Action::owned_into_memory_block(place));
             to_drop
         } else {
             // We have a mix of Owned and MemoryBlock. Convert all Owned into

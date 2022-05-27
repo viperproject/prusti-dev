@@ -1,4 +1,4 @@
-use super::low_to_viper::ToViper;
+use super::low_to_viper::{ToViper, Context};
 use viper::{self, AstFactory};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash)]
@@ -23,10 +23,10 @@ impl Program {
 }
 
 impl<'v> ToViper<'v, viper::Program<'v>> for Program {
-    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Program<'v> {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Program<'v> {
         match self {
-            Program::Legacy(program) => program.to_viper(ast),
-            Program::Low(program) => program.to_viper(ast),
+            Program::Legacy(program) => program.to_viper(context, ast),
+            Program::Low(program) => program.to_viper(context, ast),
         }
     }
 }
