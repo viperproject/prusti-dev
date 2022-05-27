@@ -316,7 +316,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             let mut prusti_error = error_manager.translate_verification_error(&verification_error);
 
             // annotate with counterexample, if requested
-            if config::produce_counterexample() {
+            if config::counterexample() {
                 if let Some(silicon_counterexample) = &verification_error.counterexample {
                     if let Some(def_id) = error_manager.get_def_id(&verification_error) {
                         let counterexample = counterexample_translation::backtranslate(
@@ -397,8 +397,7 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
         // Here we construct a Tokio runtime to block until completion of the futures returned by
         // `client.verify`. However, to report verification errors as early as possible,
         // `verify_programs` should return an asynchronous stream of verification results.
-        let mut runtime = Builder::new()
-            .basic_scheduler()
+        let runtime = Builder::new_current_thread()
             .thread_name("prusti-viper")
             .enable_all()
             .build()

@@ -4,7 +4,10 @@ use crate::encoder::{
         addresses::AddressesInterface,
         lowerer::Lowerer,
         places::PlacesInterface,
-        snapshots::{IntoSnapshot, SnapshotAdtsInterface, SnapshotDomainsInterface},
+        snapshots::{
+            IntoSnapshot, SnapshotAdtsInterface, SnapshotDomainsInterface, SnapshotValuesInterface,
+        },
+        types::TypesInterface,
     },
 };
 use vir_crate::{
@@ -40,6 +43,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
 }
 
 pub(in super::super) trait ReferencesInterface {
+    fn shared_non_alloc_reference_snapshot_constructor(
+        &mut self,
+        ty: &vir_mid::Type,
+        current_snapshot: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn reference_deref_place(
         &mut self,
         place: vir_low::Expression,
@@ -52,6 +61,12 @@ pub(in super::super) trait ReferencesInterface {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
     fn reference_target_final_snapshot(
+        &mut self,
+        reference_type: &vir_mid::Type,
+        snapshot: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn reference_address(
         &mut self,
         reference_type: &vir_mid::Type,
         snapshot: vir_low::Expression,
@@ -70,6 +85,24 @@ pub(in super::super) trait ReferencesInterface {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ReferencesInterface for Lowerer<'p, 'v, 'tcx> {
+    /// A constructor of a shared reference snapshot in context where references
+    /// are not allowed to have addresses.
+    fn shared_non_alloc_reference_snapshot_constructor(
+        &mut self,
+        ty: &vir_mid::Type,
+        current_snapshot: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.ensure_type_definition(ty)?;
+        let domain_name = self.encode_snapshot_domain_name(ty)?;
+        Ok(self
+            .snapshot_alternative_constructor_struct_call(
+                &domain_name,
+                "no_alloc",
+                vec![current_snapshot],
+            )?
+            .set_default_position(position))
+    }
     fn reference_deref_place(
         &mut self,
         place: vir_low::Expression,
@@ -93,7 +126,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ReferencesInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.reference_target_snapshot(ty, snapshot, position, "target_final")
     }
-    fn reference_address_snapshot(
+    fn reference_address(
         &mut self,
         reference_type: &vir_mid::Type,
         snapshot: vir_low::Expression,
@@ -105,6 +138,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ReferencesInterface for Lowerer<'p, 'v, 'tcx> {
         Ok(self
             .snapshot_destructor_struct_call(&domain_name, "address", return_type, snapshot)?
             .set_default_position(position))
+    }
+    fn reference_address_snapshot(
+        &mut self,
+        reference_type: &vir_mid::Type,
+        snapshot: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let address = self.reference_address(reference_type, snapshot, position)?;
+        let address_type = self.reference_address_type(reference_type)?;
+        self.construct_struct_snapshot(&address_type, vec![address], position)
     }
     fn reference_address_type(
         &mut self,

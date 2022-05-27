@@ -1,4 +1,5 @@
 pub(crate) use super::{
+    super::cfg::procedure::BasicBlockId,
     expression::Expression,
     position::Position,
     predicate::Predicate,
@@ -11,7 +12,7 @@ use std::collections::BTreeSet;
 
 #[derive_helpers]
 #[derive_visitors]
-#[derive(derive_more::From, derive_more::IsVariant)]
+#[derive(derive_more::From, derive_more::IsVariant, derive_more::Unwrap)]
 #[allow(clippy::large_enum_variant)]
 pub enum Statement {
     Comment(Comment),
@@ -19,8 +20,10 @@ pub enum Statement {
     Inhale(Inhale),
     Exhale(Exhale),
     Consume(Consume),
+    Havoc(Havoc),
     Assume(Assume),
     Assert(Assert),
+    LoopInvariant(LoopInvariant),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
     WritePlace(WritePlace),
@@ -30,10 +33,13 @@ pub enum Statement {
     SetUnionVariant(SetUnionVariant),
     NewLft(NewLft),
     EndLft(EndLft),
-    GhostAssignment(GhostAssignment),
+    Dead(Dead),
     LifetimeTake(LifetimeTake),
+    LifetimeReturn(LifetimeReturn),
     OpenMutRef(OpenMutRef),
+    OpenFracRef(OpenFracRef),
     CloseMutRef(CloseMutRef),
+    CloseFracRef(CloseFracRef),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -69,6 +75,13 @@ pub struct Consume {
     pub position: Position,
 }
 
+#[display(fmt = "havoc {}", predicate)]
+/// Havoc the permission denoted by the place.
+pub struct Havoc {
+    pub predicate: Predicate,
+    pub position: Position,
+}
+
 #[display(fmt = "assume {}", expression)]
 /// Assume the boolean expression.
 pub struct Assume {
@@ -80,6 +93,31 @@ pub struct Assume {
 /// Assert the boolean expression.
 pub struct Assert {
     pub expression: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "loop-invariant (\n{}{})",
+    "display::foreach!(\"    {}\n\", maybe_modified_places)",
+    "display::foreach!(\"    {}\n\", functional_specifications)"
+)]
+/// The loop invariant.
+pub struct LoopInvariant {
+    pub loop_head: BasicBlockId,
+    /// A block dominated by the loop head that has the loop head as a
+    /// successor.
+    pub back_edges: Vec<BasicBlockId>,
+    /// Places that are potentially modified inside the loop body.
+    ///
+    /// If the place is definitely initialized, we havoc `OwnedNonAliased`
+    /// predicate. If the place is maybe uninitialized, we havoc `MemoryBlock`
+    /// predicate.
+    ///
+    /// Note that for soundness we have to havoc all potentially modified
+    /// memory, which means that we have to havoc all potentially aliased
+    /// memory.
+    pub maybe_modified_places: Vec<Predicate>,
+    pub functional_specifications: Vec<Expression>,
     pub position: Position,
 }
 
@@ -114,11 +152,20 @@ pub struct MovePlace {
     pub position: Position,
 }
 
-#[display(fmt = "copy {} ← {}", target, source)]
+#[display(
+    fmt = "copy{} {} ← {}",
+    "display::option!(source_permission, \"({})\", \"\")",
+    target,
+    source
+)]
 /// Copy assignment.
+///
+/// If `source_permission` is `None`, it means `write`. Otherwise, it is a
+/// variable denoting the permission amount.
 pub struct CopyPlace {
     pub target: Expression,
     pub source: Expression,
+    pub source_permission: Option<VariableDecl>,
     pub position: Position,
 }
 
@@ -192,33 +239,94 @@ pub struct EndLft {
     pub position: Position,
 }
 
-#[display(fmt = "ghost-assign {} := {}", target, value)]
-pub struct GhostAssignment {
-    pub target: VariableDecl,
-    pub value: Expression,
+#[display(fmt = "dead({})", target)]
+pub struct Dead {
+    pub target: Expression,
     pub position: Position,
 }
 
-#[display(fmt = "{} := shorten_lifetime({:?}, {})", target, value, rd_perm)]
+#[display(
+    fmt = "{} := lifetime_take({}, {})",
+    target,
+    "display::cjoin(value)",
+    lifetime_token_permission
+)]
 pub struct LifetimeTake {
     pub target: VariableDecl,
-    pub value: Vec<LifetimeConst>,
-    pub rd_perm: u32,
+    pub value: Vec<VariableDecl>,
+    pub lifetime_token_permission: Expression,
     pub position: Position,
 }
 
-#[display(fmt = "open_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+#[display(
+    fmt = "lifetime_return({}, {}, {})",
+    target,
+    "display::cjoin(value)",
+    lifetime_token_permission
+)]
+pub struct LifetimeReturn {
+    pub target: VariableDecl,
+    pub value: Vec<VariableDecl>,
+    pub lifetime_token_permission: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "open_mut_ref({}, rd({}), {})",
+    lifetime,
+    lifetime_token_permission,
+    place
+)]
 pub struct OpenMutRef {
     pub lifetime: LifetimeConst,
-    pub rd_perm: u32,
-    pub object: Expression,
+    pub lifetime_token_permission: Expression,
+    pub place: Expression,
     pub position: Position,
 }
 
-#[display(fmt = "close_mut_ref({}, {}, {})", lifetime, rd_perm, object)]
+#[display(
+    fmt = "{} := open_frac_ref({}, rd({}), {})",
+    predicate_permission_amount,
+    lifetime,
+    lifetime_token_permission,
+    place
+)]
+pub struct OpenFracRef {
+    pub lifetime: LifetimeConst,
+    /// The permission amount that we get for accessing `Owned`.
+    pub predicate_permission_amount: VariableDecl,
+    /// The permission amount taken from the token.
+    pub lifetime_token_permission: Expression,
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "close_mut_ref({}, rd({}), {})",
+    lifetime,
+    lifetime_token_permission,
+    place
+)]
 pub struct CloseMutRef {
     pub lifetime: LifetimeConst,
-    pub rd_perm: u32,
-    pub object: Expression,
+    pub lifetime_token_permission: Expression,
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "close_frac_ref({}, rd({}), {}, {})",
+    lifetime,
+    lifetime_token_permission,
+    place,
+    predicate_permission_amount
+)]
+pub struct CloseFracRef {
+    pub lifetime: LifetimeConst,
+    /// The permission amount taken from the token.
+    pub lifetime_token_permission: Expression,
+    pub place: Expression,
+    /// The permission amount that we get for accessing `Owned`.
+    pub predicate_permission_amount: VariableDecl,
     pub position: Position,
 }

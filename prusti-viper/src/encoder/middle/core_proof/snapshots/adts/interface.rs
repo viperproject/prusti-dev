@@ -39,6 +39,12 @@ pub(in super::super::super) trait SnapshotAdtsInterface {
         domain_name: &str,
         arguments: Vec<vir_low::Expression>,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn snapshot_alternative_constructor_struct_call(
+        &mut self,
+        domain_name: &str,
+        variant_name: &str,
+        arguments: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn snapshot_destructor_struct_call(
         &mut self,
         domain_name: &str,
@@ -114,6 +120,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotAdtsInterface for Lowerer<'p, 'v, 'tcx> {
         arguments: Vec<vir_low::Expression>,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.adt_constructor_main_call(domain_name, arguments)
+    }
+    fn snapshot_alternative_constructor_struct_call(
+        &mut self,
+        domain_name: &str,
+        variant_name: &str,
+        arguments: Vec<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.adt_constructor_variant_call(domain_name, variant_name, arguments)
     }
     fn snapshot_destructor_struct_call(
         &mut self,

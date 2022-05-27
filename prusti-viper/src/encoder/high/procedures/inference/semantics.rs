@@ -52,11 +52,17 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::Consume(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::Havoc(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
             vir_high::Statement::Assume(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::Assert(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::LoopInvariant(_) => {
+                unreachable!("LoopInvariant statement should have been removed before.");
             }
             vir_high::Statement::MovePlace(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
@@ -85,7 +91,7 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::EndLft(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
-            vir_high::Statement::GhostAssignment(statement) => {
+            vir_high::Statement::Dead(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::LifetimeTake(statement) => {
@@ -94,7 +100,16 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::OpenMutRef(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
+            vir_high::Statement::OpenFracRef(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
             vir_high::Statement::CloseMutRef(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::CloseFracRef(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::LifetimeReturn(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
         }
@@ -136,6 +151,7 @@ fn extract_managed_predicate_place(
             Ok(Some(Permission::Owned(predicate.place.clone())))
         }
         vir_high::Predicate::MemoryBlockStackDrop(_)
+        | vir_high::Predicate::LifetimeToken(_)
         | vir_high::Predicate::MemoryBlockHeap(_)
         | vir_high::Predicate::MemoryBlockHeapDrop(_) => {
             // Unmanaged predicates.
@@ -177,6 +193,19 @@ impl CollectPermissionChanges for vir_high::Consume {
     ) -> SpannedEncodingResult<()> {
         self.operand
             .collect(encoder, consumed_permissions, produced_permissions)?;
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::Havoc {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.extend(extract_managed_predicate_place(&self.predicate)?);
+        produced_permissions.extend(extract_managed_predicate_place(&self.predicate)?);
         Ok(())
     }
 }
@@ -520,7 +549,7 @@ impl CollectPermissionChanges for vir_high::EndLft {
     }
 }
 
-impl CollectPermissionChanges for vir_high::GhostAssignment {
+impl CollectPermissionChanges for vir_high::Dead {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
@@ -542,7 +571,7 @@ impl CollectPermissionChanges for vir_high::LifetimeTake {
     }
 }
 
-impl CollectPermissionChanges for vir_high::OpenMutRef {
+impl CollectPermissionChanges for vir_high::LifetimeReturn {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
@@ -553,13 +582,54 @@ impl CollectPermissionChanges for vir_high::OpenMutRef {
     }
 }
 
+impl CollectPermissionChanges for vir_high::OpenMutRef {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::OpenFracRef {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
 impl CollectPermissionChanges for vir_high::CloseMutRef {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
-        _consumed_permissions: &mut Vec<Permission>,
-        _produced_permissions: &mut Vec<Permission>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::CloseFracRef {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
         Ok(())
     }
 }

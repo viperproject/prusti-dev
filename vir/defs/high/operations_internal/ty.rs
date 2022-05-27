@@ -76,10 +76,17 @@ impl Type {
     }
     pub fn erase_lifetime(&mut self) {
         if let Type::Reference(reference) = self {
-            reference.lifetime = LifetimeConst {
-                name: String::from("pure_erased"),
-            };
+            reference.lifetime = LifetimeConst::erased();
         }
+    }
+    pub fn erase_lifetimes(self) -> Self {
+        struct DefaultLifetimeEraser {}
+        impl TypeFolder for DefaultLifetimeEraser {
+            fn fold_lifetime_const(&mut self, _lifetime: LifetimeConst) -> LifetimeConst {
+                LifetimeConst::erased()
+            }
+        }
+        DefaultLifetimeEraser {}.fold_type(self)
     }
     pub fn get_lifetimes(&self) -> Vec<LifetimeConst> {
         if let Type::Reference(reference) = self {
@@ -136,6 +143,14 @@ impl super::super::ast::type_decl::Union {
         &self,
     ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
         self.discriminant_values.iter().cloned().zip(&self.variants)
+    }
+}
+
+impl LifetimeConst {
+    pub fn erased() -> Self {
+        LifetimeConst {
+            name: String::from("pure_erased"),
+        }
     }
 }
 
@@ -248,6 +263,7 @@ impl Typed for Expression {
             Expression::Quantifier(expression) => expression.get_type(),
             Expression::LetExpr(expression) => expression.get_type(),
             Expression::FuncApp(expression) => expression.get_type(),
+            Expression::BuiltinFuncApp(expression) => expression.get_type(),
             Expression::Downcast(expression) => expression.get_type(),
         }
     }
@@ -269,6 +285,7 @@ impl Typed for Expression {
             Expression::Quantifier(expression) => expression.set_type(new_type),
             Expression::LetExpr(expression) => expression.set_type(new_type),
             Expression::FuncApp(expression) => expression.set_type(new_type),
+            Expression::BuiltinFuncApp(expression) => expression.set_type(new_type),
             Expression::Downcast(expression) => expression.set_type(new_type),
         }
     }
@@ -435,6 +452,15 @@ impl Typed for LetExpr {
 }
 
 impl Typed for FuncApp {
+    fn get_type(&self) -> &Type {
+        &self.return_type
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.return_type = new_type;
+    }
+}
+
+impl Typed for BuiltinFuncApp {
     fn get_type(&self) -> &Type {
         &self.return_type
     }
