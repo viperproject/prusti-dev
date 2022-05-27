@@ -73,6 +73,9 @@ pub enum ErrorCtxt {
     AssertTerminator(String),
     /// A Viper `assert false` in the context of a bounds check
     BoundsCheckAssert,
+    /// A Viper `assert false` in the context of a hardcoded bounds check (e.g. when we hardcode a `index`)
+    /// TODO: remove this in favor of extern_spec for e.g. the stdlib `fn index(...)`
+    SliceRangeBoundsCheckAssert(String),
     /// A Viper `assert false` that encodes an `abort` Rust terminator
     AbortTerminator,
     /// A Viper `assert false` that encodes an `unreachable` Rust terminator
@@ -587,6 +590,14 @@ impl<'tcx> ErrorManager<'tcx> {
             ("application.precondition:assertion.false", ErrorCtxt::BoundsCheckAssert) => {
                 PrustiError::verification(
                     "the array or slice index may be out of bounds".to_string(),
+                    error_span,
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::SliceRangeBoundsCheckAssert(s)) |
+            ("application.precondition:assertion.false", ErrorCtxt::SliceRangeBoundsCheckAssert(s)) => {
+                PrustiError::verification(
+                    s,
                     error_span,
                 ).set_failing_assertion(opt_cause_span)
             }
