@@ -3,7 +3,7 @@ use log::trace;
 use prusti_interface::{
     specs::{
         typed,
-        typed::{DefSpecificationMap, ProcedureSpecification},
+        typed::{DefSpecificationMap, ProcedureSpecification, ProcedureSpecificationKind},
     },
     utils::has_spec_only_attr,
 };
@@ -35,7 +35,9 @@ pub(super) struct FunctionCallEncodingQuery<'tcx> {
 pub(super) enum SpecQuery<'tcx> {
     FunctionDefEncoding(DefId, SubstsRef<'tcx>),
     FunctionCallEncoding(FunctionCallEncodingQuery<'tcx>),
-    PureOrTrustedCheck(DefId, SubstsRef<'tcx>),
+    /// For determining the [ProcedureSpecificationKind] of a procedure, e.g.
+    /// for a check whether the function is pure or impure
+    GetProcKind(DefId, SubstsRef<'tcx>),
     FetchSpan(DefId),
 }
 
@@ -47,7 +49,7 @@ impl<'tcx> SpecQuery<'tcx> {
                 called_def_id: def_id,
                 ..
             })
-            | SpecQuery::PureOrTrustedCheck(def_id, _)
+            | SpecQuery::GetProcKind(def_id, _)
             | SpecQuery::FetchSpan(def_id) => *def_id,
         }
     }
@@ -63,14 +65,21 @@ impl<'tcx> SpecQuery<'tcx> {
                     call_substs: new_substs,
                 })
             }
-            PureOrTrustedCheck(_, _) => PureOrTrustedCheck(new_def_id, new_substs),
+            GetProcKind(_, _) => GetProcKind(new_def_id, new_substs),
             FetchSpan(_) => FetchSpan(new_def_id),
         }
     }
 }
 
 pub(crate) trait SpecificationsInterface<'tcx> {
+    // TODO abstract-predicates: Maybe this should be deleted (and ProcedureSpecificationKind::is_pure)
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
+
+    fn get_proc_kind(
+        &self,
+        def_id: DefId,
+        substs: Option<SubstsRef<'tcx>>,
+    ) -> ProcedureSpecificationKind;
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
@@ -78,11 +87,16 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
-    fn get_loop_specs(
-        &self,
-        def_id: DefId,
-        substs: SubstsRef<'tcx>,
-    ) -> Option<typed::LoopSpecification>;
+    fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification>;
+
+    /// Get the specifications attached to the `def_id` type.
+    fn get_type_specs(&self, def_id: DefId) -> Option<typed::TypeSpecification>;
+
+    /// Get the prusti assertion
+    fn get_prusti_assertion(&self, def_id: DefId) -> Option<typed::PrustiAssertion>;
+
+    /// Get the prusti assumption
+    fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption>;
 
     /// Get the specifications attached to a function.
     fn get_procedure_specs(
@@ -109,23 +123,42 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn is_pure(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+        let kind = self.get_proc_kind(def_id, substs);
+        let mut pure = matches!(
+            kind,
+            ProcedureSpecificationKind::Pure | ProcedureSpecificationKind::Predicate(_)
+        );
+
+        let func_name = self.env().get_unique_item_name(def_id);
+        if func_name.starts_with("prusti_contracts::prusti_contracts::Map")
+            || func_name.starts_with("prusti_contracts::prusti_contracts::Seq")
+        {
+            pure = true;
+        }
+
+        trace!("is_pure {:?} = {}", def_id, pure);
+        pure
+    }
+
+    fn get_proc_kind(
+        &self,
+        def_id: DefId,
+        substs: Option<SubstsRef<'tcx>>,
+    ) -> ProcedureSpecificationKind {
         let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
-        let query = SpecQuery::PureOrTrustedCheck(def_id, substs);
-        let result = self
-            .specifications_state
+        let query = SpecQuery::GetProcKind(def_id, substs);
+        self.specifications_state
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), query)
-            // In case of error -> It is emitted in get_and_refine_proc_spec
-            .map(|spec| spec.kind.is_pure().unwrap_or(false))
-            .unwrap_or(false);
-        trace!("is_pure {:?} = {}", query, result);
-        result
+            .map(|spec| spec.kind)
+            .and_then(|kind| kind.extract_with_selective_replacement().copied())
+            .unwrap_or(ProcedureSpecificationKind::Impure)
     }
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
         let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
-        let query = SpecQuery::PureOrTrustedCheck(def_id, substs);
+        let query = SpecQuery::GetProcKind(def_id, substs);
         let result = self
             .specifications_state
             .specs
@@ -149,15 +182,35 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         result.cloned()
     }
 
-    fn get_loop_specs(
-        &self,
-        def_id: DefId,
-        _substs: SubstsRef<'tcx>,
-    ) -> Option<typed::LoopSpecification> {
+    fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification> {
         self.specifications_state
             .specs
             .borrow()
-            .get_loop_spec(self.env(), &def_id)
+            .get_loop_spec(&def_id)
+            .cloned()
+    }
+
+    fn get_type_specs(&self, def_id: DefId) -> Option<typed::TypeSpecification> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_type_spec(&def_id)
+            .cloned()
+    }
+
+    fn get_prusti_assertion(&self, def_id: DefId) -> Option<typed::PrustiAssertion> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_assertion(&def_id)
+            .cloned()
+    }
+
+    fn get_prusti_assumption(&self, def_id: DefId) -> Option<typed::PrustiAssumption> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_assumption(&def_id)
             .cloned()
     }
 
@@ -189,7 +242,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn is_spec_closure(&self, def_id: DefId) -> bool {
-        has_spec_only_attr(self.env().tcx().get_attrs(def_id))
+        has_spec_only_attr(self.env().get_attributes(def_id))
     }
 
     fn get_spec_span(&self, def_id: DefId) -> Span {

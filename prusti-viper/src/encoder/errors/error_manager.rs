@@ -7,7 +7,7 @@
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
 use rustc_span::source_map::SourceMap;
-use rustc_span::MultiSpan;
+use rustc_errors::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
 use log::{debug, trace};
@@ -58,12 +58,16 @@ pub enum ErrorCtxt {
     AssertMethodPostconditionTypeInvariants,
     /// A Viper `exhale expr` that encodes the end of a Rust procedure with postcondition `expr`
     ExhaleMethodPostcondition,
+    /// A generic loop invariant error.
+    LoopInvariant,
     /// A Viper `exhale expr` that exhales the permissions of a loop invariant `expr`
     ExhaleLoopInvariantOnEntry,
     ExhaleLoopInvariantAfterIteration,
     /// A Viper `assert expr` that asserts the functional specification of a loop invariant `expr`
     AssertLoopInvariantOnEntry,
     AssertLoopInvariantAfterIteration,
+    /// An error when assuming the loop invariant on entry.
+    UnexpectedAssumeLoopInvariantOnEntry,
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
     /// Arguments: the message of the Rust assertion
     AssertTerminator(String),
@@ -133,12 +137,27 @@ pub enum ErrorCtxt {
     LifetimeEncoding,
     /// Failed to encode LifetimeTake
     LifetimeTake,
-    /// Failed to encode CloseMutRef
-    CloseMutRef,
+    /// Failed to encode LifetimeReturn
+    LifetimeReturn,
+    /// An error when inhaling lifetimes
+    LifetimeInhale,
+    /// An error when exhaling lifetimes
+    LifetimeExhale,
     /// Failed to encode OpenMutRef
     OpenMutRef,
+    /// Failed to encode OpenFracRef
+    OpenFracRef,
+    /// Failed to encode CloseMutRef
+    CloseMutRef,
+    /// Failed to encode CloseFracRef
+    CloseFracRef,
     /// Failed to set an active variant of an union.
     SetEnumVariant,
+    /// A user assumption raised an error
+    Assumption,
+    /// The state that fold-unfold algorithm deduced as unreachable, is actually
+    /// reachable.
+    UnreachableFoldingState,
 }
 
 /// The error manager
@@ -210,14 +229,14 @@ impl<'tcx> ErrorManager<'tcx> {
     }
 
     pub fn get_def_id(&self, ver_error: &VerificationError) -> Option<ProcedureDefId> {
-        ver_error.pos_id.as_ref()
+        ver_error.offending_pos_id.as_ref()
             .and_then(|id| id.parse().ok())
             .and_then(|id| self.position_manager.def_id.get(&id).copied())
     }
 
     pub fn translate_verification_error(&self, ver_error: &VerificationError) -> PrustiError {
         debug!("Verification error: {:?}", ver_error);
-        let opt_pos_id: Option<u64> = match ver_error.pos_id {
+        let opt_pos_id: Option<u64> = match ver_error.offending_pos_id {
             Some(ref viper_pos_id) => {
                 match viper_pos_id.parse() {
                     Ok(pos_id) => Some(pos_id),
@@ -407,6 +426,13 @@ impl<'tcx> ErrorManager<'tcx> {
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => {
                 PrustiError::verification(
                     "loop invariant might not hold after a loop iteration that preserves the loop condition.",
+                    error_span
+                ).push_primary_span(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::DropCall) => {
+                PrustiError::verification(
+                    "the drop handler was called.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }

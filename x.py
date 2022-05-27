@@ -47,6 +47,10 @@ RUSTFMT_PATHS = [
     'prusti-common/src/vir/low_to_viper/mod.rs',
     'prusti-common/src/vir/optimizations/mod.rs',
     'prusti-interface/src/environment/mir_dump/mod.rs',
+    'prusti-interface/src/environment/mir_analyses/mod.rs',
+    'prusti-interface/src/environment/mir_sets/mod.rs',
+    'prusti-interface/src/environment/mir_body/mod.rs',
+    'prusti-interface/src/environment/debug_utils/mod.rs',
     'prusti-tests/tests/verify_partial/**/*.rs',
     'prusti-viper/src/encoder/foldunfold/mod.rs',
     'prusti-viper/src/encoder/mir/mod.rs',
@@ -212,7 +216,14 @@ def get_env():
 
 
 def run_command(args, env=None, cwd=None, on_exit=None, report_time=False):
-    """Run a command with the given arguments."""
+    """Run a command with the given arguments.
+
+    +   ``env`` – an environment in which to run.
+    +   ``cwd`` – the path at which to run.
+    +   ``on_exit`` – function to be executed on exit.
+    +   ``report_time`` – whether to report how long it took to execute
+        the command.
+    """
     if env is None:
         env = get_env()
     start_time = datetime.datetime.now()

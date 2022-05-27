@@ -1251,6 +1251,50 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    pub fn empty_map(&self, key_ty: Type, val_ty: Type) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::EmptyMap,
+            key_ty.to_jobject(),
+            val_ty.to_jobject()
+        )
+    }
+
+    pub fn explicit_map(&self, keys_values: &[Expr]) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::ExplicitMap,
+            self.jni.new_seq(&map_to_jobjects!(keys_values))
+        )
+    }
+
+    pub fn update_map(&self, map: Expr, key: Expr, val: Expr) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::MapUpdate,
+            map.to_jobject(),
+            key.to_jobject(),
+            val.to_jobject()
+        )
+    }
+
+    pub fn lookup_map(&self, map: Expr, key: Expr) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::MapLookup,
+            map.to_jobject(),
+            key.to_jobject()
+        )
+    }
+
+    pub fn map_len(&self, map: Expr) -> Expr<'a> {
+        build_ast_node!(self, Expr, ast::MapCardinality, map.to_jobject())
+    }
+
     pub fn range_seq(&self, low: Expr, high: Expr) -> Expr<'a> {
         build_ast_node!(
             self,

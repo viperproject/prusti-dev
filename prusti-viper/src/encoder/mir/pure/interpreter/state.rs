@@ -27,14 +27,16 @@ impl Display for ExprBackwardInterpreterState {
 }
 
 impl ExprBackwardInterpreterState {
-    pub(super) fn new(expr: Option<vir_high::Expression>) -> Self {
+    pub(in super::super) fn new(expr: Option<vir_high::Expression>) -> Self {
         ExprBackwardInterpreterState {
             expr,
             substs: FxHashMap::default(),
         }
     }
 
-    pub(super) fn new_defined(expr: vir_high::Expression) -> ExprBackwardInterpreterState {
+    pub(in super::super) fn new_defined(
+        expr: vir_high::Expression,
+    ) -> ExprBackwardInterpreterState {
         ExprBackwardInterpreterState {
             expr: Some(expr),
             substs: FxHashMap::default(),

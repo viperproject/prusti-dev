@@ -9,11 +9,11 @@
 use log::trace;
 use rustc_ast::ast;
 use rustc_data_structures::fx::FxHashSet;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{
     mir,
     ty::{self, TyCtxt},
 };
-
 use prusti_utils::force_matches;
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
@@ -271,6 +271,18 @@ impl<'tcx> VecPlace<'tcx> {
     }
 }
 
+pub fn get_local_attributes(tcx: ty::TyCtxt<'_>, def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
+    tcx.hir().attrs(tcx.hir().local_def_id_to_hir_id(def_id))
+}
+
+pub fn get_attributes(tcx: ty::TyCtxt<'_>, def_id: DefId) -> &[rustc_ast::ast::Attribute] {
+    if let Some(local_def_id) = def_id.as_local() {
+        get_local_attributes(tcx, local_def_id)
+    } else {
+        tcx.item_attrs(def_id)
+    }
+}
+
 /// Check if `prusti::<name>` is among the attributes.
 /// Any arguments of the attribute are ignored.
 pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
@@ -322,6 +334,10 @@ pub fn has_trait_bounds_ghost_constraint(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "ghost_constraint_trait_bounds_in_where_clause")
 }
 
+pub fn has_abstract_predicate_attr(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "abstract_predicate")
+}
+
 /// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.
 pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<String> {
     let mut strings = vec![];
@@ -334,7 +350,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
                         segments,
                         tokens: _,
                     },
-                args: ast::MacArgs::Eq(_, token),
+                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit {token, ..})),
                 tokens: _,
             },
             _,
@@ -347,12 +363,8 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             {
                 continue;
             }
-            use rustc_ast::token::{Lit, Token, TokenKind};
-            fn extract_string(token: &Token) -> String {
-                force_matches!(&token.kind, TokenKind::Literal(Lit { symbol, .. }) => {
-                        symbol.as_str().replace("\\\"", "\"")
-                    }
-                )
+            fn extract_string(token: &rustc_ast::token::Lit) -> String {
+                token.symbol.as_str().replace("\\\"", "\"")
             }
             strings.push(extract_string(token));
         };

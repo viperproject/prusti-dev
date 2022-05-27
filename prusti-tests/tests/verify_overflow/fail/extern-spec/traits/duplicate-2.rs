@@ -8,8 +8,8 @@ trait Iterator {
 
 #[extern_spec]
 trait Iterator { 
-    #[requires(true)] //~ ERROR: duplicate specification for std::iter::Iterator::next
-    fn next(&mut self) -> Option<Self::Item>;
+    #[requires(true)]
+    fn next(&mut self) -> Option<Self::Item>; //~ ERROR: duplicate specification for std::iter::Iterator::next
 }
 
 fn main() {}

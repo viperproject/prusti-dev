@@ -216,7 +216,7 @@ impl GeneratedIdents {
             }
         }
 
-        let uuid = Uuid::new_v4().to_simple();
+        let uuid = Uuid::new_v4().simple();
 
         GeneratedIdents {
             model_struct_ident: Ident::new(

@@ -40,19 +40,9 @@ pub enum SuccessorBuilder {
 impl ProcedureBuilder {
     pub fn new(
         name: String,
-        allocate_parameters: Vec<vir_high::Statement>,
-        allocate_returns: Vec<vir_high::Statement>,
-        assume_preconditions: Vec<vir_high::Statement>,
-        deallocate_parameters: Vec<vir_high::Statement>,
-        deallocate_returns: Vec<vir_high::Statement>,
-        assert_postconditions: Vec<vir_high::Statement>,
+        pre_statements: Vec<vir_high::Statement>,
+        post_statements: Vec<vir_high::Statement>,
     ) -> Self {
-        let mut pre_statements = allocate_parameters;
-        pre_statements.extend(assume_preconditions);
-        pre_statements.extend(allocate_returns);
-        let mut post_statements = assert_postconditions;
-        post_statements.extend(deallocate_parameters);
-        post_statements.extend(deallocate_returns);
         Self {
             name,
             pre_statements,
@@ -91,10 +81,13 @@ impl ProcedureBuilder {
             statements: Vec::new(),
             successor: vir_high::Successor::Exit,
         };
-        assert!(basic_blocks.insert(self.end_label, end_block).is_none());
+        assert!(basic_blocks
+            .insert(self.end_label.clone(), end_block)
+            .is_none());
         vir_high::ProcedureDecl {
             name: self.name,
             entry: self.start_label,
+            exit: self.end_label,
             basic_blocks,
         }
     }

@@ -3,6 +3,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         lowerer::{Lowerer, VariablesLowererInterface},
+        references::ReferencesInterface,
         snapshots::{IntoProcedureSnapshot, IntoSnapshot, SnapshotValuesInterface},
         types::TypesInterface,
     },
@@ -76,7 +77,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 | vir_mid::TypeDecl::Pointer(_) => {
                     unreachable!("place: {}", place);
                 }
-                vir_mid::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", type_decl),
+                vir_mid::TypeDecl::TypeVar(_) | vir_mid::TypeDecl::Trusted(_) => {
+                    unimplemented!("ty: {}", type_decl)
+                }
                 vir_mid::TypeDecl::Tuple(decl) => {
                     // FIXME: Remove duplication with vir_mid::TypeDecl::Struct
                     let place_field = place.clone().unwrap_field(); // FIXME: Implement a macro that takes a reference to avoid clonning.
@@ -169,7 +172,52 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     ))
                 }
                 vir_mid::TypeDecl::Array(_) => unimplemented!("ty: {}", type_decl),
-                vir_mid::TypeDecl::Reference(_) => unimplemented!("ty: {}", type_decl),
+                vir_mid::TypeDecl::Reference(_) => {
+                    if place.is_deref() {
+                        let old_address_snapshot = self.reference_address(
+                            parent_type,
+                            old_snapshot.clone(),
+                            Default::default(),
+                        )?;
+                        let new_address_snapshot = self.reference_address(
+                            parent_type,
+                            new_snapshot.clone(),
+                            Default::default(),
+                        )?;
+                        statements.push(stmtp! { position =>
+                            assume ([new_address_snapshot] == [old_address_snapshot])
+                        });
+                        let old_final_snapshot = self.reference_target_final_snapshot(
+                            parent_type,
+                            old_snapshot.clone(),
+                            Default::default(),
+                        )?;
+                        let new_final_snapshot = self.reference_target_final_snapshot(
+                            parent_type,
+                            new_snapshot.clone(),
+                            Default::default(),
+                        )?;
+                        statements.push(stmtp! { position =>
+                            assume ([new_final_snapshot] == [old_final_snapshot])
+                        });
+                        Ok((
+                            self.reference_target_current_snapshot(
+                                parent_type,
+                                old_snapshot,
+                                Default::default(),
+                            )?,
+                            self.reference_target_current_snapshot(
+                                parent_type,
+                                new_snapshot,
+                                Default::default(),
+                            )?,
+                        ))
+                    } else {
+                        unimplemented!("Place: {}", place);
+                    }
+                }
+                vir_mid::TypeDecl::Sequence(_) => unimplemented!("ty: {}", type_decl),
+                vir_mid::TypeDecl::Map(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Never => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Closure(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", type_decl),
@@ -208,9 +256,9 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
         &mut self,
         label: &vir_mid::BasicBlockId,
         predecessors: &BTreeMap<vir_mid::BasicBlockId, Vec<vir_mid::BasicBlockId>>,
-        basic_blocks: &mut BTreeMap<
+        basic_block_edges: &mut BTreeMap<
             vir_mid::BasicBlockId,
-            (Vec<vir_low::Statement>, vir_low::Successor),
+            BTreeMap<vir_mid::BasicBlockId, Vec<vir_low::Statement>>,
         >,
     ) -> SpannedEncodingResult<()>;
     fn unset_current_block_for_snapshots(
@@ -279,13 +327,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
             .push(stmtp! { position => assume ([target.to_procedure_snapshot(self)?] == [value]) });
         Ok(())
     }
+    /// `basic_block_edges` are statements to be executed then going from one
+    /// block to another.
     fn set_current_block_for_snapshots(
         &mut self,
         label: &vir_mid::BasicBlockId,
         predecessors: &BTreeMap<vir_mid::BasicBlockId, Vec<vir_mid::BasicBlockId>>,
-        basic_blocks: &mut BTreeMap<
+        basic_block_edges: &mut BTreeMap<
             vir_mid::BasicBlockId,
-            (Vec<vir_low::Statement>, vir_low::Successor),
+            BTreeMap<vir_mid::BasicBlockId, Vec<vir_low::Statement>>,
         >,
     ) -> SpannedEncodingResult<()> {
         let predecessor_labels = &predecessors[label];
@@ -307,20 +357,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
                     .get_type(&variable)
                     .clone();
                 let new_variable = self.create_snapshot_variable(&variable, &ty, new_version)?;
-                for label in predecessor_labels {
-                    if let Some(old_version) = self.snapshots_state.variables[label].get(&variable)
-                    {
-                        let (statements, _) = basic_blocks.get_mut(label).unwrap();
-                        let old_variable =
-                            self.create_snapshot_variable(&variable, &ty, old_version)?;
-                        let position = self.encoder.change_error_context(
-                            // FIXME: Get a more precise span.
-                            self.snapshots_state.all_variables.get_position(&variable),
-                            ErrorCtxt::Unexpected,
-                        );
-                        let statement = vir_low::macros::stmtp! { position => assume (new_variable == old_variable) };
-                        statements.push(statement);
-                    }
+                for predecessor_label in predecessor_labels {
+                    let old_version =
+                        self.snapshots_state.variables[predecessor_label].get_or_default(&variable);
+                    let statements = basic_block_edges
+                        .entry(predecessor_label.clone())
+                        .or_default()
+                        .entry(label.clone())
+                        .or_default();
+                    let old_variable =
+                        self.create_snapshot_variable(&variable, &ty, old_version)?;
+                    let position = self.encoder.change_error_context(
+                        // FIXME: Get a more precise span.
+                        self.snapshots_state.all_variables.get_position(&variable),
+                        ErrorCtxt::Unexpected,
+                    );
+                    let statement = vir_low::macros::stmtp! { position => assume (new_variable == old_variable) };
+                    statements.push(statement);
                 }
                 new_map.set(variable, new_version);
             } else {

@@ -38,6 +38,7 @@ impl Tuple {
             .map(|(index, argument_type)| {
                 std::borrow::Cow::Owned(FieldDecl::new(
                     format!("tuple_{}", index),
+                    index,
                     argument_type.clone(),
                 ))
             })

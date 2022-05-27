@@ -7,7 +7,6 @@
 #![feature(rustc_private)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
-#![feature(bool_to_option)]
 #![feature(try_blocks)]
 #![feature(never_type)]
 #![feature(btree_drain_filter)]
@@ -18,6 +17,7 @@
 #![allow(clippy::iter_with_drain)]
 
 extern crate rustc_middle;
+extern crate rustc_errors;
 extern crate rustc_hir;
 extern crate rustc_span;
 extern crate rustc_index;

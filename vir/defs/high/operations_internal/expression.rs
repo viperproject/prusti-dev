@@ -8,7 +8,7 @@ use super::{
             *,
         },
         position::Position,
-        ty::{visitors::TypeFolder, LifetimeConst, Type},
+        ty::{self, visitors::TypeFolder, LifetimeConst, Type},
     },
     ty::Typed,
 };
@@ -96,19 +96,20 @@ impl Expression {
         struct DefaultLifetimeEraser {}
         impl ExpressionFolder for DefaultLifetimeEraser {
             fn fold_type(&mut self, ty: Type) -> Type {
-                TypeFolder::fold_type(self, ty)
+                ty.erase_lifetimes()
             }
             fn fold_variable_decl(&mut self, variable_decl: VariableDecl) -> VariableDecl {
                 VariableDecl {
                     name: variable_decl.name,
-                    ty: TypeFolder::fold_type(self, variable_decl.ty),
+                    ty: variable_decl.ty.erase_lifetimes(),
                 }
             }
-        }
-        impl TypeFolder for DefaultLifetimeEraser {
-            fn fold_lifetime_const(&mut self, _lifetime: LifetimeConst) -> LifetimeConst {
-                LifetimeConst {
-                    name: String::from("pure_erased"),
+            fn fold_field_decl(&mut self, field_decl: FieldDecl) -> FieldDecl {
+                // FIXME: Fix the visitor generator to follow relative imports
+                // when generating visitors.
+                FieldDecl {
+                    ty: field_decl.ty.erase_lifetimes(),
+                    ..field_decl
                 }
             }
         }
@@ -241,6 +242,77 @@ impl Expression {
         }
         Simplifier.fold_expression(self)
     }
+    fn apply_simplification_rules(self) -> Self {
+        let mut expression = self;
+        loop {
+            expression = match expression {
+                Expression::Deref(Deref {
+                    base: box Expression::AddrOf(AddrOf { base, .. }),
+                    ..
+                }) => *base,
+                Expression::Field(Field {
+                    field,
+                    base: box Expression::Constructor(Constructor { arguments, .. }),
+                    ..
+                }) => arguments[field.index].clone(),
+                Expression::BinaryOp(BinaryOp {
+                    op_kind: BinaryOpKind::EqCmp,
+                    left:
+                        box Expression::AddrOf(AddrOf {
+                            base: left,
+                            ty:
+                                Type::Reference(ty::Reference {
+                                    lifetime: _,
+                                    uniqueness: ty::Uniqueness::Shared,
+                                    target_type: box Type::Map(_) | box Type::Sequence(_),
+                                }),
+                            ..
+                        }),
+                    right:
+                        box Expression::AddrOf(AddrOf {
+                            base: right,
+                            ty:
+                                Type::Reference(ty::Reference {
+                                    lifetime: _,
+                                    uniqueness: ty::Uniqueness::Shared,
+                                    target_type: box Type::Map(_) | box Type::Sequence(_),
+                                }),
+                            ..
+                        }),
+                    position,
+                }) => Expression::BinaryOp(BinaryOp {
+                    op_kind: BinaryOpKind::EqCmp,
+                    left,
+                    right,
+                    position,
+                }),
+                Expression::UnaryOp(UnaryOp {
+                    op_kind: op_kind_outer,
+                    argument:
+                        box Expression::UnaryOp(UnaryOp {
+                            op_kind: op_kind_inner,
+                            argument,
+                            ..
+                        }),
+                    ..
+                }) if op_kind_inner == op_kind_outer => *argument,
+                _ => {
+                    break expression;
+                }
+            };
+        }
+    }
+    pub fn simplify(self) -> Self {
+        struct Simplifier;
+        impl ExpressionFolder for Simplifier {
+            fn fold_expression(&mut self, expression: Expression) -> Expression {
+                let expression = expression.apply_simplification_rules();
+                let expression = default_fold_expression(self, expression);
+                expression.apply_simplification_rules()
+            }
+        }
+        Simplifier.fold_expression(self)
+    }
     pub fn find(&self, sub_target: &Expression) -> bool {
         pub struct ExprFinder<'a> {
             sub_target: &'a Expression,
@@ -356,5 +428,11 @@ impl Expression {
         let ty = self.get_type().clone().variant(variant_name.clone());
         let position = self.position();
         self.variant(variant_name, ty, position)
+    }
+    pub fn none_permission() -> Self {
+        Self::constant_no_pos(ConstantValue::Int(0), Type::MPerm)
+    }
+    pub fn full_permission() -> Self {
+        Self::constant_no_pos(ConstantValue::Int(1), Type::MPerm)
     }
 }

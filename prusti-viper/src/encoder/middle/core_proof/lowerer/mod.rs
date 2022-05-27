@@ -17,6 +17,7 @@ use super::{
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
 
 use vir_crate::{
+    common::graphviz::ToGraphviz,
     low::{self as vir_low, operations::ty::Typed},
     middle as vir_mid,
 };
@@ -46,7 +47,16 @@ pub(super) fn lower_procedure<'p, 'v: 'p, 'tcx: 'v>(
     procedure: vir_mid::ProcedureDecl,
 ) -> SpannedEncodingResult<LoweringResult> {
     let lowerer = self::Lowerer::new(encoder);
-    lowerer.lower_procedure(procedure)
+    let result = lowerer.lower_procedure(procedure)?;
+    if prusti_common::config::dump_debug_info() {
+        let source_filename = encoder.env().source_file_name();
+        prusti_common::report::log::report_with_writer(
+            "graphviz_method_vir_low",
+            format!("{}.{}.dot", source_filename, result.procedure.name),
+            |writer| result.procedure.to_graphviz(writer).unwrap(),
+        );
+    }
+    Ok(result)
 }
 
 pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
@@ -90,12 +100,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         mut procedure: vir_mid::ProcedureDecl,
     ) -> SpannedEncodingResult<LoweringResult> {
         let mut basic_blocks_map = BTreeMap::new();
+        let mut basic_block_edges = BTreeMap::new();
         let predecessors = procedure.get_predecessors();
         let traversal_order = procedure.get_topological_sort();
         self.procedure_name = Some(procedure.name.clone());
         let mut marker_initialisation = Vec::new();
         for label in &traversal_order {
-            self.set_current_block_for_snapshots(label, &predecessors, &mut basic_blocks_map)?;
+            self.set_current_block_for_snapshots(label, &predecessors, &mut basic_block_edges)?;
             let basic_block = procedure.basic_blocks.remove(label).unwrap();
             let marker = self.create_block_marker(label)?;
             marker_initialisation.push(vir_low::Statement::assign_no_pos(
@@ -115,9 +126,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         entry_block_statements.extend(marker_initialisation);
 
         let mut basic_blocks = Vec::new();
-        for label in traversal_order {
-            let (statements, successor) = basic_blocks_map.remove(&label).unwrap();
-            let label = label.into_low(&mut self)?;
+        for basic_block_id in traversal_order {
+            let (statements, mut successor) = basic_blocks_map.remove(&basic_block_id).unwrap();
+            let label = basic_block_id.clone().into_low(&mut self)?;
+            if let Some(intermediate_blocks) = basic_block_edges.remove(&basic_block_id) {
+                for (successor_label, successor_statements) in intermediate_blocks {
+                    let successor_label = successor_label.into_low(&mut self)?;
+                    let intermediate_block_label = vir_low::Label::new(format!(
+                        "label__from__{}__to__{}",
+                        label.name, successor_label.name
+                    ));
+                    successor.replace_label(&successor_label, intermediate_block_label.clone());
+                    basic_blocks.push(vir_low::BasicBlock {
+                        label: intermediate_block_label,
+                        statements: successor_statements,
+                        successor: vir_low::Successor::Goto(successor_label),
+                    });
+                }
+            }
+
             basic_blocks.push(vir_low::BasicBlock {
                 label,
                 statements,

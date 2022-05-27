@@ -10,7 +10,8 @@ use prusti_interface::{
     environment::Environment,
     specs::typed::{
         DefSpecificationMap, LoopSpecification, ProcedureSpecification, ProcedureSpecificationKind,
-        ProcedureSpecificationKindError, Refinable, SpecificationItem,
+        ProcedureSpecificationKindError, PrustiAssertion, PrustiAssumption, Refinable,
+        SpecificationItem, TypeSpecification,
     },
     PrustiError,
 };
@@ -36,7 +37,7 @@ impl<'qry, 'tcx> RefinementContext<'qry, 'tcx> {
                 ..
             })
             | SpecQuery::FunctionDefEncoding(def_id, substs)
-            | SpecQuery::PureOrTrustedCheck(def_id, substs) => {
+            | SpecQuery::GetProcKind(def_id, substs) => {
                 let (trait_def_id, trait_substs) = env.find_trait_method_substs(*def_id, substs)?;
                 let trait_query = query.adapt_to(trait_def_id, trait_substs);
                 Some(RefinementContext {
@@ -69,13 +70,24 @@ impl<'tcx> Specifications<'tcx> {
         }
     }
 
-    pub(super) fn get_loop_spec<'a, 'env: 'a>(
-        &'a self,
-        _env: &'env Environment<'tcx>,
-        def_id: &DefId,
-    ) -> Option<&'a LoopSpecification> {
+    pub(super) fn get_loop_spec(&self, def_id: &DefId) -> Option<&LoopSpecification> {
         trace!("Get loop specs of {:?}", def_id);
         self.user_typed_specs.get_loop_spec(def_id)
+    }
+
+    pub(super) fn get_type_spec(&self, def_id: &DefId) -> Option<&TypeSpecification> {
+        trace!("Get type specs of {:?}", def_id);
+        self.user_typed_specs.get_type_spec(def_id)
+    }
+
+    pub(super) fn get_assertion(&self, def_id: &DefId) -> Option<&PrustiAssertion> {
+        trace!("Get assertion specs of {:?}", def_id);
+        self.user_typed_specs.get_assertion(def_id)
+    }
+
+    pub(super) fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
+        trace!("Get assumption specs of {:?}", def_id);
+        self.user_typed_specs.get_assumption(def_id)
     }
 
     pub(super) fn get_and_refine_proc_spec<'a, 'env: 'a>(

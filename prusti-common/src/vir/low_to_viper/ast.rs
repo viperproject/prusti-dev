@@ -6,7 +6,7 @@ use vir::low::ast::{
     position::Position,
     predicate::PredicateDecl,
     statement::{self, Statement},
-    ty::{BitVector, BitVectorSize, Float, Type},
+    ty::{BitVector, BitVectorSize, Float, Map, Type},
     variable::VariableDecl,
 };
 
@@ -197,14 +197,15 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
             Expression::UnaryOp(expression) => expression.to_viper(ast),
             Expression::BinaryOp(expression) => expression.to_viper(ast),
             Expression::PermBinaryOp(expression) => expression.to_viper(ast),
-            // Expression::ContainerOp(expression) => expression.to_viper(ast),
-            // Expression::Seq(expression) => expression.to_viper(ast),
+            Expression::ContainerOp(expression) => expression.to_viper(ast),
+            Expression::Seq(expression) => expression.to_viper(ast),
             Expression::Conditional(expression) => expression.to_viper(ast),
             Expression::Quantifier(expression) => expression.to_viper(ast),
             // Expression::LetExpr(expression) => expression.to_viper(ast),
             Expression::FuncApp(expression) => expression.to_viper(ast),
             Expression::DomainFuncApp(expression) => expression.to_viper(ast),
             // Expression::InhaleExhale(expression) => expression.to_viper(ast),
+            Expression::MapOp(expression) => expression.to_viper(ast),
             x => unimplemented!("{:?}", x),
         };
         if crate::config::simplify_encoding() {
@@ -265,6 +266,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Constant {
             Type::Float(_) => unimplemented!(),
             Type::BitVector(_) => unimplemented!(),
             Type::Seq(_) => unimplemented!(),
+            Type::Map(_) => unimplemented!(),
             Type::Ref => unimplemented!(),
             Type::Perm => match &self.value {
                 expression::ConstantValue::Bool(_) => {
@@ -273,6 +275,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Constant {
                 expression::ConstantValue::Int(value) => match value {
                     0 => ast.no_perm(),
                     1 => ast.full_perm(),
+                    -1 => ast.wildcard_perm(),
                     _ => unimplemented!("value: {}", value),
                 },
                 expression::ConstantValue::BigInt(_) => {
@@ -475,6 +478,53 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::DomainFuncApp {
     }
 }
 
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Seq {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        let elems = self
+            .elements
+            .iter()
+            .map(|e| e.to_viper(ast))
+            .collect::<Vec<_>>();
+        if elems.is_empty() {
+            ast.empty_seq(self.ty.to_viper(ast))
+        } else {
+            ast.explicit_seq(&elems)
+        }
+    }
+}
+
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::ContainerOp {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        let left = || self.left.to_viper(ast);
+        let right = || self.right.to_viper(ast);
+        match self.op_kind {
+            expression::ContainerOpKind::SeqConcat => ast.seq_append(left(), right()),
+            expression::ContainerOpKind::SeqIndex => ast.seq_index(left(), right()),
+            expression::ContainerOpKind::SeqLen => ast.seq_length(left()),
+        }
+    }
+}
+
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::MapOp {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        let (key_ty, val_ty) = match &self.map_ty {
+            Type::Map(Map { key_type, val_type }) => (key_type, val_type),
+            _ => unreachable!(),
+        };
+        let key_ty = key_ty.to_viper(ast);
+        let val_ty = val_ty.to_viper(ast);
+
+        let arg = |idx| (&self.operands[idx] as &Expression).to_viper(ast);
+
+        match self.kind {
+            expression::MapOpKind::Empty => ast.empty_map(key_ty, val_ty),
+            expression::MapOpKind::Update => ast.update_map(arg(0), arg(1), arg(2)),
+            expression::MapOpKind::Lookup => ast.lookup_map(arg(0), arg(1)),
+            expression::MapOpKind::Len => ast.map_len(arg(0)),
+        }
+    }
+}
+
 impl<'v> ToViper<'v, viper::Position<'v>> for Position {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Position<'v> {
         ast.identifier_position(self.line, self.column, self.id.to_string())
@@ -490,6 +540,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::Perm => ast.perm_type(),
             Type::Domain(ty) => ast.domain_type(&ty.name, &[], &[]),
             Type::Seq(ty) => ast.seq_type(ty.element_type.to_viper(ast)),
+            Type::Map(ty) => ast.map_type(ty.key_type.to_viper(ast), ty.val_type.to_viper(ast)),
             Type::Float(Float::F32) => ast.backend_f32_type(),
             Type::Float(Float::F64) => ast.backend_f64_type(),
             Type::BitVector(bv_size) => match bv_size {

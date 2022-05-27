@@ -20,12 +20,14 @@ impl Expression {
     }
 }
 
+const DISCRIMINANT_INDEX: usize = 100000;
+
 impl FieldDecl {
     pub fn discriminant(ty: Type) -> Self {
-        FieldDecl::new("discriminant", ty)
+        FieldDecl::new("discriminant", DISCRIMINANT_INDEX, ty)
     }
     pub fn is_discriminant(&self) -> bool {
-        self.name == "discriminant"
+        self.name == "discriminant" && self.index == DISCRIMINANT_INDEX
     }
 }
 

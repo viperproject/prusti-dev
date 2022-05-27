@@ -1,6 +1,6 @@
 use super::super::ast::{
     expression::{self, *},
-    ty::*,
+    ty::{self, *},
 };
 
 pub trait Typed {
@@ -30,6 +30,7 @@ impl Typed for Expression {
             Expression::FuncApp(expression) => expression.get_type(),
             Expression::DomainFuncApp(expression) => expression.get_type(),
             Expression::InhaleExhale(expression) => expression.get_type(),
+            Expression::MapOp(expression) => expression.get_type(),
         }
     }
     fn set_type(&mut self, new_type: Type) {
@@ -53,6 +54,7 @@ impl Typed for Expression {
             Expression::FuncApp(expression) => expression.set_type(new_type),
             Expression::DomainFuncApp(expression) => expression.set_type(new_type),
             Expression::InhaleExhale(expression) => expression.set_type(new_type),
+            Expression::MapOp(expression) => expression.set_type(new_type),
         }
     }
 }
@@ -179,16 +181,43 @@ impl Typed for PermBinaryOp {
 
 impl Typed for ContainerOp {
     fn get_type(&self) -> &Type {
-        unimplemented!()
+        match self.op_kind {
+            ContainerOpKind::SeqConcat => self.left.get_type(),
+            ContainerOpKind::SeqLen => &Type::Int,
+            ContainerOpKind::SeqIndex => match self.left.get_type() {
+                Type::Seq(ty::Seq { element_type, .. }) => &*element_type,
+                _ => unreachable!(),
+            },
+        }
     }
-    fn set_type(&mut self, _new_type: Type) {
-        unimplemented!();
+    fn set_type(&mut self, new_type: Type) {
+        assert_eq!(
+            self.get_type(),
+            &new_type,
+            "Changing the type of ContainerOp."
+        );
+    }
+}
+
+impl Typed for MapOp {
+    fn get_type(&self) -> &Type {
+        match self.kind {
+            MapOpKind::Empty | MapOpKind::Update => &self.map_ty,
+            MapOpKind::Lookup => match &self.map_ty {
+                Type::Map(Map { val_type, .. }) => &*val_type,
+                _ => unreachable!(),
+            },
+            MapOpKind::Len => &Type::Int,
+        }
+    }
+    fn set_type(&mut self, new_type: Type) {
+        assert_eq!(self.get_type(), &new_type, "Changing the type of MapOp.");
     }
 }
 
 impl Typed for expression::Seq {
     fn get_type(&self) -> &Type {
-        unimplemented!()
+        &self.ty
     }
     fn set_type(&mut self, _new_type: Type) {
         unimplemented!();

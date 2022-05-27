@@ -10,12 +10,19 @@ use crate::common::identifier::WithIdentifier;
 impl WithIdentifier for Predicate {
     fn get_identifier(&self) -> String {
         match self {
+            Self::LifetimeToken(predicate) => predicate.get_identifier(),
             Self::MemoryBlockStack(predicate) => predicate.get_identifier(),
             Self::MemoryBlockStackDrop(predicate) => predicate.get_identifier(),
             Self::MemoryBlockHeap(predicate) => predicate.get_identifier(),
             Self::MemoryBlockHeapDrop(predicate) => predicate.get_identifier(),
             Self::OwnedNonAliased(predicate) => predicate.get_identifier(),
         }
+    }
+}
+
+impl WithIdentifier for predicate::LifetimeToken {
+    fn get_identifier(&self) -> String {
+        "LifetimeToken".to_string()
     }
 }
 
