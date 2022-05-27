@@ -6,7 +6,6 @@
 
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
-use rustc_span::source_map::SourceMap;
 use rustc_errors::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
@@ -159,16 +158,16 @@ pub enum ErrorCtxt {
 
 /// The error manager
 #[derive(Clone)]
-pub struct ErrorManager<'tcx> {
-    position_manager: PositionManager<'tcx>,
+pub struct ErrorManager {
+    position_manager: PositionManager,
     error_contexts: FxHashMap<u64, ErrorCtxt>,
     inner_positions: FxHashMap<u64, Position>,
 }
 
-impl<'tcx> ErrorManager<'tcx> {
-    pub fn new(codemap: &'tcx SourceMap) -> Self {
+impl ErrorManager {
+    pub fn new() -> Self {
         ErrorManager {
-            position_manager: PositionManager::new(codemap),
+            position_manager: PositionManager::new(),
             error_contexts: FxHashMap::default(),
             inner_positions: FxHashMap::default(),
         }

@@ -71,6 +71,7 @@ fn test_prusti_rustc_caching() {
             .expect("failed to execute prusti-rustc");
         assert!(out.status.success(), "Failed to compile: {:?}\n{}", program, String::from_utf8(out.stderr).unwrap());
         let stdout = String::from_utf8(out.stdout).unwrap();
+        println!("Compiled with:\n{}", stdout);
         let mut hash_lines = stdout.lines()
             .skip_while(|line| !line.starts_with("Received verification request for: "));
         while let Some(l1) = hash_lines.next() {

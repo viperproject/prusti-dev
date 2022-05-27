@@ -17,20 +17,18 @@ use std::{
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Position {
-    pub(crate) line: i32,
-    pub(crate) column: i32,
     pub(crate) id: u64,
 }
 
 impl Position {
-    pub fn new(line: i32, column: i32, id: u64) -> Self {
-        Position { line, column, id }
+    pub fn new(id: u64) -> Self {
+        Position { id }
     }
 }
 
 impl Default for Position {
     fn default() -> Self {
-        Position::new(0, 0, 0)
+        Position::new(0)
     }
 }
 
@@ -40,7 +38,7 @@ mod tests {
 
     #[test]
     fn test_default_position() {
-        assert!(!Position::new(123, 234, 345).is_default());
+        assert!(!Position::new(345).is_default());
         assert!(Position::default().is_default());
     }
 }

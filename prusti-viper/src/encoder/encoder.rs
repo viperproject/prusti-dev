@@ -62,7 +62,7 @@ use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
-    error_manager: RefCell<ErrorManager<'tcx>>,
+    error_manager: RefCell<ErrorManager>,
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<FxHashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
     builtin_methods: RefCell<FxHashMap<BuiltinMethodKind, vir::BodylessMethod>>,
@@ -135,7 +135,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         Encoder {
             env,
-            error_manager: RefCell::new(ErrorManager::new(env.codemap())),
+            error_manager: RefCell::new(ErrorManager::new()),
             functions: RefCell::new(FxHashMap::default()),
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
@@ -207,7 +207,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.env
     }
 
-    pub fn error_manager(&self) -> RefMut<ErrorManager<'tcx>> {
+    pub fn error_manager(&self) -> RefMut<ErrorManager> {
         self.error_manager.borrow_mut()
     }
 

@@ -1147,7 +1147,7 @@ mod tests {
     // successful substitution within Expr, going over all variants
     fn substitution_type_var_expr_test() {
         // dummy position for convenient copying
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         // Local
         let mut source = Expr::Local(Local {
@@ -2060,7 +2060,7 @@ mod tests {
     // successful substitution within Stmt, going over all variants
     fn substitution_type_var_stmt_test() {
         // dummy position for convenient copying
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         // Comment
         let mut source = Stmt::Comment(Comment {
@@ -2907,7 +2907,7 @@ mod tests {
     // successful substitution within DomainAxiom
     fn substitution_type_var_domain_axiom_test() {
         // dummy position for convenient copying
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         let source = DomainAxiom {
             name: String::from("da"),
@@ -2939,7 +2939,7 @@ mod tests {
     // successful substitution within Domain
     fn substitution_type_var_domain_test() {
         // dummy position for convenient copying
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         let source = Domain {
             name: String::from("domain"),
@@ -3077,7 +3077,7 @@ mod tests {
     // successful substitution within Function
     fn substitution_type_var_function_test() {
         // dummy position for convenient copying
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         let source = Function {
             name: String::from("f1"),
@@ -3195,7 +3195,7 @@ mod tests {
     // successful substitution within StructPredicate
     fn substitution_type_var_struct_predicate_test() {
         // dummy position for convenient copying
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         let source = StructPredicate {
             typ: Type::typed_ref("sp1"),
@@ -3233,7 +3233,7 @@ mod tests {
     // successful substitution within EnumPredicate
     fn substitution_type_var_enum_predicate_test() {
         // dummy position for convenient copying
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         let source = EnumPredicate {
             typ: Type::typed_ref("ep1"),
@@ -3379,7 +3379,7 @@ mod tests {
     // successful substitution within Predicate, going over all variants
     fn substitution_type_var_predicate_test() {
         // dummy position for convenient copying
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         // Struct
         let mut source = Predicate::Struct(StructPredicate {
@@ -3574,7 +3574,7 @@ mod tests {
     // successful substitution within Trigger
     fn substitution_type_var_trigger_test() {
         // dummy position for convenient copying
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         let source = Trigger::new(vec![
             Expr::Local(Local {
@@ -3633,7 +3633,7 @@ mod tests {
     fn substitution_type_var_successor_test() {
         // dummy uuid and position for convenient copying
         let uuid = Uuid::new_v4();
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         // Undefined
         let mut source = Successor::Undefined;
@@ -3733,7 +3733,7 @@ mod tests {
     fn substitution_type_var_cfg_block_test() {
         // dummy uuid and position for convenient copying
         let uuid = Uuid::new_v4();
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         let source = CfgBlock {
             stmts: vec![
@@ -3859,7 +3859,7 @@ mod tests {
     fn substitution_type_var_cfg_method_test() {
         // dummy uuid and position for convenient copying
         let uuid = Uuid::new_v4();
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         let source = CfgMethod {
             uuid,
@@ -4052,7 +4052,7 @@ mod tests {
     // successful substitution within Node
     fn substitution_type_var_node_test() {
         // dummy position for convenient copying
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         let source = Node {
             guard: Expr::Local(Local {
@@ -4182,7 +4182,7 @@ mod tests {
     fn substitution_type_var_dag_test() {
         // dummy position for convenient copying
 
-        let position = Position::new(1, 2, 3);
+        let position = Position::new(3);
 
         let source = DAG {
             borrow_indices: vec![(Borrow(1), 1), (Borrow(2), 2)].into_iter().collect(),

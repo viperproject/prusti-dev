@@ -17,24 +17,20 @@ use std::{
 };
 
 /// The identifier of a statement. Used in error reporting.
-/// TODO: This should probably have custom `PartialEq, Eq, Hash, PartialOrd, Ord` impls,
-/// to ensure that it is not included in these calculations.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct Position {
-    pub(crate) line: i32,
-    pub(crate) column: i32,
     pub(crate) id: u64,
 }
 
 impl Position {
-    pub fn new(line: i32, column: i32, id: u64) -> Self {
-        Position { line, column, id }
+    pub fn new(id: u64) -> Self {
+        Position { id }
     }
 }
 
 impl Default for Position {
     fn default() -> Self {
-        Position::new(0, 0, 0)
+        Position::new(0)
     }
 }
 

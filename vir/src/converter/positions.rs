@@ -3,8 +3,6 @@ macro derive_from($from: ty, $to: ty) {
         fn from(pos: $from) -> Self {
             Self {
                 id: pos.id,
-                line: pos.line,
-                column: pos.column,
             }
         }
     }

@@ -527,7 +527,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::MapOp {
 
 impl<'v> ToViper<'v, viper::Position<'v>> for Position {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Position<'v> {
-        ast.identifier_position(self.line, self.column, self.id.to_string())
+        ast.identifier_position(0, 0, self.id.to_string())
     }
 }
 

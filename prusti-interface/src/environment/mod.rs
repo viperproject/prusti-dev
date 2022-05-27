@@ -114,7 +114,8 @@ impl<'tcx> Environment<'tcx> {
         self.tcx.type_of(def_id)
     }
 
-    /// Returns the `CodeMap`
+    /// Returns the `CodeMap`, was used to translate from span to line and column
+    /// when generating Positions. Currently unused.
     pub fn codemap(&self) -> &'tcx SourceMap {
         self.tcx.sess.source_map()
     }
