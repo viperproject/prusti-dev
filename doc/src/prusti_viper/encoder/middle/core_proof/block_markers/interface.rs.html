@@ -45,12 +45,17 @@
 <span id="38">38</span>
 <span id="39">39</span>
 <span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     <span class="ident">middle::core_proof::lowerer</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#62-77">Lowerer</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/variables/interface.rs.html#21-31">VariablesLowererInterface</a>},
 };
 <span class="kw">use</span> <span class="ident">vir_crate</span>::{
-    <a class="ident" href="../../../../../../vir/common/expression/trait.ExpressionIterator.html">common::expression::ExpressionIterator</a>,
+    <span class="ident">common::expression</span>::{<a class="ident" href="../../../../../../vir/common/expression/trait.ExpressionIterator.html">ExpressionIterator</a>, <a class="ident" href="../../../../../../vir/common/expression/trait.UnaryOperationHelpers.html">UnaryOperationHelpers</a>},
     <span class="ident">low</span>::{<a class="self" href="../../../../../../vir/low/index.html">self</a> <span class="kw">as</span> <span class="ident">vir_low</span>},
     <a class="ident" href="../../../../../../vir/middle/index.html">middle</a> <span class="kw">as</span> <span class="ident">vir_mid</span>,
 };
@@ -62,7 +67,7 @@
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a><span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">lower_block_marker_condition</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">condition</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a><span class="op">&gt;</span>,
+        <span class="ident">condition</span>: <a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a><span class="op">&gt;</span>;
 }
 
@@ -75,12 +80,17 @@
     }
     <span class="kw">fn</span> <span class="ident">lower_block_marker_condition</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">condition</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a><span class="op">&gt;</span>,
+        <span class="ident">condition</span>: <a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conjuncts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">label</span> <span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#31">condition</a> {
-            <span class="kw">let</span> <span class="ident">marker</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#30">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#12-15">create_block_marker</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#34">label</a>)<span class="question-mark">?</span>;
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#33">conjuncts</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#35">marker</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="kw">for</span> <span class="ident">element</span> <span class="kw">in</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#31">condition</a>.<span class="ident">elements</span> {
+            <span class="kw">let</span> <span class="ident">marker</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#30">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#12-15">create_block_marker</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#34">element</a>.<span class="ident">basic_block_id</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#34">element</a>.<span class="ident">visited</span> {
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#35">marker</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+            } <span class="kw">else</span> {
+                <span class="ident">vir_low::Expression::not</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#35">marker</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            };
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#33">conjuncts</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#36">condition</a>);
         }
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#33">conjuncts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="../../../../../../vir/common/expression/trait.ExpressionIterator.html">conjoin</a>())
     }

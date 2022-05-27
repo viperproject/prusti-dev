@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["apply_patch_to_borrowck","FIXME: Currently, this function patches only `borrowck_input_facts.cfg_edge`. It probably should also patch other facts. For example, added drop flag assignment statements may mark some lifetimes as dead and result in premature ending of borrows. Potential example:"]]});
