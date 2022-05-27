@@ -2737,11 +2737,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "std::ops::Range" | "core::ops::Range" |
             "std::ops::RangeFrom" | "core::ops::RangeFrom" => {
                 let start_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty)?;
-                // Check indexing in bounds
-                stmts.push(vir::Stmt::Assert( vir::Assert {
-                    expr: vir_expr!{ [start_expr] >= [vir::Expr::from(0usize)] },
-                    position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range start value may be smaller than 0 when slicing".to_string())),
-                }));
+                if self.check_panics {
+                    // Check indexing in bounds
+                    stmts.push(vir::Stmt::Assert( vir::Assert {
+                        expr: vir_expr!{ [start_expr] >= [vir::Expr::from(0usize)] },
+                        position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range start value may be smaller than 0 when slicing".to_string())),
+                    }));
+                }
                 start_expr
             }
             // RangeInclusive is wierdly differnet to all of the other Range*s in that the struct fields are private
@@ -2759,11 +2761,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "std::ops::Range" | "core::ops::Range" |
             "std::ops::RangeTo" | "core::ops::RangeTo" => {
                 let end_expr = self.encoder.encode_struct_field_value(encoded_idx, "end", usize_ty)?;
-                // Check indexing in bounds
-                stmts.push(vir::Stmt::Assert( vir::Assert {
-                    expr: vir_expr!{ [end_expr] <= [original_len] },
-                    position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end value may be out of bounds when slicing".to_string())),
-                }));
+                if self.check_panics {
+                    // Check indexing in bounds
+                    stmts.push(vir::Stmt::Assert( vir::Assert {
+                        expr: vir_expr!{ [end_expr] <= [original_len] },
+                        position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end value may be out of bounds when slicing".to_string())),
+                    }));
+                }
                 end_expr
             }
             "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
@@ -2772,11 +2776,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => {
                 let end_expr = self.encoder.encode_struct_field_value(encoded_idx, "end", usize_ty)?;
                 let end_expr = vir_expr!{ [end_expr] + [vir::Expr::from(1usize)] };
-                // Check indexing in bounds
-                stmts.push(vir::Stmt::Assert( vir::Assert {
-                    expr: vir_expr!{ [end_expr] <= [original_len] },
-                    position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end value may be out of bounds when slicing".to_string())),
-                }));
+                if self.check_panics {
+                    // Check indexing in bounds
+                    stmts.push(vir::Stmt::Assert( vir::Assert {
+                        expr: vir_expr!{ [end_expr] <= [original_len] },
+                        position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end value may be out of bounds when slicing".to_string())),
+                    }));
+                }
                 end_expr
             }
             "std::ops::RangeFrom" | "core::ops::RangeFrom" |
@@ -2791,12 +2797,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // length
         let length = vir_expr!{ [end] - [start] };
-        // start must be leq than end
-        if idx_ident != "std::ops::RangeFull" && idx_ident != "core::ops::RangeFull" {
-            stmts.push(vir::Stmt::Assert( vir::Assert {
-                expr: vir_expr!{ [start] <= [end] },
-                position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end may be smaller than the start when slicing".to_string())),
-            }));
+        if self.check_panics {
+            // start must be leq than end
+            if idx_ident != "std::ops::RangeFull" && idx_ident != "core::ops::RangeFull" {
+                stmts.push(vir::Stmt::Assert( vir::Assert {
+                    expr: vir_expr!{ [start] <= [end] },
+                    position: self.register_error(error_span, ErrorCtxt::SliceRangeBoundsCheckAssert("the range end may be smaller than the start when slicing".to_string())),
+                }));
+            }
         }
 
         let slice_len_call = slice_types_lhs.len(self.encoder, lhs_slice_expr.clone());
