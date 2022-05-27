@@ -178,9 +178,10 @@ impl<'tcx> ErrorManager<'tcx> {
         &self.position_manager
     }
 
-    /// Used prior to encoding each function, to get stable `next_pos_id` for caching
-    pub fn reset_pos_id<T: std::hash::Hash>(&mut self, fn_name: &T) {
-        self.position_manager.reset_pos_id(fn_name)
+    /// Used prior to encoding each function, to get stable `next_pos_id`
+    /// regardless of the order in which functions are encoded
+    pub fn reset_pos_id(&mut self, start_id: u64) {
+        self.position_manager.reset_pos_id(start_id)
     }
 
     /// Register a new VIR position.

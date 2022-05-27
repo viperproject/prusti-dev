@@ -675,7 +675,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             assert!(substs.is_empty());
 
             // Make pos_id stable for caching
-            self.error_manager().reset_pos_id(&proc_name);
+            use std::hash::{Hash, Hasher};
+            let mut s = std::collections::hash_map::DefaultHasher::new();
+            proc_name.hash(&mut s);
+            // Avoid overflows, slightly increase probability of clashes
+            self.error_manager().reset_pos_id(s.finish() / 2);
 
             if config::unsafe_core_proof() {
                 if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id) {
