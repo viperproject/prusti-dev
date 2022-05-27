@@ -11,11 +11,17 @@ pub enum Type {
     /// Mathematical floats that corresponds to Viper's Float.
     MFloat32,
     MFloat64,
+    /// Viper permission amount.
+    MPerm,
     Lifetime,
     /// Rust's Bool allocated on the Viper heap.
     Bool,
     /// Rust's Int allocated on the Viper heap.
     Int(Int),
+    /// A mathematical sequence of values of the same type.
+    Sequence(Sequence),
+    /// A mathematical map.
+    Map(Map),
     Float(Float),
     TypeVar(TypeVar),
     Tuple(Tuple),
@@ -33,6 +39,7 @@ pub enum Type {
     FunctionDef(FunctionDef),
     Projection(Projection),
     Unsupported(Unsupported),
+    Trusted(Trusted),
 }
 
 #[derive(Copy)]
@@ -54,6 +61,17 @@ pub enum Int {
     Unbounded,
 }
 
+#[display(fmt = "Sequence({})", element_type)]
+pub struct Sequence {
+    pub element_type: Box<Type>,
+}
+
+#[display(fmt = "Map({} -> {})", key_type, val_type)]
+pub struct Map {
+    pub key_type: Box<Type>,
+    pub val_type: Box<Type>,
+}
+
 pub enum Float {
     F32,
     F64,
@@ -64,7 +82,7 @@ pub struct LifetimeConst {
     pub name: String,
 }
 
-#[display(fmt = "NoNameLifetime")]
+#[display(fmt = "Lifetime")]
 pub struct Lifetime {}
 impl Default for Lifetime {
     fn default() -> Self {
@@ -180,4 +198,11 @@ pub struct Projection {
 #[display(fmt = "{}", name)]
 pub struct Unsupported {
     pub name: String,
+}
+
+#[display(fmt = "{}<{}>", name, "display::cjoin(arguments)")]
+pub struct Trusted {
+    pub name: String,
+    /// Type arguments.
+    pub arguments: Vec<Type>,
 }

@@ -5,15 +5,13 @@ use prusti_interface::{
     specs::typed::{ProcedureSpecification, SpecConstraintKind, SpecGraph},
     PrustiError,
 };
+use rustc_errors::MultiSpan;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{
     ty,
-    ty::{
-        subst::{Subst, SubstsRef},
-        TypeFoldable,
-    },
+    ty::subst::{Subst, SubstsRef},
 };
-use rustc_span::{MultiSpan, Span};
+use rustc_span::Span;
 
 pub(super) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
     fn resolve(
@@ -61,7 +59,7 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
         }
 
         let context = match query {
-            SpecQuery::PureOrTrustedCheck(_, _) | SpecQuery::FetchSpan(_) => {
+            SpecQuery::GetProcKind(_, _) | SpecQuery::FetchSpan(_) => {
                 trace!("No need to resolve obligations for cause {:?}", query);
                 return Ok(&self.base_spec);
             }
@@ -169,15 +167,9 @@ pub mod trait_bounds {
                 // This needs to be done because ghost constraints might contain "deeply nested"
                 // associated types, e.g. `T: A<SomeAssocType = <Self as B>::OtherAssocType`
                 // where `<Self as B>::OtherAssocType` can be normalized to some concrete type.
-                let normalized_predicate = env.normalize_to(predicate);
+                let normalized_predicate = env.resolve_assoc_types(predicate, param_env_lookup);
 
-                if normalized_predicate.needs_subst() || normalized_predicate.needs_infer() {
-                    debug!("Predicate needs further substitutions to be resolved");
-                    false
-                } else {
-                    // Resolve the predicate by making a query to the compiler
-                    env.evaluate_predicate(normalized_predicate, param_env_lookup)
-                }
+                env.evaluate_predicate(normalized_predicate, param_env_lookup)
             });
 
         trace!("Constraint fulfilled: {all_bounds_satisfied}");
@@ -195,7 +187,7 @@ pub mod trait_bounds {
         let maybe_trait_method = env.find_trait_method_substs(context.proc_def_id, context.substs);
         let param_env = if let Some((_, trait_substs)) = maybe_trait_method {
             trace!("Applying trait substs {:?}", trait_substs);
-            param_env.subst(env.tcx(), trait_substs)
+            ty::EarlyBinder(param_env).subst(env.tcx(), trait_substs)
         } else {
             param_env
         };
@@ -209,7 +201,7 @@ pub mod trait_bounds {
             param_env
         } else {
             trace!("Applying call substs {:?}", context.substs);
-            param_env.subst(env.tcx(), context.substs)
+            ty::EarlyBinder(param_env).subst(env.tcx(), context.substs)
         };
 
         trace!(
@@ -239,7 +231,7 @@ pub mod trait_bounds {
         for spec_id in pres.iter().chain(posts.iter()) {
             let param_env = env.tcx().param_env(spec_id.to_def_id());
             let spec_span = env.tcx().def_span(spec_id.to_def_id());
-            let attrs = env.tcx().get_attrs(spec_id.to_def_id());
+            let attrs = env.get_local_attributes(*spec_id);
             if has_trait_bounds_ghost_constraint(attrs) {
                 param_envs
                     .entry(param_env)

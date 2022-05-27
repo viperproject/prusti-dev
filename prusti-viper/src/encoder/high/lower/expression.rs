@@ -69,6 +69,9 @@ impl IntoPolymorphic<vir_poly::Expr> for vir_high::Expression {
             vir_high::Expression::FuncApp(expression) => {
                 vir_poly::Expr::FuncApp(expression.lower(encoder))
             }
+            vir_high::Expression::BuiltinFuncApp(_expression) => {
+                todo!()
+            }
             vir_high::Expression::Downcast(expression) => {
                 vir_poly::Expr::Downcast(expression.lower(encoder))
             }

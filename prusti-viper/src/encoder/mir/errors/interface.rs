@@ -1,6 +1,6 @@
 use crate::encoder::errors::{ErrorCtxt, SpannedEncodingResult};
 use prusti_interface::data::ProcedureDefId;
-use rustc_span::MultiSpan;
+use rustc_errors::MultiSpan;
 use vir_crate::high::{
     self as vir_high,
     ast::{
@@ -35,6 +35,13 @@ pub(crate) trait ErrorInterface {
         default_position: vir_high::Position,
         error_ctxt: ErrorCtxt,
     ) -> vir_high::Expression;
+    fn set_expression_error_ctxt<T: Into<MultiSpan>>(
+        &mut self,
+        expression: vir_high::Expression,
+        span: T,
+        error_ctxt: ErrorCtxt,
+        def_id: ProcedureDefId,
+    ) -> vir_high::Expression;
     fn set_surrounding_error_context_for_predicate(
         &mut self,
         predicate: vir_high::Predicate,
@@ -54,7 +61,7 @@ pub(crate) trait ErrorInterface {
         error_ctxt: ErrorCtxt,
         def_id: ProcedureDefId,
     ) -> SpannedEncodingResult<vir_high::Statement>;
-    fn set_statement_error_ctxt_from_position(
+    fn set_surrounding_error_context_for_statement(
         &mut self,
         statement: vir_high::Statement,
         span_position: vir_high::Position,
@@ -124,6 +131,16 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
             error_ctxt,
         };
         visitor.fold_expression(expression)
+    }
+    fn set_expression_error_ctxt<T: Into<MultiSpan>>(
+        &mut self,
+        expression: vir_high::Expression,
+        span: T,
+        error_ctxt: ErrorCtxt,
+        def_id: ProcedureDefId,
+    ) -> vir_high::Expression {
+        let default_position = self.register_error(span, error_ctxt.clone(), def_id);
+        self.set_surrounding_error_context_for_expression(expression, default_position, error_ctxt)
     }
     fn set_surrounding_error_context_for_predicate(
         &mut self,
@@ -265,7 +282,7 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
         };
         Ok(visitor.fold_statement(statement))
     }
-    fn set_statement_error_ctxt_from_position(
+    fn set_surrounding_error_context_for_statement(
         &mut self,
         statement: vir_high::Statement,
         span_position: vir_high::Position,

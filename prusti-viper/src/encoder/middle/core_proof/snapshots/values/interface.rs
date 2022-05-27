@@ -216,6 +216,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         right: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        // TODO: Add MPerm special cases here.
         if ty == &vir_mid::Type::MBool {
             Ok(vir_low::Expression::binary_op(
                 op.to_snapshot(self)?,
