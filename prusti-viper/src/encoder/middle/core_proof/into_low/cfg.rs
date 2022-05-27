@@ -12,8 +12,9 @@ use crate::encoder::{
         predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
         snapshots::{
             IntoProcedureBoolExpression, IntoProcedureFinalSnapshot, IntoProcedureSnapshot,
-            SnapshotValidityInterface, SnapshotVariablesInterface,
+            SnapshotValidityInterface, SnapshotValuesInterface, SnapshotVariablesInterface,
         },
+        type_layouts::TypeLayoutsInterface,
     },
 };
 use vir_crate::{
@@ -108,25 +109,52 @@ impl IntoLow for vir_mid::Statement {
             // statements `Fold` and `Unfold` that would take a predicate as an
             // argument.
             Self::FoldOwned(statement) => {
+                // FIXME: Remove code duplication between fold and unfold.
                 let ty = statement.place.get_type();
                 lowerer.mark_owned_non_aliased_as_unfolded(ty)?;
                 let place = lowerer.encode_expression_as_place(&statement.place)?;
                 let address = lowerer.extract_root_address(&statement.place)?;
                 let snapshot = statement.place.to_procedure_snapshot(lowerer)?;
-                let lifetimes = lowerer
-                    .extract_lifetime_variables(ty)?
-                    .into_iter()
-                    .map(|lifetime| lifetime.into());
+                let arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                    if let Some(index) = statement.index {
+                        let low_index = index.to_procedure_snapshot(lowerer)?;
+                        let size_type = lowerer.size_type_mid()?;
+                        let low_index = lowerer.obtain_constant_value(
+                            &size_type,
+                            low_index,
+                            statement.position,
+                        )?;
+                        let element_type = &*ty.clone().unwrap_array().element_type;
+                        stmtp! {
+                            statement.position =>
+                            fold<low_condition> OwnedNonAliasedInArray<element_type>(
+                                [place], [address], [snapshot], [low_index]
+                            )
+                        }
+                    } else {
+                        stmtp! {
+                            statement.position =>
+                            fold<low_condition> OwnedNonAliased<ty>([place], [address], [snapshot]; arguments)
+                        }
+                    }
+                } else if let Some(index) = statement.index {
+                    let element_type = &*ty.clone().unwrap_array().element_type;
+                    let low_index = index.to_procedure_snapshot(lowerer)?;
+                    let size_type = lowerer.size_type_mid()?;
+                    let low_index =
+                        lowerer.obtain_constant_value(&size_type, low_index, statement.position)?;
                     stmtp! {
                         statement.position =>
-                        fold<low_condition> OwnedNonAliased<ty>([place], [address], [snapshot]; lifetimes)
+                        fold OwnedNonAliasedInArray<element_type>(
+                            [place], [address], [snapshot], [low_index]
+                        )
                     }
                 } else {
                     stmtp! {
                         statement.position =>
-                        fold OwnedNonAliased<ty>([place], [address], [snapshot]; lifetimes)
+                        fold OwnedNonAliased<ty>([place], [address], [snapshot]; arguments)
                     }
                 };
                 Ok(vec![low_statement])
@@ -137,20 +165,46 @@ impl IntoLow for vir_mid::Statement {
                 let place = lowerer.encode_expression_as_place(&statement.place)?;
                 let address = lowerer.extract_root_address(&statement.place)?;
                 let snapshot = statement.place.to_procedure_snapshot(lowerer)?;
-                let lifetimes = lowerer
-                    .extract_lifetime_variables(ty)?
-                    .into_iter()
-                    .map(|lifetime| lifetime.into());
+                let arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                    if let Some(index) = statement.index {
+                        let low_index = index.to_procedure_snapshot(lowerer)?;
+                        let size_type = lowerer.size_type_mid()?;
+                        let low_index = lowerer.obtain_constant_value(
+                            &size_type,
+                            low_index,
+                            statement.position,
+                        )?;
+                        let element_type = &*ty.clone().unwrap_array().element_type;
+                        stmtp! {
+                            statement.position =>
+                            unfold<low_condition> OwnedNonAliasedInArray<element_type>(
+                                [place], [address], [snapshot], [low_index]
+                            )
+                        }
+                    } else {
+                        stmtp! {
+                            statement.position =>
+                            unfold<low_condition> OwnedNonAliased<ty>([place], [address], [snapshot]; arguments)
+                        }
+                    }
+                } else if let Some(index) = statement.index {
+                    let element_type = &*ty.clone().unwrap_array().element_type;
+                    let low_index = index.to_procedure_snapshot(lowerer)?;
+                    let size_type = lowerer.size_type_mid()?;
+                    let low_index =
+                        lowerer.obtain_constant_value(&size_type, low_index, statement.position)?;
                     stmtp! {
                         statement.position =>
-                        unfold<low_condition> OwnedNonAliased<ty>([place], [address], [snapshot]; lifetimes)
+                        unfold OwnedNonAliasedInArray<element_type>(
+                            [place], [address], [snapshot], [low_index]
+                        )
                     }
                 } else {
                     stmtp! {
                         statement.position =>
-                        unfold OwnedNonAliased<ty>([place], [address], [snapshot]; lifetimes)
+                        unfold OwnedNonAliased<ty>([place], [address], [snapshot]; arguments)
                     }
                 };
                 Ok(vec![low_statement])
@@ -373,17 +427,17 @@ impl IntoLow for vir_mid::Statement {
                 let place = lowerer.encode_expression_as_place(&statement.place)?;
                 let address = lowerer.extract_root_address(&statement.place)?;
                 let snapshot = statement.place.to_procedure_snapshot(lowerer)?;
-                let lifetimes = lowerer.extract_lifetime_variables_as_expr(ty)?;
+                let arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
                     stmtp! {
                         statement.position =>
-                        call<low_condition> into_memory_block<ty>([place], [address], [snapshot]; lifetimes)
+                        call<low_condition> into_memory_block<ty>([place], [address], [snapshot]; arguments)
                     }
                 } else {
                     stmtp! {
                         statement.position =>
-                        call into_memory_block<ty>([place], [address], [snapshot]; lifetimes)
+                        call into_memory_block<ty>([place], [address], [snapshot]; arguments)
                     }
                 };
                 Ok(vec![low_statement])

@@ -32,7 +32,9 @@ pub fn process_verification_request<'v, 't: 'v>(
     let build_or_dump_viper_program = || {
         let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
         let ast_factory = verification_context.new_ast_factory();
-        let viper_program = request.program.to_viper(&ast_factory);
+        let viper_program = request
+            .program
+            .to_viper(prusti_common::vir::LoweringContext::default(), &ast_factory);
 
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");

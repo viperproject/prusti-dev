@@ -1,6 +1,9 @@
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    middle::core_proof::{lowerer::Lowerer, types::TypesInterface},
+    middle::core_proof::{
+        lifetimes::LifetimesInterface, lowerer::Lowerer, snapshots::SnapshotValidityInterface,
+        type_layouts::TypeLayoutsInterface, types::TypesInterface,
+    },
 };
 use rustc_hash::FxHashSet;
 
@@ -34,6 +37,28 @@ pub(in super::super::super) trait PredicatesOwnedInterface {
         snapshot: impl Into<vir_low::Expression>,
         lifetimes: Vec<impl Into<vir_low::Expression>>,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn extract_non_type_arguments_from_type(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
+    fn extract_non_type_arguments_from_type_excluding_lifetimes(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
+    fn extract_non_type_parameters_from_type(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>>;
+    fn extract_non_type_parameters_from_type_as_exprs(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
+    fn extract_non_type_parameters_from_type_validity(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
+    /// FIXME: Array length should be per operand/target, and not just a global value.
+    fn array_length_variable(&mut self) -> SpannedEncodingResult<vir_low::VariableDecl>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
@@ -87,6 +112,79 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
             predicate_name! { OwnedNonAliased<ty> },
             arguments,
             vir_low::Expression::full_permission(),
+        ))
+    }
+
+    fn extract_non_type_arguments_from_type(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
+        let mut arguments = self.extract_lifetime_variables_as_expr(ty)?;
+        if let vir_mid::Type::Array(ty) = ty {
+            arguments.push(self.size_constant(ty.length)?);
+        }
+        Ok(arguments)
+    }
+
+    fn extract_non_type_arguments_from_type_excluding_lifetimes(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
+        if let vir_mid::Type::Array(ty) = ty {
+            Ok(vec![self.size_constant(ty.length)?])
+        } else {
+            Ok(Vec::new())
+        }
+    }
+
+    fn extract_non_type_parameters_from_type(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>> {
+        // FIXME: Figure out how to avoid these magic variable names.
+        let parameters = match ty {
+            vir_mid::Type::Reference(_) => {
+                use vir_low::macros::*;
+                vec![var! { lifetime: Lifetime }]
+            }
+            vir_mid::Type::Array(_) => {
+                vec![self.array_length_variable()?]
+            }
+            _ => Vec::new(),
+        };
+        Ok(parameters)
+    }
+
+    fn extract_non_type_parameters_from_type_as_exprs(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
+        let parameters = self.extract_non_type_parameters_from_type(ty)?;
+        Ok(parameters
+            .into_iter()
+            .map(|parameter| parameter.into())
+            .collect())
+    }
+
+    fn extract_non_type_parameters_from_type_validity(
+        &mut self,
+        ty: &vir_mid::Type,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
+        let validity_calls = match ty {
+            vir_mid::Type::Array(_) => {
+                let variable = self.array_length_variable()?;
+                let size_type = &self.size_type_mid()?;
+                vec![self.encode_snapshot_valid_call_for_type(variable.into(), size_type)?]
+            }
+            _ => Vec::new(),
+        };
+        Ok(validity_calls)
+    }
+
+    fn array_length_variable(&mut self) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        Ok(vir_low::VariableDecl::new(
+            "array_length",
+            self.size_type()?,
         ))
     }
 }

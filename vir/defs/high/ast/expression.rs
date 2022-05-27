@@ -242,6 +242,7 @@ pub enum BuiltinFunc {
     ConcatSeq,
     SeqLen,
     NewInt,
+    Index,
 }
 
 #[display(fmt = "__builtin__{}({})", function, "display::cjoin(arguments)")]
