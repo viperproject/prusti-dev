@@ -24,7 +24,7 @@ pub struct PositionManager {
 
 impl PositionManager
 {
-    pub fn new() -> Self {
+    pub fn default() -> Self {
         PositionManager {
             next_pos_id: 1,
             def_id: FxHashMap::default(),

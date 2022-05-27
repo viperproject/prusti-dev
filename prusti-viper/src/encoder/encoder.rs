@@ -135,7 +135,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         Encoder {
             env,
-            error_manager: RefCell::new(ErrorManager::new()),
+            error_manager: RefCell::new(ErrorManager::default()),
             functions: RefCell::new(FxHashMap::default()),
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),

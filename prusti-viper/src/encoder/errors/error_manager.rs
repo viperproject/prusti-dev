@@ -165,9 +165,9 @@ pub struct ErrorManager {
 }
 
 impl ErrorManager {
-    pub fn new() -> Self {
+    pub fn default() -> Self {
         ErrorManager {
-            position_manager: PositionManager::new(),
+            position_manager: PositionManager::default(),
             error_contexts: FxHashMap::default(),
             inner_positions: FxHashMap::default(),
         }
