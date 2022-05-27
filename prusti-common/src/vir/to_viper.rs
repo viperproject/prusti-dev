@@ -283,8 +283,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                         pos.to_viper(ast),
                     )
                 });
-                let position =
-                    ast.identifier_position(0, 0, &pos.id().to_string());
+                let position = ast.identifier_position(0, 0, &pos.id().to_string());
                 let apply = ast.apply(wand.to_viper(ast), position);
                 ast.seqn(&[inhale, apply], &[])
             }

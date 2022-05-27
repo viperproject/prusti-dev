@@ -1,9 +1,7 @@
 macro derive_from($from: ty, $to: ty) {
     impl From<$from> for $to {
         fn from(pos: $from) -> Self {
-            Self {
-                id: pos.id,
-            }
+            Self { id: pos.id }
         }
     }
 }
