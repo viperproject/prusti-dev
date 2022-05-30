@@ -1,12 +1,13 @@
 use super::TypeEncoder;
 use crate::encoder::{
-    errors::{EncodingError, EncodingResult, SpannedEncodingResult},
+    errors::{EncodingError, EncodingResult, SpannedEncodingError, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
 };
 
 use rustc_errors::MultiSpan;
 use rustc_hash::FxHashMap;
 use rustc_middle::{mir, ty};
+use rustc_span::Span;
 use std::cell::RefCell;
 use vir_crate::{common::expression::less_equals, high as vir_high, polymorphic as vir};
 
@@ -31,7 +32,9 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
         &self,
         ty: &vir_high::Type,
         index: mir::Field,
-    ) -> EncodingResult<vir_high::FieldDecl>;
+        use_span: Option<Span>,
+        declaration_span: Span,
+    ) -> SpannedEncodingResult<vir_high::FieldDecl>;
     fn encode_value_field_high(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_high::FieldDecl>;
     fn encode_type_high(&self, ty: ty::Ty<'tcx>) -> SpannedEncodingResult<vir_high::Type>;
     fn encode_place_type_high(&self, ty: mir::tcx::PlaceTy<'tcx>)
@@ -91,8 +94,15 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
         &self,
         ty: &vir_high::Type,
         field: mir::Field,
-    ) -> EncodingResult<vir_high::FieldDecl> {
+        use_span: Option<Span>,
+        declaration_span: Span,
+    ) -> SpannedEncodingResult<vir_high::FieldDecl> {
         let type_decl = self.encode_type_def(ty)?;
+        let primary_span = if let Some(use_span) = use_span {
+            use_span
+        } else {
+            declaration_span
+        };
         let field_decl = match type_decl {
             vir_high::TypeDecl::Tuple(item) => vir_high::FieldDecl::new(
                 format!("tuple_{}", field.index()),
@@ -101,9 +111,9 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             ),
             vir_high::TypeDecl::Struct(item) => item.fields[field.index()].clone(),
             vir_high::TypeDecl::Enum(item) => {
-                let variant = item
-                    .get_variant(ty)
-                    .ok_or_else(|| EncodingError::internal("not found variant"))?;
+                let variant = item.get_variant(ty).ok_or_else(|| {
+                    SpannedEncodingError::internal("not found variant", primary_span)
+                })?;
                 variant.fields[field.index()].clone()
             }
             vir_high::TypeDecl::Closure(item) => vir_high::FieldDecl::new(
@@ -111,11 +121,23 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
                 field.index(),
                 item.arguments[field.index()].clone(),
             ),
+            vir_high::TypeDecl::Trusted(_) => {
+                let mut error = SpannedEncodingError::incorrect(
+                    "accessing fields of #[trusted] types is not allowed",
+                    primary_span,
+                );
+                error.add_note(
+                    "the type of this place is marked as #[trusted]",
+                    Some(declaration_span.into()),
+                );
+                error.set_help("you might want to mark the function as #[trusted]");
+                return Err(error);
+            }
             _ => {
-                return Err(EncodingError::internal(format!(
-                    "{} has no fields",
-                    type_decl
-                )));
+                return Err(SpannedEncodingError::internal(
+                    format!("{} has no fields", type_decl,),
+                    primary_span,
+                ));
             }
         };
         Ok(field_decl)

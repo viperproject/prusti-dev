@@ -177,7 +177,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 self.encode_place_arguments(arguments, &value.place)?;
                 let lifetime = self.encode_lifetime_const_into_variable(value.lifetime.clone())?;
                 arguments.push(lifetime.into());
-                let perm_amount = vir_low::Expression::fractional_permission(value.rd_perm);
+                let perm_amount = value
+                    .lifetime_token_permission
+                    .to_procedure_snapshot(self)?;
                 arguments.push(perm_amount);
             }
             vir_mid::Rvalue::AddressOf(value) => {
@@ -773,7 +775,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             vir_mid::OperandKind::Copy | vir_mid::OperandKind::Move => {
                 let place = self.encode_assign_operand_place(operand_counter)?;
                 let root_address = self.encode_assign_operand_address(operand_counter)?;
-                pres.push(expr! { acc(OwnedNonAliased<ty>(place, root_address, value)) });
+                if let vir_mid::ty::Type::Reference(reference) = ty {
+                    let lifetime =
+                        self.encode_lifetime_const_into_variable(reference.lifetime.clone())?;
+                    pres.push(
+                        expr! { acc(OwnedNonAliased<ty>(place, root_address, value, lifetime)) },
+                    );
+                } else {
+                    pres.push(expr! { acc(OwnedNonAliased<ty>(place, root_address, value)) });
+                }
                 let post_predicate = if operand.kind == vir_mid::OperandKind::Copy {
                     expr! { acc(OwnedNonAliased<ty>(place, root_address, value)) }
                 } else {
@@ -799,6 +809,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         }
         pres.push(self.encode_snapshot_valid_call_for_type(value.clone().into(), ty)?);
         parameters.push(value.clone());
+        if let vir_mid::ty::Type::Reference(reference) = ty {
+            let lifetime = self.encode_lifetime_const_into_variable(reference.lifetime.clone())?;
+            parameters.push(lifetime);
+        }
         Ok(value)
     }
     fn encode_assign_operand_place(
@@ -970,8 +984,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         call write_address<ty>([target_address], source_value)
                     });
                 }
-                vir_mid::TypeDecl::TypeVar(_) => {
-                    // move_place of a generic variable has no body
+                vir_mid::TypeDecl::TypeVar(_) | vir_mid::TypeDecl::Trusted(_) => {
+                    // move_place of a generic or trusted type has no body
                 }
                 vir_mid::TypeDecl::Tuple(decl) => {
                     if decl.arguments.is_empty() {
@@ -992,6 +1006,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             call write_address<ty>([target_address], source_value)
                         });
                     } else {
+                        assert!(
+                            !ty.is_trusted() && !ty.is_type_var(),
+                            "Trying to split an abstract type."
+                        );
                         self.encode_memory_block_split_method(ty)?;
                         statements.push(stmtp! {
                             position =>
@@ -1185,7 +1203,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             }
 
             // FIXME: Add method body for move_place for references
-            let body = if ty.is_type_var() || ty.is_reference() {
+            let body = if ty.is_type_var() || ty.is_trusted() || ty.is_reference() {
                 None
             } else {
                 Some(statements)
@@ -1364,6 +1382,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 }
                 vir_mid::TypeDecl::TypeVar(_) => {
                     unreachable!("Cannot write constants to variables of generic type.");
+                }
+                vir_mid::TypeDecl::Trusted(_) => {
+                    unreachable!("Cannot write constants to variables of trusted type.");
                 }
                 vir_mid::TypeDecl::Tuple(decl) => {
                     if decl.arguments.is_empty() {
@@ -1605,6 +1626,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             .encoded_memory_block_split_methods
             .contains(ty)
         {
+            assert!(
+                !ty.is_trusted() && !ty.is_type_var(),
+                "Trying to split an abstract type."
+            );
             use vir_low::macros::*;
             let method = if ty.has_variants() {
                 // TODO: remove code duplication with encode_memory_block_join_method
@@ -2048,6 +2073,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                 // Primitive type. Nothing to do.
                             }
                             vir_mid::TypeDecl::TypeVar(_) => unreachable!("cannot convert abstract type into a memory block: {}", ty),
+                            vir_mid::TypeDecl::Trusted(_) => {
+                                // into_memory_block for trusted types is
+                                // trusted and has no statements.
+                            },
                             vir_mid::TypeDecl::Tuple(decl) => {
                                 // TODO: Remove code duplication.
                                 for field in decl.iter_fields() {
@@ -2169,7 +2198,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     ensures (acc(MemoryBlock([address], [size_of])));
                     ensures (([bytes]) == (Snap<to_bytes_type>::to_bytes([memory_block_value])));
             };
-            method.body = Some(statements);
+            if !ty.is_trusted() {
+                method.body = Some(statements);
+            }
             self.declare_method(method)?;
         }
         Ok(())
@@ -2224,6 +2255,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         self.encode_consume_operand_method(&method_name, &operand)?;
         let mut arguments = Vec::new();
         self.encode_operand_arguments(&mut arguments, &operand)?;
+        let ty = operand.expression.get_type();
+        if let vir_mid::ty::Type::Reference(reference) = ty {
+            let lifetime = self.encode_lifetime_const_into_variable(reference.lifetime.clone())?;
+            arguments.push(lifetime.into());
+        }
         statements.push(vir_low::Statement::method_call(
             method_name,
             arguments,

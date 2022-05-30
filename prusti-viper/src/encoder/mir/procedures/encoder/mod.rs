@@ -4,7 +4,7 @@ use self::{
 };
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
-    errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
+    errors::{ErrorCtxt, PanicCause, SpannedEncodingResult, WithSpan},
     mir::{
         casts::CastsEncoderInterface,
         constants::ConstantsEncoderInterface,
@@ -25,18 +25,18 @@ use crate::encoder::{
 use log::debug;
 use prusti_common::config;
 use prusti_interface::environment::{
+    debug_utils::to_text::ToText,
     mir_analyses::{
         allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
         initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
     },
-    mir_dump::{graphviz::ToText, lifetimes::Lifetimes},
+    mir_body::borrowck::lifetimes::Lifetimes,
     Procedure,
 };
 use rustc_data_structures::graph::WithStartNode;
 use rustc_hash::FxHashSet;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty, ty::subst::SubstsRef};
-use rustc_mir_dataflow::{move_paths::LookupResult, on_all_drop_children_bits, MoveDataParamEnv};
 use rustc_span::Span;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
@@ -57,6 +57,7 @@ mod elaborate_drops;
 mod initialisation;
 mod lifetimes;
 mod loops;
+mod scc;
 mod specification_blocks;
 
 pub(super) fn encode_procedure<'v, 'tcx: 'v>(
@@ -64,32 +65,23 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     def_id: DefId,
 ) -> SpannedEncodingResult<vir_high::ProcedureDecl> {
     let procedure = Procedure::new(encoder.env(), def_id);
-    let lifetimes = if let Some(facts) = encoder
-        .env()
-        .try_get_local_mir_borrowck_facts(def_id.expect_local())
-    {
-        Lifetimes::new(facts)
-    } else {
-        return Err(SpannedEncodingError::internal(
-            format!("failed to obtain borrow information for {:?}", def_id),
-            procedure.get_span(),
-        ));
-    };
-    let mir = procedure.get_mir();
     let tcx = encoder.env().tcx();
+    let (mir, lifetimes) = self::elaborate_drops::elaborate_drops(encoder, def_id, &procedure)?;
+    let mir = &mir; // Mark body as immutable.
     let move_env = self::initialisation::create_move_data_param_env(tcx, mir, def_id);
     let init_data = InitializationData::new(tcx, mir, &move_env);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
-    let rd_perm = lifetimes.lifetime_count();
     let specification_blocks = SpecificationBlocks::build(tcx, mir, &procedure);
     let initialization = compute_definitely_initialized(def_id, mir, encoder.env().tcx());
     let allocation = compute_definitely_allocated(def_id, mir);
+    let lifetime_count = lifetimes.lifetime_count();
+    let lifetime_token_permission = None;
+    let function_call_ctr: usize = 0;
     let mut procedure_encoder = ProcedureEncoder {
         encoder,
         def_id,
         procedure: &procedure,
         mir,
-        move_env: &move_env,
         init_data,
         initialization,
         allocation,
@@ -101,7 +93,9 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         check_panics: config::check_panics(),
         locals_without_explicit_allocation,
         fresh_id_generator: 0,
-        rd_perm,
+        lifetime_count,
+        lifetime_token_permission,
+        function_call_ctr,
     };
     procedure_encoder.encode()
 }
@@ -111,7 +105,6 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     def_id: DefId,
     procedure: &'p Procedure<'tcx>,
     mir: &'p mir::Body<'tcx>,
-    move_env: &'p MoveDataParamEnv<'tcx>,
     init_data: InitializationData<'p, 'tcx>,
     initialization: DefinitelyInitializedAnalysisResult<'tcx>,
     allocation: DefinitelyAllocatedAnalysisResult,
@@ -130,7 +123,9 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// the entire body of the function.
     locals_without_explicit_allocation: BTreeSet<mir::Local>,
     fresh_id_generator: usize,
-    rd_perm: u32,
+    lifetime_count: usize,
+    lifetime_token_permission: Option<vir_high::VariableDecl>,
+    function_call_ctr: usize,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -138,17 +133,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let name = self.encoder.encode_item_name(self.def_id);
         let (allocate_parameters, deallocate_parameters) = self.encode_parameters()?;
         let (allocate_returns, deallocate_returns) = self.encode_returns()?;
+        self.lifetime_token_permission =
+            Some(self.fresh_ghost_variable("positive_perm_amount", vir_high::Type::MPerm));
         let (assume_preconditions, assert_postconditions) =
             self.encode_functional_specifications()?;
-        let mut procedure_builder = ProcedureBuilder::new(
-            name,
-            allocate_parameters,
-            allocate_returns,
-            assume_preconditions,
-            deallocate_parameters,
-            deallocate_returns,
-            assert_postconditions,
-        );
+        let (assume_lifetime_preconditions, assert_lifetime_postconditions) =
+            self.encode_lifetime_specifications()?;
+        let mut pre_statements = allocate_parameters;
+        pre_statements.extend(assume_preconditions);
+        pre_statements.extend(allocate_returns);
+        pre_statements.extend(assume_lifetime_preconditions);
+        let mut post_statements = assert_postconditions;
+        post_statements.extend(deallocate_parameters);
+        post_statements.extend(deallocate_returns);
+        post_statements.extend(assert_lifetime_postconditions);
+        let mut procedure_builder = ProcedureBuilder::new(name, pre_statements, post_statements);
         self.encode_body(&mut procedure_builder)?;
         self.encode_implicit_allocations(&mut procedure_builder)?;
         Ok(procedure_builder.build())
@@ -450,6 +449,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location.statement_index += 1;
         }
         if let Some(terminator) = terminator {
+            self.encode_lft_for_statement(
+                &mut block_builder,
+                location,
+                &mut original_lifetimes,
+                &mut derived_lifetimes,
+            )?;
+            let terminator = &terminator.kind;
             self.encode_terminator(&mut block_builder, location, terminator)?;
         }
         if let Some(statement) = self.loop_invariant_encoding.remove(&bb) {
@@ -509,7 +515,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let position = self.register_error(location, ErrorCtxt::Unexpected);
                 let encoded_target = self
                     .encoder
-                    .encode_place_high(self.mir, *target)?
+                    .encode_place_high(self.mir, *target, None)?
                     .set_default_position(position);
                 self.encode_statement_assign(block_builder, location, encoded_target, source)?;
             }
@@ -539,13 +545,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         allow_two_phase_borrow: _,
                     }
                 );
-                let encoded_place = self.encoder.encode_place_high(self.mir, *place)?;
+                let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
                 let region_name = region.to_text();
                 let encoded_rvalue = vir_high::Rvalue::ref_(
                     encoded_place,
                     vir_high::ty::LifetimeConst::new(region_name),
                     is_mut,
-                    self.rd_perm,
+                    self.lifetime_token_fractional_permission(self.lifetime_count),
                     encoded_target.clone(),
                 );
                 let assign_statement = vir_high::Statement::assign(
@@ -561,7 +567,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             // mir::Rvalue::ThreadLocalRef(DefId),
             mir::Rvalue::AddressOf(_, place) => {
-                let encoded_place = self.encoder.encode_place_high(self.mir, *place)?;
+                let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
                 let encoded_rvalue = vir_high::Rvalue::address_of(encoded_place);
                 block_builder.add_statement(self.set_statement_error(
                     location,
@@ -609,7 +615,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?);
             }
             mir::Rvalue::Discriminant(place) => {
-                let encoded_place = self.encoder.encode_place_high(self.mir, *place)?;
+                let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
                 let encoded_rvalue = vir_high::Rvalue::discriminant(encoded_place);
                 block_builder.add_statement(self.set_statement_error(
                     location,
@@ -636,7 +642,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_statement_assign_aggregate(
-        &self,
+        &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
         encoded_target: vir_crate::high::Expression,
@@ -709,7 +715,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ErrorCtxt::CloseMutRef,
                         vir_high::Statement::close_mut_ref_no_pos(
                             lifetime.clone(),
-                            self.rd_perm,
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
                             place,
                         ),
                     )?);
@@ -719,7 +725,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ErrorCtxt::CloseFracRef,
                         vir_high::Statement::close_frac_ref_no_pos(
                             lifetime.clone(),
-                            self.rd_perm,
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
                             place,
                             permission.unwrap(),
                         ),
@@ -753,7 +759,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ErrorCtxt::OpenMutRef,
                         vir_high::Statement::open_mut_ref_no_pos(
                             lifetime.clone(),
-                            self.rd_perm,
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
                             place,
                         ),
                     )?);
@@ -767,7 +773,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         vir_high::Statement::open_frac_ref_no_pos(
                             lifetime.clone(),
                             permission,
-                            self.rd_perm,
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
                             place,
                         ),
                     )?);
@@ -801,7 +807,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         match operand {
             mir::Operand::Move(source) => {
-                let encoded_source = self.encoder.encode_place_high(self.mir, *source)?;
+                let encoded_source =
+                    self.encoder
+                        .encode_place_high(self.mir, *source, Some(span))?;
                 block_builder.add_statement(self.set_statement_error(
                     location,
                     ErrorCtxt::MovePlace,
@@ -809,7 +817,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?);
             }
             mir::Operand::Copy(source) => {
-                let encoded_source = self.encoder.encode_place_high(self.mir, *source)?;
+                let encoded_source =
+                    self.encoder
+                        .encode_place_high(self.mir, *source, Some(span))?;
 
                 let deref_base: Option<vir_high::Expression> = match &encoded_source {
                     vir_high::Expression::Deref(vir_high::Deref { box base, .. }) => {
@@ -870,7 +880,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_statement_operand(
-        &self,
+        &mut self,
         location: mir::Location,
         operand: &mir::Operand<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Operand> {
@@ -880,7 +890,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let position = self.register_error(location, ErrorCtxt::MovePlace);
                 let encoded_source = self
                     .encoder
-                    .encode_place_high(self.mir, *source)?
+                    .encode_place_high(self.mir, *source, Some(span))?
                     .set_default_position(position);
                 vir_high::Operand::new(vir_high::OperandKind::Move, encoded_source)
             }
@@ -888,7 +898,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let position = self.register_error(location, ErrorCtxt::CopyPlace);
                 let encoded_source = self
                     .encoder
-                    .encode_place_high(self.mir, *source)?
+                    .encode_place_high(self.mir, *source, Some(span))?
                     .set_default_position(position);
                 vir_high::Operand::new(vir_high::OperandKind::Copy, encoded_source)
             }
@@ -948,12 +958,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
-        terminator: &mir::Terminator<'tcx>,
+        terminator: &mir::TerminatorKind<'tcx>,
     ) -> SpannedEncodingResult<()> {
-        block_builder.add_comment(format!("{:?} {:?}", location, terminator.kind));
+        block_builder.add_comment(format!("{:?} {:?}", location, terminator));
         let span = self.encoder.get_span_of_location(self.mir, location);
         use rustc_middle::mir::TerminatorKind;
-        let successor = match &terminator.kind {
+        let successor = match &terminator {
             TerminatorKind::Goto { target } => {
                 self.encode_lft_for_block(*target, location, block_builder)?;
                 SuccessorBuilder::jump(vir_high::Successor::Goto(
@@ -988,9 +998,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 place,
                 target,
                 unwind,
-            } => {
-                self.encode_terminator_drop(block_builder, location, span, *place, *target, unwind)?
-            }
+            } => self.encode_terminator_drop(block_builder, span, *place, *target, unwind)?,
             TerminatorKind::Call {
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 args,
@@ -1022,7 +1030,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // TODO: Move this thing to a method.
                 let condition = self
                     .encoder
-                    .encode_operand_high(self.mir, cond)
+                    .encode_operand_high(self.mir, cond, span)
                     .with_default_span(span)?;
 
                 let guard = if *expected {
@@ -1116,7 +1124,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         let discriminant = self
             .encoder
-            .encode_operand_high(self.mir, discr)
+            .encode_operand_high(self.mir, discr, span)
             .with_default_span(span)?;
         debug!(
             "discriminant: {:?} switch_ty: {:?}",
@@ -1159,92 +1167,50 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_terminator_drop(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
-        location: mir::Location,
         span: Span,
         place: mir::Place<'tcx>,
         target: mir::BasicBlock,
         unwind: &Option<mir::BasicBlock>,
     ) -> SpannedEncodingResult<SuccessorBuilder> {
-        self.init_data.seek_before(location);
-        let path = self.move_env.move_data.rev_lookup.find(place.as_ref());
-        debug!(
-            "collect_drop_flags: {:?}, place {:?} ({:?})",
-            location, place, path
+        let target_block_label = self.encode_basic_block_label(target);
+
+        if config::check_no_drops() {
+            let statement = self.encoder.set_statement_error_ctxt(
+                vir_high::Statement::assert_no_pos(false.into()),
+                span,
+                ErrorCtxt::DropCall,
+                self.def_id,
+            )?;
+            block_builder.add_statement(statement);
+        }
+
+        // FIXME: Assert that the lifetimes used in type of the place are alive
+        // at this point (by exhaling them and inhaling). Do not forget to take
+        // into account
+        // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.GenericParamDef.html#structfield.pure_wrt_drop
+        let argument = vir_high::Operand::new(
+            vir_high::OperandKind::Move,
+            self.encoder.encode_place_high(self.mir, place, None)?,
         );
-        let path = match path {
-            LookupResult::Exact(e) => e,
-            LookupResult::Parent(_) => {
-                unimplemented!();
-            }
-        };
-        let mut successor = None;
-        on_all_drop_children_bits(
-            self.encoder.env().tcx(),
-            self.mir,
-            self.move_env,
-            path,
-            |child| {
-                let live_dead = self.init_data.maybe_live_dead(child);
-                debug!(
-                    "collect_drop_flags: collecting {:?} from {:?}@{:?} - {:?}",
-                    child, place, path, live_dead
-                );
-                let target_block = self.encode_basic_block_label(target);
-                successor = Some((|| {
-                    match live_dead {
-                        (true, false) => {
-                            // The place is definitely live, emit the drop
-                            // function call.
-                            //
-                            // FIXME: Assert that the lifetimes used in type
-                            // of the place are alive at this point (by
-                            // exhaling them and inhaling). Do not forget to
-                            // take into account
-                            // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.GenericParamDef.html#structfield.pure_wrt_drop
-                            let argument = vir_high::Operand::new(
-                                vir_high::OperandKind::Move,
-                                self.encoder.encode_place_high(self.mir, place)?,
-                            );
-                            let statement = self.encoder.set_statement_error_ctxt(
-                                vir_high::Statement::consume_no_pos(argument),
-                                span,
-                                ErrorCtxt::DropCall,
-                                self.def_id,
-                            )?;
-                            statement.check_no_default_position();
-                            block_builder.add_statement(statement);
-                            if let Some(unwind_block) = unwind {
-                                let encoded_unwind_block =
-                                    self.encode_basic_block_label(*unwind_block);
-                                Ok(SuccessorBuilder::jump(vir_high::Successor::NonDetChoice(
-                                    target_block,
-                                    encoded_unwind_block,
-                                )))
-                            } else {
-                                Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
-                                    target_block,
-                                )))
-                            }
-                        }
-                        (false, true) => {
-                            // The place is definitely dead, emit just a jump to the next block.
-                            Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
-                                target_block,
-                            )))
-                        }
-                        (true, true) => {
-                            // The place could be either alive or dead. We need a dynamic drop flag.
-                            unimplemented!();
-                        }
-                        (false, false) => {
-                            // This should not be possible.
-                            unreachable!();
-                        }
-                    }
-                })());
-            },
-        );
-        successor.unwrap()
+        let statement = self.encoder.set_statement_error_ctxt(
+            vir_high::Statement::consume_no_pos(argument),
+            span,
+            ErrorCtxt::DropCall,
+            self.def_id,
+        )?;
+        statement.check_no_default_position();
+        block_builder.add_statement(statement);
+        if let Some(unwind_block) = unwind {
+            let encoded_unwind_block_label = self.encode_basic_block_label(*unwind_block);
+            Ok(SuccessorBuilder::jump(vir_high::Successor::NonDetChoice(
+                target_block_label,
+                encoded_unwind_block_label,
+            )))
+        } else {
+            Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
+                target_block_label,
+            )))
+        }
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -1333,7 +1299,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .into();
                 let encoded_target_place = self
                     .encoder
-                    .encode_place_high(self.mir, target_place)?
+                    .encode_place_high(self.mir, target_place, None)?
                     .set_default_position(position);
                 assert_eq!(args.len(), 1);
                 let encoded_arg = self.encode_statement_operand(location, &args[0])?;
@@ -1405,7 +1371,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .into();
                 let encoded_target_place = self
                     .encoder
-                    .encode_place_high(self.mir, target_place)?
+                    .encode_place_high(self.mir, target_place, None)?
                     .set_default_position(position);
                 assert_eq!(args.len(), 0);
                 let target_place_local = if let Some(target_place_local) = target_place.as_local() {
@@ -1474,7 +1440,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .into();
                 let encoded_target_place = self
                     .encoder
-                    .encode_place_high(self.mir, target_place)?
+                    .encode_place_high(self.mir, target_place, None)?
                     .set_default_position(position);
                 assert_eq!(args.len(), 0);
                 let target_place_local = if let Some(target_place_local) = target_place.as_local() {
@@ -1559,6 +1525,82 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .env()
                 .resolve_method_call(self.def_id, called_def_id, call_substs);
 
+        // find static lifetime to exhale
+        let mut lifetimes_to_exhale_inhale: Vec<String> = Vec::new();
+        let opaque_lifetimes: BTreeMap<String, BTreeSet<String>> =
+            self.lifetimes.get_opaque_lifetimes_with_inclusions_names();
+        for (lifetime, derived_from) in opaque_lifetimes {
+            if derived_from.is_empty() {
+                lifetimes_to_exhale_inhale.push(lifetime.to_text());
+            }
+        }
+        assert_eq!(lifetimes_to_exhale_inhale.len(), 1); // there must be exactly one static lifetime
+
+        // find generic argument lifetimes
+        let mut subst_lifetimes: Vec<String> = call_substs
+            .iter()
+            .filter_map(|generic| match generic.unpack() {
+                ty::subst::GenericArgKind::Lifetime(region) => Some(region.to_text()),
+                _ => None,
+            })
+            .collect();
+        if subst_lifetimes.is_empty() {
+            // If subst_lifetimes is empty, check args for a lifetime
+            for arg in args {
+                if let mir::Operand::Move(place) = arg {
+                    let place_high = self.encoder.encode_place_high(self.mir, *place, None)?;
+                    let lifetime_name = self.lifetime_name(place_high);
+                    if let Some(lifetime_name) = lifetime_name {
+                        subst_lifetimes.push(lifetime_name);
+                    }
+                }
+            }
+        }
+        for lifetime in subst_lifetimes {
+            lifetimes_to_exhale_inhale.push(lifetime);
+        }
+
+        // construct function lifetime
+        self.function_call_ctr += 1;
+        let function_call_lifetime_name = format!("lft_function_call_{}", self.function_call_ctr);
+        let function_call_lifetime = vir_high::VariableDecl {
+            name: function_call_lifetime_name.clone(),
+            ty: vir_high::ty::Type::Lifetime,
+        };
+        let mut derived_from: Vec<vir_high::VariableDecl> = Vec::new();
+        for name in &lifetimes_to_exhale_inhale {
+            derived_from.push(self.encode_lft_variable(name.to_string())?);
+        }
+        let function_lifetime_take = vir_high::Statement::lifetime_take_no_pos(
+            function_call_lifetime,
+            derived_from,
+            self.lifetime_token_fractional_permission(self.lifetime_count),
+        );
+        block_builder.add_statement(self.set_statement_error(
+            location,
+            ErrorCtxt::LifetimeEncoding,
+            function_lifetime_take,
+        )?);
+        lifetimes_to_exhale_inhale.push(function_call_lifetime_name);
+
+        // encode subset_base conditions which contain a lifetime which we are going to exhale
+        // FIXME: Ideally, before a function call, assert *exactly* what is assumed in the function.
+        //   In this case, that is the opaque lifetimes conditions. Finding the right lifetimes
+        //   which correspond to the the lifetimes in the function seems to be hard.
+        let subset_base: Vec<(String, String)> = self
+            .lifetimes
+            .get_subset_base_at_mid(location)
+            .iter()
+            .map(|(x, y)| (x.to_text(), y.to_text()))
+            .collect();
+        for (lifetime_lhs, lifetime_rhs) in subset_base {
+            if lifetimes_to_exhale_inhale.contains(&lifetime_lhs)
+                || lifetimes_to_exhale_inhale.contains(&lifetime_rhs)
+            {
+                self.encode_lft_assert_subset(block_builder, location, lifetime_lhs, lifetime_rhs)?;
+            }
+        }
+
         let old_label = self.fresh_old_label();
         block_builder.add_statement(self.encoder.set_statement_error_ctxt(
             vir_high::Statement::old_label_no_pos(old_label.clone()),
@@ -1570,7 +1612,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for arg in args {
             arguments.push(
                 self.encoder
-                    .encode_operand_high(self.mir, arg)
+                    .encode_operand_high(self.mir, arg, span)
                     .with_span(span)?,
             );
             let encoded_arg = self.encode_statement_operand(location, arg)?;
@@ -1579,6 +1621,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 statement,
                 span,
                 ErrorCtxt::ProcedureCall,
+                self.def_id,
+            )?);
+        }
+        for lifetime in &lifetimes_to_exhale_inhale {
+            block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                vir_high::Statement::exhale_no_pos(vir_high::Predicate::lifetime_token_no_pos(
+                    vir_high::ty::LifetimeConst {
+                        name: lifetime.clone(),
+                    },
+                    self.lifetime_token_fractional_permission(self.lifetime_count),
+                )),
+                self.mir.span,
+                ErrorCtxt::LifetimeEncoding,
                 self.def_id,
             )?);
         }
@@ -1611,7 +1666,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let position = self.register_error(location, ErrorCtxt::ProcedureCall);
             let encoded_target_place = self
                 .encoder
-                .encode_place_high(self.mir, *target_place)?
+                .encode_place_high(self.mir, *target_place, None)?
                 .set_default_position(position);
             let postcondition_expressions = self.encode_postcondition_expressions(
                 &procedure_contract,
@@ -1649,6 +1704,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ErrorCtxt::ProcedureCall,
                     self.def_id,
                 )?);
+
+                for lifetime in &lifetimes_to_exhale_inhale {
+                    let statement = self.encode_inhale_lifetime_token(
+                        vir_high::ty::LifetimeConst {
+                            name: lifetime.clone(),
+                        },
+                        self.lifetime_token_fractional_permission(self.lifetime_count),
+                    )?;
+                    post_call_block_builder.add_statement(statement);
+                }
+
                 for expression in postcondition_expressions {
                     let assume_statement = self.encoder.set_statement_error_ctxt(
                         vir_high::Statement::assume_no_pos(expression),
@@ -1708,6 +1774,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ErrorCtxt::ProcedureCall,
                         self.def_id,
                     )?);
+
+                    for lifetime in &lifetimes_to_exhale_inhale {
+                        let statement = self.encode_inhale_lifetime_token(
+                            vir_high::ty::LifetimeConst {
+                                name: lifetime.clone(),
+                            },
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
+                        )?;
+                        cleanup_block_builder.add_statement(statement);
+                    }
+
                     cleanup_block_builder.build();
                     block_builder.set_successor_jump(vir_high::Successor::NonDetChoice(
                         fresh_destination_label,
@@ -1810,17 +1887,114 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    #[allow(clippy::nonminimal_bool)]
     fn encode_specification_block(
         &mut self,
         bb: mir::BasicBlock,
         encoded_statements: &mut Vec<vir_high::Statement>,
     ) -> SpannedEncodingResult<()> {
         let block = &self.mir[bb];
-        if self.try_encode_specification_function_call(bb, block, encoded_statements)? {
+        if false
+            || self.try_encode_assert(bb, block, encoded_statements)?
+            || self.try_encode_assume(bb, block, encoded_statements)?
+            || self.try_encode_specification_function_call(bb, block, encoded_statements)?
+        {
             Ok(())
         } else {
             unreachable!()
         }
+    }
+
+    fn try_encode_assert(
+        &mut self,
+        bb: mir::BasicBlock,
+        block: &mir::BasicBlockData<'tcx>,
+        encoded_statements: &mut Vec<vir_high::Statement>,
+    ) -> SpannedEncodingResult<bool> {
+        for stmt in &block.statements {
+            if let mir::StatementKind::Assign(box (
+                _,
+                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
+            )) = stmt.kind
+            {
+                let assertion = match self.encoder.get_prusti_assertion(cl_def_id) {
+                    Some(spec) => spec,
+                    None => return Ok(false),
+                };
+
+                let span = self
+                    .encoder
+                    .get_definition_span(assertion.assertion.to_def_id());
+
+                let error_ctxt = ErrorCtxt::Panic(PanicCause::Assert);
+
+                let assert_expr = self.encoder.set_expression_error_ctxt(
+                    self.encoder
+                        .encode_invariant_high(self.mir, bb, self.def_id, cl_substs)?,
+                    span,
+                    error_ctxt.clone(),
+                    self.def_id,
+                );
+
+                let assert_stmt = vir_high::Statement::assert_no_pos(assert_expr);
+                let assert_stmt = self.encoder.set_statement_error_ctxt(
+                    assert_stmt,
+                    span,
+                    error_ctxt,
+                    self.def_id,
+                )?;
+
+                encoded_statements.push(assert_stmt);
+
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    fn try_encode_assume(
+        &mut self,
+        bb: mir::BasicBlock,
+        block: &mir::BasicBlockData<'tcx>,
+        encoded_statements: &mut Vec<vir_high::Statement>,
+    ) -> SpannedEncodingResult<bool> {
+        for stmt in &block.statements {
+            if let mir::StatementKind::Assign(box (
+                _,
+                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
+            )) = stmt.kind
+            {
+                let assumption = match self.encoder.get_prusti_assumption(cl_def_id) {
+                    Some(spec) => spec,
+                    None => return Ok(false),
+                };
+
+                let span = self
+                    .encoder
+                    .get_definition_span(assumption.assumption.to_def_id());
+
+                // I don't expect an assumption to raise an error
+                let error_ctxt = ErrorCtxt::Assumption;
+
+                let expr = self.encoder.set_expression_error_ctxt(
+                    self.encoder
+                        .encode_invariant_high(self.mir, bb, self.def_id, cl_substs)?,
+                    span,
+                    error_ctxt.clone(),
+                    self.def_id,
+                );
+
+                let stmt = vir_high::Statement::assume_no_pos(expr);
+                let stmt =
+                    self.encoder
+                        .set_statement_error_ctxt(stmt, span, error_ctxt, self.def_id)?;
+
+                encoded_statements.push(stmt);
+
+                return Ok(true);
+            }
+        }
+        Ok(false)
     }
 
     fn try_encode_specification_function_call(
@@ -1868,9 +2042,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     unreachable!();
                                 }
                             };
-                            let encoded_variant_place = self
-                                .encoder
-                                .encode_place_high(self.mir, *union_variant_place)?;
+                            let encoded_variant_place = self.encoder.encode_place_high(
+                                self.mir,
+                                *union_variant_place,
+                                None,
+                            )?;
                             let statement = self.encoder.set_statement_error_ctxt(
                                 vir_high::Statement::set_union_variant_no_pos(
                                     encoded_variant_place,

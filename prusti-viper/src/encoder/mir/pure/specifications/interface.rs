@@ -180,7 +180,9 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             block: invariant_block,
             statement_index: inv_loc,
         });
-        let inv_cl_expr_encoded = self.encode_place_high(mir, inv_cl_expr).with_span(span)?;
+        let inv_cl_expr_encoded = self
+            .encode_place_high(mir, inv_cl_expr, Some(span))
+            .with_span(span)?;
         let closure_borrow_type = vir_high::Type::reference(
             vir_high::ty::LifetimeConst::erased(),
             vir_high::ty::Uniqueness::Shared,

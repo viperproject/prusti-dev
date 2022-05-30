@@ -6,8 +6,6 @@
 
 //! This module defines the interface provided to a verifier.
 
-
-
 use rustc_middle::mir;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
@@ -15,7 +13,6 @@ use rustc_middle::ty::{self, TyCtxt};
 use rustc_middle::ty::subst::{Subst, SubstsRef};
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use std::path::PathBuf;
-
 use rustc_errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
 use rustc_span::{Span, symbol::Symbol};
 use std::collections::HashSet;
@@ -38,6 +35,8 @@ pub mod polonius_info;
 mod procedure;
 pub mod mir_dump;
 mod traits;
+pub mod mir_body;
+pub mod debug_utils;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
@@ -46,11 +45,7 @@ pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
 pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block, is_loop_invariant_block, get_loop_invariant};
 use self::borrowck::facts::BorrowckFacts;
-// use config;
 use crate::data::ProcedureDefId;
-// use syntax::codemap::CodeMap;
-// use syntax::codemap::Span;
-// use utils::get_attr_value;
 use rustc_span::source_map::SourceMap;
 
 struct CachedBody<'tcx> {

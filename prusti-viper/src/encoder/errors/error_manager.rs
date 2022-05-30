@@ -73,6 +73,9 @@ pub enum ErrorCtxt {
     AssertTerminator(String),
     /// A Viper `assert false` in the context of a bounds check
     BoundsCheckAssert,
+    /// A Viper `assert false` in the context of a hardcoded bounds check (e.g. when we hardcode a `index`)
+    /// TODO: remove this in favor of extern_spec for e.g. the stdlib `fn index(...)`
+    SliceRangeBoundsCheckAssert(String),
     /// A Viper `assert false` that encodes an `abort` Rust terminator
     AbortTerminator,
     /// A Viper `assert false` that encodes an `unreachable` Rust terminator
@@ -136,6 +139,10 @@ pub enum ErrorCtxt {
     LifetimeTake,
     /// Failed to encode LifetimeReturn
     LifetimeReturn,
+    /// An error when inhaling lifetimes
+    LifetimeInhale,
+    /// An error when exhaling lifetimes
+    LifetimeExhale,
     /// Failed to encode OpenMutRef
     OpenMutRef,
     /// Failed to encode OpenFracRef
@@ -146,6 +153,11 @@ pub enum ErrorCtxt {
     CloseFracRef,
     /// Failed to set an active variant of an union.
     SetEnumVariant,
+    /// A user assumption raised an error
+    Assumption,
+    /// The state that fold-unfold algorithm deduced as unreachable, is actually
+    /// reachable.
+    UnreachableFoldingState,
 }
 
 /// The error manager
@@ -418,6 +430,13 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).push_primary_span(opt_cause_span)
             }
 
+            ("assert.failed:assertion.false", ErrorCtxt::DropCall) => {
+                PrustiError::verification(
+                    "the drop handler was called.",
+                    error_span
+                ).push_primary_span(opt_cause_span)
+            }
+
             ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => {
                 PrustiError::verification(
                     "precondition of pure function call might not hold.",
@@ -571,6 +590,14 @@ impl<'tcx> ErrorManager<'tcx> {
             ("application.precondition:assertion.false", ErrorCtxt::BoundsCheckAssert) => {
                 PrustiError::verification(
                     "the array or slice index may be out of bounds".to_string(),
+                    error_span,
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::SliceRangeBoundsCheckAssert(s)) |
+            ("application.precondition:assertion.false", ErrorCtxt::SliceRangeBoundsCheckAssert(s)) => {
+                PrustiError::verification(
+                    s,
                     error_span,
                 ).set_failing_assertion(opt_cause_span)
             }

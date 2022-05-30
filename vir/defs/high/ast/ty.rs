@@ -39,6 +39,7 @@ pub enum Type {
     FunctionDef(FunctionDef),
     Projection(Projection),
     Unsupported(Unsupported),
+    Trusted(Trusted),
 }
 
 #[derive(Copy)]
@@ -197,4 +198,11 @@ pub struct Projection {
 #[display(fmt = "{}", name)]
 pub struct Unsupported {
     pub name: String,
+}
+
+#[display(fmt = "{}<{}>", name, "display::cjoin(arguments)")]
+pub struct Trusted {
+    pub name: String,
+    /// Type arguments.
+    pub arguments: Vec<Type>,
 }

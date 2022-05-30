@@ -77,7 +77,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
     }
 
     fn encode_place(&self, place: mir::Place<'tcx>) -> SpannedEncodingResult<vir_high::Expression> {
-        self.encoder.encode_place_high(self.mir, place)
+        self.encoder.encode_place_high(self.mir, place, None)
     }
 
     fn encode_operand(
@@ -86,7 +86,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         self.encoder
-            .encode_operand_high(self.mir, operand)
+            .encode_operand_high(self.mir, operand, span)
             .with_span(span)
     }
 
@@ -225,7 +225,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 state.substitute_value(&encoded_lhs, encoded_value);
             }
             mir::Rvalue::Discriminant(src) => {
-                let arg = self.encoder.encode_place_high(self.mir, *src)?;
+                let arg = self.encoder.encode_place_high(self.mir, *src, None)?;
                 let expr = self
                     .encoder
                     .encode_discriminant_call(arg, encoded_lhs.get_type().clone())
@@ -235,7 +235,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
             | mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, place)
             | mir::Rvalue::Ref(_, mir::BorrowKind::Shared, place) => {
-                let encoded_place = self.encoder.encode_place_high(self.mir, *place)?;
+                let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
                 let ty = self
                     .encoder
                     .encode_type_of_place_high(self.mir, *place)
@@ -292,7 +292,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 ));
             }
             mir::Rvalue::Len(place) => {
-                let arg = self.encoder.encode_place_high(self.mir, *place)?;
+                let arg = self.encoder.encode_place_high(self.mir, *place, None)?;
                 let expr = self.encoder.encode_len_call(arg).with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }

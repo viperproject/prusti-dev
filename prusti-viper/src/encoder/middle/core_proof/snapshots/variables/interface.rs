@@ -77,7 +77,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 | vir_mid::TypeDecl::Pointer(_) => {
                     unreachable!("place: {}", place);
                 }
-                vir_mid::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", type_decl),
+                vir_mid::TypeDecl::TypeVar(_) | vir_mid::TypeDecl::Trusted(_) => {
+                    unimplemented!("ty: {}", type_decl)
+                }
                 vir_mid::TypeDecl::Tuple(decl) => {
                     // FIXME: Remove duplication with vir_mid::TypeDecl::Struct
                     let place_field = place.clone().unwrap_field(); // FIXME: Implement a macro that takes a reference to avoid clonning.

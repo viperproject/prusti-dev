@@ -230,6 +230,8 @@ pub struct FuncApp {
 
 #[derive(Copy)]
 pub enum BuiltinFunc {
+    LifetimeIncluded,
+    LifetimeIntersect,
     EmptyMap,
     UpdateMap,
     LookupMap,
