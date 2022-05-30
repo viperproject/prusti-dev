@@ -802,6 +802,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             | mir::StatementKind::FakeRead(..)    // FIXME
             // | mir::StatementKind::ReadForMatch(..)
             // | mir::StatementKind::EndRegion(..)
+            | mir::StatementKind::AscribeUserType(..)
              => {
                 // Nothing to do
             }
