@@ -101,7 +101,7 @@ pub(super) fn inline_spec_item<'tcx>(
         if !is_return_arg {
             body_replacements.push((
                 vir_crate::polymorphic::Expr::local(local),
-                target_args[arg_idx].clone()
+                target_args[arg_idx].clone(),
             ));
         }
     }

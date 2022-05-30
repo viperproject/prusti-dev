@@ -1,6 +1,3 @@
-// FIXME: remove this compile flag when the new encoder is finished
-// compile-flags: -Puse_new_encoder=false
-
 use std::marker::PhantomData;
 
 use prusti_contracts::*;
