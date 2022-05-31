@@ -2,6 +2,7 @@
 #![feature(drain_filter)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
+#![feature(proc_macro_span)]
 #![feature(if_let_guard)]
 // This Clippy chcek seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
@@ -21,10 +22,10 @@ mod type_model;
 mod user_provided_type_params;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
-use quote::{quote_spanned, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use rewriter::AstRewriter;
 use std::convert::TryInto;
-use syn::spanned::Spanned;
+use syn::{spanned::Spanned, visit::Visit};
 
 use crate::{
     common::{merge_generics, RewritableReceiver, SelfTypeRewriter},
@@ -652,5 +653,124 @@ pub fn type_model(attr: TokenStream, tokens: TokenStream) -> TokenStream {
             "Only structs can be attributed with a type model",
         )
         .to_compile_error(),
+    }
+}
+
+pub fn ghost(tokens: TokenStream) -> TokenStream {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let callsite_span = Span::call_site();
+
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+
+    let make_closure = |kind| {
+        quote! {
+            #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+            if false {
+                #[prusti::spec_only]
+                #[prusti::#kind]
+                #[prusti::spec_id = #spec_id_str]
+                || -> () {};
+            }
+        }
+    };
+
+    struct Visitor {
+        loops: Vec<(Option<syn::Ident>, Span)>,
+        breaks: Vec<(Option<syn::Ident>, Span)>,
+        returns: Option<Span>,
+    }
+
+    impl<'ast> Visit<'ast> for Visitor {
+        fn visit_expr_for_loop(&mut self, ex: &'ast syn::ExprForLoop) {
+            let e = ex.clone();
+            let lbl = e.label.map(|c| c.name.ident);
+            let span = e.body.brace_token.span;
+            self.loops.push((lbl, span));
+            syn::visit::visit_expr_for_loop(self, ex);
+        }
+        fn visit_expr_while(&mut self, ex: &'ast syn::ExprWhile) {
+            let e = ex.clone();
+            let lbl = e.label.map(|c| c.name.ident);
+            let span = e.body.brace_token.span;
+            self.loops.push((lbl, span));
+            syn::visit::visit_expr_while(self, ex);
+        }
+        fn visit_expr_loop(&mut self, ex: &'ast syn::ExprLoop) {
+            let e = ex.clone();
+            let lbl = e.label.map(|c| c.name.ident);
+            let span = e.body.brace_token.span;
+            self.loops.push((lbl, span));
+            syn::visit::visit_expr_loop(self, ex);
+        }
+        fn visit_expr_continue(&mut self, ex: &'ast syn::ExprContinue) {
+            let e = ex.clone();
+            let lbl = e.label.map(|c| c.ident);
+            self.breaks.push((lbl, ex.span()));
+            syn::visit::visit_expr_continue(self, ex);
+        }
+        fn visit_expr_break(&mut self, ex: &'ast syn::ExprBreak) {
+            let e = ex.clone();
+            let lbl = e.label.map(|c| c.ident);
+            self.breaks.push((lbl, ex.span()));
+            syn::visit::visit_expr_break(self, ex);
+        }
+        fn visit_expr_return(&mut self, e: &'ast syn::ExprReturn) {
+            let e = e.clone();
+            self.returns = Some(e.span());
+        }
+    }
+
+    let mut visitor = Visitor {
+        loops: vec![],
+        breaks: vec![],
+        returns: None,
+    };
+
+    let tokens = quote! {
+        {#tokens}
+    };
+
+    let input = syn::parse::<syn::Block>(tokens.clone().into()).unwrap();
+
+    visitor.visit_block(&input);
+
+    let mut exit_errors = visitor.returns.into_iter().collect::<Vec<_>>();
+
+    'breaks: for (break_label, break_span) in visitor.breaks.iter() {
+        for (loop_label, loop_span) in visitor.loops.iter() {
+            let loop_span = loop_span.unwrap();
+            let label_match = break_label == loop_label || break_label.is_none();
+            let break_inside = loop_span.join(break_span.unwrap()).unwrap().eq(&loop_span);
+            if label_match && break_inside {
+                continue 'breaks;
+            }
+        }
+        exit_errors.push(*break_span);
+    }
+
+    let begin = make_closure(quote! {ghost_begin});
+    let end = make_closure(quote! {ghost_end});
+
+    if exit_errors.is_empty() {
+        quote_spanned! {callsite_span=>
+            {
+                #begin
+                let ghost_result = Ghost::new(#tokens);
+                #end
+                ghost_result
+            }
+        }
+    } else {
+        let mut syn_errors = quote! {};
+        for error in exit_errors {
+            let error =
+                syn::Error::new(error, "Can't leave the ghost block early").to_compile_error();
+            syn_errors = quote! {
+                #syn_errors
+                #error
+            }
+        }
+        syn_errors
     }
 }
