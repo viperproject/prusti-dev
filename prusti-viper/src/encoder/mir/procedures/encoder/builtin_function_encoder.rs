@@ -222,6 +222,9 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             "prusti_contracts::Seq::<T>::lookup" => {
                 make_builtin_call(self, block_builder, vir_high::BuiltinFunc::LookupSeq)?
             }
+            "prusti_contracts::Ghost::<T>::new" => {
+                make_manual_assign(self, block_builder, &mut |_, args, _| args[0].clone())?
+            }
             "std::ops::Index::index" | "core::ops::Index::index" => {
                 let lhs = self
                     .encode_statement_operand(location, &args[0])?

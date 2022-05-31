@@ -579,6 +579,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 "new" => builtin((NewInt, Type::Int(Int::Unbounded))),
                 _ => unreachable!("no further int functions"),
             };
+        } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Ghost::<T>::") {
+            return match proc_name {
+                "new" => subst_with(encoded_args[0].clone()),
+                _ => unreachable!("no further Ghost functions."),
+            };
         }
 
         // replace all the operations on Ints

@@ -69,7 +69,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let type_name: &str = &self.encoder.env().tcx().def_path_str(did);
         matches!(
             type_name,
-            "prusti_contracts::Seq" | "prusti_contracts::Map" | "prusti_contracts::Int"
+            "prusti_contracts::Seq"
+                | "prusti_contracts::Map"
+                | "prusti_contracts::Int"
+                | "prusti_contracts::Ghost"
         )
     }
 
@@ -149,6 +152,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     })
                 } else if type_name == "prusti_contracts::Int" {
                     vir::Type::Int(vir::ty::Int::Unbounded)
+                } else if type_name == "prusti_contracts::Ghost" {
+                    (*enc_substs[0]).clone()
                 } else {
                     vir::Type::struct_(
                         encode_struct_name(self.encoder, adt_def.did()),
@@ -380,6 +385,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         lower_bound: None,
                         upper_bound: None,
                     }),
+                    "prusti_contracts::Ghost" => {
+                        if let ty::subst::GenericArgKind::Type(ty) = substs[0].unpack() {
+                            Self::new(self.encoder, ty).encode_type_def()?
+                        } else {
+                            unreachable!("no type parameter given for Ghost<T>")
+                        }
+                    }
                     _ => {
                         unreachable!();
                     }

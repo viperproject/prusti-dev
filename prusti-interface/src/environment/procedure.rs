@@ -248,6 +248,25 @@ pub fn is_loop_invariant_block<'tcx>(bb_data: &BasicBlockData<'tcx>, tcx: TyCtxt
     get_loop_invariant(bb_data, tcx).is_some()
 }
 
+pub fn is_ghost_begin_marker<'tcx>(bb: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -> bool {
+    is_spec_block_kind(bb, tcx, "ghost_begin")
+}
+
+pub fn is_ghost_end_marker<'tcx>(bb: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -> bool {
+    is_spec_block_kind(bb, tcx, "ghost_end")
+}
+
+fn is_spec_block_kind(bb_data: &BasicBlockData, tcx: TyCtxt, kind: &str) -> bool {
+    for stmt in &bb_data.statements {
+        if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _))) = &stmt.kind {
+            if is_spec_closure(*def_id, &tcx) && crate::utils::has_prusti_attr(crate::utils::get_attributes(tcx, *def_id), kind) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 #[derive(Debug)]
 struct BasicBlockNode {
     successors: HashSet<BasicBlock>,
