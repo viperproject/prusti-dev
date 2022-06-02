@@ -72,6 +72,8 @@ def default_linux_java_loc():
         return '/usr/lib/jvm/default-java'
     elif os.path.exists('/usr/lib/jvm/default'):
         return '/usr/lib/jvm/default'
+    elif os.path.exists('/usr/local/sdkman/candidates/java/current'):
+        return '/usr/local/sdkman/candidates/java/current'
     report("Could not determine default java location.")
 
 
