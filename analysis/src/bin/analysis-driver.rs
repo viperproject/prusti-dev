@@ -1,6 +1,7 @@
 #![feature(rustc_private)]
 
 extern crate polonius_engine;
+extern crate prusti_pcs;
 /// Sources:
 /// https://github.com/rust-lang/miri/blob/master/benches/helpers/miri_helper.rs
 /// https://github.com/rust-lang/rust/blob/master/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
@@ -19,6 +20,9 @@ use analysis::{
         MaybeBorrowedAnalysis, ReachingDefsAnalysis,
     },
 };
+
+use prusti_pcs::pcs::compute_pcs;
+
 use polonius_engine::{Algorithm, Output};
 use rustc_ast::ast;
 use rustc_borrowck::BodyWithBorrowckFacts;
@@ -267,6 +271,10 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                             }
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
                         }
+                    }
+                    "PCSAnalysis" => {
+                        println!("Called PCS Analysis");
+                        compute_pcs();
                     }
                     _ => panic!("Unknown domain argument: {}", abstract_domain),
                 }
