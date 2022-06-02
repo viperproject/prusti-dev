@@ -13,7 +13,7 @@ import subprocess
 import glob
 import csv
 import time
-import json 
+import json
 import signal
 import shutil
 import datetime
@@ -361,7 +361,7 @@ def run_benchmarks(args):
     output_dir = "benchmark-output"
     benchmark_csv = "benchmarked-files.csv"
     results = {}
-    
+
     report_name_suffix = ("-" + args[0]) if len(args) > 0 else ''
 
     env = get_env()
@@ -370,7 +370,7 @@ def run_benchmarks(args):
     server_process = subprocess.Popen([prusti_server_exe,"--port",server_port], env=env)
     time.sleep(2)
     if server_process.poll() != None:
-        raise RuntimeError('Could not start prusti-server') 
+        raise RuntimeError('Could not start prusti-server')
 
     env["PRUSTI_SERVER_ADDRESS"]="localhost:" + server_port
     try:
@@ -378,7 +378,7 @@ def run_benchmarks(args):
         for i in range(warmup_iterations):
             t = measure_prusti_time(warmup_path, env)
             report("warmup run {} took {}", i + 1, t)
-        
+
         report("Finished warmup. Starting benchmark")
         with open(benchmark_csv) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
@@ -399,15 +399,15 @@ def run_benchmarks(args):
     json_result = json.dumps(results, indent = 2)
     timestamp = time.time()
     output_file = os.path.join(output_dir, "benchmark" + report_name_suffix + str(timestamp) + ".json")
-    with open(output_file, "w") as outfile: 
-        outfile.write(json_result) 
-    
+    with open(output_file, "w") as outfile:
+        outfile.write(json_result)
+
     report("Wrote results of benchmark to {}", output_file)
 
 
 def get_prusti_server_path_for_benchmark():
     project_root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
-    
+
     if sys.platform in ("linux", "linux2"):
         return os.path.join(project_root_dir, 'target', 'release', 'prusti-server-driver')
     else:
@@ -416,7 +416,7 @@ def get_prusti_server_path_for_benchmark():
 
 def get_prusti_rustc_path_for_benchmark():
     project_root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
-    
+
     if sys.platform in ("linux", "linux2"):
         return os.path.join(project_root_dir, 'target', 'release', 'prusti-rustc')
     else:
@@ -429,7 +429,7 @@ def measure_prusti_time(input_path, env):
     run_command([prusti_rustc_exe,"--edition=2018", input_path], env=env)
     end_time = time.perf_counter()
     elapsed = end_time - start_time
-    return elapsed  
+    return elapsed
 
 
 
@@ -445,7 +445,7 @@ def select_newest_file(paths):
         error("Could not select the newest file from {}", paths)
 
 
-def verify_test(args):
+def verify_test(args, analyze_quantifiers=False):
     """Runs prusti on the specified files."""
     test = None
     compile_flags = []
@@ -494,10 +494,17 @@ def verify_test(args):
     os.makedirs('log/config', exist_ok=True)
     env['PRUSTI_RUSTC_LOG_ARGS'] = 'log/config/prusti-rustc-args'
     env['PRUSTI_RUSTC_LOG_ENV'] = 'log/config/prusti-rustc-env'
+    def verify_test_on_exit():
+        generate_launch_json(
+            'log/config/prusti-rustc-args',
+            'log/config/prusti-rustc-env'
+        )
+        if analyze_quantifiers:
+            analyze_quantifier_logs(test_path)
     run_command(
         [prusti_path, '--edition=2018', test_path] + compile_flags,
         env,
-        on_exit=lambda : generate_launch_json('log/config/prusti-rustc-args', 'log/config/prusti-rustc-env'),
+        on_exit=verify_test_on_exit,
         report_time=True,
     )
 
@@ -542,6 +549,53 @@ def generate_launch_json(args_file, env_file):
     with open('.vscode/launch.json', 'w') as fp:
         json.dump(content, fp, indent=2)
 
+def analyze_quantifier_logs(test_path):
+    qi_explorer = os.path.join('scripts', 'qi_explorer.py')
+    if not os.path.exists(qi_explorer):
+        shell(
+            'curl https://raw.githubusercontent.com/fpoli/qi-explorer/'
+            'master/script.py -Lo ' + qi_explorer
+        )
+    test_file_name = os.path.basename(test_path)
+    procedures_dir = os.path.join(
+        'log', 'viper_tmp', test_file_name + '*'
+    )
+
+    z3_exe = get_env()['Z3_EXE']
+    for procedure_dir in sorted(glob.glob(procedures_dir)):
+        print("Procedure: ", procedure_dir)
+        smt_files = sorted(glob.glob(
+            os.path.join(procedure_dir, 'logfile-*.smt2')))
+        for smt_file in smt_files:
+            print("  Smt file: ", smt_file)
+            for line in open(smt_file):
+                if line.startswith('; ---------- m_'):
+                    print('    method: ', line[13:-12])
+            log_folder = os.path.splitext(smt_file)[0]
+            os.makedirs(log_folder, exist_ok=True)
+            log_file = os.path.join(log_folder, 'qi.log')
+            csv_file = os.path.join(log_folder, 'qi.csv')
+            svg_file = os.path.join(log_folder, 'qi.svg')
+            command = [
+                z3_exe,
+                'trace=true',
+                'trace_file_name=' + log_file,
+                'smt.qi.profile=true',
+                'smt.qi.profile_freq=10000',
+                smt_file
+            ]
+            with open(os.path.join(log_folder, 'command'), 'w') as fp:
+                fp.write(' '.join(command))
+            result = subprocess.run(command, capture_output=True)
+            with open(os.path.join(log_folder, 'z3.stderr'), 'wb') as fp:
+                fp.write(result.stderr)
+            with open(os.path.join(log_folder, 'z3.stdout'), 'wb') as fp:
+                fp.write(result.stdout)
+            subprocess.run([
+                'python3', qi_explorer, '--input', log_file,
+                '--csv', csv_file, '--svg', svg_file,
+            ])
+
 def clippy_in(cwd):
     """Run cargo clippy in given subproject."""
     run_command(['cargo', 'clippy', '--', '-D', 'warnings'], cwd=cwd)
@@ -572,10 +626,14 @@ def fmt_check_all():
 
 def main(argv):
     global verbose
+    analyze_quantifiers = False
     for i, arg in enumerate(argv):
         if arg.startswith('+'):
             if arg == '+v' or arg == '++verbose':
                 verbose = True
+                continue
+            elif arg == '++analyze-quantifiers':
+                analyze_quantifiers = True
                 continue
             else:
                 error('unknown option: {}', arg)
@@ -589,7 +647,7 @@ def main(argv):
             run_benchmarks(argv[i+1:])
             break
         elif arg == 'verify-test':
-            verify_test(argv[i+1:])
+            verify_test(argv[i+1:], analyze_quantifiers=analyze_quantifiers)
             break
         elif arg == 'exec':
             run_command(argv[i+1:])
