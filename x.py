@@ -104,6 +104,10 @@ def get_linux_env():
         ('JAVA_HOME', java_home),
         ('RUST_TEST_THREADS', '1'),
     ]
+    if java_home is None:
+        error("Could not detect a Java installation.\n" +
+              "If Java is already installed, you can fix this by setting the " +
+              "JAVA_HOME environment variable.")
     if os.path.exists(java_home):
         ld_library_path = None
         for root, _, files in os.walk(java_home):
