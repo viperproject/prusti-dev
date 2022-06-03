@@ -89,47 +89,69 @@ pub struct Assume {
     pub position: Position,
 }
 
-#[display(fmt = "assert {}", expression)]
+#[display(
+    fmt = "assert{} {}",
+    "display::option!(condition, \"<{}>\", \"\")",
+    expression
+)]
 /// Assert the boolean expression.
 pub struct Assert {
     pub expression: Expression,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
 #[display(
+    fmt = "{}{}",
+    "display::condition!(*visited, \"\", \"!\")",
+    basic_block_id
+)]
+#[derive(PartialOrd, Ord)]
+pub struct BlockMarkerConditionElement {
+    pub basic_block_id: BasicBlockId,
+    pub visited: bool,
+}
+
+#[display(fmt = "{}", "display::cjoin(elements)")]
+#[derive(PartialOrd, Ord)]
+pub struct BlockMarkerCondition {
+    pub elements: Vec<BlockMarkerConditionElement>,
+}
+
+#[display(
     fmt = "fold{} {}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     place
 )]
 /// Fold `OwnedNonAliased(place)`.
 pub struct FoldOwned {
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
 #[display(
     fmt = "unfold{} {}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     place
 )]
 /// Unfold `OwnedNonAliased(place)`.
 pub struct UnfoldOwned {
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
 #[display(
     fmt = "join{} {}{}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     place,
     "display::option!(enum_variant, \"[{}]\", \"\")"
 )]
 /// Join `MemoryBlock(place)`.
 pub struct JoinBlock {
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     /// If we are joining ex-enum, then we need to know for which variant.
     pub enum_variant: Option<VariantIndex>,
     pub position: Position,
@@ -137,14 +159,14 @@ pub struct JoinBlock {
 
 #[display(
     fmt = "split{} {}{}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     place,
     "display::option!(enum_variant, \"[{}]\", \"\")"
 )]
 /// Split `MemoryBlock(place)`.
 pub struct SplitBlock {
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     /// If we are splitting for enum, then we need to know for which variant.
     pub enum_variant: Option<VariantIndex>,
     pub position: Position,
@@ -153,26 +175,26 @@ pub struct SplitBlock {
 /// Convert `Owned(place)` into `MemoryBlock(place)`.
 #[display(
     fmt = "convert-owned-memory-block{} {}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     place
 )]
 pub struct ConvertOwnedIntoMemoryBlock {
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
 /// Restore a mutably borrowed place.
 #[display(
     fmt = "restore-mut-borrowed{} &{} {}",
-    "display::option_foreach!(condition, \"<{}>\", \"{},\", \"\")",
+    "display::option!(condition, \"<{}>\", \"\")",
     lifetime,
     place
 )]
 pub struct RestoreMutBorrowed {
     pub lifetime: LifetimeConst,
     pub place: Expression,
-    pub condition: Option<Vec<BasicBlockId>>,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 
@@ -245,12 +267,12 @@ pub struct Dead {
     fmt = "{} := lifetime_take({}, {})",
     target,
     "display::cjoin(value)",
-    rd_perm
+    lifetime_token_permission
 )]
 pub struct LifetimeTake {
     pub target: VariableDecl,
     pub value: Vec<VariableDecl>,
-    pub rd_perm: u32,
+    pub lifetime_token_permission: Expression,
     pub position: Position,
 }
 
@@ -258,24 +280,24 @@ pub struct LifetimeTake {
     fmt = "lifetime_return({}, {}, {})",
     target,
     "display::cjoin(value)",
-    rd_perm
+    lifetime_token_permission
 )]
 pub struct LifetimeReturn {
     pub target: VariableDecl,
     pub value: Vec<VariableDecl>,
-    pub rd_perm: u32,
+    pub lifetime_token_permission: Expression,
     pub position: Position,
 }
 
 #[display(
     fmt = "open_mut_ref({}, rd({}), {})",
     lifetime,
-    token_permission_amount,
+    lifetime_token_permission,
     place
 )]
 pub struct OpenMutRef {
     pub lifetime: LifetimeConst,
-    pub token_permission_amount: u32,
+    pub lifetime_token_permission: Expression,
     pub place: Expression,
     pub position: Position,
 }
@@ -284,7 +306,7 @@ pub struct OpenMutRef {
     fmt = "{} := open_frac_ref({}, rd({}), {})",
     predicate_permission_amount,
     lifetime,
-    token_permission_amount,
+    lifetime_token_permission,
     place
 )]
 pub struct OpenFracRef {
@@ -292,7 +314,7 @@ pub struct OpenFracRef {
     /// The permission amount that we get for accessing `Owned`.
     pub predicate_permission_amount: VariableDecl,
     /// The permission amount taken from the token.
-    pub token_permission_amount: u32,
+    pub lifetime_token_permission: Expression,
     pub place: Expression,
     pub position: Position,
 }
@@ -300,12 +322,12 @@ pub struct OpenFracRef {
 #[display(
     fmt = "close_mut_ref({}, rd({}), {})",
     lifetime,
-    token_permission_amount,
+    lifetime_token_permission,
     place
 )]
 pub struct CloseMutRef {
     pub lifetime: LifetimeConst,
-    pub token_permission_amount: u32,
+    pub lifetime_token_permission: Expression,
     pub place: Expression,
     pub position: Position,
 }
@@ -313,14 +335,14 @@ pub struct CloseMutRef {
 #[display(
     fmt = "close_frac_ref({}, rd({}), {}, {})",
     lifetime,
-    token_permission_amount,
+    lifetime_token_permission,
     place,
     predicate_permission_amount
 )]
 pub struct CloseFracRef {
     pub lifetime: LifetimeConst,
     /// The permission amount taken from the token.
-    pub token_permission_amount: u32,
+    pub lifetime_token_permission: Expression,
     pub place: Expression,
     /// The permission amount that we get for accessing `Owned`.
     pub predicate_permission_amount: VariableDecl,

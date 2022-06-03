@@ -104,6 +104,7 @@ lazy_static! {
         settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
         settings.set_default("only_memory_safety", false).unwrap();
+        settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
 
@@ -545,6 +546,13 @@ pub fn verification_deadline() -> Option<u64> {
 /// **Note:** This option is currently very incomplete.
 pub fn unsafe_core_proof() -> bool {
     read_setting("unsafe_core_proof")
+}
+
+/// When enabled, replaces calls to the drop function with `assert false`.
+///
+/// **Note:** This option is used only for testing.
+pub fn check_no_drops() -> bool {
+    read_setting("check_no_drops")
 }
 
 /// When enabled, only the core proof is verified.

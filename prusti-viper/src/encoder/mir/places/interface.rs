@@ -55,6 +55,7 @@ pub(crate) trait PlacesEncoderInterface<'tcx> {
         &self,
         mir: &mir::Body<'tcx>,
         place: mir::Place<'tcx>,
+        use_span: Option<Span>,
     ) -> SpannedEncodingResult<vir_high::Expression>;
 
     fn encode_type_of_place_high(
@@ -67,13 +68,8 @@ pub(crate) trait PlacesEncoderInterface<'tcx> {
         &self,
         mir: &mir::Body<'tcx>,
         operand: &mir::Operand<'tcx>,
+        use_span: Span,
     ) -> EncodingResult<vir_high::Expression>;
-
-    fn encode_operand_place_high(
-        &self,
-        mir: &mir::Body<'tcx>,
-        operand: &mir::Operand<'tcx>,
-    ) -> EncodingResult<Option<vir_high::Expression>>;
 
     fn encode_unary_op_high(
         &self,
@@ -157,9 +153,10 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         &self,
         mir: &mir::Body<'tcx>,
         place: mir::Place<'tcx>,
+        use_span: Option<Span>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let root = self.encode_local_high(mir, place.local)?;
-        let span = self.get_local_span(mir, place.local)?;
+        let declaration_span = self.get_local_span(mir, place.local)?;
         let mut expr = vir_high::Expression::local_no_pos(root);
         for (i, element) in place.projection.iter().enumerate() {
             let mir_type = {
@@ -169,7 +166,9 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                 };
                 place_ref.ty(mir, self.env().tcx())
             };
-            let ty = self.encode_place_type_high(mir_type).with_span(span)?;
+            let ty = self
+                .encode_place_type_high(mir_type)
+                .with_span(declaration_span)?;
             expr = match element {
                 mir::ProjectionElem::Deref => vir_high::Expression::deref_no_pos(expr, ty),
                 mir::ProjectionElem::Field(field, _) => {
@@ -182,7 +181,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     };
                     let parent_type = self
                         .encode_place_type_high(parent_mir_type)
-                        .with_span(span)?;
+                        .with_span(declaration_span)?;
                     if parent_type.is_union() {
                         // We treat union fields as variants.
                         let union_decl = self.encode_type_def(&parent_type)?.unwrap_union();
@@ -195,7 +194,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                         variant_expression.field_no_pos(encoded_field)
                     } else {
                         let encoded_field =
-                            self.encode_field(&parent_type, field).with_span(span)?;
+                            self.encode_field(&parent_type, field, use_span, declaration_span)?;
                         expr.field_no_pos(encoded_field)
                     }
                 }
@@ -203,7 +202,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     debug!("index: {:?}[{:?}]", expr, index);
                     let encoded_index = self.encode_local_high(mir, index)?.into();
                     self.encode_index_call(expr, encoded_index)
-                        .with_span(span)?
+                        .with_span(declaration_span)?
                 }
                 mir::ProjectionElem::ConstantIndex {
                     offset,
@@ -213,7 +212,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     debug!("constantindex: {:?}[{}]", expr, offset);
                     let encoded_index = offset.into();
                     self.encode_index_call(expr, encoded_index)
-                        .with_span(span)?
+                        .with_span(declaration_span)?
                 }
                 mir::ProjectionElem::ConstantIndex {
                     offset,
@@ -257,28 +256,15 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
         &self,
         mir: &mir::Body<'tcx>,
         operand: &mir::Operand<'tcx>,
+        use_span: Span,
     ) -> EncodingResult<vir_high::Expression> {
         let expr = match operand {
             mir::Operand::Move(place) | mir::Operand::Copy(place) => {
-                self.encode_place_high(mir, *place)?
+                self.encode_place_high(mir, *place, Some(use_span))?
             }
             mir::Operand::Constant(constant) => self.encode_constant_high(constant)?,
         };
         Ok(expr)
-    }
-
-    fn encode_operand_place_high(
-        &self,
-        mir: &mir::Body<'tcx>,
-        operand: &mir::Operand<'tcx>,
-    ) -> EncodingResult<Option<vir_high::Expression>> {
-        let result = match operand {
-            mir::Operand::Move(place) | mir::Operand::Copy(place) => {
-                Some(self.encode_place_high(mir, *place)?)
-            }
-            &mir::Operand::Constant(_) => None,
-        };
-        Ok(result)
     }
 
     fn encode_unary_op_high(
@@ -505,7 +491,9 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
             | (ty::TyKind::Uint(ty::UintTy::U64), ty::TyKind::Uint(ty::UintTy::U128))
             | (ty::TyKind::Uint(ty::UintTy::U128), ty::TyKind::Uint(ty::UintTy::U128))
             | (ty::TyKind::Uint(ty::UintTy::Usize), ty::TyKind::Uint(ty::UintTy::Usize)) => {
-                let mut value = self.encode_operand_high(mir, operand).with_span(span)?;
+                let mut value = self
+                    .encode_operand_high(mir, operand, span)
+                    .with_span(span)?;
                 value.set_type(destination_type);
                 value
             }
@@ -519,7 +507,9 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
             | (ty::TyKind::Uint(_), ty::TyKind::Char)
             | (ty::TyKind::Uint(_), ty::TyKind::Int(_))
             | (ty::TyKind::Uint(_), ty::TyKind::Uint(_)) => {
-                let mut encoded_operand = self.encode_operand_high(mir, operand).with_span(span)?;
+                let mut encoded_operand = self
+                    .encode_operand_high(mir, operand, span)
+                    .with_span(span)?;
                 if prusti_common::config::check_overflows() {
                     // Check the cast
                     // FIXME: Should use a high function.

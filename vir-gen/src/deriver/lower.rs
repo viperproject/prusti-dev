@@ -352,6 +352,9 @@ impl<'a> Deriver<'a> {
         target_struct: Option<&syn::ItemStruct>,
     ) -> bool {
         if let Some(target_struct) = target_struct {
+            if target_struct.fields.len() != source_struct.fields.len() {
+                return false;
+            }
             for source_field in &source_struct.fields {
                 if !target_struct.fields.iter().any(|target_field| {
                     source_field.ident == target_field.ident && source_field.ty == target_field.ty

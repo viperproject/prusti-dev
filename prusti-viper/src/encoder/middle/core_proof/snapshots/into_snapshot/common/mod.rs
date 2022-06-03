@@ -3,8 +3,9 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
+        lifetimes::*,
         references::ReferencesInterface,
-        snapshots::{SnapshotDomainsInterface, SnapshotValuesInterface},
+        snapshots::{IntoSnapshot, SnapshotDomainsInterface, SnapshotValuesInterface},
     },
 };
 use vir_crate::{
@@ -233,6 +234,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             vir_mid::Type::MFloat64 => unimplemented!(),
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
+            vir_mid::Type::MPerm => vir_low::Type::Perm,
             _ => unimplemented!("constant: {:?}", constant),
         };
         let argument = vir_low::Expression::Constant(vir_low::expression::Constant {
@@ -246,6 +248,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 | vir_mid::Type::MInt
                 | vir_mid::Type::MFloat32
                 | vir_mid::Type::MFloat64
+                | vir_mid::Type::MPerm
         );
         if is_already_math_type || (constant.ty == vir_mid::Type::Bool && expect_math_bool) {
             Ok(argument)
@@ -312,6 +315,47 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         op: &vir_mid::BinaryOp,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        // FIXME: Binary Operations with MPerm should not be handled manually as special cases
+        //   They are difficult because binary operations with MPerm and Integer values are allowed.
+        //   Also some of them translate tot PermBinaryOp.
+        if let box vir_mid::Expression::Local(local) = &op.left {
+            if let box vir_mid::Expression::Constant(constant) = &op.right {
+                if let vir_mid::Type::MPerm = local.get_type() {
+                    if let vir_mid::Type::MPerm = constant.get_type() {
+                        if op.op_kind == vir_mid::BinaryOpKind::Div {
+                            let left_snapshot =
+                                self.expression_to_snapshot(lowerer, &op.left, false)?;
+                            let value =
+                                self.constant_value_to_snapshot(lowerer, &constant.value)?;
+                            let right_snapshot =
+                                vir_low::Expression::constant_no_pos(value, vir_low::ty::Type::Int);
+                            return Ok(vir_low::Expression::perm_binary_op(
+                                vir_low::ast::expression::PermBinaryOpKind::Div,
+                                left_snapshot,
+                                right_snapshot,
+                                op.position,
+                            ));
+                        } else if op.op_kind == vir_mid::BinaryOpKind::GtCmp
+                            || op.op_kind == vir_mid::BinaryOpKind::LtCmp
+                        {
+                            let left_snapshot =
+                                self.expression_to_snapshot(lowerer, &op.left, false)?;
+                            let right_snapshot =
+                                self.expression_to_snapshot(lowerer, &op.right, false)?;
+                            let arg_type = op.left.get_type();
+                            assert_eq!(arg_type, op.right.get_type());
+                            return Ok(vir_low::Expression::binary_op(
+                                op.op_kind.to_snapshot(lowerer)?,
+                                left_snapshot,
+                                right_snapshot,
+                                op.position,
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+
         let expect_math_bool_args = expect_math_bool
             && matches!(
                 op.op_kind,
@@ -453,6 +497,33 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             BuiltinFunc::SeqLen => {
                 let value = seq(ContainerOpKind::SeqLen)?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
+            }
+            BuiltinFunc::LifetimeIncluded => {
+                assert_eq!(args.len(), 2);
+                lowerer.encode_lifetime_included()?;
+                Ok(vir_low::Expression::domain_function_call(
+                    "Lifetime",
+                    "included$",
+                    args,
+                    vir_low::ty::Type::Bool,
+                ))
+            }
+            BuiltinFunc::LifetimeIntersect => {
+                assert!(!args.is_empty());
+                let intersect_expr = if args.len() >= 2 {
+                    lowerer.encode_lifetime_intersect(args.len())?;
+                    vir_low::Expression::domain_function_call(
+                        "Lifetime",
+                        format!("intersect${}", args.len()),
+                        args,
+                        vir_low::ty::Type::Domain(vir_low::ty::Domain {
+                            name: "Lifetime".to_string(),
+                        }),
+                    )
+                } else {
+                    args.get(0).unwrap().clone()
+                };
+                Ok(intersect_expr)
             }
             BuiltinFunc::EmptySeq | BuiltinFunc::SingleSeq => Ok(vir_low::Expression::seq(
                 ty_args[0].clone(),

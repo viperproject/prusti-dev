@@ -4,9 +4,11 @@ use log::trace;
 use prusti_specs::specifications::common;
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::{DefId, LocalDefId};
-use std::{collections::HashMap, fmt::Debug};
-use std::fmt::{Display, Formatter};
 use rustc_span::Span;
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display, Formatter},
+};
 
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
@@ -14,6 +16,8 @@ pub struct DefSpecificationMap {
     pub proc_specs: HashMap<DefId, SpecGraph<ProcedureSpecification>>,
     pub loop_specs: HashMap<DefId, LoopSpecification>,
     pub type_specs: HashMap<DefId, TypeSpecification>,
+    pub prusti_assertions: HashMap<DefId, PrustiAssertion>,
+    pub prusti_assumptions: HashMap<DefId, PrustiAssumption>,
 }
 
 impl DefSpecificationMap {
@@ -31,6 +35,14 @@ impl DefSpecificationMap {
 
     pub fn get_type_spec(&self, def_id: &DefId) -> Option<&TypeSpecification> {
         self.type_specs.get(def_id)
+    }
+
+    pub fn get_assertion(&self, def_id: &DefId) -> Option<&PrustiAssertion> {
+        self.prusti_assertions.get(def_id)
+    }
+
+    pub fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
+        self.prusti_assumptions.get(def_id)
     }
 }
 
@@ -102,6 +114,16 @@ impl TypeSpecification {
             trusted: SpecificationItem::Inherent(false),
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct PrustiAssertion {
+    pub assertion: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct PrustiAssumption {
+    pub assumption: LocalDefId,
 }
 
 /// The base container to store a contract of a procedure.
@@ -225,7 +247,9 @@ impl SpecGraph<ProcedureSpecification> {
         match self.get_constraint(post, env) {
             None => {
                 self.base_spec.posts.push(post);
-                self.specs_with_constraints.values_mut().for_each(|s| s.posts.push(post));
+                self.specs_with_constraints
+                    .values_mut()
+                    .for_each(|s| s.posts.push(post));
             }
             Some(obligation) => {
                 self.get_constrained_spec_mut(obligation).posts.push(post);
@@ -244,19 +268,25 @@ impl SpecGraph<ProcedureSpecification> {
     /// Sets the trusted flag for the base spec and all constrained specs.
     pub fn set_trusted(&mut self, trusted: bool) {
         self.base_spec.trusted.set(trusted);
-        self.specs_with_constraints.values_mut().for_each(|s| s.trusted.set(trusted));
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.trusted.set(trusted));
     }
 
     /// Sets the [ProcedureSpecificationKind] for the base spec and all constrained specs.
     pub fn set_kind(&mut self, kind: ProcedureSpecificationKind) {
         self.base_spec.kind.set(kind);
-        self.specs_with_constraints.values_mut().for_each(|s| s.kind.set(kind));
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.kind.set(kind));
     }
 
     /// Sets the span for the base spec and all constrained specs.
     pub fn set_span(&mut self, span: Span) {
         self.base_spec.span = Some(span);
-        self.specs_with_constraints.values_mut().for_each(|s| s.span = Some(span));
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.span = Some(span));
     }
 
     /// Lazily gets/creates a constrained spec.
@@ -408,15 +438,17 @@ pub enum ProcedureSpecificationKindError {
     /// However, we can not refine a non-predicate to a predicate, since predicates are not callable.
     /// This validation is not automatically performed during refinement. It needs to be invoked
     /// manually with [SpecificationItem<ProcedureSpecificationKind>::validate]
-    InvalidSpecKindRefinement(ProcedureSpecificationKind, ProcedureSpecificationKind)
+    InvalidSpecKindRefinement(ProcedureSpecificationKind, ProcedureSpecificationKind),
 }
 
 impl SpecificationItem<ProcedureSpecificationKind> {
     pub fn is_pure(&self) -> Result<bool, ProcedureSpecificationKindError> {
         self.validate()?;
 
-        Ok(matches!(self.extract_with_selective_replacement(),
-                Some(ProcedureSpecificationKind::Pure) | Some(ProcedureSpecificationKind::Predicate(_))))
+        Ok(matches!(
+            self.extract_with_selective_replacement(),
+            Some(ProcedureSpecificationKind::Pure) | Some(ProcedureSpecificationKind::Predicate(_))
+        ))
     }
 
     pub fn is_impure(&self) -> Result<bool, ProcedureSpecificationKindError> {
@@ -428,12 +460,14 @@ impl SpecificationItem<ProcedureSpecificationKind> {
         })
     }
 
-    pub fn get_predicate_body(&self) -> Result<Option<&LocalDefId>, ProcedureSpecificationKindError> {
+    pub fn get_predicate_body(
+        &self,
+    ) -> Result<Option<&LocalDefId>, ProcedureSpecificationKindError> {
         self.validate()?;
 
         Ok(match self.extract_with_selective_replacement() {
             Some(ProcedureSpecificationKind::Predicate(pred_id)) => pred_id.as_ref(),
-            _ => None
+            _ => None,
         })
     }
 
@@ -443,11 +477,12 @@ impl SpecificationItem<ProcedureSpecificationKind> {
         use ProcedureSpecificationKind::*;
         if let SpecificationItem::Refined(base, refined) = self {
             match (base, refined) {
-                (Impure, Impure) |
-                (Impure, Pure) |
-                (Pure, Pure) |
-                (Predicate(_), Predicate(_)) => Ok(()),
-                _ => Err(ProcedureSpecificationKindError::InvalidSpecKindRefinement(*base, *refined))
+                (Impure, Impure) | (Impure, Pure) | (Pure, Pure) | (Predicate(_), Predicate(_)) => {
+                    Ok(())
+                }
+                _ => Err(ProcedureSpecificationKindError::InvalidSpecKindRefinement(
+                    *base, *refined,
+                )),
             }
         } else {
             Ok(())
@@ -486,7 +521,9 @@ impl<T: Clone> SpecificationItem<Vec<T>> {
 }
 
 pub trait Refinable {
-    fn refine(self, other: &Self) -> Self where Self: Sized;
+    fn refine(self, other: &Self) -> Self
+    where
+        Self: Sized;
 }
 
 impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
@@ -693,8 +730,8 @@ mod tests {
 
     mod specification_item_kind {
         use super::*;
-        use SpecificationItem::*;
         use ProcedureSpecificationKind::*;
+        use SpecificationItem::*;
 
         mod invalid_refinements {
             use super::*;
@@ -703,35 +740,50 @@ mod tests {
             fn refine_impure_with_predicate() {
                 let item = Refined(Impure, Predicate(None));
                 let result = item.validate().expect_err("Expected error");
-                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+                assert!(matches!(
+                    result,
+                    ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)
+                ));
             }
 
             #[test]
             fn refine_pure_with_impure() {
                 let item = Refined(Pure, Impure);
                 let result = item.validate().expect_err("Expected error");
-                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+                assert!(matches!(
+                    result,
+                    ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)
+                ));
             }
 
             #[test]
             fn refine_pure_with_predicate() {
                 let item = Refined(Pure, Predicate(None));
                 let result = item.validate().expect_err("Expected error");
-                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+                assert!(matches!(
+                    result,
+                    ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)
+                ));
             }
 
             #[test]
             fn refine_predicate_with_pure() {
                 let item = Refined(Predicate(None), Pure);
                 let result = item.validate().expect_err("Expected error");
-                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+                assert!(matches!(
+                    result,
+                    ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)
+                ));
             }
 
             #[test]
             fn refine_predicate_with_impure() {
                 let item = Refined(Predicate(None), Impure);
                 let result = item.validate().expect_err("Expected error");
-                assert!(matches!(result, ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)));
+                assert!(matches!(
+                    result,
+                    ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)
+                ));
             }
         }
 

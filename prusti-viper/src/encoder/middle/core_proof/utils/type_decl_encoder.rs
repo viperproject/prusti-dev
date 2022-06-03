@@ -237,7 +237,7 @@ pub(in super::super) trait TypeDeclWalker {
             // vir_mid::Type::Never => {},
             // vir_mid::Type::Closure(Closure) => {},
             // vir_mid::Type::Unsupported(Unsupported) => {},
-            x => unimplemented!("{}", x),
+            x => unimplemented!("{} {:?}", x, x),
         }
     }
     fn after_primitive(

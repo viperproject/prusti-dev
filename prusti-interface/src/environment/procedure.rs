@@ -16,7 +16,7 @@ use log::{trace, debug};
 use rustc_middle::mir::StatementKind;
 use rustc_hir::def_id;
 use crate::environment::mir_utils::RealEdges;
-use crate::environment::mir_dump::graphviz::to_text::ToText;
+use crate::environment::debug_utils::to_text::ToText;
 use crate::environment::Environment;
 
 /// Index of a Basic Block
