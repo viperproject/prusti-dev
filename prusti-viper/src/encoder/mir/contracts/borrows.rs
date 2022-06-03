@@ -152,6 +152,21 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         EncodingError::unsupported(msg.to_string())
     }
 
+    fn visit_adt_variant(
+        &mut self,
+        adt: ty::AdtDef<'tcx>,
+        idx: rustc_target::abi::VariantIdx,
+        variant: &ty::VariantDef,
+        substs: ty::subst::SubstsRef<'tcx>,
+    ) -> Result<(), Self::Error> {
+        trace!("visit_adt_variant({:?})", variant);
+        let old_path = self.current_path.take().unwrap();
+        self.current_path = Some(self.tcx.mk_place_downcast(old_path, adt, idx));
+        type_visitor::walk_adt_variant(self, variant, substs)?;
+        self.current_path = Some(old_path);
+        Ok(())
+    }
+
     fn visit_field(
         &mut self,
         index: usize,
