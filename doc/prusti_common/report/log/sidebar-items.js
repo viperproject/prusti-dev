@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["build_writer",""],["report",""],["report_with_writer",""]]});
+initSidebarItems({"fn":[["build_writer",""],["report",""],["report_with_writer",""],["to_legal_file_name",""]]});
