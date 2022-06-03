@@ -13,7 +13,8 @@ pub use self::{
         function::FunctionDecl,
         position::Position,
         predicate::{
-            MemoryBlockHeap, MemoryBlockHeapDrop, MemoryBlockStack, MemoryBlockStackDrop, Predicate,
+            LifetimeToken, MemoryBlockHeap, MemoryBlockHeapDrop, MemoryBlockStack,
+            MemoryBlockStackDrop, Predicate,
         },
         rvalue::{Operand, OperandKind, Rvalue},
         statement::{

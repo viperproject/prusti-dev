@@ -43,6 +43,7 @@ impl IntoPolymorphic<vir_poly::Type> for vir_high::Type {
             vir_high::Type::FunctionDef(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
             vir_high::Type::Projection(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
             vir_high::Type::Unsupported(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
+            vir_high::Type::Trusted(ty) => vir_poly::Type::TypedRef(ty.lower(encoder)),
             vir_high::Type::Lifetime => unreachable!("Lifetimes ignored"),
         })
     }
@@ -151,6 +152,12 @@ impl IntoPolymorphic<vir_poly::TypedRef> for vir_high::ty::Projection {
 }
 
 impl IntoPolymorphic<vir_poly::TypedRef> for vir_high::ty::Unsupported {
+    fn lower(&self, _encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::TypedRef {
+        vir_poly::TypedRef::new(self.name.clone(), Vec::new())
+    }
+}
+
+impl IntoPolymorphic<vir_poly::TypedRef> for vir_high::ty::Trusted {
     fn lower(&self, _encoder: &impl HighTypeEncoderInterfacePrivate) -> vir_poly::TypedRef {
         vir_poly::TypedRef::new(self.name.clone(), Vec::new())
     }

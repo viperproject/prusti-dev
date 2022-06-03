@@ -49,6 +49,8 @@ RUSTFMT_PATHS = [
     'prusti-interface/src/environment/mir_dump/mod.rs',
     'prusti-interface/src/environment/mir_analyses/mod.rs',
     'prusti-interface/src/environment/mir_sets/mod.rs',
+    'prusti-interface/src/environment/mir_body/mod.rs',
+    'prusti-interface/src/environment/debug_utils/mod.rs',
     'prusti-tests/tests/verify_partial/**/*.rs',
     'prusti-viper/src/encoder/foldunfold/mod.rs',
     'prusti-viper/src/encoder/mir/mod.rs',
@@ -70,6 +72,8 @@ def default_linux_java_loc():
         return '/usr/lib/jvm/default-java'
     elif os.path.exists('/usr/lib/jvm/default'):
         return '/usr/lib/jvm/default'
+    elif os.path.exists('/usr/local/sdkman/candidates/java/current'):
+        return '/usr/local/sdkman/candidates/java/current'
     report("Could not determine default java location.")
 
 
