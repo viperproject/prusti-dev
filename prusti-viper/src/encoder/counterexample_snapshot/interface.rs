@@ -29,7 +29,7 @@ pub(crate) struct BasicBlock {
 
 impl MirProcedureMapping{
     fn translate_procedure_decl(&mut self, procedure: &vir_low::ProcedureDecl) -> Vec<BasicBlock>{       
-        //info!("print procedure: {:?}", procedure); 
+        info!("print procedure: {:?}", procedure); 
         procedure.basic_blocks.iter().map(
             | basic_block | {
                 let mut stmts = Vec::new();
@@ -39,13 +39,9 @@ impl MirProcedureMapping{
                         vir_low::Statement::Assume(_) |
                         vir_low::Statement::Assert(_) => stmts.push(statement.clone()),
                         vir_low::Statement::Inhale(inhale) => {
-                            //if basic_block.label.name == "start_label" { //extract the parameter
-                            info!("start_label");
-                            if let Some(assume_stmt) = self.extract_param_owned_non_aliased(&inhale.expression){
+                            if let Some(assume_stmt) = self.extract_owned_non_aliased(&inhale.expression){
                                 stmts.push(assume_stmt);
-                            }
-                            //}
-                            //stmts.push(vir_low::Statement::Inhale(inhale.clone()))
+                            }          
                         },
                         //vir_low::Statement::Assert(assert) => stmts.push(vir_low::Statement::Assert(assert.clone())),
                         _ => (),
@@ -71,7 +67,7 @@ impl MirProcedureMapping{
             }
         ).collect::<Vec<BasicBlock>>()
     }
-    fn extract_param_owned_non_aliased (&self, expression: &vir_low::Expression) -> Option<vir_low::Statement>{
+    fn extract_owned_non_aliased (&self, expression: &vir_low::Expression) -> Option<vir_low::Statement>{
          match &expression {
             vir_low::Expression::PredicateAccessPredicate(predicate_access_predicate) => {
                 if predicate_access_predicate.name.contains("OwnedNonAliased$"){
@@ -86,7 +82,7 @@ impl MirProcedureMapping{
                 }
                 None
             },
-            vir_low::Expression::BinaryOp(binary_op) => self.extract_param_owned_non_aliased(&binary_op.left),
+            vir_low::Expression::BinaryOp(binary_op) => self.extract_owned_non_aliased(&binary_op.left),
             _ => None, 
          }
     }

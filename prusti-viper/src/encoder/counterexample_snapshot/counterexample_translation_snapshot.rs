@@ -42,7 +42,6 @@ pub fn backtranslate(
 //Cache for domains
 #[derive(Default)]
 struct TranslatedDomains{
-    in_progress: Vec<(String, String)>, //(domain name, var name)
     cached_domains: FxHashMap<(String, String), Entry>,
 }
 
@@ -56,7 +55,6 @@ pub struct CounterexampleTranslator<'ce, 'tcx> {
     //pub(super) disc_info: FxHashMap<(ProcedureDefId, String), Vec<String>>, //not used anymore
     var_debug_info: Vec<VarDebugInfo<'tcx>>,
     local_variable_manager: LocalVariableManager<'tcx>, 
-    translated_domains: FxHashMap<String, Entry>, // will be used
     pub(super) var_mapping: VarMapping, 
     
 }
@@ -81,7 +79,6 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             //disc_info: encoder.discriminants_info(),
             var_debug_info,
             local_variable_manager,
-            translated_domains: FxHashMap::default(),
             var_mapping: Default::default(),
         }
     }
@@ -90,8 +87,6 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         debug!("silicon_counterexample_model: {:?}",&self.silicon_counterexample.model.entries);
         self.var_mapping.labels_successor_mapping.iter().map(
             | (label, _) | {
-                debug!("label_markers labels: {:?}", label);
-                
                 match self.silicon_counterexample.model.entries.get(&format!("{}$marker",label)){
                     Some(ModelEntry::LitBool(b)) => (label.clone(), b.clone()),
                     _ => (label.clone(), false) //label marker not found is equivalent with label not visited (should not be impossible) 
@@ -104,13 +99,18 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         let mut label = &format!("start_label");
         let mut snapshot_var_vec = Vec::new();
         if let Some(label_snapshot_mapping) = self.var_mapping.var_snaphot_mapping.get(var){
-            while let Some(next) = self.get_successor(label, label_markers){
-                debug!("value of next {:?}: ", next);
+            loop {
+                debug!("label: {:?} and mapping: {:?}", label, label_snapshot_mapping);
                 if let Some(snapshot_vars) = label_snapshot_mapping.get(label){ //misssing .name, Span);
                     debug!("value of snapshot_vars {:?}: ", snapshot_vars);
                     snapshot_var_vec.extend(snapshot_vars.iter().map(|x| (x.name.clone(), self.get_span(position_manager, &x.position))));
                 }
-                label = next;
+                if let Some(next) = self.get_successor(label, label_markers){
+                    debug!("value of next {:?}: ", next);
+                    label = next;
+                } else {
+                    break;
+                }
             }
         }
         debug!("trace of var {:?}: {:?}", var, snapshot_var_vec);
@@ -149,6 +149,9 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         let return_local = Local::from(mir::Local::from_usize(0));
         let typ = self.local_variable_manager.get_type(return_local);
         let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
+        debug!("rust typ: {:?}", &typ.kind());
+        debug!("vir name: {:?}", &vir_name);
+        debug!("trace: {:?}", &trace);
         let history = self.process_entry(&trace, typ, &mut translated_domains);
         entries.push( CounterexampleEntry::new(None, history));
         entries
@@ -159,57 +162,11 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         for (snapshot_var, span) in trace{ //FIXME is domain_name really needed?
             debug!("start translation for {:?}", snapshot_var);
             let model_entry = self.silicon_counterexample.model.entries.get(snapshot_var);
-            let entry = if trace.len() == 1 && snapshot_var.contains("snapshot$0"){
-                self.translate_snapshot_entry(model_entry, Some(ty), translated_domains,true)
-            } else {
-                self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, true)
-            };
+            let entry = self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, false);
             entries.push((entry, span.clone()));
-            /*if let Some(other) = domain_name {
-                debug!("found other: {:?}", other);
-                let model_entry_other = self.silicon_counterexample.model.entries.get(other);
-                let entry_other = self.translate_snapshot_entry(model_entry, Some(ty), true);
-                entries.push((entry_other, span.clone()));
-            }*/
         }        
         entries
     }
-
-    /*fn process_snapshot_var(&self, model_entry: &ModelEntry) -> Entry{
-        match model_entry{
-            ModelEntry::LitInt(string) => Entry::Int(string.clone()),
-            ModelEntry::LitFloat(string) => Entry::Float(string.clone()),
-            ModelEntry::LitBool(bool) => Entry::Bool(bool.clone()),
-            //ModelEntry::Ref(string, fxHashMap) => Entry::Unknown, //?? Still prossible
-            //ModelEntry::NullRef(string)=> Entry::Unknown,//?? Still prossible
-            //ModelEntry::RecursiveRef(string)=> Entry::Unknown, //?? Still prossible
-            ModelEntry::DomainValue(domain_name, var_entry) => {
-                debug!("DomainValue: \n   domain: {}\n   var_entry: {:?}", domain_name, var_entry);
-                if let Some(domain_entry) = self.silicon_counterexample.domains.entries.get(domain_name){
-
-                    let fn_name = format!{"destructor${}$$value", domain_name};
-                    /*if (domain_name.ends_with("$")){ //sometimes the domain name is Snap$X and sometimes it is Snap$X
-                        format!{"destructor${}$value", domain_name}
-                    } else {
-                        format!{"destructor${}$$value", domain_name}
-                    };*/
-                    let params = vec![Some(model_entry.clone())];
-                    debug!("function name: {:?}", &fn_name);
-                    debug!("function params: {:?}", &params);
-                    if let Some(function_entry) = domain_entry.functions.entries.get(&fn_name){
-                        debug!("function entry: {:?}", &function_entry);
-                        if let Some(function_result) = function_entry.get_function_value(&params){
-                            debug!("function result: {:?}", function_result);
-                            return self.process_snapshot_var(function_result)
-                        }   
-                    }
-                } 
-                Entry::Unknown
-            },
-            _ => Entry::Unknown,
-        }
-    }*/
-
     fn translate_snapshot_entry(&self,
         /*typ: Ty<'tcx>,
         snapshot_var: Option<&ModelEntry>,
@@ -220,8 +177,18 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         translated_domains: &mut TranslatedDomains,
         default: bool, //if we use default cases
     ) -> Entry {
+        if let Some(ModelEntry::DomainValue(domain, var)) = model_entry{
+            if let Some(entry) = translated_domains.cached_domains.get(&(domain.clone(), var.clone())){
+                debug!("found in cache");
+                return entry.clone();
+            }
+        }
+        /*if let Some(entry) = model_entry.and_then(|x| translated_domains.cached_domains.get(x)){ //check cache
+            debug!("found in cache");
+            return entry; 
+        }*/
         debug!("typ: {:?}", typ.and_then(|x| Some(x.kind())));
-        match (model_entry, typ.and_then(|x| Some(x.kind()))){
+        let entry = match (model_entry, typ.and_then(|x| Some(x.kind()))){
             (Some(ModelEntry::LitInt(string)),_) => Entry::Int(string.clone()),
             (Some(ModelEntry::LitFloat(string)),_) => Entry::Float(string.clone()),
             (Some(ModelEntry::LitBool(bool)),_) => Entry::Bool(bool.clone()),
@@ -339,7 +306,12 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 self.extract_field_value(&sil_fn_name, None, model_entry, sil_domain, translated_domains, default)
             }  
             _ => Entry::Unknown,
+        };
+        if let Some(ModelEntry::DomainValue(domain, var)) = model_entry{//save in cache
+            debug!("save in cache");
+            translated_domains.cached_domains.insert((domain.clone(), var.clone()), entry.clone());
         }
+        entry
     }
     
     fn translate_snapshot_adt_fields(&self,
