@@ -7,6 +7,7 @@
 //! This module defines functions for log messages, meant for developers
 
 use crate::config;
+use crate::utils::identifiers::encode_identifier;
 use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
@@ -22,7 +23,7 @@ fn log_dir() -> Option<PathBuf> {
 }
 
 pub fn to_legal_file_name<S: ToString>(name: S) -> String {
-    let mut name_string = name.to_string();
+    let mut name_string = encode_identifier(name.to_string());
     if cfg!(target_os = "windows") {
         name_string = name_string.chars()
             .map(|x| match x {
@@ -31,7 +32,10 @@ pub fn to_legal_file_name<S: ToString>(name: S) -> String {
             }).collect();
     }
     if name_string.len() > config::max_log_file_name_length() {
-        let end = name_string.rfind('.').unwrap();
+        let mut end = name_string.rfind('.').unwrap();
+        if name_string.len() - end > 5 {
+            end = name_string.len()-1;
+        };
         let start = end - (name_string.len() - config::max_log_file_name_length());
         name_string.drain(start..end);
     }
