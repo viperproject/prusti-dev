@@ -118,6 +118,7 @@ impl<'ce, 'tcx> VarMappingInterface for super::counterexample_translation_snapsh
                     None
                 }
             }, 
+            vir_low::Expression::DomainFuncApp(DomainFuncApp{domain_name: _, function_name, arguments, .. }) | 
             vir_low::Expression::BinaryOp(BinaryOp{ op_kind:BinaryOpKind::EqCmp ,  left:box vir_low::Expression::DomainFuncApp(DomainFuncApp{domain_name: _, function_name, arguments, .. }), ..}) => {
                 if arguments.len() == 1 && function_name.contains("target_current") { //difference between target_final and target_current //pointer
                     self.extract_var_from_assume(&Assume{expression: arguments.first().unwrap().clone(), position: vir_low::Position::default()})

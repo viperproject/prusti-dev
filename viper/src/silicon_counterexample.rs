@@ -102,6 +102,7 @@ pub struct DomainEntry{
 
 impl FunctionEntry{
     pub fn get_function_value(&self, params: &Vec<Option<ModelEntry>>) -> &Option<ModelEntry>{
+        debug!("all options: {:?}", &self.options);
         for option in &self.options{
             debug!("posssible option: {:?}", &option.0);
             debug!("params: {:?}", params);
