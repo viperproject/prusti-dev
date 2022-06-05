@@ -16,10 +16,14 @@ import time
 import json
 import signal
 import shutil
+import traceback
 import datetime
 
 verbose = False
 dry_run = False
+
+JAVA_NOT_FOUND_ERR_MSG = """Could not detect a Java installation.
+If Java is already installed, you can fix this by setting the JAVA_HOME environment variable."""
 
 RUSTFMT_CRATES = [
     'analysis',
@@ -88,6 +92,12 @@ def error(template, *args, **kwargs):
     print(template.format(*args, **kwargs))
     sys.exit(1)
 
+def ensure(condition, err_msg):
+    """If `condition` is `False`, print `err_msg` along with a stacktrace, and abort"""
+    if not condition:
+        traceback.print_stack()
+        error(err_msg)
+
 
 def get_var_or(name, default):
     """If environment variable `name` set, return its value or `default`."""
@@ -96,10 +106,10 @@ def get_var_or(name, default):
     else:
         return default
 
-
 def get_linux_env():
     """Get environment variables for Linux."""
     java_home = get_var_or('JAVA_HOME', default_linux_java_loc())
+    ensure(java_home is not None, JAVA_NOT_FOUND_ERR_MSG)
     variables = [
         ('JAVA_HOME', java_home),
         ('RUST_TEST_THREADS', '1'),
@@ -145,6 +155,8 @@ def get_mac_env():
         else:
             variables.append(('LD_LIBRARY_PATH', ld_library_path))
             variables.append(('DYLD_LIBRARY_PATH', ld_library_path))
+    else:
+        error(JAVA_NOT_FOUND_ERR_MSG)
     viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/server'))
     if not os.path.exists(viper_home):
         viper_home = os.path.abspath('viper_tools/backends')
@@ -159,6 +171,7 @@ def get_mac_env():
 def get_win_env():
     """Get environment variables for Windows."""
     java_home = get_var_or('JAVA_HOME', None)
+    ensure(java_home is not None, JAVA_NOT_FOUND_ERR_MSG)
     variables = [
         ('JAVA_HOME', java_home),
         ('RUST_TEST_THREADS', '1'),
