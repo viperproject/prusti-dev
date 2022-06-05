@@ -136,21 +136,22 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             let var_local = Local::from(local);
             let typ = self.local_variable_manager.get_type(var_local);
             let vir_name = self.local_variable_manager.get_name(var_local);
-            let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
-            let history = self.process_entry(&trace, typ, &mut translated_domains);
             debug!("rust name: {:?}", &rust_name);
             debug!("rust typ: {:?}", &typ.kind());
             debug!("vir name: {:?}", &vir_name);
+            let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
             debug!("trace: {:?}", &trace);
+            let history = self.process_entry(&trace, typ, &mut translated_domains);
+            
             entries.push( CounterexampleEntry::new(Some(rust_name), history))
         } 
         //result
         let vir_name = format!("_0");
         let return_local = Local::from(mir::Local::from_usize(0));
         let typ = self.local_variable_manager.get_type(return_local);
-        let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
         debug!("rust typ: {:?}", &typ.kind());
         debug!("vir name: {:?}", &vir_name);
+        let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
         debug!("trace: {:?}", &trace);
         let history = self.process_entry(&trace, typ, &mut translated_domains);
         entries.push( CounterexampleEntry::new(None, history));
@@ -178,6 +179,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         default: bool, //if we use default cases
     ) -> Entry {
         if let Some(ModelEntry::DomainValue(domain, var)) = model_entry{
+            debug!("print cache: {:?}", translated_domains.cached_domains);
             if let Some(entry) = translated_domains.cached_domains.get(&(domain.clone(), var.clone())){
                 debug!("found in cache");
                 return entry.clone();
