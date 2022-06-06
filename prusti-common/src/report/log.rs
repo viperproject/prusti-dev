@@ -6,11 +6,12 @@
 
 //! This module defines functions for log messages, meant for developers
 
-use crate::config;
-use crate::utils::identifiers::encode_identifier;
-use std::fs;
-use std::io::{self, Write};
-use std::path::PathBuf;
+use crate::{config, utils::identifiers::encode_identifier};
+use std::{
+    fs,
+    io::{self, Write},
+    path::PathBuf,
+};
 
 fn log_dir() -> Option<PathBuf> {
     let log_dir = config::log_dir();
@@ -23,20 +24,26 @@ fn log_dir() -> Option<PathBuf> {
 }
 
 pub fn to_legal_file_name<S: ToString>(name: S) -> String {
-    let mut name_string = encode_identifier(name.to_string());
+    to_legal_file_name_of_max_length(name.to_string(), config::max_log_file_name_length())
+}
+
+pub fn to_legal_file_name_of_max_length(name: String, max_length: usize) -> String {
+    let mut name_string = encode_identifier(name);
     if cfg!(target_os = "windows") {
-        name_string = name_string.chars()
+        name_string = name_string
+            .chars()
             .map(|x| match x {
                 '\\' | '/' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '-',
-                _ => x
-            }).collect();
+                _ => x,
+            })
+            .collect();
     }
-    if name_string.len() > config::max_log_file_name_length() {
+    if name_string.len() > max_length {
         let mut end = name_string.rfind('.').unwrap();
         if name_string.len() - end > 5 {
-            end = name_string.len()-1;
+            end = name_string.len() - 1;
         };
-        let start = end - (name_string.len() - config::max_log_file_name_length());
+        let start = end - (name_string.len() - max_length);
         name_string.drain(start..end);
     }
     name_string

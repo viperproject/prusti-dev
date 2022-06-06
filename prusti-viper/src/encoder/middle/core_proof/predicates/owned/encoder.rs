@@ -437,7 +437,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                         Default::default(),
                     )?;
                     let field_ty = &field.ty;
-                    self.encode_unique_ref(field_ty)?;
+                    self.encode_frac_ref(field_ty)?;
                     let acc = expr! {
                         acc(FracRef<field_ty>(
                             lifetime,
