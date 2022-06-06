@@ -12,6 +12,6 @@ mod pure;
 
 pub(in super::super) use self::{
     context_independent::IntoSnapshot,
-    procedure::{IntoProcedureBoolExpression, IntoProcedureSnapshot},
+    procedure::{IntoProcedureBoolExpression, IntoProcedureFinalSnapshot, IntoProcedureSnapshot},
     pure::{IntoPureBoolExpression, IntoPureSnapshot},
 };

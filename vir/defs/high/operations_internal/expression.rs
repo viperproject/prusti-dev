@@ -92,6 +92,40 @@ impl Expression {
             _ => false,
         }
     }
+    /// Check whether the place is a dereference of a reference and if that is
+    /// the case, returns the uniqueness guarantees given by this reference.
+    pub fn get_dereference_kind(&self) -> Option<(ty::LifetimeConst, ty::Uniqueness)> {
+        assert!(self.is_place());
+        if let Some(parent) = self.get_parent_ref() {
+            if let Some(result) = parent.get_dereference_kind() {
+                return Some(result);
+            } else if self.is_deref() {
+                if let Type::Reference(ty::Reference {
+                    lifetime,
+                    uniqueness,
+                    ..
+                }) = parent.get_type()
+                {
+                    return Some((lifetime.clone(), *uniqueness));
+                } else {
+                    unreachable!();
+                }
+            }
+        }
+        None
+    }
+    /// Check whether the place is a dereference of a reference and if that is
+    /// the case, return its base.
+    pub fn get_dereference_base(&self) -> Option<&Expression> {
+        assert!(self.is_place());
+        if let Expression::Deref(Deref { box base, .. }) = self {
+            Some(base)
+        } else if let Some(parent) = self.get_parent_ref() {
+            parent.get_dereference_base()
+        } else {
+            None
+        }
+    }
     pub fn erase_lifetime(self) -> Expression {
         struct DefaultLifetimeEraser {}
         impl ExpressionFolder for DefaultLifetimeEraser {

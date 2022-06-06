@@ -2,7 +2,7 @@ pub(crate) use super::{
     super::{cfg::procedure::BasicBlockId, operations_internal::ty::Typed, Expression, Position},
     predicate::Predicate,
     rvalue::{Operand, Rvalue},
-    ty::{LifetimeConst, Type, VariantIndex},
+    ty::{LifetimeConst, Type, Uniqueness, VariantIndex},
     variable::VariableDecl,
 };
 use crate::common::display;
@@ -22,6 +22,8 @@ pub enum Statement {
     Assert(Assert),
     FoldOwned(FoldOwned),
     UnfoldOwned(UnfoldOwned),
+    FoldRef(FoldRef),
+    UnfoldRef(UnfoldRef),
     JoinBlock(JoinBlock),
     SplitBlock(SplitBlock),
     ConvertOwnedIntoMemoryBlock(ConvertOwnedIntoMemoryBlock),
@@ -119,7 +121,7 @@ pub struct BlockMarkerCondition {
 }
 
 #[display(
-    fmt = "fold{} {}",
+    fmt = "fold-owned{} {}",
     "display::option!(condition, \"<{}>\", \"\")",
     place
 )]
@@ -131,13 +133,45 @@ pub struct FoldOwned {
 }
 
 #[display(
-    fmt = "unfold{} {}",
+    fmt = "unfold-owned{} {}",
     "display::option!(condition, \"<{}>\", \"\")",
     place
 )]
 /// Unfold `OwnedNonAliased(place)`.
 pub struct UnfoldOwned {
     pub place: Expression,
+    pub condition: Option<BlockMarkerCondition>,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "fold-{}-ref{} {} {}",
+    uniqueness,
+    "display::option!(condition, \"<{}>\", \"\")",
+    lifetime,
+    place
+)]
+/// Fold `MutRef(place)`.
+pub struct FoldRef {
+    pub place: Expression,
+    pub lifetime: LifetimeConst,
+    pub uniqueness: Uniqueness,
+    pub condition: Option<BlockMarkerCondition>,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "unfold-{}-ref{} {} {}",
+    uniqueness,
+    "display::option!(condition, \"<{}>\", \"\")",
+    lifetime,
+    place
+)]
+/// Unfold `MutRef(place)`.
+pub struct UnfoldRef {
+    pub place: Expression,
+    pub lifetime: LifetimeConst,
+    pub uniqueness: Uniqueness,
     pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }

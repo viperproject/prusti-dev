@@ -139,10 +139,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.encode_functional_specifications()?;
         let (assume_lifetime_preconditions, assert_lifetime_postconditions) =
             self.encode_lifetime_specifications()?;
-        let mut pre_statements = allocate_parameters;
+        let mut pre_statements = assume_lifetime_preconditions;
+        pre_statements.extend(allocate_parameters);
         pre_statements.extend(assume_preconditions);
         pre_statements.extend(allocate_returns);
-        pre_statements.extend(assume_lifetime_preconditions);
         let mut post_statements = assert_postconditions;
         post_statements.extend(deallocate_parameters);
         post_statements.extend(deallocate_returns);
@@ -779,7 +779,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     )?);
                 }
             } else {
-                unreachable!();
+                unreachable!("place: {} deref_base: {:?}", place, deref_base);
             }
         };
         Ok(variable)
@@ -794,10 +794,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         let span = self.encoder.get_span_of_location(self.mir, location);
 
-        let deref_base: Option<vir_high::Expression> = match &encoded_target {
-            vir_high::Expression::Deref(vir_high::Deref { box base, .. }) => Some(base.clone()),
-            _ => None,
-        };
+        let deref_base = encoded_target.get_dereference_base().cloned();
         let target_permission = self.encode_open_reference(
             block_builder,
             location,
@@ -821,12 +818,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.encoder
                         .encode_place_high(self.mir, *source, Some(span))?;
 
-                let deref_base: Option<vir_high::Expression> = match &encoded_source {
-                    vir_high::Expression::Deref(vir_high::Deref { box base, .. }) => {
-                        Some(base.clone())
-                    }
-                    _ => None,
-                };
+                let deref_base = encoded_source.get_dereference_base().cloned();
                 let source_permission = self.encode_open_reference(
                     block_builder,
                     location,
