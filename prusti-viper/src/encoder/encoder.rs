@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use ::log::{info, debug, trace};
+use prusti_common::utils::identifiers::encode_identifier;
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
@@ -790,24 +791,4 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn discriminants_info(&self) -> FxHashMap<(ProcedureDefId, String), Vec<String>> {
         self.discriminants_info.borrow().clone()
     }
-}
-
-pub(crate) fn encode_identifier(ident: String) -> String {
-    // Rule: the rhs must always have an even number of "$"
-    ident
-        .replace("::", "$$")
-        .replace('#', "$sharp$")
-        .replace('<', "$openang$")
-        .replace('>', "$closeang$")
-        .replace('(', "$openrou$")
-        .replace(')', "$closerou$")
-        .replace('[', "$opensqu$")
-        .replace(']', "$closesqu$")
-        .replace('{', "$opencur$")
-        .replace('}', "$closecur$")
-        .replace(',', "$comma$")
-        .replace(';', "$semic$")
-        .replace(' ', "$space$")
-        .replace('&', "$amp$")
-        .replace('*', "$star$")
 }

@@ -47,6 +47,8 @@ RUSTFMT_CRATES = [
 ]
 
 RUSTFMT_PATHS = [
+    'prusti-common/src/report/mod.rs',
+    'prusti-common/src/utils/mod.rs',
     'prusti-common/src/vir/to_viper.rs',
     'prusti-common/src/vir/low_to_viper/mod.rs',
     'prusti-common/src/vir/optimizations/mod.rs',
@@ -91,6 +93,7 @@ def error(template, *args, **kwargs):
     """Print the error and exit the program."""
     print(template.format(*args, **kwargs))
     sys.exit(1)
+
 
 def ensure(condition, err_msg):
     """If `condition` is `False`, print `err_msg` along with a stacktrace, and abort"""

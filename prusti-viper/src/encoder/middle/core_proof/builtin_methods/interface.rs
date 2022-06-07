@@ -47,7 +47,7 @@ pub(in super::super) struct BuiltinMethodsState {
     encoded_consume_operand_methods: FxHashSet<String>,
     encoded_newlft_method: bool,
     encoded_endlft_method: bool,
-    encoded_frac_bor_atomic_acc_methods: FxHashSet<vir_mid::Type>,
+    encoded_open_frac_bor_atomic_methods: FxHashSet<vir_mid::Type>,
     encoded_lft_tok_sep_take_methods: FxHashSet<usize>,
     encoded_lft_tok_sep_return_methods: FxHashSet<usize>,
     encoded_open_close_mut_ref_methods: FxHashSet<vir_mid::Type>,
@@ -69,7 +69,7 @@ trait Private {
         arguments: &mut Vec<vir_low::Expression>,
         expression: &vir_mid::Expression,
     ) -> SpannedEncodingResult<()>;
-    fn encode_frac_bor_atomic_acc_method_name(
+    fn encode_open_frac_bor_atomic_method_name(
         &self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<String>;
@@ -232,7 +232,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         arguments.push(expression.to_procedure_snapshot(self)?);
         Ok(())
     }
-    fn encode_frac_bor_atomic_acc_method_name(
+    fn encode_open_frac_bor_atomic_method_name(
         &self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<String> {
@@ -583,7 +583,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         let size_of_result = self.encode_type_size_expression(operation_result_type)?;
         let post_write_statements = vec![
             stmtp! { position =>
-                call memory_block_split<ty>([result_address])
+                call memory_block_split<ty>([result_address], [vir_low::Expression::full_permission()])
             },
             stmtp! { position =>
                 call write_address<operation_result_type>([operation_result_address.clone()], [operation_result_value.clone()])
@@ -879,7 +879,7 @@ pub(in super::super) trait BuiltinMethodsInterface {
         predicate: vir_mid::Predicate,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
-    fn encode_frac_bor_atomic_acc_method(
+    fn encode_open_frac_bor_atomic_method(
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<()>;
@@ -1013,7 +1013,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         self.encode_memory_block_split_method(ty)?;
                         statements.push(stmtp! {
                             position =>
-                            call memory_block_split<ty>([target_address])
+                            call memory_block_split<ty>(
+                                [target_address], [vir_low::Expression::full_permission()]
+                            )
                         });
                         for field in &decl.fields {
                             let source_field_place = self.encode_field_place(
@@ -1049,7 +1051,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         self.encode_memory_block_join_method(ty)?;
                         statements.push(stmtp! {
                             position =>
-                            call memory_block_join<ty>([source_address])
+                            call memory_block_join<ty>(
+                                [source_address], [vir_low::Expression::full_permission()]
+                            )
                         });
                     }
                 }
@@ -1059,7 +1063,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     self.encode_memory_block_split_method(ty)?;
                     statements.push(stmtp! {
                         position =>
-                        call memory_block_split<ty>([target_address], [discriminant_call.clone()])
+                        call memory_block_split<ty>(
+                            [target_address],
+                            [vir_low::Expression::full_permission()],
+                            [discriminant_call.clone()]
+                        )
                     });
                     for (&discriminant_value, variant) in
                         decl.discriminant_values.iter().zip(&decl.variants)
@@ -1130,7 +1138,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     self.encode_memory_block_join_method(ty)?;
                     statements.push(stmtp! {
                         position =>
-                        call memory_block_join<ty>([source_address], [discriminant_call])
+                        call memory_block_join<ty>(
+                            [source_address],
+                            [vir_low::Expression::full_permission()],
+                            [discriminant_call]
+                        )
                     });
                 }
                 vir_mid::TypeDecl::Union(_decl) => {
@@ -1289,6 +1301,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             &mut statements,
                             ty,
                             address.clone(),
+                            Some(source_permission.clone().into()),
                             position,
                         )?;
                         statements.push(stmtp! { position =>
@@ -1306,6 +1319,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             &mut statements,
                             ty,
                             expr! { ComputeAddress::compute_address(source_place, source_address) },
+                            Some(source_permission.clone().into()),
                             position,
                         )?;
                         self.encode_fully_fold_owned_non_aliased(
@@ -1396,7 +1410,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         self.encode_memory_block_split_method(ty)?;
                         statements.push(stmtp! {
                             position =>
-                            call memory_block_split<ty>([address.clone()])
+                            call memory_block_split<ty>(
+                                [address.clone()], [vir_low::Expression::full_permission()]
+                            )
                         });
                         for field in decl.iter_fields() {
                             let field_place = self.encode_field_place(
@@ -1431,7 +1447,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         self.encode_memory_block_split_method(ty)?;
                         statements.push(stmtp! {
                             position =>
-                            call memory_block_split<ty>([address.clone()])
+                            call memory_block_split<ty>(
+                                [address.clone()], [vir_low::Expression::full_permission()]
+                            )
                         });
                         for field in &decl.fields {
                             let field_place =
@@ -1458,7 +1476,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     self.encode_memory_block_split_method(ty)?;
                     statements.push(stmtp! {
                         position =>
-                        call memory_block_split<ty>([address.clone()], [discriminant_call.clone()])
+                        call memory_block_split<ty>(
+                            [address.clone()],
+                            [vir_low::Expression::full_permission()],
+                            [discriminant_call.clone()]
+                        )
                     });
                     for (&discriminant_value, variant) in
                         decl.discriminant_values.iter().zip(&decl.variants)
@@ -1513,7 +1535,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     self.encode_memory_block_split_method(ty)?;
                     statements.push(stmtp! {
                         position =>
-                        call memory_block_split<ty>([address.clone()], [discriminant_call.clone()])
+                        call memory_block_split<ty>(
+                            [address.clone()],
+                            [vir_low::Expression::full_permission()],
+                            [discriminant_call.clone()]
+                        )
                     });
                     for (&discriminant_value, variant) in
                         decl.discriminant_values.iter().zip(&decl.variants)
@@ -1636,9 +1662,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 let type_decl = self.encoder.get_type_decl_mid(ty)?;
                 match type_decl {
                     vir_mid::TypeDecl::Enum(enum_decl) => {
-                        var_decls!(address: Address, discriminant: Int);
+                        var_decls!(address: Address, permission_amount: Perm, discriminant: Int);
                         let size_of = self.encode_type_size_expression(ty)?;
-                        let whole_block = expr!(acc(MemoryBlock(address, [size_of])));
+                        let whole_block =
+                            expr!(acc(MemoryBlock(address, [size_of]), permission_amount));
                         let discriminant_field = enum_decl.discriminant_field();
                         let discriminant_size_of =
                             self.encode_type_size_expression(&enum_decl.discriminant_type)?;
@@ -1673,17 +1700,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         }
                         vir_low::MethodDecl::new(
                             method_name! { memory_block_split<ty> },
-                            vec![address, discriminant],
+                            vec![address, permission_amount.clone(), discriminant],
                             Vec::new(),
-                            vec![whole_block],
+                            vec![
+                                expr! { [vir_low::Expression::no_permission()] < permission_amount },
+                                whole_block,
+                            ],
                             postconditions,
                             None,
                         )
                     }
                     vir_mid::TypeDecl::Union(enum_decl) => {
-                        var_decls!(address: Address, discriminant: Int);
+                        var_decls!(address: Address, permission_amount: Perm, discriminant: Int);
                         let size_of = self.encode_type_size_expression(ty)?;
-                        let whole_block = expr!(acc(MemoryBlock(address, [size_of])));
+                        let whole_block =
+                            expr!(acc(MemoryBlock(address, [size_of]), permission_amount));
                         let mut postconditions = Vec::new();
                         for (&discriminant_value, variant) in enum_decl
                             .discriminant_values
@@ -1707,9 +1738,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         }
                         vir_low::MethodDecl::new(
                             method_name! { memory_block_split<ty> },
-                            vec![address, discriminant],
+                            vec![address, permission_amount.clone(), discriminant],
                             Vec::new(),
-                            vec![whole_block],
+                            vec![
+                                expr! { [vir_low::Expression::no_permission()] < permission_amount },
+                                whole_block,
+                            ],
                             postconditions,
                             None,
                         )
@@ -1737,7 +1771,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 helper.postconditions.push(bytes_quantifier);
                 vir_low::MethodDecl::new(
                     method_name! { memory_block_split<ty> },
-                    vars! { address: Address },
+                    vars! { address: Address, permission_amount: Perm },
                     Vec::new(),
                     helper.preconditions,
                     helper.postconditions,
@@ -1764,7 +1798,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 let type_decl = self.encoder.get_type_decl_mid(ty)?;
                 match type_decl {
                     vir_mid::TypeDecl::Enum(enum_decl) => {
-                        var_decls!(address: Address, discriminant: Int);
+                        var_decls!(address: Address, permission_amount: Perm, discriminant: Int);
                         let size_of = self.encode_type_size_expression(ty)?;
                         let whole_block = expr!(acc(MemoryBlock(address, [size_of.clone()])));
                         let discriminant_field = enum_decl.discriminant_field();
@@ -1780,7 +1814,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         let discriminant_bounds = discriminant_expr
                             .generate_discriminant_bounds(&enum_decl.discriminant_bounds);
                         let mut preconditions = vec![
-                            expr! { acc(MemoryBlock([discriminant_address.clone()], [discriminant_size_of.clone()]))},
+                            expr! { [vir_low::Expression::no_permission()] < permission_amount },
+                            expr! {
+                                acc(MemoryBlock(
+                                    [discriminant_address.clone()],
+                                    [discriminant_size_of.clone()]),
+                                permission_amount)
+                            },
                             discriminant_bounds,
                         ];
                         let to_bytes = ty! { Bytes };
@@ -1814,7 +1854,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             let variant_size_of = self.encode_type_size_expression(variant_type)?;
                             preconditions.push(expr! {
                                 (discriminant == [discriminant_value.into()]) ==>
-                                (acc(MemoryBlock([variant_address.clone()], [variant_size_of.clone()])))
+                                (acc(MemoryBlock(
+                                    [variant_address.clone()],
+                                    [variant_size_of.clone()]),
+                                permission_amount))
                             });
                             let memory_block_field_bytes = self
                                 .encode_memory_block_bytes_expression(
@@ -1857,7 +1900,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         };
                         vir_low::MethodDecl::new(
                             method_name! { memory_block_join<ty> },
-                            vec![address, discriminant],
+                            vec![address, permission_amount, discriminant],
                             Vec::new(),
                             preconditions,
                             vec![whole_block, bytes_quantifier],
@@ -1865,13 +1908,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         )
                     }
                     vir_mid::TypeDecl::Union(enum_decl) => {
-                        var_decls!(address: Address, discriminant: Int);
+                        var_decls!(address: Address, permission_amount: Perm, discriminant: Int);
                         let size_of = self.encode_type_size_expression(ty)?;
-                        let whole_block = expr!(acc(MemoryBlock(address, [size_of.clone()])));
+                        let whole_block = expr!(acc(
+                            MemoryBlock(address, [size_of.clone()]),
+                            permission_amount
+                        ));
                         let discriminant_expr: vir_low::Expression = discriminant.clone().into();
                         let discriminant_bounds = discriminant_expr
                             .generate_discriminant_bounds(&enum_decl.discriminant_bounds);
-                        let mut preconditions = vec![discriminant_bounds];
+                        let mut preconditions = vec![
+                            expr! { [vir_low::Expression::no_permission()] < permission_amount },
+                            discriminant_bounds,
+                        ];
                         let to_bytes = ty! { Bytes };
                         let mut bytes_quantifier_conjuncts = Vec::new();
                         let memory_block_bytes = self.encode_memory_block_bytes_expression(
@@ -1903,7 +1952,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             let variant_size_of = self.encode_type_size_expression(variant_type)?;
                             preconditions.push(expr! {
                                 (discriminant == [discriminant_value.into()]) ==>
-                                (acc(MemoryBlock([variant_address.clone()], [variant_size_of.clone()])))
+                                (acc(MemoryBlock(
+                                    [variant_address.clone()],
+                                    [variant_size_of.clone()]),
+                                permission_amount))
                             });
                             let memory_block_variant_bytes = self
                                 .encode_memory_block_bytes_expression(
@@ -1929,7 +1981,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         };
                         vir_low::MethodDecl::new(
                             method_name! { memory_block_join<ty> },
-                            vec![address, discriminant],
+                            vec![address, permission_amount, discriminant],
                             Vec::new(),
                             preconditions,
                             vec![whole_block, bytes_quantifier],
@@ -1959,7 +2011,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 helper.postconditions.push(bytes_quantifier);
                 vir_low::MethodDecl::new(
                     method_name! { memory_block_join<ty> },
-                    vars! { address: Address },
+                    vars! { address: Address, permission_amount: Perm },
                     Vec::new(),
                     helper.preconditions,
                     helper.postconditions,
@@ -2096,7 +2148,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                 self.encode_memory_block_join_method(ty)?;
                                 statements.push(stmtp! {
                                     position =>
-                                    call memory_block_join<ty>([address.clone()])
+                                    call memory_block_join<ty>(
+                                        [address.clone()], [vir_low::Expression::full_permission()]
+                                    )
                                 });
                             },
                             vir_mid::TypeDecl::Struct(decl) => {
@@ -2118,7 +2172,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                 self.encode_memory_block_join_method(ty)?;
                                 statements.push(stmtp! {
                                     position =>
-                                    call memory_block_join<ty>([address.clone()])
+                                    call memory_block_join<ty>(
+                                        [address.clone()], [vir_low::Expression::full_permission()]
+                                    )
                                 });
                             }
                             vir_mid::TypeDecl::Enum(decl) => {
@@ -2158,7 +2214,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                     self.encode_memory_block_join_method(ty)?;
                                     statements.push(stmtp! {
                                         position =>
-                                        call<condition> memory_block_join<ty>([address.clone()], [discriminant.into()])
+                                        call<condition> memory_block_join<ty>(
+                                            [address.clone()],
+                                            [vir_low::Expression::full_permission()],
+                                            [discriminant.into()]
+                                        )
                                     });
                                 }
                             }
@@ -2184,7 +2244,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                     self.encode_memory_block_join_method(ty)?;
                                     statements.push(stmtp! {
                                         position =>
-                                        call<condition> memory_block_join<ty>([address.clone()], [discriminant.into()])
+                                        call<condition> memory_block_join<ty>(
+                                            [address.clone()],
+                                            [vir_low::Expression::full_permission()],
+                                            [discriminant.into()]
+                                        )
                                     });
                                 }
                             }
@@ -2312,83 +2376,68 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
-    fn encode_frac_bor_atomic_acc_method(
+    fn encode_open_frac_bor_atomic_method(
         &mut self,
-        ty_with_lifetime: &vir_mid::Type,
+        target_type: &vir_mid::Type,
     ) -> SpannedEncodingResult<()> {
-        let ty: &mut vir_mid::Type = &mut ty_with_lifetime.clone();
-        ty.erase_lifetime();
         if !self
             .builtin_methods_state
-            .encoded_frac_bor_atomic_acc_methods
-            .contains(ty)
+            .encoded_open_frac_bor_atomic_methods
+            .contains(target_type)
         {
+            self.builtin_methods_state
+                .encoded_open_frac_bor_atomic_methods
+                .insert(target_type.clone());
+            self.encode_lifetime_token_predicate()?;
             use vir_low::macros::*;
-            let method_name = self.encode_frac_bor_atomic_acc_method_name(ty)?;
-            let type_decl = self.encoder.get_type_decl_mid(ty)?;
-            let target_type = &type_decl.unwrap_reference().target_type;
             var_decls! {
                 lifetime: Lifetime,
                 lifetime_perm: Perm,
                 owned_perm: Perm,
                 place: Place,
-                snapshot: {ty.to_snapshot(self)?}
+                address: Address,
+                current_snapshot: {target_type.to_snapshot(self)?}
             };
-            let position = vir_low::Position::default();
-            let deref_place = self.reference_deref_place(place.clone().into(), position)?;
-            let address_snapshot = self.reference_address(ty, snapshot.clone().into(), position)?;
-            let current_snapshot =
-                self.reference_target_current_snapshot(ty, snapshot.clone().into(), position)?;
-
-            let parameters = vec![lifetime.clone(), lifetime_perm.clone(), place, snapshot];
-
-            let lifetime_access = vir_low::Expression::predicate_access_predicate_no_pos(
-                stringify!(LifetimeToken).to_string(),
-                vec![lifetime.clone().into()],
-                lifetime_perm.clone().into(),
-            );
-            let frac_ref_access = vir_low::Expression::predicate_access_predicate_no_pos(
-                format!("{}${}", "FracRef", target_type.get_identifier()),
+            let lifetime_access = expr! { acc(LifetimeToken(lifetime), lifetime_perm) };
+            let frac_ref_access = expr! {
+                acc(FracRef<target_type>(lifetime, place, address, current_snapshot))
+            };
+            let owned_access = expr! {
+                acc(OwnedNonAliased<target_type>(place, address, current_snapshot), owned_perm)
+            };
+            let method = vir_low::MethodDecl::new(
+                self.encode_open_frac_bor_atomic_method_name(target_type)?,
                 vec![
-                    lifetime.into(),
-                    deref_place.clone(),
-                    address_snapshot.clone(),
-                    current_snapshot.clone(),
+                    lifetime,
+                    lifetime_perm.clone(),
+                    place,
+                    address,
+                    current_snapshot,
                 ],
-                vir_low::Expression::full_permission(),
+                vec![owned_perm.clone()],
+                vec![
+                    expr! {
+                        [vir_low::Expression::no_permission()] < lifetime_perm
+                    },
+                    lifetime_access.clone(),
+                    frac_ref_access.clone(),
+                ],
+                vec![
+                    expr! {
+                        owned_perm < [vir_low::Expression::full_permission()]
+                    },
+                    expr! {
+                        [vir_low::Expression::no_permission()] < owned_perm
+                    },
+                    owned_access.clone(),
+                    vir_low::Expression::magic_wand_no_pos(
+                        owned_access,
+                        expr! { [lifetime_access] && [frac_ref_access] },
+                    ),
+                ],
+                None,
             );
-            let pres = vec![
-                expr! {
-                    [vir_low::Expression::no_permission()] < lifetime_perm
-                },
-                lifetime_access.clone(),
-                frac_ref_access,
-            ];
-
-            let owned_access = vir_low::Expression::predicate_access_predicate_no_pos(
-                format!("{}${}", "OwnedNonAliased", target_type.get_identifier()),
-                vec![deref_place, address_snapshot, current_snapshot],
-                owned_perm.clone().into(),
-            );
-
-            let posts = vec![
-                expr! {
-                    owned_perm < [vir_low::Expression::full_permission()]
-                },
-                expr! {
-                    [vir_low::Expression::no_permission()] < owned_perm
-                },
-                owned_access.clone(),
-                vir_low::Expression::magic_wand_no_pos(owned_access, lifetime_access),
-            ];
-            let targets = vec![owned_perm];
-
-            let method =
-                vir_low::MethodDecl::new(method_name, parameters, targets, pres, posts, None);
             self.declare_method(method)?;
-            self.builtin_methods_state
-                .encoded_frac_bor_atomic_acc_methods
-                .insert(ty.clone());
         }
         Ok(())
     }
@@ -2567,37 +2616,37 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
     }
     fn encode_open_close_mut_ref_methods(
         &mut self,
-        ty: &vir_mid::Type,
+        target_type: &vir_mid::Type,
     ) -> SpannedEncodingResult<()> {
         if !self
             .builtin_methods_state
             .encoded_open_close_mut_ref_methods
-            .contains(ty)
+            .contains(target_type)
         {
             self.builtin_methods_state
                 .encoded_open_close_mut_ref_methods
-                .insert(ty.clone());
+                .insert(target_type.clone());
             self.encode_lifetime_token_predicate()?;
             use vir_low::macros::*;
-            let type_decl = self.encoder.get_type_decl_mid(ty)?;
-            let target_type = &type_decl.unwrap_reference().target_type;
-            let position = vir_low::Position::default();
 
             var_decls! {
                 lifetime: Lifetime,
                 lifetime_perm: Perm,
                 place: Place,
-                snapshot: {ty.to_snapshot(self)?}
+                address: Address,
+                current_snapshot: {target_type.to_snapshot(self)?},
+                final_snapshot: {target_type.to_snapshot(self)?}
             };
-            let deref_place = self.reference_deref_place(place.clone().into(), position)?;
-            let address_snapshot = self.reference_address(ty, snapshot.clone().into(), position)?;
-            let current_snapshot =
-                self.reference_target_current_snapshot(ty, snapshot.clone().into(), position)?;
-            let final_snapshot =
-                self.reference_target_final_snapshot(ty, snapshot.clone().into(), position)?;
             let open_method = vir_low::MethodDecl::new(
-                method_name! { open_mut_ref<ty> },
-                vec![lifetime.clone(), lifetime_perm.clone(), place, snapshot],
+                method_name! { open_mut_ref<target_type> },
+                vec![
+                    lifetime.clone(),
+                    lifetime_perm.clone(),
+                    place.clone(),
+                    address.clone(),
+                    current_snapshot.clone(),
+                    final_snapshot.clone(),
+                ],
                 Vec::new(),
                 vec![
                     expr! { [vir_low::Expression::no_permission()] < lifetime_perm },
@@ -2605,18 +2654,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     expr! {
                         acc(UniqueRef<target_type>(
                             lifetime,
-                            [deref_place.clone()],
-                            [address_snapshot.clone()],
-                            [current_snapshot.clone()],
-                            [final_snapshot.clone()]
+                            place,
+                            address,
+                            current_snapshot,
+                            final_snapshot
                         ))
                     },
                 ],
                 vec![
                     expr! { acc(OwnedNonAliased<target_type>(
-                        [deref_place.clone()],
-                        [address_snapshot.clone()],
-                        [current_snapshot]
+                        place,
+                        address,
+                        current_snapshot
                     ))},
                     // CloseMutRef predicate corresponds to the following
                     // viewshift:
@@ -2639,9 +2688,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     expr! { acc(CloseMutRef<target_type>(
                         lifetime,
                         lifetime_perm,
-                        [deref_place],
-                        [address_snapshot],
-                        [final_snapshot]
+                        place,
+                        address,
+                        final_snapshot
                     ))},
                 ],
                 None,
@@ -2649,21 +2698,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             self.declare_method(open_method)?;
 
             {
-                var_decls! {
-                    lifetime: Lifetime,
-                    lifetime_perm: Perm,
-                    deref_place: Place,
-                    address_snapshot: Address,
-                    current_snapshot: { target_type.to_snapshot(self)? },
-                    final_snapshot: { target_type.to_snapshot(self)? }
-                }
                 let close_mut_ref_predicate = vir_low::PredicateDecl::new(
                     predicate_name! { CloseMutRef<target_type> },
                     vec![
                         lifetime.clone(),
                         lifetime_perm.clone(),
-                        deref_place.clone(),
-                        address_snapshot.clone(),
+                        place.clone(),
+                        address.clone(),
                         final_snapshot.clone(),
                     ],
                     None,
@@ -2671,12 +2712,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 self.declare_predicate(close_mut_ref_predicate)?;
                 // Apply the viewshift encoded in the `CloseMutRef` predicate.
                 let close_method = vir_low::MethodDecl::new(
-                    method_name! { close_mut_ref<ty> },
+                    method_name! { close_mut_ref<target_type> },
                     vec![
                         lifetime.clone(),
                         lifetime_perm.clone(),
-                        deref_place.clone(),
-                        address_snapshot.clone(),
+                        place.clone(),
+                        address.clone(),
                         current_snapshot.clone(),
                         final_snapshot.clone(),
                     ],
@@ -2686,13 +2727,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         expr! { acc(CloseMutRef<target_type>(
                             lifetime,
                             lifetime_perm,
-                            deref_place,
-                            address_snapshot,
+                            place,
+                            address,
                             final_snapshot
                         ))},
                         expr! { acc(OwnedNonAliased<target_type>(
-                            deref_place,
-                            address_snapshot,
+                            place,
+                            address,
                             current_snapshot
                         ))},
                     ],
@@ -2701,8 +2742,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         expr! {
                             acc(UniqueRef<target_type>(
                                 lifetime,
-                                deref_place,
-                                address_snapshot,
+                                place,
+                                address,
                                 current_snapshot,
                                 final_snapshot
                             ))
