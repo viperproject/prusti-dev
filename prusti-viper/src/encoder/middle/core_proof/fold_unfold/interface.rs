@@ -37,6 +37,7 @@ pub(in super::super) trait FoldUnfoldInterface {
         statements: &mut Vec<vir_low::Statement>,
         ty: &vir_mid::Type,
         address: vir_low::Expression,
+        permission_amount: Option<vir_low::Expression>,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
     #[allow(clippy::ptr_arg)] // Clippy false positive.
@@ -45,6 +46,7 @@ pub(in super::super) trait FoldUnfoldInterface {
         statements: &mut Vec<vir_low::Statement>,
         ty: &vir_mid::Type,
         address: vir_low::Expression,
+        permission_amount: Option<vir_low::Expression>,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
 }
@@ -93,10 +95,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfoldInterface for Lowerer<'p, 'v, 'tcx> {
         statements: &mut Vec<vir_low::Statement>,
         ty: &vir_mid::Type,
         address: vir_low::Expression,
+        permission_amount: Option<vir_low::Expression>,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
         let mut spliter = MemoryBlockSplitJoiner {
             statements,
+            permission_amount,
             position,
             is_joining: false,
         };
@@ -107,10 +111,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfoldInterface for Lowerer<'p, 'v, 'tcx> {
         statements: &mut Vec<vir_low::Statement>,
         ty: &vir_mid::Type,
         address: vir_low::Expression,
+        permission_amount: Option<vir_low::Expression>,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
         let mut joiner = MemoryBlockSplitJoiner {
             statements,
+            permission_amount,
             position,
             is_joining: true,
         };

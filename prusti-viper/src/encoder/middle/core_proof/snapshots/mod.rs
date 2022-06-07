@@ -12,8 +12,8 @@ pub(super) use self::{
     bytes::SnapshotBytesInterface,
     domains::SnapshotDomainsInterface,
     into_snapshot::{
-        IntoProcedureBoolExpression, IntoProcedureSnapshot, IntoPureBoolExpression,
-        IntoPureSnapshot, IntoSnapshot,
+        IntoProcedureBoolExpression, IntoProcedureFinalSnapshot, IntoProcedureSnapshot,
+        IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot,
     },
     state::SnapshotsState,
     validity::{valid_call, valid_call2, SnapshotValidityInterface},
