@@ -10,21 +10,30 @@ fn test1() {
 
 fn test2() {
     let mut a = 1;
-    let _b = &mut a;
-    assert!(a == 1);    //~ ERROR: the asserted expression might not hold
+    let b = &mut a;
+    assert!(*b == 1);
+    assert!(a == 1);
+}
+
+fn test2_1() {
+    let mut a = 1;
+    let b = &mut a;
+    assert!(*b == 1);
+    assert!(a == 2);    //~ ERROR: the asserted expression might not hold
 }
 
 fn test3() {
     let mut a = 1;
     let b = &mut a;
     *b = 2;
+    assert!(a == 2);
 }
 
 fn test4() {
     let mut a = 1;
     let b = &mut a;
     *b = 2;
-    assert!(a == 2);    //~ ERROR: the asserted expression might not hold
+    assert!(a == 1);    //~ ERROR: the asserted expression might not hold
 }
 
 fn test5() {
@@ -32,6 +41,7 @@ fn test5() {
     let b = &a;
     let c = *b;
     assert!(c == 1);
+    assert!(a == 1);
 }
 
 fn test6() {
@@ -39,6 +49,7 @@ fn test6() {
     let b = &mut a;
     let c = *b;
     assert!(c == 1);
+    assert!(a == 1);
 }
 
 struct T {
@@ -51,8 +62,11 @@ struct U {
 }
 
 fn test7(mut a: U) {
+    let b = a.g.value;
     let x = &mut a;
     x.f.value = 4;
+    assert!(a.f.value == 4);
+    assert!(b == a.g.value);
 }
 
 fn test8(mut a: U) {
@@ -63,6 +77,7 @@ fn test8(mut a: U) {
 fn test9(mut a: U) {
     let x = &mut a.f;
     x.value = 4;
+    assert!(a.f.value == 4);
 }
 
 fn test10(mut a: U) {
@@ -73,11 +88,13 @@ fn test10(mut a: U) {
 fn test11(a: U) {
     let x = &a;
     let b = x.f.value;
+    assert!(b == a.f.value);
 }
 
 fn test12(mut a: U) {
     let x = &mut a.f;
     let b = x.value;
+    assert!(b == a.f.value);
 }
 
 fn test13(a: U) {
