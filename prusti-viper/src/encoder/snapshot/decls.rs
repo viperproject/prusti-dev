@@ -93,7 +93,7 @@ impl Snapshot {
         use Snapshot::*;
         matches!(
             self,
-            Primitive(_) | Complex { .. } | Array { .. } | Slice { .. }
+            Primitive(_) | Complex { .. } | Array { .. } | Slice { .. } | Abstract { .. }
         )
     }
 }
