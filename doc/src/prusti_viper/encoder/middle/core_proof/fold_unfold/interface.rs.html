@@ -124,7 +124,13 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::helpers</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/helpers.rs.html#23-28">MemoryBlockSplitJoiner</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/helpers.rs.html#14-21">OwnedUnFolder</a>};
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::helpers</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/helpers.rs.html#23-29">MemoryBlockSplitJoiner</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/helpers.rs.html#14-21">OwnedUnFolder</a>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     <span class="ident">middle::core_proof</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#62-77">lowerer::Lowerer</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/type_decl_encoder.rs.html#8-259">utils::type_decl_encoder::TypeDeclWalker</a>},
@@ -163,6 +169,7 @@
         <span class="ident">statements</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a><span class="op">&gt;</span>,
         <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
         <span class="ident">address</span>: <a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
+        <span class="ident">permission_amount</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a><span class="op">&gt;</span>,
         <span class="ident">position</span>: <a class="ident" href="../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::ptr_arg</span>)]</span> <span class="comment">// Clippy false positive.</span>
@@ -171,11 +178,12 @@
         <span class="ident">statements</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a><span class="op">&gt;</span>,
         <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
         <span class="ident">address</span>: <a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
+        <span class="ident">permission_amount</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a><span class="op">&gt;</span>,
         <span class="ident">position</span>: <a class="ident" href="../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#9-50">FoldUnfoldInterface</a> <span class="kw">for</span> <span class="ident">Lowerer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#9-52">FoldUnfoldInterface</a> <span class="kw">for</span> <span class="ident">Lowerer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">encode_fully_fold_owned_non_aliased</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">statements</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a><span class="op">&gt;</span>,
@@ -187,13 +195,13 @@
         <span class="ident">position</span>: <a class="ident" href="../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">folder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/helpers.rs.html#14-21">OwnedUnFolder</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#55">statements</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#58">root_address</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#59">permission_amount</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#61">position</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#57">statements</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#60">root_address</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#61">permission_amount</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#63">position</a>,
             <span class="ident">is_folding</span>: <span class="bool-val">true</span>,
         };
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#63">folder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/type_decl_encoder.rs.html#148-153">walk_type</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#56">ty</a>, (<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#57">place</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#60">snapshot</a>), <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#54">self</a>)
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#65">folder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/type_decl_encoder.rs.html#148-153">walk_type</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#58">ty</a>, (<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#59">place</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#62">snapshot</a>), <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#56">self</a>)
     }
     <span class="kw">fn</span> <span class="ident">encode_fully_unfold_owned_non_aliased</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
@@ -206,41 +214,45 @@
         <span class="ident">position</span>: <a class="ident" href="../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unfolder</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/helpers.rs.html#14-21">OwnedUnFolder</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#74">statements</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#77">root_address</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#78">permission_amount</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#80">position</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#76">statements</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#79">root_address</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#80">permission_amount</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#82">position</a>,
             <span class="ident">is_folding</span>: <span class="bool-val">false</span>,
         };
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#82">unfolder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/type_decl_encoder.rs.html#148-153">walk_type</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#75">ty</a>, (<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#76">place</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#79">snapshot</a>), <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#73">self</a>)
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#84">unfolder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/type_decl_encoder.rs.html#148-153">walk_type</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#77">ty</a>, (<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#78">place</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#81">snapshot</a>), <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#75">self</a>)
     }
     <span class="kw">fn</span> <span class="ident">encode_fully_split_memory_block</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">statements</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a><span class="op">&gt;</span>,
         <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
         <span class="ident">address</span>: <a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
+        <span class="ident">permission_amount</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a><span class="op">&gt;</span>,
         <span class="ident">position</span>: <a class="ident" href="../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spliter</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/helpers.rs.html#23-28">MemoryBlockSplitJoiner</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#93">statements</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#96">position</a>,
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spliter</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/helpers.rs.html#23-29">MemoryBlockSplitJoiner</a> {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#95">statements</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#98">permission_amount</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#99">position</a>,
             <span class="ident">is_joining</span>: <span class="bool-val">false</span>,
         };
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#98">spliter</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/type_decl_encoder.rs.html#148-153">walk_type</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#94">ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#95">address</a>, <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#92">self</a>)
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#101">spliter</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/type_decl_encoder.rs.html#148-153">walk_type</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#96">ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#97">address</a>, <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#94">self</a>)
     }
     <span class="kw">fn</span> <span class="ident">encode_fully_join_memory_block</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">statements</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a><span class="op">&gt;</span>,
         <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
         <span class="ident">address</span>: <a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
+        <span class="ident">permission_amount</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a><span class="op">&gt;</span>,
         <span class="ident">position</span>: <a class="ident" href="../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">joiner</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/helpers.rs.html#23-28">MemoryBlockSplitJoiner</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#107">statements</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#110">position</a>,
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">joiner</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/helpers.rs.html#23-29">MemoryBlockSplitJoiner</a> {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#111">statements</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#114">permission_amount</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#115">position</a>,
             <span class="ident">is_joining</span>: <span class="bool-val">true</span>,
         };
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#112">joiner</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/type_decl_encoder.rs.html#148-153">walk_type</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#108">ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#109">address</a>, <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#106">self</a>)
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#117">joiner</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/type_decl_encoder.rs.html#148-153">walk_type</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#112">ty</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#113">address</a>, <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/fold_unfold/interface.rs.html#110">self</a>)
     }
 }
 </code></pre></div>
