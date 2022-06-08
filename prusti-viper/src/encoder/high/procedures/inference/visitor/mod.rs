@@ -193,6 +193,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     kind: PermissionKind::Owned,
                     place,
                     enum_variant: _,
+                    index,
                     condition,
                 }) => {
                     if let Some((lifetime, uniqueness)) = place.get_dereference_kind() {
@@ -209,6 +210,9 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                         vir_mid::Statement::unfold_owned(
                             place.to_middle_expression(self.encoder)?,
                             condition,
+                            index
+                                .map(|index| index.to_middle_expression(self.encoder))
+                                .transpose()?,
                             position,
                         )
                     }
@@ -217,6 +221,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     kind: PermissionKind::Owned,
                     place,
                     enum_variant: _,
+                    index,
                     condition,
                 }) => {
                     if let Some((lifetime, uniqueness)) = place.get_dereference_kind() {
@@ -233,6 +238,9 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                         vir_mid::Statement::fold_owned(
                             place.to_middle_expression(self.encoder)?,
                             condition,
+                            index
+                                .map(|index| index.to_middle_expression(self.encoder))
+                                .transpose()?,
                             position,
                         )
                     }
@@ -241,8 +249,13 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     kind: PermissionKind::MemoryBlock,
                     place,
                     enum_variant,
+                    index,
                     condition,
                 }) => {
+                    assert!(
+                        index.is_none(),
+                        "memory_block_split on arrays is not supported"
+                    );
                     let position = place.position();
                     vir_mid::Statement::split_block(
                         place.to_middle_expression(self.encoder)?,
@@ -257,8 +270,13 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     kind: PermissionKind::MemoryBlock,
                     place,
                     enum_variant,
+                    index,
                     condition,
                 }) => {
+                    assert!(
+                        index.is_none(),
+                        "memory_block_split on arrays is not supported"
+                    );
                     let position = place.position();
                     vir_mid::Statement::join_block(
                         place.to_middle_expression(self.encoder)?,

@@ -121,26 +121,32 @@ pub struct BlockMarkerCondition {
 }
 
 #[display(
-    fmt = "fold-owned{} {}",
+    fmt = "fold-owned{} {}{}",
     "display::option!(condition, \"<{}>\", \"\")",
-    place
+    place,
+    "display::option!(index, \"[{}]\", \"\")"
 )]
 /// Fold `OwnedNonAliased(place)`.
 pub struct FoldOwned {
     pub place: Expression,
     pub condition: Option<BlockMarkerCondition>,
+    /// If Some, indicates that we are folding array's injectivity wrapper.
+    pub index: Option<Expression>,
     pub position: Position,
 }
 
 #[display(
-    fmt = "unfold-owned{} {}",
+    fmt = "unfold-owned{} {}{}",
     "display::option!(condition, \"<{}>\", \"\")",
-    place
+    place,
+    "display::option!(index, \"[{}]\", \"\")"
 )]
 /// Unfold `OwnedNonAliased(place)`.
 pub struct UnfoldOwned {
     pub place: Expression,
     pub condition: Option<BlockMarkerCondition>,
+    /// If Some, indicates that we are unfolding array's injectivity wrapper.
+    pub index: Option<Expression>,
     pub position: Position,
 }
 
