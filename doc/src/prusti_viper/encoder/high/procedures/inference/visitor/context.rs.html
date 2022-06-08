@@ -104,6 +104,17 @@
 <span id="97">97</span>
 <span id="98">98</span>
 <span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#15-20"><span class="kw">super</span>::ensurer::ExpandedPermissionKind</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/mod.rs.html#28-45">Visitor</a>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <span class="ident">errors</span>::{<a class="ident" href="../../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-161">ErrorCtxt</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
@@ -173,11 +184,22 @@
                     (<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#17">ExpandedPermissionKind::Same</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#64">variant_place</a>),
                 ]
             }
-            <span class="ident">vir_high::TypeDecl::Array</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#17">ty</a>),
+            <span class="ident">vir_high::TypeDecl::Array</span>(<span class="ident">decl</span>) =&gt; {
+                <span class="comment">// TODO: Instead of a concrete index use a wildcard that would match any index.</span>
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#14">place</a>.<span class="ident">get_index</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#15">guiding_place</a>);
+                <span class="kw">let</span> <span class="ident">index_place</span> <span class="op">=</span> <span class="ident">vir_high::Expression::builtin_func_app</span>(
+                    <span class="ident">vir_high::BuiltinFunc::Index</span>,
+                    <span class="macro">vec!</span>[<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#70">decl</a>.<span class="ident">element_type</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()],
+                    <span class="macro">vec!</span>[<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#14">place</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#72">index</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()],
+                    <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#70">decl</a>.<span class="ident">element_type</span>,
+                    <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#14">place</a>.<a class="ident" href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>(),
+                );
+                <span class="macro">vec!</span>[(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#17">ExpandedPermissionKind::Same</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#73">index_place</a>)]
+            }
             <span class="ident">vir_high::TypeDecl::Reference</span>(<span class="ident">decl</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">deref_place</span> <span class="op">=</span>
-                    <span class="ident">vir_high::Expression::deref</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#14">place</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#71">decl</a>.<span class="ident">target_type</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#14">place</a>.<a class="ident" href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>());
-                <span class="macro">vec!</span>[(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#17">ExpandedPermissionKind::Same</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#72">deref_place</a>)]
+                    <span class="ident">vir_high::Expression::deref</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#14">place</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#82">decl</a>.<span class="ident">target_type</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#14">place</a>.<a class="ident" href="../../../../../../../vir/common/position/trait.Positioned.html">position</a>());
+                <span class="macro">vec!</span>[(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/ensurer.rs.html#17">ExpandedPermissionKind::Same</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#83">deref_place</a>)]
             }
             <span class="ident">vir_high::TypeDecl::Sequence</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#17">ty</a>),
             <span class="ident">vir_high::TypeDecl::Map</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {}&quot;</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#17">ty</a>),
@@ -189,10 +211,10 @@
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#40">expansion</a>)
     }
     <span class="kw">fn</span> <span class="ident">get_span</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">position</span>: <a class="ident" href="../../../../../../../vir/common/position/struct.Position.html">vir_high::Position</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">rustc_errors::MultiSpan</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#85">self</a>.<span class="ident">encoder</span>
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#96">self</a>.<span class="ident">encoder</span>
             .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/encoder.rs.html#211">error_manager</a>()
             .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#180">position_manager</a>()
-            .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#86">get_span</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#85">position</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#86">get_span</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#96">position</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             .<span class="ident">cloned</span>()
     }
     <span class="kw">fn</span> <span class="ident">change_error_context</span>(
@@ -200,7 +222,7 @@
         <span class="ident">position</span>: <a class="ident" href="../../../../../../../vir/common/position/struct.Position.html">vir_high::Position</a>,
         <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-161">ErrorCtxt</a>,
     ) -&gt; <a class="ident" href="../../../../../../../vir/common/position/struct.Position.html">vir_high::Position</a> {
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#93">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#22-26">change_error_context</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#94">position</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#95">error_ctxt</a>)
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#104">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#22-26">change_error_context</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#105">position</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/procedures/inference/visitor/context.rs.html#106">error_ctxt</a>)
     }
 }
 </code></pre></div>

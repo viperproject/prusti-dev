@@ -516,6 +516,36 @@
 <span id="509">509</span>
 <span id="510">510</span>
 <span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
 </pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">macro</span> <span class="ident">ty</span> {
     (<span class="ident">Int</span>) =&gt; {<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::low::ast::ty::Type::Int</span>},
     (<span class="ident">Bool</span>) =&gt; {<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::low::ast::ty::Type::Bool</span>},
@@ -728,6 +758,14 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lhs</span>: <span class="ident">tt</span> <span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>: <span class="ident">tt</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::low::ast::expression::Expression::binary_op</span>(
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::low::ast::expression::BinaryOpKind::LtCmp</span>,
+            <span class="macro-nonterminal">$</span><span class="macro">crate::low::macros::expr!</span>( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lhs</span> ),
+            <span class="macro-nonterminal">$</span><span class="macro">crate::low::macros::expr!</span>( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span> ),
+            <span class="ident">Default::default</span>(),
+        )
+    },
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lhs</span>: <span class="ident">tt</span> <span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>: <span class="ident">tt</span>) =&gt; {
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::low::ast::expression::Expression::binary_op</span>(
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::low::ast::expression::BinaryOpKind::Mul</span>,
             <span class="macro-nonterminal">$</span><span class="macro">crate::low::macros::expr!</span>( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lhs</span> ),
             <span class="macro-nonterminal">$</span><span class="macro">crate::low::macros::expr!</span>( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span> ),
             <span class="ident">Default::default</span>(),
@@ -1022,6 +1060,28 @@
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::common::identifier::WithIdentifier::get_identifier</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>)
                 ),
                 <span class="macro">vec!</span>[ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parameter_name</span>.<span class="ident">clone</span>()),<span class="op">*</span> ],
+                <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::low::macros::expr!</span>{<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>}),
+            )
+        }
+    },
+    (
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">predicate_name</span>:<span class="ident">ident</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">tt</span><span class="op">&gt;</span>(
+            $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">parameter_name</span>:<span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">parameter_type</span>:<span class="ident">tt</span> ),<span class="op">*</span>
+            $(,<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">parameter_list</span>:<span class="ident">ident</span> )<span class="question-mark">?</span>
+        )
+        { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span> }
+    ) =&gt; {
+        {
+            $( <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">parameter_name</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro">crate::low::macros::var!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">parameter_name</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">parameter_type</span> }; )<span class="op">*</span>
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="macro">vec!</span>[ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parameter_name</span>.<span class="ident">clone</span>()),<span class="op">*</span> ];
+            $( <span class="ident">parameters</span>.<span class="ident">extend</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parameter_list</span>); )<span class="question-mark">?</span>
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::low::ast::predicate::PredicateDecl::new</span>(
+                <span class="macro">format!</span>(
+                    <span class="string">&quot;{}${}&quot;</span>,
+                    <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">predicate_name</span>),
+                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::common::identifier::WithIdentifier::get_identifier</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>)
+                ),
+                <span class="ident">parameters</span>,
                 <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::low::macros::expr!</span>{<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>}),
             )
         }
