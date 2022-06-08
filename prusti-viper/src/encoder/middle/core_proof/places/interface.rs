@@ -35,6 +35,13 @@ pub(in super::super) trait PlacesInterface {
         base_place: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
+    fn encode_index_place(
+        &mut self,
+        base_type: &vir_mid::Type,
+        base_place: vir_low::Expression,
+        index: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
@@ -80,5 +87,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
             return_type,
             position,
         )
+    }
+    fn encode_index_place(
+        &mut self,
+        base_type: &vir_mid::Type,
+        base_place: vir_low::Expression,
+        index: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
+        self.encode_index_access_function_app("Place", base_place, base_type, index, position)
     }
 }

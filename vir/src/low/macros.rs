@@ -215,6 +215,14 @@ pub macro expr {
             Default::default(),
         )
     },
+    ($lhs: tt * $rhs: tt) => {
+        $crate::low::ast::expression::Expression::binary_op(
+            $crate::low::ast::expression::BinaryOpKind::Mul,
+            $crate::low::macros::expr!( $lhs ),
+            $crate::low::macros::expr!( $rhs ),
+            Default::default(),
+        )
+    },
     ($lhs: tt && $rhs: tt) => {
         $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::And,
@@ -504,6 +512,28 @@ pub macro predicate {
                     $crate::common::identifier::WithIdentifier::get_identifier($ty)
                 ),
                 vec![ $($parameter_name.clone()),* ],
+                Some($crate::low::macros::expr!{$body}),
+            )
+        }
+    },
+    (
+        $predicate_name:ident<$ty:tt>(
+            $( $parameter_name:ident : $parameter_type:tt ),*
+            $(,* $parameter_list:ident )?
+        )
+        { $body:tt }
+    ) => {
+        {
+            $( let $parameter_name = $crate::low::macros::var! { $parameter_name: $parameter_type }; )*
+            let mut parameters = vec![ $($parameter_name.clone()),* ];
+            $( parameters.extend($parameter_list); )?
+            $crate::low::ast::predicate::PredicateDecl::new(
+                format!(
+                    "{}${}",
+                    stringify!($predicate_name),
+                    $crate::common::identifier::WithIdentifier::get_identifier($ty)
+                ),
+                parameters,
                 Some($crate::low::macros::expr!{$body}),
             )
         }

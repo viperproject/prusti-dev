@@ -5,7 +5,7 @@ use crate::encoder::{
         compute_address::ComputeAddressInterface,
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::PredicatesMemoryBlockInterface,
+        predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
         references::ReferencesInterface,
         snapshots::{
             IntoSnapshot, SnapshotBytesInterface, SnapshotValidityInterface,
@@ -18,7 +18,7 @@ use crate::encoder::{
 use rustc_hash::FxHashSet;
 use std::borrow::Cow;
 use vir_crate::{
-    common::expression::ExpressionIterator,
+    common::expression::{ExpressionIterator, QuantifierHelpers},
     low::{self as vir_low},
     middle as vir_mid,
 };
@@ -235,7 +235,93 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     )}
                 }
             }
-            // vir_mid::TypeDecl::Array(Array) => {},
+            vir_mid::TypeDecl::Array(decl) => {
+                let element_type = &decl.element_type;
+                self.lowerer.ensure_type_definition(element_type)?;
+                let parameters = self.lowerer.extract_non_type_parameters_from_type(ty)?;
+                let parameters_validity: vir_low::Expression = self
+                    .lowerer
+                    .extract_non_type_parameters_from_type_validity(ty)?
+                    .into_iter()
+                    .conjoin();
+                var_decls! {
+                    index: Int,
+                    snapshot: {snapshot_type.clone()}
+                };
+                let snapshot_length = vir_low::Expression::container_op(
+                    vir_low::expression::ContainerOpKind::SeqLen,
+                    snapshot.clone().into(),
+                    true.into(),
+                    Default::default(),
+                );
+                let array_length = self.lowerer.array_length_variable()?;
+                let size_type = self.lowerer.size_type_mid()?;
+                let array_length_int = self.lowerer.obtain_constant_value(
+                    &size_type,
+                    array_length.into(),
+                    Default::default(),
+                )?;
+                let index_usize = self.lowerer.construct_constant_snapshot(
+                    &size_type,
+                    index.clone().into(),
+                    Default::default(),
+                )?;
+                let element_place = self.lowerer.encode_index_place(
+                    ty,
+                    place.clone().into(),
+                    index_usize,
+                    Default::default(),
+                )?;
+                let element_snapshot = vir_low::Expression::container_op(
+                    vir_low::expression::ContainerOpKind::SeqIndex,
+                    snapshot.clone().into(),
+                    index.clone().into(),
+                    Default::default(),
+                );
+                let in_array_predicate_acc = expr! {
+                    acc(OwnedNonAliasedInArray<element_type>(
+                        place, root_address, snapshot, index
+                    ))
+                };
+                let elements = vir_low::Expression::forall(
+                    vec![index.clone()],
+                    vec![vir_low::Trigger::new(vec![in_array_predicate_acc.clone()])],
+                    expr! {
+                        (([0.into()] <= index) && (index < [array_length_int.clone()])) ==>
+                        [in_array_predicate_acc]
+                    },
+                );
+                self.encode_owned_non_aliased(element_type)?;
+                let in_array_predicate = predicate! {
+                    OwnedNonAliasedInArray<element_type>(
+                        place: Place,
+                        root_address: Address,
+                        snapshot: {snapshot_type.clone()},
+                        index: Int
+                    )
+                    {(
+                        (([0.into()] <= index) && (index < [snapshot_length.clone()])) ==>
+                        (acc(OwnedNonAliased<element_type>(
+                            [element_place], root_address, [element_snapshot]
+                        )))
+                    )}
+                };
+                self.predicates.push(in_array_predicate);
+                predicate! {
+                    OwnedNonAliased<ty>(
+                        place: Place,
+                        root_address: Address,
+                        snapshot: {snapshot_type},
+                        *parameters
+                    )
+                    {(
+                        [validity] &&
+                        [parameters_validity] &&
+                        ([array_length_int] == [snapshot_length]) &&
+                        [elements]
+                    )}
+                }
+            }
             vir_mid::TypeDecl::Reference(reference) if reference.uniqueness.is_unique() => {
                 let address_type = &self.lowerer.reference_address_type(ty)?;
                 self.lowerer
