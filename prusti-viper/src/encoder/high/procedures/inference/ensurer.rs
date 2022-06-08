@@ -292,10 +292,12 @@ fn ensure_permission_in_state(
         actions.push(Action::fold(permission_kind, place.clone(), enum_variant));
         predicate_state.insert(permission_kind, place)?;
         false
-    } else if let Some(lifetime) = predicate_state.contains_blocked(&place)? {
-        predicate_state.remove_mut_borrowed(&place)?;
-        predicate_state.insert(PermissionKind::Owned, place.clone())?;
-        actions.push(Action::restore_mut_borrowed(lifetime, place.clone()));
+    } else if let Some((prefix, lifetime)) = predicate_state.contains_blocked(&place)? {
+        let prefix = prefix.clone();
+        let lifetime = lifetime.clone();
+        predicate_state.remove_mut_borrowed(&prefix)?;
+        predicate_state.insert(PermissionKind::Owned, prefix.clone())?;
+        actions.push(Action::restore_mut_borrowed(lifetime, prefix.clone()));
         ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?
     } else if permission_kind == PermissionKind::MemoryBlock
         && can_place_be_ensured_in(context, &place, PermissionKind::Owned, predicate_state)?
