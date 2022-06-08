@@ -572,9 +572,34 @@ impl IntoLow for vir_mid::Statement {
                     statement.position,
                 )])
             }
-            Self::Dead(_statement) => {
-                // TODO: implement Dead statment in vir_low
-                Ok(vec![])
+            Self::Dead(statement) => {
+                let ty = statement.target.get_type();
+                let mut statements = Vec::new();
+                if let vir_mid::Type::Reference(vir_mid::ty::Reference {
+                    uniqueness: vir_mid::ty::Uniqueness::Unique,
+                    box target_type,
+                    ..
+                }) = ty
+                {
+                    let target_type = target_type.clone();
+                    let lifetimes = lowerer.extract_lifetime_variables(ty)?;
+                    for lifetime in lifetimes {
+                        let low_statement = vir_low::Statement::assert(
+                            expr! { (acc(DeadLifetimeToken(lifetime))) },
+                            statement.position,
+                        );
+                        statements.push(low_statement);
+                    }
+                    let place = statement.target.deref(target_type, statement.position);
+                    let current_snapshot = place.to_procedure_snapshot(lowerer)?;
+                    let final_snapshot = place.to_procedure_final_snapshot(lowerer)?;
+                    let low_statement = vir_low::Statement::assume(
+                        expr! { [current_snapshot] == [final_snapshot] },
+                        statement.position,
+                    );
+                    statements.push(low_statement);
+                }
+                Ok(statements)
             }
             Self::LifetimeTake(statement) => {
                 if statement.value.len() == 1 {
