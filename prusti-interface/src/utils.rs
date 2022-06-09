@@ -84,6 +84,15 @@ pub fn expand_struct_place<'tcx>(
                     places.push(tcx.mk_place_deref(*place));
                 }
             },
+            ty::Closure(_, substs) => {
+                for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
+                    if Some(index) != without_field {
+                        let field = mir::Field::from_usize(index);
+                        let field_place = tcx.mk_place_field(*place, field, subst_ty);
+                        places.push(field_place.into());
+                    }
+                }
+            }
             ref ty => {
                 unimplemented!("ty={:?}", ty);
             }
