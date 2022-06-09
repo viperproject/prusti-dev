@@ -14,16 +14,15 @@ extern crate rustc_middle;
 extern crate rustc_session;
 
 use analysis::{
-    abstract_interpretation::FixpointEngine,
+    abstract_interpretation::{CondInitializedAnalysis, FixpointEngine},
     domains::{
         DefinitelyAccessibleAnalysis, DefinitelyInitializedAnalysis, FramingAnalysis,
         MaybeBorrowedAnalysis, ReachingDefsAnalysis,
     },
 };
 
-use prusti_pcs::pcs::compute_pcs;
-
 use polonius_engine::{Algorithm, Output};
+// use prusti_pcs::pcs::init_analysis;
 use rustc_ast::ast;
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_driver::Compilation;
@@ -273,8 +272,15 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                         }
                     }
                     "PCSAnalysis" => {
-                        println!("Called PCS Analysis");
-                        compute_pcs();
+                        let analyzer =
+                            CondInitializedAnalysis::new(tcx, local_def_id.to_def_id(), &body);
+                        match analyzer.run_fwd_analysis() {
+                            Ok(state) => {
+                                state.pprint_trace();
+                                // println!("{}", serde_json::to_string_pretty(&state).unwrap());
+                            }
+                            Err(e) => eprintln!("{}", e.to_pretty_str(body)),
+                        }
                     }
                     _ => panic!("Unknown domain argument: {}", abstract_domain),
                 }
