@@ -16,18 +16,18 @@ impl Stmt {
     #[must_use]
     pub fn map_expr<F>(self, substitutor: F) -> Self
     where
-        F: Fn(Expr) -> Expr,
+        F: FnMut(Expr) -> Expr,
     {
         trace!("Stmt::map_expr {}", self);
         struct StmtExprSubstitutor<T>
         where
-            T: Fn(Expr) -> Expr,
+            T: FnMut(Expr) -> Expr,
         {
             substitutor: T,
         }
         impl<T> StmtFolder for StmtExprSubstitutor<T>
         where
-            T: Fn(Expr) -> Expr,
+            T: FnMut(Expr) -> Expr,
         {
             fn fold_expr(&mut self, e: Expr) -> Expr {
                 (self.substitutor)(e)

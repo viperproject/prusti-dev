@@ -9,7 +9,7 @@ use log::info;
 use prusti_common::{
     config,
     report::log::{report, to_legal_file_name},
-    vir::ToViper,
+    vir::{program_normalization::NormalizationInfo, ToViper},
     Stopwatch,
 };
 use std::{fs::create_dir_all, path::PathBuf};
@@ -17,10 +17,23 @@ use viper::{Cache, VerificationBackend, VerificationContext, VerificationResult}
 
 pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v VerificationContext<'t>,
-    request: VerificationRequest,
+    mut request: VerificationRequest,
     cache: impl Cache,
 ) -> viper::VerificationResult {
     let ast_utils = verification_context.new_ast_utils();
+
+    // Only for testing: Check that the normalization is reversible.
+    if config::print_hash() {
+        debug_assert!({
+            let mut program = request.program.clone();
+            let normalization_info = NormalizationInfo::normalize_program(&mut program);
+            normalization_info.denormalize_program(&mut program);
+            program == request.program
+        });
+    }
+
+    // Normalize the request before reaching the cache.
+    let normalization_info = NormalizationInfo::normalize_program(&mut request.program);
 
     let hash = request.get_hash();
     info!(
@@ -44,7 +57,7 @@ pub fn process_verification_request<'v, 't: 'v>(
         viper_program
     };
 
-    // Print the hash and skip verification. Used for testing.
+    // Only for testing: Print the hash and skip verification.
     if config::print_hash() {
         println!(
             "Received verification request for: {}",
@@ -62,7 +75,7 @@ pub fn process_verification_request<'v, 't: 'v>(
 
     // Early return in case of cache hit
     if config::enable_cache() {
-        if let Some(result) = cache.get(hash) {
+        if let Some(mut result) = cache.get(hash) {
             if result != VerificationResult::Success {
                 info!(
                     "cached result {:?} for program {}",
@@ -75,6 +88,7 @@ pub fn process_verification_request<'v, 't: 'v>(
                     let _ = build_or_dump_viper_program();
                 });
             }
+            normalization_info.denormalize_result(&mut result);
             return result;
         }
     };
@@ -90,7 +104,7 @@ pub fn process_verification_request<'v, 't: 'v>(
             new_viper_verifier(program_name, verification_context, request.backend_config);
 
         stopwatch.start_next("verification");
-        let result = verifier.verify(viper_program);
+        let mut result = verifier.verify(viper_program);
 
         if config::enable_cache() {
             if result != VerificationResult::Success {
@@ -103,6 +117,7 @@ pub fn process_verification_request<'v, 't: 'v>(
             cache.insert(hash, result.clone());
         }
 
+        normalization_info.denormalize_result(&mut result);
         result
     })
 }
