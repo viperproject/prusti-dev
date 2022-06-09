@@ -137,6 +137,15 @@ pub(crate) fn expand_struct_place<'tcx>(
                     places.push(tcx.mk_place_deref(*place).into());
                 }
             },
+            ty::Closure(_, substs) => {
+                for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
+                    if Some(index) != without_field {
+                        let field = mir::Field::from_usize(index);
+                        let field_place = tcx.mk_place_field(*place, field, subst_ty);
+                        places.push(field_place.into());
+                    }
+                }
+            }
             ref ty => {
                 unimplemented!("ty={:?}", ty);
             }
@@ -159,8 +168,16 @@ pub(crate) fn expand_one_level<'tcx>(
         mir::ProjectionElem::Field(projected_field, field_ty) => {
             let places =
                 expand_struct_place(current_place, mir, tcx, Some(projected_field.index()));
-            let new_current_place = tcx.mk_place_field(*current_place, projected_field, field_ty);
-            (new_current_place.into(), places)
+            let new_current_place = tcx
+                .mk_place_field(*current_place, projected_field, field_ty)
+                .into();
+            debug_assert!(
+                !places.contains(&new_current_place),
+                "{:?} unexpectedly contains {:?}",
+                places,
+                new_current_place
+            );
+            (new_current_place, places)
         }
         mir::ProjectionElem::Downcast(_symbol, variant) => {
             let kind = &current_place.ty(mir, tcx).ty.kind();
