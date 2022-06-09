@@ -10,6 +10,7 @@
 
 use super::super::borrows::Borrow;
 use crate::legacy::ast::*;
+use std::mem;
 
 impl Expr {
     /// Apply the closure to all places in the expression.
@@ -63,6 +64,34 @@ impl Expr {
         }
         ExprFolderImpl { f }.fold(self)
     }
+
+    /// Visit each position.
+    pub fn visit_positions<F: FnMut(&Position)>(&self, visitor: F) {
+        struct PositionsVisitor<F: FnMut(&Position)> {
+            visitor: F,
+        }
+        impl<F: FnMut(&Position)> ExprWalker for PositionsVisitor<F> {
+            fn walk_position(&mut self, pos: &Position) {
+                (self.visitor)(pos);
+            }
+        }
+        PositionsVisitor { visitor }.walk(self);
+    }
+
+    /// Mutably visit each position.
+    pub fn visit_positions_mut<F: FnMut(&mut Position)>(&mut self, visitor: F) {
+        struct PositionsMutVisitor<F: FnMut(&mut Position)> {
+            visitor: F,
+        }
+        impl<F: FnMut(&mut Position)> ExprFolder for PositionsMutVisitor<F> {
+            fn fold_position(&mut self, mut pos: Position) -> Position {
+                (self.visitor)(&mut pos);
+                pos
+            }
+        }
+        let expr = mem::replace(self, true.into());
+        *self = PositionsMutVisitor { visitor }.fold(expr);
+    }
 }
 
 pub trait ExprFolder: Sized {
@@ -76,22 +105,22 @@ pub trait ExprFolder: Sized {
     }
 
     fn fold_local(&mut self, v: LocalVar, p: Position) -> Expr {
-        Expr::Local(v, p)
+        Expr::Local(v, self.fold_position(p))
     }
     fn fold_variant(&mut self, base: Box<Expr>, variant: Field, p: Position) -> Expr {
-        Expr::Variant(self.fold_boxed(base), variant, p)
+        Expr::Variant(self.fold_boxed(base), variant, self.fold_position(p))
     }
     fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
-        Expr::Field(self.fold_boxed(receiver), field, pos)
+        Expr::Field(self.fold_boxed(receiver), field, self.fold_position(pos))
     }
     fn fold_addr_of(&mut self, e: Box<Expr>, t: Type, p: Position) -> Expr {
-        Expr::AddrOf(self.fold_boxed(e), t, p)
+        Expr::AddrOf(self.fold_boxed(e), t, self.fold_position(p))
     }
     fn fold_const(&mut self, x: Const, p: Position) -> Expr {
-        Expr::Const(x, p)
+        Expr::Const(x, self.fold_position(p))
     }
     fn fold_labelled_old(&mut self, label: String, body: Box<Expr>, pos: Position) -> Expr {
-        Expr::LabelledOld(label, self.fold_boxed(body), pos)
+        Expr::LabelledOld(label, self.fold_boxed(body), self.fold_position(pos))
     }
     fn fold_magic_wand(
         &mut self,
@@ -100,7 +129,12 @@ pub trait ExprFolder: Sized {
         borrow: Option<Borrow>,
         pos: Position,
     ) -> Expr {
-        Expr::MagicWand(self.fold_boxed(lhs), self.fold_boxed(rhs), borrow, pos)
+        Expr::MagicWand(
+            self.fold_boxed(lhs),
+            self.fold_boxed(rhs),
+            borrow,
+            self.fold_position(pos),
+        )
     }
     fn fold_predicate_access_predicate(
         &mut self,
@@ -109,7 +143,12 @@ pub trait ExprFolder: Sized {
         perm_amount: PermAmount,
         pos: Position,
     ) -> Expr {
-        Expr::PredicateAccessPredicate(name, self.fold_boxed(arg), perm_amount, pos)
+        Expr::PredicateAccessPredicate(
+            name,
+            self.fold_boxed(arg),
+            perm_amount,
+            self.fold_position(pos),
+        )
     }
     fn fold_field_access_predicate(
         &mut self,
@@ -117,10 +156,14 @@ pub trait ExprFolder: Sized {
         perm_amount: PermAmount,
         pos: Position,
     ) -> Expr {
-        Expr::FieldAccessPredicate(self.fold_boxed(receiver), perm_amount, pos)
+        Expr::FieldAccessPredicate(
+            self.fold_boxed(receiver),
+            perm_amount,
+            self.fold_position(pos),
+        )
     }
     fn fold_unary_op(&mut self, x: UnaryOpKind, y: Box<Expr>, p: Position) -> Expr {
-        Expr::UnaryOp(x, self.fold_boxed(y), p)
+        Expr::UnaryOp(x, self.fold_boxed(y), self.fold_position(p))
     }
     fn fold_bin_op(
         &mut self,
@@ -129,7 +172,12 @@ pub trait ExprFolder: Sized {
         second: Box<Expr>,
         pos: Position,
     ) -> Expr {
-        Expr::BinOp(kind, self.fold_boxed(first), self.fold_boxed(second), pos)
+        Expr::BinOp(
+            kind,
+            self.fold_boxed(first),
+            self.fold_boxed(second),
+            self.fold_position(pos),
+        )
     }
     fn fold_unfolding(
         &mut self,
@@ -146,7 +194,7 @@ pub trait ExprFolder: Sized {
             self.fold_boxed(expr),
             perm,
             variant,
-            pos,
+            self.fold_position(pos),
         )
     }
     fn fold_cond(
@@ -160,7 +208,7 @@ pub trait ExprFolder: Sized {
             self.fold_boxed(guard),
             self.fold_boxed(then_expr),
             self.fold_boxed(else_expr),
-            pos,
+            self.fold_position(pos),
         )
     }
     fn fold_forall(
@@ -170,7 +218,7 @@ pub trait ExprFolder: Sized {
         z: Box<Expr>,
         p: Position,
     ) -> Expr {
-        Expr::ForAll(x, y, self.fold_boxed(z), p)
+        Expr::ForAll(x, y, self.fold_boxed(z), self.fold_position(p))
     }
     fn fold_exists(
         &mut self,
@@ -179,7 +227,7 @@ pub trait ExprFolder: Sized {
         z: Box<Expr>,
         p: Position,
     ) -> Expr {
-        Expr::Exists(x, y, self.fold_boxed(z), p)
+        Expr::Exists(x, y, self.fold_boxed(z), self.fold_position(p))
     }
     fn fold_let_expr(
         &mut self,
@@ -188,7 +236,12 @@ pub trait ExprFolder: Sized {
         body: Box<Expr>,
         pos: Position,
     ) -> Expr {
-        Expr::LetExpr(var, self.fold_boxed(expr), self.fold_boxed(body), pos)
+        Expr::LetExpr(
+            var,
+            self.fold_boxed(expr),
+            self.fold_boxed(body),
+            self.fold_position(pos),
+        )
     }
     fn fold_func_app(
         &mut self,
@@ -203,11 +256,15 @@ pub trait ExprFolder: Sized {
             args.into_iter().map(|e| self.fold(e)).collect(),
             formal_args,
             return_type,
-            pos,
+            self.fold_position(pos),
         )
     }
     fn fold_domain_func_app(&mut self, func: DomainFunc, args: Vec<Expr>, pos: Position) -> Expr {
-        Expr::DomainFuncApp(func, args.into_iter().map(|e| self.fold(e)).collect(), pos)
+        Expr::DomainFuncApp(
+            func,
+            args.into_iter().map(|e| self.fold(e)).collect(),
+            self.fold_position(pos),
+        )
     }
     /* TODO
     fn fold_domain_func_app(
@@ -225,7 +282,7 @@ pub trait ExprFolder: Sized {
             formal_args,
             return_type,
             domain_name,
-            pos
+            self.fold_position(pos)
         )
     }
     */
@@ -238,7 +295,7 @@ pub trait ExprFolder: Sized {
         Expr::InhaleExhale(
             self.fold_boxed(inhale_expr),
             self.fold_boxed(exhale_expr),
-            pos,
+            self.fold_position(pos),
         )
     }
 
@@ -246,7 +303,7 @@ pub trait ExprFolder: Sized {
         Expr::Downcast(self.fold_boxed(base), self.fold_boxed(enum_place), field)
     }
     fn fold_snap_app(&mut self, e: Box<Expr>, p: Position) -> Expr {
-        Expr::SnapApp(self.fold_boxed(e), p)
+        Expr::SnapApp(self.fold_boxed(e), self.fold_position(p))
     }
 
     fn fold_container_op(
@@ -256,19 +313,36 @@ pub trait ExprFolder: Sized {
         r: Box<Expr>,
         p: Position,
     ) -> Expr {
-        Expr::ContainerOp(kind, self.fold_boxed(l), self.fold_boxed(r), p)
+        Expr::ContainerOp(
+            kind,
+            self.fold_boxed(l),
+            self.fold_boxed(r),
+            self.fold_position(p),
+        )
     }
 
     fn fold_seq(&mut self, t: Type, elems: Vec<Expr>, p: Position) -> Expr {
-        Expr::Seq(t, elems.into_iter().map(|e| self.fold(e)).collect(), p)
+        Expr::Seq(
+            t,
+            elems.into_iter().map(|e| self.fold(e)).collect(),
+            self.fold_position(p),
+        )
     }
 
     fn fold_map(&mut self, t: Type, elems: Vec<Expr>, p: Position) -> Expr {
-        Expr::Map(t, elems.into_iter().map(|e| self.fold(e)).collect(), p)
+        Expr::Map(
+            t,
+            elems.into_iter().map(|e| self.fold(e)).collect(),
+            self.fold_position(p),
+        )
     }
 
     fn fold_cast(&mut self, kind: CastKind, base: Box<Expr>, p: Position) -> Expr {
-        Expr::Cast(kind, base, p)
+        Expr::Cast(kind, base, self.fold_position(p))
+    }
+
+    fn fold_position(&mut self, p: Position) -> Position {
+        p
     }
 }
 
@@ -317,58 +391,70 @@ pub trait ExprWalker: Sized {
         self.walk_type(&var.typ);
     }
 
-    fn walk_local(&mut self, var: &LocalVar, _pos: &Position) {
+    fn walk_local(&mut self, var: &LocalVar, pos: &Position) {
         self.walk_local_var(var);
+        self.walk_position(pos);
     }
-    fn walk_variant(&mut self, base: &Expr, variant: &Field, _pos: &Position) {
+    fn walk_variant(&mut self, base: &Expr, variant: &Field, pos: &Position) {
         self.walk(base);
         self.walk_type(&variant.typ);
+        self.walk_position(pos);
     }
-    fn walk_field(&mut self, receiver: &Expr, field: &Field, _pos: &Position) {
+    fn walk_field(&mut self, receiver: &Expr, field: &Field, pos: &Position) {
         self.walk(receiver);
         self.walk_type(&field.typ);
+        self.walk_position(pos);
     }
-    fn walk_addr_of(&mut self, receiver: &Expr, typ: &Type, _pos: &Position) {
+    fn walk_addr_of(&mut self, receiver: &Expr, typ: &Type, pos: &Position) {
         self.walk(receiver);
         self.walk_type(typ);
+        self.walk_position(pos);
     }
-    fn walk_const(&mut self, _const: &Const, _pos: &Position) {}
-    fn walk_labelled_old(&mut self, _label: &str, body: &Expr, _pos: &Position) {
+    fn walk_const(&mut self, _const: &Const, pos: &Position) {
+        self.walk_position(pos);
+    }
+    fn walk_labelled_old(&mut self, _label: &str, body: &Expr, pos: &Position) {
         self.walk(body);
+        self.walk_position(pos);
     }
     fn walk_magic_wand(
         &mut self,
         lhs: &Expr,
         rhs: &Expr,
         _borrow: &Option<Borrow>,
-        _pos: &Position,
+        pos: &Position,
     ) {
         self.walk(lhs);
         self.walk(rhs);
+        self.walk_position(pos);
     }
     fn walk_predicate_access_predicate(
         &mut self,
         _name: &str,
         arg: &Expr,
         _perm_amount: PermAmount,
-        _pos: &Position,
+        pos: &Position,
     ) {
-        self.walk(arg)
+        self.walk(arg);
+        self.walk_position(pos);
     }
     fn walk_field_access_predicate(
         &mut self,
         receiver: &Expr,
         _perm_amount: PermAmount,
-        _pos: &Position,
+        pos: &Position,
     ) {
-        self.walk(receiver)
+        self.walk(receiver);
+        self.walk_position(pos);
     }
-    fn walk_unary_op(&mut self, _op: UnaryOpKind, arg: &Expr, _pos: &Position) {
-        self.walk(arg)
+    fn walk_unary_op(&mut self, _op: UnaryOpKind, arg: &Expr, pos: &Position) {
+        self.walk(arg);
+        self.walk_position(pos);
     }
-    fn walk_bin_op(&mut self, _op: BinaryOpKind, arg1: &Expr, arg2: &Expr, _pos: &Position) {
+    fn walk_bin_op(&mut self, _op: BinaryOpKind, arg1: &Expr, arg2: &Expr, pos: &Position) {
         self.walk(arg1);
         self.walk(arg2);
+        self.walk_position(pos);
     }
     fn walk_unfolding(
         &mut self,
@@ -377,24 +463,26 @@ pub trait ExprWalker: Sized {
         body: &Expr,
         _perm: PermAmount,
         _variant: &MaybeEnumVariantIndex,
-        _pos: &Position,
+        pos: &Position,
     ) {
         for arg in args {
             self.walk(arg);
         }
         self.walk(body);
+        self.walk_position(pos);
     }
-    fn walk_cond(&mut self, guard: &Expr, then_expr: &Expr, else_expr: &Expr, _pos: &Position) {
+    fn walk_cond(&mut self, guard: &Expr, then_expr: &Expr, else_expr: &Expr, pos: &Position) {
         self.walk(guard);
         self.walk(then_expr);
         self.walk(else_expr);
+        self.walk_position(pos);
     }
     fn walk_forall(
         &mut self,
         vars: &[LocalVar],
         triggers: &[Trigger],
         body: &Expr,
-        _pos: &Position,
+        pos: &Position,
     ) {
         for set in triggers {
             for expr in set.elements() {
@@ -405,13 +493,14 @@ pub trait ExprWalker: Sized {
             self.walk_local_var(var);
         }
         self.walk(body);
+        self.walk_position(pos);
     }
     fn walk_exists(
         &mut self,
         vars: &[LocalVar],
         triggers: &[Trigger],
         body: &Expr,
-        _pos: &Position,
+        pos: &Position,
     ) {
         for set in triggers {
             for expr in set.elements() {
@@ -422,11 +511,13 @@ pub trait ExprWalker: Sized {
             self.walk_local_var(var);
         }
         self.walk(body);
+        self.walk_position(pos);
     }
-    fn walk_let_expr(&mut self, bound_var: &LocalVar, expr: &Expr, body: &Expr, _pos: &Position) {
+    fn walk_let_expr(&mut self, bound_var: &LocalVar, expr: &Expr, body: &Expr, pos: &Position) {
         self.walk_local_var(bound_var);
         self.walk(expr);
         self.walk(body);
+        self.walk_position(pos);
     }
     fn walk_func_app(
         &mut self,
@@ -434,7 +525,7 @@ pub trait ExprWalker: Sized {
         args: &[Expr],
         formal_args: &[LocalVar],
         return_type: &Type,
-        _pos: &Position,
+        pos: &Position,
     ) {
         for arg in args {
             self.walk(arg)
@@ -443,8 +534,9 @@ pub trait ExprWalker: Sized {
             self.walk_local_var(arg);
         }
         self.walk_type(return_type);
+        self.walk_position(pos);
     }
-    fn walk_domain_func_app(&mut self, func: &DomainFunc, args: &[Expr], _pos: &Position) {
+    fn walk_domain_func_app(&mut self, func: &DomainFunc, args: &[Expr], pos: &Position) {
         for arg in args {
             self.walk(arg)
         }
@@ -452,6 +544,7 @@ pub trait ExprWalker: Sized {
             self.walk_local_var(arg)
         }
         self.walk_type(&func.return_type);
+        self.walk_position(pos);
     }
     /* TODO
     fn walk_domain_func_app(
@@ -461,50 +554,59 @@ pub trait ExprWalker: Sized {
         formal_args: &Vec<LocalVar>,
         _return_type: &Type,
         _domain_name: &String,
-        _pos: &Position) {
+        pos: &Position) {
         for arg in args {
             self.walk(arg)
         }
         for arg in formal_args {
             self.walk_local_var(arg)
         }
+        self.walk_position(pos);
     }
     */
-    fn walk_inhale_exhale(&mut self, inhale_expr: &Expr, exhale_expr: &Expr, _pos: &Position) {
+    fn walk_inhale_exhale(&mut self, inhale_expr: &Expr, exhale_expr: &Expr, pos: &Position) {
         self.walk(inhale_expr);
         self.walk(exhale_expr);
+        self.walk_position(pos);
     }
 
     fn walk_downcast(&mut self, base: &Expr, enum_place: &Expr, _field: &Field) {
         self.walk(base);
         self.walk(enum_place);
     }
-    fn walk_snap_app(&mut self, expr: &Expr, _pos: &Position) {
+    fn walk_snap_app(&mut self, expr: &Expr, pos: &Position) {
         self.walk(expr);
+        self.walk_position(pos);
     }
 
-    fn walk_container_op(&mut self, _kind: &ContainerOpKind, l: &Expr, r: &Expr, _p: &Position) {
+    fn walk_container_op(&mut self, _kind: &ContainerOpKind, l: &Expr, r: &Expr, pos: &Position) {
         self.walk(l);
         self.walk(r);
+        self.walk_position(pos);
     }
 
-    fn walk_seq(&mut self, typ: &Type, elems: &[Expr], _pos: &Position) {
+    fn walk_seq(&mut self, typ: &Type, elems: &[Expr], pos: &Position) {
         for elem in elems {
             self.walk(elem);
         }
         self.walk_type(typ);
+        self.walk_position(pos);
     }
 
-    fn walk_map(&mut self, typ: &Type, elems: &[Expr], _pos: &Position) {
+    fn walk_map(&mut self, typ: &Type, elems: &[Expr], pos: &Position) {
         for elem in elems {
             self.walk(elem);
         }
         self.walk_type(typ);
+        self.walk_position(pos);
     }
 
-    fn walk_cast(&mut self, _kind: &CastKind, base: &Expr, _pos: &Position) {
+    fn walk_cast(&mut self, _kind: &CastKind, base: &Expr, pos: &Position) {
         self.walk(base);
+        self.walk_position(pos);
     }
+
+    fn walk_position(&mut self, _pos: &Position) {}
 }
 
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {

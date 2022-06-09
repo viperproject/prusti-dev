@@ -20,7 +20,7 @@ pub const RETURN_LABEL: &str = "end_of_method";
 
 #[derive(Derivative)]
 #[derivative(Hash)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CfgMethod {
     #[derivative(Hash = "ignore")]
     pub method_name: String,
@@ -33,7 +33,7 @@ pub struct CfgMethod {
     pub basic_blocks_labels: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>,
     pub successor: Successor,

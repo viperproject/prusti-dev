@@ -80,6 +80,18 @@ impl Function {
             None => false,
         }
     }
+
+    pub fn visit_expressions<F: FnMut(&Expr)>(&self, mut visitor: F) {
+        self.pres.iter().for_each(|e| visitor(e));
+        self.posts.iter().for_each(|e| visitor(e));
+        self.body.iter().for_each(|e| visitor(e));
+    }
+
+    pub fn visit_expressions_mut<F: FnMut(&mut Expr)>(&mut self, mut visitor: F) {
+        self.pres.iter_mut().for_each(|e| visitor(e));
+        self.posts.iter_mut().for_each(|e| visitor(e));
+        self.body.iter_mut().for_each(|e| visitor(e));
+    }
 }
 
 impl WithIdentifier for Function {
