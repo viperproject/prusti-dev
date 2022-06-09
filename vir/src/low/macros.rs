@@ -199,6 +199,14 @@ pub macro expr {
             Default::default(),
         )
     },
+    ($lhs: tt != $rhs: tt) => {
+        $crate::low::ast::expression::Expression::binary_op(
+            $crate::low::ast::expression::BinaryOpKind::NeCmp,
+            $crate::low::macros::expr!( $lhs ),
+            $crate::low::macros::expr!( $rhs ),
+            Default::default(),
+        )
+    },
     ($lhs: tt <= $rhs: tt) => {
         $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::LeCmp,

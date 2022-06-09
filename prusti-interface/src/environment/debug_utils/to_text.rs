@@ -1,6 +1,6 @@
-use std::collections::{BTreeMap, BTreeSet};
-
 use crate::environment::mir_body::borrowck::facts::Point;
+use std::collections::{BTreeMap, BTreeSet};
+use vir::common::graphviz::escape_html;
 
 pub trait ToText {
     fn to_text(&self) -> String;
@@ -14,16 +14,6 @@ pub fn to_sorted_text<S: ToText>(texts: &[S]) -> Vec<String> {
 
 pub fn opaque_lifetime_string(index: usize) -> String {
     format!("bw{}", index)
-}
-
-fn escape_html<S: ToString>(s: S) -> String {
-    s.to_string()
-        .replace('&', "&amp;")
-        .replace('>', "&gt;")
-        .replace('<', "&lt;")
-        .replace('{', "\\{")
-        .replace('}', "\\}")
-        .replace('\n', "<br/>")
 }
 
 impl ToText for str {

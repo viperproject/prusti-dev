@@ -19,8 +19,6 @@ pub(in super::super) struct FoldingActionState {
     pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
     /// If un/folding an enum, which of its variants.
     pub(in super::super) enum_variant: Option<vir_high::ty::VariantIndex>,
-    /// If un/folding an array injectivity wrapper, which element.
-    pub(in super::super) index: Option<vir_high::Expression>,
 }
 
 pub(in super::super) struct ConversionState {
@@ -74,21 +72,6 @@ impl Action {
             kind,
             place,
             enum_variant,
-            index: None,
-            condition: None,
-        })
-    }
-
-    pub(in super::super) fn unfold_array_element(
-        kind: PermissionKind,
-        place: vir_high::Expression,
-        index: vir_high::Expression,
-    ) -> Self {
-        Self::Unfold(FoldingActionState {
-            kind,
-            place,
-            enum_variant: None,
-            index: Some(index),
             condition: None,
         })
     }
@@ -102,21 +85,6 @@ impl Action {
             kind,
             place,
             enum_variant,
-            index: None,
-            condition: None,
-        })
-    }
-
-    pub(in super::super) fn fold_array_element(
-        kind: PermissionKind,
-        place: vir_high::Expression,
-        index: vir_high::Expression,
-    ) -> Self {
-        Self::Fold(FoldingActionState {
-            kind,
-            place,
-            enum_variant: None,
-            index: Some(index),
             condition: None,
         })
     }

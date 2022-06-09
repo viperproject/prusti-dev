@@ -10,6 +10,7 @@ use super::{
     compute_address::ComputeAddressState,
     into_low::IntoLow,
     lifetimes::LifetimesState,
+    places::PlacesState,
     predicates::{PredicatesOwnedInterface, PredicatesState},
     snapshots::{SnapshotVariablesInterface, SnapshotsState},
     types::TypesState,
@@ -74,6 +75,7 @@ pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     pub(super) types_state: TypesState,
     pub(super) adts_state: AdtsState,
     pub(super) lifetimes_state: LifetimesState,
+    pub(super) places_state: PlacesState,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
@@ -93,6 +95,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             types_state: Default::default(),
             adts_state: Default::default(),
             lifetimes_state: Default::default(),
+            places_state: Default::default(),
         }
     }
     pub(super) fn lower_procedure(
