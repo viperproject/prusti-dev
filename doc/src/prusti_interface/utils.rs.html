@@ -383,6 +383,15 @@
 <span id="376">376</span>
 <span id="377">377</span>
 <span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -469,8 +478,17 @@
                     <a class="ident" href="../../src/prusti_interface/utils.rs.html#48">places</a>.<span class="ident">push</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#45">tcx</a>.<span class="ident">mk_place_deref</span>(<span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#43">place</a>));
                 }
             },
+            <span class="ident">ty::Closure</span>(<span class="kw">_</span>, <span class="ident">substs</span>) =&gt; {
+                <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">subst_ty</span>) <span class="kw">in</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#87">substs</a>.<span class="ident">as_closure</span>().<span class="ident">upvar_tys</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+                    <span class="kw">if</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#88">index</a>) <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#46">without_field</a> {
+                        <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">mir::Field::from_usize</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#88">index</a>);
+                        <span class="kw">let</span> <span class="ident">field_place</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#45">tcx</a>.<span class="ident">mk_place_field</span>(<span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#43">place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#90">field</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#88">subst_ty</a>);
+                        <a class="ident" href="../../src/prusti_interface/utils.rs.html#48">places</a>.<span class="ident">push</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#91">field_place</a>);
+                    }
+                }
+            }
             <span class="kw-2">ref</span> <span class="ident">ty</span> =&gt; {
-                <span class="macro">unimplemented!</span>(<span class="string">&quot;ty={:?}&quot;</span>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#87">ty</a>);
+                <span class="macro">unimplemented!</span>(<span class="string">&quot;ty={:?}&quot;</span>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#96">ty</a>);
             }
         }
     }
@@ -486,24 +504,24 @@
     <span class="ident">current_place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">guide_place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; (<span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#101">current_place</a>.<span class="ident">projection</span>.<span class="ident">len</span>();
-    <span class="kw">match</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#102">guide_place</a>.<span class="ident">projection</span>[<a class="ident" href="../../src/prusti_interface/utils.rs.html#104">index</a>] {
+    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#110">current_place</a>.<span class="ident">projection</span>.<span class="ident">len</span>();
+    <span class="kw">match</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#111">guide_place</a>.<span class="ident">projection</span>[<a class="ident" href="../../src/prusti_interface/utils.rs.html#113">index</a>] {
         <span class="ident">mir::ProjectionElem::Field</span>(<span class="ident">projected_field</span>, <span class="ident">field_ty</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">places</span> <span class="op">=</span>
-                <a class="ident" href="../../src/prusti_interface/utils.rs.html#42-47">expand_struct_place</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#101">current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#99">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#100">tcx</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#106">projected_field</a>.<span class="ident">index</span>()));
-            <span class="kw">let</span> <span class="ident">new_current_place</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#100">tcx</a>.<span class="ident">mk_place_field</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#101">current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#106">projected_field</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#106">field_ty</a>);
-            (<a class="ident" href="../../src/prusti_interface/utils.rs.html#109">new_current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#107">places</a>)
+                <a class="ident" href="../../src/prusti_interface/utils.rs.html#42-47">expand_struct_place</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#110">current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#108">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#109">tcx</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#115">projected_field</a>.<span class="ident">index</span>()));
+            <span class="kw">let</span> <span class="ident">new_current_place</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#109">tcx</a>.<span class="ident">mk_place_field</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#110">current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#115">projected_field</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#115">field_ty</a>);
+            (<a class="ident" href="../../src/prusti_interface/utils.rs.html#118">new_current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#116">places</a>)
         }
         <span class="ident">mir::ProjectionElem::Downcast</span>(<span class="ident">_symbol</span>, <span class="ident">variant</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#101">current_place</a>.<span class="ident">ty</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#99">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#100">tcx</a>).<span class="ident">ty</span>.<span class="ident">kind</span>();
-            <span class="macro">force_matches!</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#113">kind</a>, <span class="ident">ty::TyKind::Adt</span>(<span class="ident">adt</span>, <span class="kw">_</span>) =&gt;
-                (<a class="ident" href="../../src/prusti_interface/utils.rs.html#100">tcx</a>.<span class="ident">mk_place_downcast</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#101">current_place</a>, <span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#114">adt</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#112">variant</a>), <span class="ident">Vec::new</span>())
+            <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#110">current_place</a>.<span class="ident">ty</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#108">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#109">tcx</a>).<span class="ident">ty</span>.<span class="ident">kind</span>();
+            <span class="macro">force_matches!</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#122">kind</a>, <span class="ident">ty::TyKind::Adt</span>(<span class="ident">adt</span>, <span class="kw">_</span>) =&gt;
+                (<a class="ident" href="../../src/prusti_interface/utils.rs.html#109">tcx</a>.<span class="ident">mk_place_downcast</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#110">current_place</a>, <span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#123">adt</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#121">variant</a>), <span class="ident">Vec::new</span>())
             )
         }
-        <span class="ident">mir::ProjectionElem::Deref</span> =&gt; (<a class="ident" href="../../src/prusti_interface/utils.rs.html#100">tcx</a>.<span class="ident">mk_place_deref</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#101">current_place</a>), <span class="ident">Vec::new</span>()),
-        <span class="ident">mir::ProjectionElem::Index</span>(<span class="ident">idx</span>) =&gt; (<a class="ident" href="../../src/prusti_interface/utils.rs.html#100">tcx</a>.<span class="ident">mk_place_index</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#101">current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#119">idx</a>), <span class="ident">Vec::new</span>()),
+        <span class="ident">mir::ProjectionElem::Deref</span> =&gt; (<a class="ident" href="../../src/prusti_interface/utils.rs.html#109">tcx</a>.<span class="ident">mk_place_deref</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#110">current_place</a>), <span class="ident">Vec::new</span>()),
+        <span class="ident">mir::ProjectionElem::Index</span>(<span class="ident">idx</span>) =&gt; (<a class="ident" href="../../src/prusti_interface/utils.rs.html#109">tcx</a>.<span class="ident">mk_place_index</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#110">current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#128">idx</a>), <span class="ident">Vec::new</span>()),
         <span class="ident">elem</span> =&gt; {
-            <span class="macro">unimplemented!</span>(<span class="string">&quot;elem = {:?}&quot;</span>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#120">elem</a>);
+            <span class="macro">unimplemented!</span>(<span class="string">&quot;elem = {:?}&quot;</span>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#129">elem</a>);
         }
     }
 }
@@ -513,13 +531,13 @@
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">mir::PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-    <span class="kw">if</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#129">place</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="kw">let</span> <span class="ident">last_index</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#129">place</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
+    <span class="kw">if</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#138">place</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">last_index</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#138">place</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">new_place</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Place.html">mir::Place</a> {
-            <span class="ident">local</span>: <a class="ident" href="../../src/prusti_interface/utils.rs.html#129">place</a>.<span class="ident">local</span>,
-            <span class="ident">projection</span>: <a class="ident" href="../../src/prusti_interface/utils.rs.html#128">tcx</a>.<span class="ident">intern_place_elems</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#129">place</a>.<span class="ident">projection</span>[..<a class="ident" href="../../src/prusti_interface/utils.rs.html#132">last_index</a>]),
+            <span class="ident">local</span>: <a class="ident" href="../../src/prusti_interface/utils.rs.html#138">place</a>.<span class="ident">local</span>,
+            <span class="ident">projection</span>: <a class="ident" href="../../src/prusti_interface/utils.rs.html#137">tcx</a>.<span class="ident">intern_place_elems</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#138">place</a>.<span class="ident">projection</span>[..<a class="ident" href="../../src/prusti_interface/utils.rs.html#141">last_index</a>]),
         };
-        <span class="prelude-val">Some</span>((<a class="ident" href="../../src/prusti_interface/utils.rs.html#129">place</a>.<span class="ident">projection</span>[<a class="ident" href="../../src/prusti_interface/utils.rs.html#132">last_index</a>], <a class="ident" href="../../src/prusti_interface/utils.rs.html#133">new_place</a>))
+        <span class="prelude-val">Some</span>((<a class="ident" href="../../src/prusti_interface/utils.rs.html#138">place</a>.<span class="ident">projection</span>[<a class="ident" href="../../src/prusti_interface/utils.rs.html#141">last_index</a>], <a class="ident" href="../../src/prusti_interface/utils.rs.html#142">new_place</a>))
     } <span class="kw">else</span> {
         <span class="prelude-val">None</span>
     }
@@ -527,9 +545,9 @@
 
 <span class="doccomment">/// Pop the last element from the place if it is a dereference.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_pop_deref</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(<span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#127-130">try_pop_one_level</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#144">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#144">place</a>).<span class="ident">and_then</span>(<span class="op">|</span>(<span class="ident">elem</span>, <span class="ident">base</span>)<span class="op">|</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">mir::ProjectionElem::Deref</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#145">elem</a> {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#145">base</a>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#136-139">try_pop_one_level</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#153">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#153">place</a>).<span class="ident">and_then</span>(<span class="op">|</span>(<span class="ident">elem</span>, <span class="ident">base</span>)<span class="op">|</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">mir::ProjectionElem::Deref</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#154">elem</a> {
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#154">base</a>)
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -551,28 +569,28 @@
     <span class="ident">subtrahend</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="macro">assert!</span>(
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#24">is_prefix</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#166">subtrahend</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#165">minuend</a>),
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#24">is_prefix</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#175">subtrahend</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#174">minuend</a>),
         <span class="string">&quot;The minuend must be the prefix of the subtrahend.&quot;</span>
     );
     <span class="macro">trace!</span>(
         <span class="string">&quot;[enter] expand minuend={:?} subtrahend={:?}&quot;</span>,
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#165">minuend</a>,
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#166">subtrahend</a>
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#174">minuend</a>,
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#175">subtrahend</a>
     );
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">place_set</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">minuend</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#165">minuend</a>;
-    <span class="kw">while</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#178">minuend</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#166">subtrahend</a>.<span class="ident">projection</span>.<span class="ident">len</span>() {
-        <span class="kw">let</span> (<span class="ident">new_minuend</span>, <span class="ident">places</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#98-103">expand_one_level</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#163">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#164">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#178">minuend</a>, <span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#166">subtrahend</a>);
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#178">minuend</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#180">new_minuend</a>;
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#177">place_set</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#180">places</a>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">minuend</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#174">minuend</a>;
+    <span class="kw">while</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#187">minuend</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#175">subtrahend</a>.<span class="ident">projection</span>.<span class="ident">len</span>() {
+        <span class="kw">let</span> (<span class="ident">new_minuend</span>, <span class="ident">places</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#107-112">expand_one_level</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#172">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#173">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#187">minuend</a>, <span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#175">subtrahend</a>);
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#187">minuend</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#189">new_minuend</a>;
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#186">place_set</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#189">places</a>);
     }
     <span class="macro">trace!</span>(
         <span class="string">&quot;[exit] expand minuend={:?} subtrahend={:?} place_set={:?}&quot;</span>,
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#178">minuend</a>,
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#166">subtrahend</a>,
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#177">place_set</a>
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#187">minuend</a>,
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#175">subtrahend</a>,
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#186">place_set</a>
     );
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#177">place_set</a>
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#186">place_set</a>
 }
 
 <span class="doccomment">/// Try to collapse all places in `places` by following the</span>
@@ -584,7 +602,7 @@
     <span class="ident">places</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">guide_place</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) {
-    <span class="kw">let</span> <span class="ident">guide_place</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#200">guide_place</a>;
+    <span class="kw">let</span> <span class="ident">guide_place</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#209">guide_place</a>;
     <span class="kw">fn</span> <span class="ident">recurse</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
         <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
         <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
@@ -592,20 +610,20 @@
         <span class="ident">current_place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
         <span class="ident">guide_place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) {
-        <span class="kw">if</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#207">current_place</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#208">guide_place</a> {
+        <span class="kw">if</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#216">current_place</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#217">guide_place</a> {
             <span class="kw">let</span> (<span class="ident">new_current_place</span>, <span class="kw-2">mut</span> <span class="ident">expansion</span>) <span class="op">=</span>
-                <a class="ident" href="../../src/prusti_interface/utils.rs.html#98-103">expand_one_level</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#204">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#205">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#207">current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#208">guide_place</a>);
-            <a class="ident" href="../../src/prusti_interface/utils.rs.html#203-209">recurse</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#204">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#205">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#206">places</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">new_current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#208">guide_place</a>);
-            <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">expansion</a>.<span class="ident">push</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#211">new_current_place</a>);
-            <span class="kw">if</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">expansion</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#206">places</a>.<span class="ident">contains</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#215">place</a>)) {
-                <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">expansion</a> {
-                    <a class="ident" href="../../src/prusti_interface/utils.rs.html#206">places</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#216">place</a>);
+                <a class="ident" href="../../src/prusti_interface/utils.rs.html#107-112">expand_one_level</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#213">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#214">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#216">current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#217">guide_place</a>);
+            <a class="ident" href="../../src/prusti_interface/utils.rs.html#212-218">recurse</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#213">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#214">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#215">places</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#220">new_current_place</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#217">guide_place</a>);
+            <a class="ident" href="../../src/prusti_interface/utils.rs.html#220">expansion</a>.<span class="ident">push</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#220">new_current_place</a>);
+            <span class="kw">if</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#220">expansion</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#215">places</a>.<span class="ident">contains</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#224">place</a>)) {
+                <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#220">expansion</a> {
+                    <a class="ident" href="../../src/prusti_interface/utils.rs.html#215">places</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#225">place</a>);
                 }
-                <a class="ident" href="../../src/prusti_interface/utils.rs.html#206">places</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#207">current_place</a>);
+                <a class="ident" href="../../src/prusti_interface/utils.rs.html#215">places</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#216">current_place</a>);
             }
         }
     }
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#203-209">recurse</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#197">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#198">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#199">places</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#202">guide_place</a>.<span class="ident">local</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../src/prusti_interface/utils.rs.html#202">guide_place</a>);
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#212-218">recurse</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#206">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#207">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#208">places</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">guide_place</a>.<span class="ident">local</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">guide_place</a>);
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -615,7 +633,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">VecPlaceComponent</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mir_place</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/utils.rs.html#232">self</a>.<span class="ident">place</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_interface/utils.rs.html#241">self</a>.<span class="ident">place</span>
     }
 }
 
@@ -635,43 +653,43 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vec_place</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">components</span>: <span class="ident">Vec::new</span>(),
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prefix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Place.html">mir::Place</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#248">place</a>.<span class="ident">local</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#250">vec_place</a>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prefix</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Place.html">mir::Place</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#257">place</a>.<span class="ident">local</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#259">vec_place</a>
             .<span class="ident">components</span>
-            .<span class="ident">push</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#227-229">VecPlaceComponent</a> { <span class="ident">place</span>: <a class="ident" href="../../src/prusti_interface/utils.rs.html#253">prefix</a> });
-        <span class="kw">while</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#253">prefix</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#248">place</a>.<span class="ident">projection</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> (<span class="ident">new_prefix</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#98-103">expand_one_level</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#246">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#247">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#253">prefix</a>, <span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#248">place</a>);
-            <a class="ident" href="../../src/prusti_interface/utils.rs.html#253">prefix</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#258">new_prefix</a>;
-            <a class="ident" href="../../src/prusti_interface/utils.rs.html#250">vec_place</a>
+            .<span class="ident">push</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#236-238">VecPlaceComponent</a> { <span class="ident">place</span>: <a class="ident" href="../../src/prusti_interface/utils.rs.html#262">prefix</a> });
+        <span class="kw">while</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#262">prefix</a>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#257">place</a>.<span class="ident">projection</span>.<span class="ident">len</span>() {
+            <span class="kw">let</span> (<span class="ident">new_prefix</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#107-112">expand_one_level</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#255">mir</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#256">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#262">prefix</a>, <span class="kw-2">*</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#257">place</a>);
+            <a class="ident" href="../../src/prusti_interface/utils.rs.html#262">prefix</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#267">new_prefix</a>;
+            <a class="ident" href="../../src/prusti_interface/utils.rs.html#259">vec_place</a>
                 .<span class="ident">components</span>
-                .<span class="ident">push</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#227-229">VecPlaceComponent</a> { <span class="ident">place</span>: <a class="ident" href="../../src/prusti_interface/utils.rs.html#253">prefix</a> });
+                .<span class="ident">push</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#236-238">VecPlaceComponent</a> { <span class="ident">place</span>: <a class="ident" href="../../src/prusti_interface/utils.rs.html#262">prefix</a> });
         }
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#250">vec_place</a>
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#259">vec_place</a>
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">DoubleEndedIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">VecPlaceComponent</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/prusti_interface/utils.rs.html#266">self</a>.<span class="ident">components</span>.<span class="ident">iter</span>()
+        <a class="self" href="../../src/prusti_interface/utils.rs.html#275">self</a>.<span class="ident">components</span>.<span class="ident">iter</span>()
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">component_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/prusti_interface/utils.rs.html#269">self</a>.<span class="ident">components</span>.<span class="ident">len</span>()
+        <a class="self" href="../../src/prusti_interface/utils.rs.html#278">self</a>.<span class="ident">components</span>.<span class="ident">len</span>()
     }
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_local_attributes</span>(<span class="ident">tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">rustc_ast::ast::Attribute</a>] {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#274">tcx</a>.<span class="ident">hir</span>().<span class="ident">attrs</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#274">tcx</a>.<span class="ident">hir</span>().<span class="ident">local_def_id_to_hir_id</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#274">def_id</a>))
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#283">tcx</a>.<span class="ident">hir</span>().<span class="ident">attrs</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#283">tcx</a>.<span class="ident">hir</span>().<span class="ident">local_def_id_to_hir_id</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#283">def_id</a>))
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_attributes</span>(<span class="ident">tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">rustc_ast::ast::Attribute</a>] {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">local_def_id</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#278">def_id</a>.<span class="ident">as_local</span>() {
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#274">get_local_attributes</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#278">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#279">local_def_id</a>)
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">local_def_id</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#287">def_id</a>.<span class="ident">as_local</span>() {
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#283">get_local_attributes</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#287">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#288">local_def_id</a>)
     } <span class="kw">else</span> {
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#278">tcx</a>.<span class="ident">item_attrs</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#278">def_id</a>)
+        <a class="ident" href="../../src/prusti_interface/utils.rs.html#287">tcx</a>.<span class="ident">item_attrs</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#287">def_id</a>)
     }
 }
 
 <span class="doccomment">/// Check if `prusti::&lt;name&gt;` is among the attributes.</span>
 <span class="doccomment">/// Any arguments of the attribute are ignored.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_prusti_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>], <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#288">attrs</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#289">attr</a>.<span class="ident">kind</span> {
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#297">attrs</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#298">attr</a>.<span class="ident">kind</span> {
         <span class="ident">ast::AttrKind::Normal</span>(
             <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.AttrItem.html">ast::AttrItem</a> {
                 <span class="ident">path</span>:
@@ -685,9 +703,9 @@
             },
             <span class="kw">_</span>,
         ) =&gt; {
-            <a class="ident" href="../../src/prusti_interface/utils.rs.html#295">segments</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span>
-                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#295">segments</a>[<span class="number">0</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;prusti&quot;</span>
-                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#295">segments</a>[<span class="number">1</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#288">name</a>
+            <a class="ident" href="../../src/prusti_interface/utils.rs.html#304">segments</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span>
+                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#304">segments</a>[<span class="number">0</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;prusti&quot;</span>
+                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#304">segments</a>[<span class="number">1</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#297">name</a>
         }
         <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
     })
@@ -695,38 +713,38 @@
 
 <span class="doccomment">/// Check if `prusti::spec_only` is among the attributes.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_spec_only_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#288">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#312">attrs</a>, <span class="string">&quot;spec_only&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#297">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#321">attrs</a>, <span class="string">&quot;spec_only&quot;</span>)
 }
 
 <span class="doccomment">/// Check if `prusti::extern_spec` is among the attributes.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_extern_spec_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#288">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#317">attrs</a>, <span class="string">&quot;extern_spec&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#297">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#326">attrs</a>, <span class="string">&quot;extern_spec&quot;</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_extern_spec_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#376">read_prusti_attr</a>(<span class="string">&quot;extern_spec&quot;</span>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#321">attrs</a>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#385">read_prusti_attr</a>(<span class="string">&quot;extern_spec&quot;</span>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#330">attrs</a>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_to_model_fn_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#288">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#325">attrs</a>, <span class="string">&quot;type_models_to_model_fn&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#297">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#334">attrs</a>, <span class="string">&quot;type_models_to_model_fn&quot;</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_to_model_impl_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#288">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#329">attrs</a>, <span class="string">&quot;type_models_to_model_impl&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#297">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#338">attrs</a>, <span class="string">&quot;type_models_to_model_impl&quot;</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_trait_bounds_ghost_constraint</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#288">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#333">attrs</a>, <span class="string">&quot;ghost_constraint_trait_bounds_in_where_clause&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#297">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#342">attrs</a>, <span class="string">&quot;ghost_constraint_trait_bounds_in_where_clause&quot;</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_abstract_predicate_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#288">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#337">attrs</a>, <span class="string">&quot;abstract_predicate&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#297">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#346">attrs</a>, <span class="string">&quot;abstract_predicate&quot;</span>)
 }
 
 <span class="doccomment">/// Read the value stored in a Prusti attribute (e.g. `prusti::&lt;attr_name&gt;=&quot;...&quot;)`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_prusti_attrs</span>(<span class="ident">attr_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">strings</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <span class="kw">for</span> <span class="ident">attr</span> <span class="kw">in</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#342">attrs</a> {
+    <span class="kw">for</span> <span class="ident">attr</span> <span class="kw">in</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#351">attrs</a> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ast::AttrKind::Normal</span>(
             <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.AttrItem.html">ast::AttrItem</a> {
                 <span class="ident">path</span>:
@@ -739,27 +757,27 @@
                 <span class="ident">tokens</span>: <span class="kw">_</span>,
             },
             <span class="kw">_</span>,
-        ) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#344">attr</a>.<span class="ident">kind</span>
+        ) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#353">attr</a>.<span class="ident">kind</span>
         {
             <span class="comment">// Skip attributes whose path don&#39;t match with &quot;prusti::&lt;attr_name&gt;&quot;</span>
-            <span class="kw">if</span> <span class="op">!</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#350">segments</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span>
-                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#350">segments</a>[<span class="number">0</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;prusti&quot;</span>
-                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#350">segments</a>[<span class="number">1</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#342">attr_name</a>)
+            <span class="kw">if</span> <span class="op">!</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#359">segments</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span>
+                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#359">segments</a>[<span class="number">0</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;prusti&quot;</span>
+                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#359">segments</a>[<span class="number">1</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#351">attr_name</a>)
             {
                 <span class="kw">continue</span>;
             }
             <span class="kw">fn</span> <span class="ident">extract_string</span>(<span class="ident">token</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/token/struct.Lit.html">rustc_ast::token::Lit</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-                <a class="ident" href="../../src/prusti_interface/utils.rs.html#366">token</a>.<span class="ident">symbol</span>.<span class="ident">as_str</span>().<span class="ident">replace</span>(<span class="string">&quot;\\\&quot;&quot;</span>, <span class="string">&quot;\&quot;&quot;</span>)
+                <a class="ident" href="../../src/prusti_interface/utils.rs.html#375">token</a>.<span class="ident">symbol</span>.<span class="ident">as_str</span>().<span class="ident">replace</span>(<span class="string">&quot;\\\&quot;&quot;</span>, <span class="string">&quot;\&quot;&quot;</span>)
             }
-            <a class="ident" href="../../src/prusti_interface/utils.rs.html#343">strings</a>.<span class="ident">push</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#366">extract_string</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#353">token</a>));
+            <a class="ident" href="../../src/prusti_interface/utils.rs.html#352">strings</a>.<span class="ident">push</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#375">extract_string</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#362">token</a>));
         };
     }
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#343">strings</a>
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#352">strings</a>
 }
 
 <span class="doccomment">/// Read the value stored in a single Prusti attribute (e.g. `prusti::&lt;attr_name&gt;=&quot;...&quot;)`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_prusti_attr</span>(<span class="ident">attr_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#342">read_prusti_attrs</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#376">attr_name</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#376">attrs</a>).<span class="ident">pop</span>()
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#351">read_prusti_attrs</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#385">attr_name</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#385">attrs</a>).<span class="ident">pop</span>()
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (42e1761c7 2022-05-15)" ></div>
