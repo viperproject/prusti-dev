@@ -19,15 +19,15 @@ use uuid::Uuid;
 pub const RETURN_LABEL: &str = "end_of_method";
 
 #[derive(Derivative)]
-#[derivative(Hash)]
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derivative(Hash, PartialEq)]
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct CfgMethod {
-    #[derivative(Hash = "ignore")]
+    #[derivative(Hash = "ignore", PartialEq = "ignore")]
     pub method_name: String,
     pub formal_arg_count: usize,
     pub formal_returns: Vec<LocalVar>,
     pub local_vars: Vec<LocalVar>,
-    #[derivative(Hash = "ignore")]
+    #[derivative(Hash = "ignore", PartialEq = "ignore")]
     pub labels: HashSet<String>,
     pub basic_blocks: Vec<CfgBlock>,
     pub basic_blocks_labels: Vec<String>,

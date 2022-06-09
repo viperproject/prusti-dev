@@ -215,14 +215,14 @@ impl StructPredicate {
 
     /// Visit each expression.
     /// Note: sub-expressions of expressions will not be visited.
-    pub fn visit_expressions<F: FnMut(&Expr)>(&self, mut visitor: F) {
-        self.body.iter().for_each(|e| visitor(e));
+    pub fn visit_expressions<F: FnMut(&Expr)>(&self, visitor: F) {
+        self.body.iter().for_each(visitor);
     }
 
     /// Mutably visit each expression.
     /// Note: sub-expressions of expressions will not be visited.
-    pub fn visit_expressions_mut<F: FnMut(&mut Expr)>(&mut self, mut visitor: F) {
-        self.body.iter_mut().for_each(|e| visitor(e));
+    pub fn visit_expressions_mut<F: FnMut(&mut Expr)>(&mut self, visitor: F) {
+        self.body.iter_mut().for_each(visitor);
     }
 }
 
