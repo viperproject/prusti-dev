@@ -29,7 +29,7 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for (&'a String, &'a DomainFunct
             &function.name,
             &function.parameters.to_viper_decl(context, ast),
             function.return_type.to_viper(context, ast),
-            false,
+            function.is_unique,
             domain_name,
         )
     }

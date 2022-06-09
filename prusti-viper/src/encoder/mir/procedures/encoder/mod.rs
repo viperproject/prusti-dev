@@ -432,6 +432,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let terminator_index = statements.len();
         let mut original_lifetimes: BTreeSet<String> =
             self.lifetimes.get_loan_live_at_start(location);
+        // FIXME: This misses the lifetimes that need to be generated at the
+        // beginning of the block.
         let mut derived_lifetimes: BTreeMap<String, BTreeSet<String>> =
             self.lifetimes.get_origin_contains_loan_at_mid(location);
         while location.statement_index < terminator_index {

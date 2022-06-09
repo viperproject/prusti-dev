@@ -255,11 +255,7 @@ fn ensure_permission_in_state(
             context.change_error_context(place.position(), error_ctxt)
         };
         let prefix = prefix.replace_position(position);
-        actions.push(Action::unfold(
-            permission_kind,
-            prefix.clone(),
-            enum_variant,
-        ));
+        actions.push(Action::unfold(permission_kind, prefix, enum_variant));
         for (kind, new_place) in expanded_place {
             debug!("  kind={:?} new_place={}", kind, new_place);
             new_place.check_no_default_position();
@@ -268,16 +264,6 @@ fn ensure_permission_in_state(
                 ExpandedPermissionKind::Same,
                 "This should never lead to unfolding up to memory blocks."
             );
-            if prefix.get_type().is_array() {
-                // To satisfy injectivity requirements, array elements are
-                // wrapped in additional predicates, which we need to unfold
-                // together with the main array predicate.
-                actions.push(Action::unfold_array_element(
-                    permission_kind,
-                    prefix.clone(),
-                    prefix.get_index(&new_place).clone(),
-                ));
-            }
             predicate_state.insert(permission_kind, new_place)?;
         }
         ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?
@@ -303,16 +289,6 @@ fn ensure_permission_in_state(
                 return Ok(true);
             }
             predicate_state.remove(permission_kind, &new_place)?;
-        }
-        if place.get_type().is_array() {
-            // To satisfy injectivity requirements, array elements are wrapped
-            // in additional predicates, which we need to fold together with the
-            // main array predicate.
-            actions.push(Action::fold_array_element(
-                permission_kind,
-                place.clone(),
-                place.get_index(&witness).clone(),
-            ));
         }
         actions.push(Action::fold(permission_kind, place.clone(), enum_variant));
         predicate_state.insert(permission_kind, place)?;
