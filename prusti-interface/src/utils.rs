@@ -89,7 +89,7 @@ pub fn expand_struct_place<'tcx>(
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
                         let field_place = tcx.mk_place_field(*place, field, subst_ty);
-                        places.push(field_place.into());
+                        places.push(field_place);
                     }
                 }
             }
