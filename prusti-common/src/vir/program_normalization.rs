@@ -7,6 +7,7 @@
 use crate::vir::{program::Program, Position};
 use viper::VerificationResult;
 use fxhash::{FxHashSet, FxHashMap};
+use log::trace;
 
 pub enum NormalizationInfo {
     LegacyProgram { original_position_ids: Vec<u64> },
@@ -24,7 +25,7 @@ impl NormalizationInfo {
             Program::Legacy(legacy_program) => {
                 // Collect positions
                 let mut position_ids: FxHashSet<u64> = FxHashSet::default();
-                legacy_program.visit_expressions(|e| e.visit_positions(|&p| { position_ids.insert(p.id()); }));
+                legacy_program.visit_positions(|&p| { position_ids.insert(p.id()); });
                 let mut original_position_ids: Vec<u64> = position_ids.into_iter().collect();
                 original_position_ids.sort();
 
@@ -34,13 +35,14 @@ impl NormalizationInfo {
                     .enumerate()
                     .map(|(i, pos_id)| (pos_id, i as u64))
                     .collect();
-                legacy_program.visit_expressions_mut(|e| e.visit_positions_mut(|p| {
+                trace!("Normalization map: {:?}", normalization_map);
+                legacy_program.visit_positions_mut(|p| {
                     *p = Position::new(
                         p.line(),
                         p.column(),
                         normalization_map[&p.id()]
                     );
-                }));
+                });
 
                 NormalizationInfo::LegacyProgram {
                     original_position_ids
@@ -51,18 +53,20 @@ impl NormalizationInfo {
 
     /// Denormalize a position id.
     pub fn denormalize_position_id(&self, pos_id: u64) -> u64 {
-        match self {
+        let res = match self {
             NormalizationInfo::LowProgram => pos_id,
             NormalizationInfo::LegacyProgram { original_position_ids } => {
                 *original_position_ids.get(pos_id as usize)
                     .unwrap_or_else(|| panic!(
-                        "Cannot denormalize position id {}. There maximum expected \
-                        normalized position is {}.",
+                        "Cannot denormalize position id {}. Probably it has not been normalized. \
+                        There maximum expected normalized position is {}.",
                         pos_id,
                         original_position_ids.len(),
                     ))
             }
-        }
+        };
+        trace!("Denormalization of {} is {}", pos_id, res);
+        res
     }
 
     /// Denormalize a position.

@@ -303,6 +303,14 @@ impl Stmt {
         }
     }
 
+    pub fn pos_mut(&mut self) -> Option<&mut Position> {
+        match self {
+            Stmt::PackageMagicWand(_, _, _, _, ref mut p) => Some(p),
+            Stmt::Exhale(_, ref mut p) => Some(p),
+            _ => None,
+        }
+    }
+
     #[must_use]
     pub fn set_pos(self, pos: Position) -> Self {
         match self {
