@@ -135,6 +135,9 @@ def get_linux_env():
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
     if os.path.exists(z3_exe):
         variables.append(('Z3_EXE', z3_exe))
+    boogie_exe = os.path.abspath(os.path.join(viper_home, '../boogie/Binaries/Boogie'))
+    if os.path.exists(boogie_exe):
+        variables.append(('BOOGIE_EXE', boogie_exe))
     return variables
 
 
@@ -168,6 +171,9 @@ def get_mac_env():
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
     if os.path.exists(z3_exe):
         variables.append(('Z3_EXE', z3_exe))
+    boogie_exe = os.path.abspath(os.path.join(viper_home, '../boogie/Binaries/Boogie'))
+    if os.path.exists(boogie_exe):
+        variables.append(('BOOGIE_EXE', boogie_exe))
     return variables
 
 
@@ -200,6 +206,9 @@ def get_win_env():
     z3_exe = os.path.abspath(os.path.join(viper_home, os.path.join('..', 'z3', 'bin', 'z3.exe')))
     if os.path.exists(z3_exe):
         variables.append(('Z3_EXE', z3_exe))
+    boogie_exe = os.path.abspath(os.path.join(viper_home, '..', 'boogie', 'Binaries', 'Boogie'))
+    if os.path.exists(boogie_exe):
+        variables.append(('BOOGIE_EXE', boogie_exe))
     return variables
 
 
