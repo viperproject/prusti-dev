@@ -14,6 +14,7 @@ use crate::{
         Program,
     },
 };
+use log::trace;
 use prusti_utils::force_matches;
 use std::collections::HashMap;
 use viper::{self, AstFactory};
@@ -86,6 +87,12 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
 
 impl<'v> ToViper<'v, viper::Position<'v>> for Position {
     fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Position<'v> {
+        trace!(
+            "Generating Viper position: line {} column {} id {}",
+            self.line(),
+            self.column(),
+            self.id()
+        );
         ast.identifier_position(self.line(), self.column(), self.id().to_string())
     }
 }
@@ -154,6 +161,7 @@ impl<'v> ToViper<'v, viper::Field<'v>> for Field {
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        trace!("Generating Viper statement: {}", self);
         match self {
             Stmt::Comment(ref comment) => ast.comment(comment),
             Stmt::Label(ref label) => ast.label(label, &[]),

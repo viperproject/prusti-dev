@@ -80,10 +80,10 @@ impl Expr {
 
     /// Mutably visit each position.
     pub fn visit_positions_mut<F: FnMut(&mut Position)>(&mut self, visitor: F) {
-        struct PositionsMutVisitor<F: FnMut(&mut Position)> {
-            visitor: F,
+        struct PositionsMutVisitor<G: FnMut(&mut Position)> {
+            visitor: G,
         }
-        impl<F: FnMut(&mut Position)> ExprFolder for PositionsMutVisitor<F> {
+        impl<G: FnMut(&mut Position)> ExprFolder for PositionsMutVisitor<G> {
             fn fold_position(&mut self, mut pos: Position) -> Position {
                 (self.visitor)(&mut pos);
                 pos

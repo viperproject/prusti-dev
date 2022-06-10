@@ -325,7 +325,7 @@ impl EnumPredicate {
         visitor(&mut self.discriminant_bounds);
         self.variants.iter_mut().for_each(|(e, _, p)| {
             visitor(e);
-            p.visit_expressions_mut(|e| visitor(e))
+            p.visit_expressions_mut(&mut visitor);
         });
     }
 }

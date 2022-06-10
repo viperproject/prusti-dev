@@ -13,6 +13,7 @@ use std::{
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,
+    ops::Deref,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -297,29 +298,32 @@ impl Stmt {
 
     pub fn pos(&self) -> Option<&Position> {
         match self {
-            Stmt::PackageMagicWand(_, _, _, _, ref p) => Some(p),
-            Stmt::Exhale(_, ref p) => Some(p),
+            Stmt::Exhale(_, ref p)
+            | Stmt::Assert(_, ref p)
+            | Stmt::Fold(_, _, _, _, ref p)
+            | Stmt::Obtain(_, ref p)
+            | Stmt::PackageMagicWand(_, _, _, _, ref p)
+            | Stmt::ApplyMagicWand(_, ref p) => Some(p),
             _ => None,
         }
     }
 
     pub fn pos_mut(&mut self) -> Option<&mut Position> {
         match self {
-            Stmt::PackageMagicWand(_, _, _, _, ref mut p) => Some(p),
-            Stmt::Exhale(_, ref mut p) => Some(p),
+            Stmt::Exhale(_, ref mut p)
+            | Stmt::Assert(_, ref mut p)
+            | Stmt::Fold(_, _, _, _, ref mut p)
+            | Stmt::Obtain(_, ref mut p)
+            | Stmt::PackageMagicWand(_, _, _, _, ref mut p)
+            | Stmt::ApplyMagicWand(_, ref mut p) => Some(p),
             _ => None,
         }
     }
 
     #[must_use]
-    pub fn set_pos(self, pos: Position) -> Self {
-        match self {
-            Stmt::PackageMagicWand(wand, package_body, label, vars, _) => {
-                Stmt::PackageMagicWand(wand, package_body, label, vars, pos)
-            }
-            Stmt::Exhale(expr, _) => Stmt::Exhale(expr, pos),
-            x => x,
-        }
+    pub fn set_pos(mut self, pos: Position) -> Self {
+        self.pos_mut().into_iter().for_each(|p| *p = pos);
+        self
     }
 
     // Replace a Position::default() position with `pos`
@@ -336,6 +340,36 @@ impl Stmt {
     #[must_use]
     pub fn set_default_expr_pos(self, pos: Position) -> Self {
         self.map_expr(|e| e.set_default_pos(pos))
+    }
+
+    /// Visit each position.
+    /// Note: statements like `Stmt::If` can contain multiple positions.
+    pub fn visit_positions<F: FnMut(&Position)>(&self, mut visitor: F) {
+        // Recursively visiting the statements of the nested Stmt::If statements is difficult; the
+        // recursive type constraints are hard to satisfy. So, here is an iterative implementation.
+        let mut queue = vec![self];
+        while let Some(stmt) = queue.pop() {
+            stmt.pos().into_iter().for_each(&mut visitor);
+            if let Stmt::If(_, then_stmts, else_stmts) = stmt {
+                queue.extend(then_stmts);
+                queue.extend(else_stmts);
+            }
+        }
+    }
+
+    /// Mutably visit each position.
+    /// Note: statements like `Stmt::If` can contain multiple positions.
+    pub fn visit_positions_mut<F: FnMut(&mut Position)>(&mut self, mut visitor: F) {
+        // Recursively visiting the statements of the nested Stmt::If statements is difficult; the
+        // recursive type constraints are hard to satisfy. So, here is an iterative implementation.
+        let mut queue = vec![self];
+        while let Some(stmt) = queue.pop() {
+            stmt.pos_mut().into_iter().for_each(&mut visitor);
+            if let Stmt::If(_, then_stmts, else_stmts) = stmt {
+                queue.extend(then_stmts);
+                queue.extend(else_stmts);
+            }
+        }
     }
 }
 
