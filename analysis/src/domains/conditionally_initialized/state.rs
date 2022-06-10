@@ -8,14 +8,14 @@
 
 use crate::{
     abstract_interpretation::AbstractState,
-    mir_utils::{self, expand, expand_one_level, is_copy, is_prefix},
+    mir_utils::{self, expand, is_copy, is_prefix},
     AnalysisError, PointwiseState,
 };
 use rustc_data_structures::fx::FxHashSet;
 use rustc_middle::{mir, mir::Location, ty::TyCtxt};
 use rustc_span::def_id::DefId;
 use serde::{Serialize, Serializer};
-use std::{iter::once, mem};
+use std::iter::once;
 
 use rustc_data_structures::stable_map::FxHashMap;
 use rustc_middle::mir::{BasicBlock, Place};
@@ -25,6 +25,14 @@ use rustc_middle::mir::{BasicBlock, Place};
 
     Currently, we're using FixpointEngine which only operated on MIR.
     We want this to operate on MIR mircocode.
+
+    What we have right now duplicates concerns in that it's both guessing
+    kill locations/micro effects from the MIR, and inferring their
+    meaning.
+
+    This will probably involve rewriting the fixpoint engine, which allows
+    for a chance to do a more efficient GenKill analysis instead of the
+    current iterative method (this is essentially a GenKill problem afaik)
 
 */
 
