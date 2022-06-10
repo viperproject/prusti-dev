@@ -7,49 +7,60 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{
-    abstract_interpretation::AbstractState, mir_utils::is_copy, AnalysisError, PointwiseState,
+    abstract_interpretation::AbstractState,
+    mir_utils::{self, expand, expand_one_level, is_copy, is_prefix},
+    AnalysisError, PointwiseState,
 };
 use rustc_data_structures::fx::FxHashSet;
 use rustc_middle::{mir, mir::Location, ty::TyCtxt};
 use rustc_span::def_id::DefId;
 use serde::{Serialize, Serializer};
-use std::iter::once;
+use std::{iter::once, mem};
 
 use rustc_data_structures::stable_map::FxHashMap;
 use rustc_middle::mir::{BasicBlock, Place};
 
-// use super::CondInitializedAnalysis;
+/*
+    TODO:
 
-/// A set of possibly intialized MIR places annotated with the basic block
-/// they might have been initialized at
-///
-/// Invariant: we never have a place and any of its descendants in the
-/// set at the same time. For example, having `x.f` and `x.f.g` in the
-/// set at the same time is illegal.
+    Currently, we're using FixpointEngine which only operated on MIR.
+    We want this to operate on MIR mircocode.
 
-// When set is None, we interpret it as Top
-//  (otherwise, the top element would be |every place| * |every bb| which is huge.
-//   top is idempotent for join as is None to Option's monadic composition.
-//  )
+*/
+
+#[derive(Clone)]
+pub struct PlaceBBMap<'tcx> {
+    pub map: FxHashMap<mir_utils::Place<'tcx>, FxHashSet<BasicBlock>>,
+}
+
+impl<'tcx> PlaceBBMap<'tcx> {
+    pub fn coherent_insert(&mut self, p: mir_utils::Place<'tcx>, bb: BasicBlock) {
+        if let Some(self_p_bbs) = self.map.get_mut(&p.into()) {
+            // TODO: If we insert at a point where we already have a conflicting place, what happens?
+            self_p_bbs.extend(once(bb));
+        } else {
+            let mut new_bbs: FxHashSet<BasicBlock> = FxHashSet::default();
+            new_bbs.extend(once(bb));
+            self.map.insert(p.clone().into(), new_bbs);
+        }
+    }
+}
+
+impl<'tcx> Default for PlaceBBMap<'tcx> {
+    fn default() -> Self {
+        Self {
+            map: Default::default(),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct CondInitializedState<'mir, 'tcx: 'mir> {
-    pub(super) set: Option<FxHashMap<Place<'tcx>, FxHashSet<BasicBlock>>>,
+    pub(super) set: Option<PlaceBBMap<'tcx>>,
     pub(super) def_id: DefId,
     pub(super) mir: &'mir mir::Body<'tcx>,
     pub(super) tcx: TyCtxt<'tcx>,
 }
-
-/*
-impl<'mir, 'tcx: 'mir> fmt::Debug for DefinitelyInitializedState<'mir, 'tcx> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // ignore tcx & mir
-        f.debug_struct("DefinitelyInitializedState")
-            .field("def_init_places", &self.def_init_places)
-            .finish()
-    }
-}
-*/
 
 impl<'mir, 'tcx: 'mir> PartialEq for CondInitializedState<'mir, 'tcx> {
     fn eq(&self, other: &Self) -> bool {
@@ -68,29 +79,6 @@ impl<'mir, 'tcx: 'mir> Serialize for CondInitializedState<'mir, 'tcx> {
     }
 }
 
-/*
-
-impl<'mir, 'tcx: 'mir> PartialEq for CondInitializedState<'mir, 'tcx> {
-    fn eq(&self, other: &Self) -> bool {
-        self.def_init_places == other.def_init_places
-    }
-}
-
-impl<'mir, 'tcx: 'mir> Eq for DefinitelyInitializedState<'mir, 'tcx> {}
-
-impl<'mir, 'tcx: 'mir> Serialize for DefinitelyInitializedState<'mir, 'tcx> {
-    fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
-        let mut seq = serializer.serialize_seq(Some(self.def_init_places.len()))?;
-        let ordered_place_set: BTreeSet<_> = self.def_init_places.iter().collect();
-        for place in ordered_place_set {
-            seq.serialize_element(&format!("{:?}", place))?;
-        }
-        seq.end()
-    }
-}
-
-*/
-
 impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
     pub fn new_bottom(
         def_id: DefId,
@@ -98,7 +86,7 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
         tcx: TyCtxt<'tcx>,
     ) -> CondInitializedState<'mir, 'tcx> {
         return CondInitializedState {
-            set: Some(FxHashMap::default()),
+            set: Some(PlaceBBMap::default()),
             def_id,
             mir,
             tcx,
@@ -119,37 +107,59 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
     }
 
     /// Kill all references to a place
-    pub fn coherent_kill(&mut self, p: Place<'tcx>) {
-        if let Some(s) = &mut self.set {
-            s.remove_entry(&p);
+    /// Also kill all places which are subplaces of the killed place
+    // TODO: Pretty sure this implementation is super bad... it copies everything every time.
+    // Fix this if we end up using this analysis
+    pub fn coherent_kill(&mut self, p: mir_utils::Place<'tcx>, location: Location) {
+        if let Some(set) = &mut self.set {
+            // Places to add
+            let mut new_places: Vec<mir_utils::Place<'tcx>> = vec![];
+            // Places to delete
+            let mut remove_places: Vec<mir_utils::Place<'tcx>> = vec![];
+            for (set_place, set_bbs) in set.map.iter_mut() {
+                if is_prefix(p, *set_place) {
+                    // p is a prefix of a place in the set. Expand until we can delete the place,
+                    // then delete it (by not adding it). Delete the uppermost place.
+                    remove_places.push(set_place.clone());
+                    new_places.extend(expand(self.mir, self.tcx, set_place.clone(), p.clone()));
+                } else if is_prefix(*set_place, p) {
+                    // Open drop. Delete the place.
+                    remove_places.push(set_place.clone());
+                } else {
+                    // Unrelated, no need to do anything
+                }
+            }
+            for place in remove_places.iter() {
+                set.map.remove(place);
+            }
+
+            // Newly expanded places are tagged with their expansion location
+            let mut new_bbs: FxHashSet<BasicBlock> = FxHashSet::default();
+            new_bbs.extend(once(location.block));
+            for place in new_places.iter() {
+                set.map.insert(*place, new_bbs.clone());
+            }
         } else {
-            todo!("Internal error: expansion of Top value. ");
+            panic!("Internal error: Top expansion/Error paths not implemented");
         }
     }
 
-    /// Insert other into self and return ``true`` iff self is changed
-    pub fn coherent_insert(&mut self, p: Place<'tcx>, bb: BasicBlock) {
+    /// Insert other into self
+    pub fn coherent_insert(&mut self, p: mir_utils::Place<'tcx>, location: Location) {
         if let Some(s) = &mut self.set {
-            if let Some(self_p_bbs) = s.get_mut(&p) {
-                self_p_bbs.extend(once(bb));
-            } else {
-                let mut new_bbs: FxHashSet<BasicBlock> = FxHashSet::default();
-                new_bbs.extend(once(bb));
-                s.insert(p.clone(), new_bbs);
-            }
-        } else {
-            // Top is insertion-idempotent
+            s.coherent_insert(p, location.block);
         }
+        // By idempotency of top, Top insert anything else is unchanged
     }
 
     pub fn coherent_union(&mut self, other: &CondInitializedState<'mir, 'tcx>) {
         if let Some(s) = &mut self.set {
             if let Some(os) = &other.set {
-                for (p, bb) in os.iter() {
-                    if let Some(self_p_bbs) = s.get_mut(p) {
+                for (p, bb) in os.map.iter() {
+                    if let Some(self_p_bbs) = s.map.get_mut(p) {
                         self_p_bbs.extend(bb);
                     } else {
-                        s.insert(p.clone(), bb.clone());
+                        s.map.insert(p.clone(), bb.clone());
                     }
                 }
             } else {
@@ -162,12 +172,12 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
     }
 
     // Kill operands that are not copy
-    fn apply_operand_effect(&mut self, operand: &mir::Operand<'tcx>) {
+    fn apply_operand_effect(&mut self, operand: &mir::Operand<'tcx>, location: mir::Location) {
         if let mir::Operand::Move(place) = operand {
             let ty = place.ty(&self.mir.local_decls, self.tcx).ty;
             let param_env = self.tcx.param_env(self.def_id);
             if !is_copy(self.tcx, ty, param_env) {
-                self.coherent_kill(*place);
+                self.coherent_kill((*place).into(), location);
             }
         }
     }
@@ -184,31 +194,35 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
                     | mir::Rvalue::Cast(_, ref operand, _)
                     | mir::Rvalue::UnaryOp(_, ref operand)
                     | mir::Rvalue::Use(ref operand) => {
-                        self.apply_operand_effect(operand);
+                        self.apply_operand_effect(operand, location);
                     }
                     mir::Rvalue::BinaryOp(_, box (ref operand1, ref operand2))
                     | mir::Rvalue::CheckedBinaryOp(_, box (ref operand1, ref operand2)) => {
-                        self.apply_operand_effect(operand1);
-                        self.apply_operand_effect(operand2);
+                        self.apply_operand_effect(operand1, location);
+                        self.apply_operand_effect(operand2, location);
                     }
                     mir::Rvalue::Aggregate(_, ref operands) => {
                         for operand in operands.iter() {
-                            self.apply_operand_effect(operand);
+                            self.apply_operand_effect(operand, location);
                         }
                     }
                     _ => {}
                 }
-
-                self.coherent_insert(target, location.block);
+                self.coherent_kill(target.into(), location);
+                self.coherent_insert(target.into(), location);
             }
             mir::StatementKind::StorageDead(local) => {
                 // https://doc.rust-lang.org/beta/nightly-rustc/rustc_middle/mir/struct.Place.html
                 // Each local naturally corresponds to the place Place { local, projection: [] }.
                 // This place has the address of the local’s allocation and the type of the local.
-                self.coherent_kill(Place {
-                    local,
-                    projection: rustc_middle::ty::List::empty(),
-                });
+                self.coherent_kill(
+                    Place {
+                        local,
+                        projection: rustc_middle::ty::List::empty(),
+                    }
+                    .into(),
+                    location,
+                );
             }
             _ => {}
         }
@@ -227,7 +241,7 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
             mir::TerminatorKind::SwitchInt { ref discr, .. } => {
                 // only operand has an effect on definitely initialized places, all successors
                 // get the same state
-                new_state.apply_operand_effect(discr);
+                new_state.apply_operand_effect(discr, location);
 
                 for &bb in terminator.successors() {
                     res_vec.push((bb, new_state.clone()));
@@ -238,7 +252,7 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
                 target,
                 unwind,
             } => {
-                new_state.coherent_kill(place);
+                new_state.coherent_kill(place.into(), location);
                 res_vec.push((target, new_state));
 
                 if let Some(bb) = unwind {
@@ -252,9 +266,9 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
                 target,
                 unwind,
             } => {
-                new_state.coherent_kill(place);
-                new_state.apply_operand_effect(value);
-                new_state.coherent_insert(place, location.block);
+                new_state.coherent_kill(place.into(), location);
+                new_state.apply_operand_effect(value, location);
+                new_state.coherent_insert(place.into(), location);
                 res_vec.push((target, new_state));
 
                 if let Some(bb) = unwind {
@@ -270,11 +284,11 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
                 ..
             } => {
                 for arg in args.iter() {
-                    new_state.apply_operand_effect(arg);
+                    new_state.apply_operand_effect(arg, location);
                 }
-                new_state.apply_operand_effect(func);
+                new_state.apply_operand_effect(func, location);
                 if let Some((place, bb)) = destination {
-                    new_state.coherent_insert(place, location.block);
+                    new_state.coherent_insert(place.into(), location);
                     res_vec.push((bb, new_state));
                 }
 
@@ -289,7 +303,7 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
                 cleanup,
                 ..
             } => {
-                new_state.apply_operand_effect(cond);
+                new_state.apply_operand_effect(cond, location);
                 res_vec.push((target, new_state));
 
                 if let Some(bb) = cleanup {
@@ -304,7 +318,7 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
                 ..
             } => {
                 // TODO: resume_arg?
-                new_state.apply_operand_effect(value);
+                new_state.apply_operand_effect(value, location);
                 res_vec.push((resume, new_state));
 
                 if let Some(bb) = drop {
@@ -329,7 +343,7 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
 
     pub fn pprint_state(&self) {
         if let Some(s) = &self.set {
-            for (p, bbs) in s.iter() {
+            for (p, bbs) in s.map.iter() {
                 print!("\t\t{:#?}: ", p);
                 for b in bbs.iter() {
                     print!("{:#?} ", b);
@@ -337,7 +351,7 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
                 println!();
             }
         } else {
-            println!("T");
+            println!("\t\tT");
         }
     }
 }
@@ -393,7 +407,7 @@ impl<'mir, 'tcx: 'mir> AbstractState for CondInitializedState<'mir, 'tcx> {
     fn is_bottom(&self) -> bool {
         // Identity for join is no states
         if let Some(s) = &self.set {
-            return s.is_empty();
+            return s.map.is_empty();
         } else {
             return false;
         }

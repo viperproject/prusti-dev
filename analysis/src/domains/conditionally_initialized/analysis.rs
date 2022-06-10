@@ -12,13 +12,38 @@ use rustc_span::def_id::DefId;
 
 use super::CondInitializedState;
 
+//  The CondInitAnalysis computes an elaborated version of MaybeInitAnalysis,
+//   where each maybe initialized place tracks it's possible initialization sites.
+//
+//  This information is used in kill elaboration. When a place needs to be killed,
+//   we insert a flag (enum, usize) which is updated every time the place is
+//   re-initalized.
+//
+//  PROPERTY: All DefinitelyInitialized places will be CondInitialized.
+//
+//  PROPERTY: All CondInitialized places with one tag are definitelyInitialized
+//
+//  PROPERTY: A place is definitely not initialzied exactly when it's not
+//   CondInitialzied
+//
+//
+//  Fold/Unfold approximation for kill's:
+//
+//  1. Partial kills and reassignment:
+//  When part of a place is killed, we exchange it into all it's subplaces and give them the same
+//  initialization time as their full place. It's as if the entire place was initialized in
+//  individual projections each time.
+//
+// 2. When a full place is killed, we must remove all possible subplaces too (handle open drops)
+//
+// This approximation is sound for code without borrows.
+// The conditional code can be used to conditionally apply wands etc later.
+// The approximation is inefficient when we move out a field and then move it back in.
+
 pub struct CondInitializedAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
     mir: &'mir mir::Body<'tcx>,
-    // If the place is a Copy type, uninitialise the place iif `move_out_copy_types` is true.
-    // Never move out copy types (relaxed: false)
-    // move_out_copy_types: bool,
 }
 
 impl<'mir, 'tcx: 'mir> CondInitializedAnalysis<'mir, 'tcx> {

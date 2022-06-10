@@ -18,9 +18,15 @@ use rustc_trait_selection::infer::InferCtxtExt;
 use std::mem;
 
 #[repr(transparent)]
-#[derive(Clone, Copy, Eq, PartialEq, derive_more::From, Hash)]
+#[derive(Clone, Copy, Eq, PartialEq, Hash)]
 /// A wrapper for `mir::Place` that implements `Ord`.
 pub struct Place<'tcx>(mir::Place<'tcx>);
+
+impl<'tcx> From<mir::Place<'tcx>> for Place<'tcx> {
+    fn from(p: mir::Place<'tcx>) -> Self {
+        Self(p)
+    }
+}
 
 impl<'tcx> From<mir::Local> for Place<'tcx> {
     fn from(local: mir::Local) -> Self {
