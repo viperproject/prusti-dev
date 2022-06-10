@@ -52,7 +52,6 @@ use vir_crate::{
         operations::ty::Typed,
     },
 };
-
 mod elaborate_drops;
 mod initialisation;
 mod lifetimes;
@@ -76,7 +75,10 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let allocation = compute_definitely_allocated(def_id, mir);
     let lifetime_count = lifetimes.lifetime_count();
     let lifetime_token_permission = None;
+    let old_lifetime_ctr: usize = 0;
     let function_call_ctr: usize = 0;
+    let derived_lifetimes_yet_to_kill: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let reborrow_lifetimes_to_remove: BTreeSet<String> = BTreeSet::new();
     let mut procedure_encoder = ProcedureEncoder {
         encoder,
         def_id,
@@ -95,7 +97,10 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         fresh_id_generator: 0,
         lifetime_count,
         lifetime_token_permission,
+        old_lifetime_ctr,
         function_call_ctr,
+        derived_lifetimes_yet_to_kill,
+        reborrow_lifetimes_to_remove,
     };
     procedure_encoder.encode()
 }
@@ -125,7 +130,10 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     fresh_id_generator: usize,
     lifetime_count: usize,
     lifetime_token_permission: Option<vir_high::VariableDecl>,
+    old_lifetime_ctr: usize,
     function_call_ctr: usize,
+    derived_lifetimes_yet_to_kill: BTreeMap<String, BTreeSet<String>>,
+    reborrow_lifetimes_to_remove: BTreeSet<String>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -134,7 +142,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (allocate_parameters, deallocate_parameters) = self.encode_parameters()?;
         let (allocate_returns, deallocate_returns) = self.encode_returns()?;
         self.lifetime_token_permission =
-            Some(self.fresh_ghost_variable("positive_perm_amount", vir_high::Type::MPerm));
+            Some(self.fresh_ghost_variable("lifetime_token_perm_amount", vir_high::Type::MPerm));
         let (assume_preconditions, assert_postconditions) =
             self.encode_functional_specifications()?;
         let (assume_lifetime_preconditions, assert_lifetime_postconditions) =
@@ -418,6 +426,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         bb: mir::BasicBlock,
         data: &mir::BasicBlockData<'tcx>,
     ) -> SpannedEncodingResult<()> {
+        self.derived_lifetimes_yet_to_kill.clear();
+        self.reborrow_lifetimes_to_remove.clear();
         let label = self.encode_basic_block_label(bb);
         let mut block_builder = procedure_builder.create_basic_block_builder(label);
         let mir::BasicBlockData {
@@ -442,6 +452,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 location,
                 &mut original_lifetimes,
                 &mut derived_lifetimes,
+                Some(&statements[location.statement_index]),
             )?;
             self.encode_statement(
                 &mut block_builder,
@@ -456,6 +467,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 location,
                 &mut original_lifetimes,
                 &mut derived_lifetimes,
+                None,
             )?;
             let terminator = &terminator.kind;
             self.encode_terminator(&mut block_builder, location, terminator)?;
@@ -555,6 +567,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?);
             }
             mir::Rvalue::Ref(region, borrow_kind, place) => {
+                let mut is_reborrow = false;
+                if let Some((_ref, projection)) = place.iter_projections().last() {
+                    if projection == mir::ProjectionElem::Deref {
+                        is_reborrow = true;
+                    }
+                }
                 let is_mut = matches!(
                     borrow_kind,
                     mir::BorrowKind::Mut {
@@ -563,13 +581,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
                 let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
                 let region_name = region.to_text();
-                let encoded_rvalue = vir_high::Rvalue::ref_(
-                    encoded_place,
-                    vir_high::ty::LifetimeConst::new(region_name),
-                    is_mut,
-                    self.lifetime_token_fractional_permission(self.lifetime_count),
-                    encoded_target.clone(),
-                );
+                let encoded_rvalue = if is_reborrow {
+                    let root = self.encoder.encode_local_high(self.mir, place.local)?;
+                    let place_lifetime_name = self.lifetime_name(root.into());
+                    if let Some(place_lifetime_name) = place_lifetime_name {
+                        let place_lifetime = vir_high::ty::LifetimeConst {
+                            name: place_lifetime_name,
+                        };
+                        let operand_lifetime = vir_high::ty::LifetimeConst { name: region_name };
+                        vir_high::Rvalue::reborrow(
+                            encoded_place,
+                            operand_lifetime,
+                            place_lifetime,
+                            is_mut,
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
+                            encoded_target.clone(),
+                        )
+                    } else {
+                        unreachable!()
+                    }
+                } else {
+                    vir_high::Rvalue::ref_(
+                        encoded_place,
+                        vir_high::ty::LifetimeConst::new(region_name),
+                        is_mut,
+                        self.lifetime_token_fractional_permission(self.lifetime_count),
+                        encoded_target.clone(),
+                    )
+                };
                 let assign_statement = vir_high::Statement::assign(
                     encoded_target,
                     encoded_rvalue,
@@ -1595,9 +1634,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             derived_from.push(self.encode_lft_variable(name.to_string())?);
         }
         let function_lifetime_take = vir_high::Statement::lifetime_take_no_pos(
-            function_call_lifetime,
-            derived_from,
-            self.lifetime_token_fractional_permission(self.lifetime_count),
+            function_call_lifetime.clone(),
+            derived_from.clone(),
+            self.lifetime_token_fractional_permission(self.lifetime_count * derived_from.len()),
         );
         block_builder.add_statement(self.set_statement_error(
             location,
@@ -1647,19 +1686,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.def_id,
             )?);
         }
-        for lifetime in &lifetimes_to_exhale_inhale {
-            block_builder.add_statement(self.encoder.set_statement_error_ctxt(
-                vir_high::Statement::exhale_no_pos(vir_high::Predicate::lifetime_token_no_pos(
-                    vir_high::ty::LifetimeConst {
-                        name: lifetime.clone(),
-                    },
-                    self.lifetime_token_fractional_permission(self.lifetime_count),
-                )),
-                self.mir.span,
-                ErrorCtxt::LifetimeEncoding,
-                self.def_id,
-            )?);
-        }
+        self.encode_exhale_lifetime_tokens(
+            block_builder,
+            &lifetimes_to_exhale_inhale,
+            derived_from.len(),
+        )?;
 
         let procedure_contract = self
             .encoder
@@ -1727,16 +1758,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ErrorCtxt::ProcedureCall,
                     self.def_id,
                 )?);
+                self.encode_inhale_lifetime_tokens(
+                    &mut post_call_block_builder,
+                    &lifetimes_to_exhale_inhale,
+                    derived_from.len(),
+                )?;
+                let function_lifetime_return = self.encoder.set_statement_error_ctxt(
+                    vir_high::Statement::lifetime_return_no_pos(
+                        function_call_lifetime.clone(),
+                        derived_from.clone(),
+                        self.lifetime_token_fractional_permission(
+                            self.lifetime_count * derived_from.len(),
+                        ),
+                    ),
+                    self.mir.span,
+                    ErrorCtxt::LifetimeInhale,
+                    self.def_id,
+                )?;
+                post_call_block_builder.add_statement(function_lifetime_return);
 
-                for lifetime in &lifetimes_to_exhale_inhale {
-                    let statement = self.encode_inhale_lifetime_token(
-                        vir_high::ty::LifetimeConst {
-                            name: lifetime.clone(),
-                        },
-                        self.lifetime_token_fractional_permission(self.lifetime_count),
-                    )?;
-                    post_call_block_builder.add_statement(statement);
-                }
+                self.encode_lft_for_block(*target_block, location, &mut post_call_block_builder)?;
 
                 for expression in postcondition_expressions {
                     let assume_statement = self.encoder.set_statement_error_ctxt(
@@ -1798,15 +1839,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         self.def_id,
                     )?);
 
-                    for lifetime in &lifetimes_to_exhale_inhale {
-                        let statement = self.encode_inhale_lifetime_token(
-                            vir_high::ty::LifetimeConst {
-                                name: lifetime.clone(),
-                            },
-                            self.lifetime_token_fractional_permission(self.lifetime_count),
-                        )?;
-                        cleanup_block_builder.add_statement(statement);
-                    }
+                    self.encode_inhale_lifetime_tokens(
+                        &mut cleanup_block_builder,
+                        &lifetimes_to_exhale_inhale,
+                        derived_from.len(),
+                    )?;
+                    let function_lifetime_return = self.encoder.set_statement_error_ctxt(
+                        vir_high::Statement::lifetime_return_no_pos(
+                            function_call_lifetime,
+                            derived_from.clone(),
+                            self.lifetime_token_fractional_permission(
+                                self.lifetime_count * derived_from.len(),
+                            ),
+                        ),
+                        self.mir.span,
+                        ErrorCtxt::LifetimeInhale,
+                        self.def_id,
+                    )?;
+                    cleanup_block_builder.add_statement(function_lifetime_return);
+                    self.encode_lft_for_block(
+                        *cleanup_block,
+                        location,
+                        &mut cleanup_block_builder,
+                    )?;
 
                     cleanup_block_builder.build();
                     block_builder.set_successor_jump(vir_high::Successor::NonDetChoice(

@@ -13,6 +13,7 @@ impl WithIdentifier for Rvalue {
             Self::Aggregate(value) => value.get_identifier(),
             Self::Discriminant(value) => value.get_identifier(),
             Self::Ref(value) => value.get_identifier(),
+            Self::Reborrow(value) => value.get_identifier(),
         }
     }
 }
@@ -20,6 +21,12 @@ impl WithIdentifier for Rvalue {
 impl WithIdentifier for Repeat {
     fn get_identifier(&self) -> String {
         format!("Repeat${}", self.argument.get_identifier())
+    }
+}
+
+impl WithIdentifier for Reborrow {
+    fn get_identifier(&self) -> String {
+        format!("Reborrow${}", self.place.get_type().get_identifier())
     }
 }
 

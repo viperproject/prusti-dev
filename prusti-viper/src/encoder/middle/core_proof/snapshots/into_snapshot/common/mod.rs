@@ -503,7 +503,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 lowerer.encode_lifetime_included()?;
                 Ok(vir_low::Expression::domain_function_call(
                     "Lifetime",
-                    "included$",
+                    "included",
                     args,
                     vir_low::ty::Type::Bool,
                 ))
