@@ -156,7 +156,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         }
         let successor_blocks = self.current_successors()?;
         assert!(
-            !successor_blocks.is_empty() || state.is_empty(),
+            !successor_blocks.is_empty() || state.contains_only_leakable(),
             "some predicates are leaked"
         );
         if config::dump_debug_info() {
