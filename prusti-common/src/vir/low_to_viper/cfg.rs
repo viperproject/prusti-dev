@@ -35,7 +35,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Successor {
             Successor::GotoSwitch(targets) => {
                 let mut statements = Vec::new();
                 for (test, target) in targets {
-                    let goto = ast.goto(&target.name);
+                    let goto = ast.seqn(&[ast.goto(&target.name)], &[]);
                     let skip = ast.seqn(&[], &[]);
                     let conditional_goto = ast.if_stmt(test.to_viper(context, ast), goto, skip);
                     statements.push(conditional_goto);
