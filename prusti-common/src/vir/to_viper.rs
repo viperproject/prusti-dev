@@ -1151,7 +1151,7 @@ fn successor_to_viper<'a>(
         Successor::GotoSwitch(ref successors, ref default_target) => {
             let mut stmts: Vec<viper::Stmt<'a>> = vec![];
             for (test, target) in successors {
-                let goto = ast.goto(&basic_block_labels[target.index()]);
+                let goto = ast.seqn(&[ast.goto(&basic_block_labels[target.index()])], &[]);
                 let skip = ast.seqn(&[], &[]);
                 let conditional_goto = ast.if_stmt(test.to_viper(context, ast), goto, skip);
                 stmts.push(conditional_goto);
