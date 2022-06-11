@@ -248,12 +248,9 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     index: Int,
                     snapshot: {snapshot_type.clone()}
                 };
-                let snapshot_length = vir_low::Expression::container_op(
-                    vir_low::expression::ContainerOpKind::SeqLen,
-                    snapshot.clone().into(),
-                    true.into(),
-                    Default::default(),
-                );
+                let snapshot_length = self
+                    .lowerer
+                    .obtain_array_len_snapshot(snapshot.clone().into(), Default::default())?;
                 let array_length = self.lowerer.array_length_variable()?;
                 let size_type = self.lowerer.size_type_mid()?;
                 let array_length_int = self.lowerer.obtain_constant_value(
@@ -268,45 +265,30 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 )?;
                 let element_place = self.lowerer.encode_index_place(
                     ty,
-                    place.clone().into(),
+                    place.into(),
                     index_usize,
                     Default::default(),
                 )?;
-                let element_snapshot = vir_low::Expression::container_op(
-                    vir_low::expression::ContainerOpKind::SeqIndex,
-                    snapshot.clone().into(),
+                let element_snapshot = self.lowerer.obtain_array_element_snapshot(
+                    snapshot.into(),
                     index.clone().into(),
                     Default::default(),
-                );
-                let in_array_predicate_acc = expr! {
-                    acc(OwnedNonAliasedInArray<element_type>(
-                        place, root_address, snapshot, index
-                    ))
+                )?;
+
+                let element_predicate_acc = expr! {
+                    (acc(OwnedNonAliased<element_type>(
+                        [element_place], root_address, [element_snapshot]
+                    )))
                 };
                 let elements = vir_low::Expression::forall(
                     vec![index.clone()],
-                    vec![vir_low::Trigger::new(vec![in_array_predicate_acc.clone()])],
+                    vec![vir_low::Trigger::new(vec![element_predicate_acc.clone()])],
                     expr! {
                         (([0.into()] <= index) && (index < [array_length_int.clone()])) ==>
-                        [in_array_predicate_acc]
+                        [element_predicate_acc]
                     },
                 );
                 self.encode_owned_non_aliased(element_type)?;
-                let in_array_predicate = predicate! {
-                    OwnedNonAliasedInArray<element_type>(
-                        place: Place,
-                        root_address: Address,
-                        snapshot: {snapshot_type.clone()},
-                        index: Int
-                    )
-                    {(
-                        (([0.into()] <= index) && (index < [snapshot_length.clone()])) ==>
-                        (acc(OwnedNonAliased<element_type>(
-                            [element_place], root_address, [element_snapshot]
-                        )))
-                    )}
-                };
-                self.predicates.push(in_array_predicate);
                 predicate! {
                     OwnedNonAliased<ty>(
                         place: Place,

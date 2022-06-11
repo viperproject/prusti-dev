@@ -12,9 +12,8 @@ use crate::encoder::{
         predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
         snapshots::{
             IntoProcedureBoolExpression, IntoProcedureFinalSnapshot, IntoProcedureSnapshot,
-            SnapshotValidityInterface, SnapshotValuesInterface, SnapshotVariablesInterface,
+            SnapshotValidityInterface, SnapshotVariablesInterface,
         },
-        type_layouts::TypeLayoutsInterface,
     },
 };
 use vir_crate::{
@@ -118,37 +117,10 @@ impl IntoLow for vir_mid::Statement {
                 let arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
-                    if let Some(index) = statement.index {
-                        let low_index = index.to_procedure_snapshot(lowerer)?;
-                        let size_type = lowerer.size_type_mid()?;
-                        let low_index = lowerer.obtain_constant_value(
-                            &size_type,
-                            low_index,
-                            statement.position,
-                        )?;
-                        let element_type = &*ty.clone().unwrap_array().element_type;
-                        stmtp! {
-                            statement.position =>
-                            fold<low_condition> OwnedNonAliasedInArray<element_type>(
-                                [place], [address], [snapshot], [low_index]
-                            )
-                        }
-                    } else {
-                        stmtp! {
-                            statement.position =>
-                            fold<low_condition> OwnedNonAliased<ty>([place], [address], [snapshot]; arguments)
-                        }
-                    }
-                } else if let Some(index) = statement.index {
-                    let element_type = &*ty.clone().unwrap_array().element_type;
-                    let low_index = index.to_procedure_snapshot(lowerer)?;
-                    let size_type = lowerer.size_type_mid()?;
-                    let low_index =
-                        lowerer.obtain_constant_value(&size_type, low_index, statement.position)?;
                     stmtp! {
                         statement.position =>
-                        fold OwnedNonAliasedInArray<element_type>(
-                            [place], [address], [snapshot], [low_index]
+                        fold<low_condition> OwnedNonAliased<ty>(
+                            [place], [address], [snapshot]; arguments
                         )
                     }
                 } else {
@@ -168,37 +140,10 @@ impl IntoLow for vir_mid::Statement {
                 let arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
-                    if let Some(index) = statement.index {
-                        let low_index = index.to_procedure_snapshot(lowerer)?;
-                        let size_type = lowerer.size_type_mid()?;
-                        let low_index = lowerer.obtain_constant_value(
-                            &size_type,
-                            low_index,
-                            statement.position,
-                        )?;
-                        let element_type = &*ty.clone().unwrap_array().element_type;
-                        stmtp! {
-                            statement.position =>
-                            unfold<low_condition> OwnedNonAliasedInArray<element_type>(
-                                [place], [address], [snapshot], [low_index]
-                            )
-                        }
-                    } else {
-                        stmtp! {
-                            statement.position =>
-                            unfold<low_condition> OwnedNonAliased<ty>([place], [address], [snapshot]; arguments)
-                        }
-                    }
-                } else if let Some(index) = statement.index {
-                    let element_type = &*ty.clone().unwrap_array().element_type;
-                    let low_index = index.to_procedure_snapshot(lowerer)?;
-                    let size_type = lowerer.size_type_mid()?;
-                    let low_index =
-                        lowerer.obtain_constant_value(&size_type, low_index, statement.position)?;
                     stmtp! {
                         statement.position =>
-                        unfold OwnedNonAliasedInArray<element_type>(
-                            [place], [address], [snapshot], [low_index]
+                        unfold<low_condition> OwnedNonAliased<ty>(
+                            [place], [address], [snapshot]; arguments
                         )
                     }
                 } else {

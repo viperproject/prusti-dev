@@ -28,4 +28,12 @@ impl PlaceExpressionDomainEncoder for PlaceAddressEncoder {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         unreachable!("The address cannot be dereferenced; use the value instead.")
     }
+
+    fn encode_array_index_axioms(
+        &mut self,
+        _base_type: &vir_mid::Type,
+        _lowerer: &mut Lowerer,
+    ) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
 }
