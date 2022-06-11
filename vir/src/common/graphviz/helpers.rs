@@ -5,5 +5,6 @@ pub fn escape_html<S: ToString>(s: S) -> String {
         .replace('<', "&lt;")
         .replace('{', "\\{")
         .replace('}', "\\}")
+        .replace('|', "&#124;")
         .replace('\n', "<br/>")
 }
