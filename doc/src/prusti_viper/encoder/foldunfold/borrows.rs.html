@@ -141,14 +141,6 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -157,7 +149,7 @@
 
 <span class="kw">use</span> <a class="ident" href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../vir/polymorphic/index.html">vir_crate::polymorphic</a> <span class="kw">as</span> <span class="ident">vir</span>;
+<span class="kw">use</span> <span class="ident">vir_crate</span>::{<a class="ident" href="../../../../vir/common/graphviz/helpers/fn.escape_html.html">common::graphviz::escape_html</a>, <a class="ident" href="../../../../vir/polymorphic/index.html">polymorphic</a> <span class="kw">as</span> <span class="ident">vir</span>};
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">BasicBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">guard</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
@@ -200,22 +192,14 @@
         <span class="ident">graph</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
         <span class="ident">curr_block_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">escape_html</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#52">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
-                .<span class="ident">replace</span>(<span class="string">&#39;&amp;&#39;</span>, <span class="string">&quot;&amp;amp;&quot;</span>)
-                .<span class="ident">replace</span>(<span class="string">&#39;&gt;&#39;</span>, <span class="string">&quot;&amp;gt;&quot;</span>)
-                .<span class="ident">replace</span>(<span class="string">&#39;&lt;&#39;</span>, <span class="string">&quot;&amp;lt;&quot;</span>)
-                .<span class="ident">replace</span>(<span class="string">&#39;\n&#39;</span>, <span class="string">&quot;&lt;br/&gt;&quot;</span>)
-        }
-
         <span class="macro">writeln!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;digraph CFG {{&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;graph [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;node [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;edge [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">block</span>) <span class="kw">in</span> <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<span class="ident">basic_blocks</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
-            <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;{} [shape=none,&quot;</span>, <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#65">index</a>))<span class="question-mark">?</span>;
-            <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#65">index</a> <span class="op">==</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#50">curr_block_index</a> {
+            <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;{} [shape=none,&quot;</span>, <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#57">index</a>))<span class="question-mark">?</span>;
+            <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#57">index</a> <span class="op">==</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#50">curr_block_index</a> {
                 <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;color=green,&quot;</span>)<span class="question-mark">?</span>;
             }
             <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;label=&lt;&quot;</span>)<span class="question-mark">?</span>;
@@ -223,52 +207,52 @@
             <span class="macro">write!</span>(
                 <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>,
                 <span class="string">&quot;&lt;tr&gt;&lt;td&gt;borrow:&lt;/td&gt;&lt;td&gt;{:?}&lt;br/&gt;{}&lt;/td&gt;&lt;/tr&gt;&quot;</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#65">block</a>.<span class="ident">node</span>.<span class="ident">borrow</span>,
-                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#65">block</a>
+                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#57">block</a>.<span class="ident">node</span>.<span class="ident">borrow</span>,
+                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#57">block</a>
                     .<span class="ident">node</span>
                     .<span class="ident">stmts</span>
                     .<span class="ident">iter</span>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#52">escape_html</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#80">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()))
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../../../vir/common/graphviz/helpers/fn.escape_html.html">escape_html</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#72">s</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()))
                     .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                     .<span class="ident">join</span>(<span class="string">&quot;&lt;br/&gt;&quot;</span>),
             )<span class="question-mark">?</span>;
-            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#65">block</a>.<span class="ident">statements</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#57">block</a>.<span class="ident">statements</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
                 <span class="macro">write!</span>(
                     <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>,
                     <span class="string">&quot;&lt;tr&gt;&lt;td&gt;{}&lt;/td&gt;&lt;td&gt;{}&lt;/td&gt;&lt;/tr&gt;&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#84">i</a>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#52">escape_html</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#84">stmt</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#76">i</a>,
+                    <a class="ident" href="../../../../vir/common/graphviz/helpers/fn.escape_html.html">escape_html</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#76">stmt</a>)
                 )<span class="question-mark">?</span>;
             }
             <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;&lt;/table&gt;&quot;</span>)<span class="question-mark">?</span>;
             <span class="macro">writeln!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;&gt;];&quot;</span>)<span class="question-mark">?</span>;
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">predecessor</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#65">block</a>.<span class="ident">predecessors</span> {
+            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">predecessor</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#57">block</a>.<span class="ident">predecessors</span> {
                 <span class="macro">writeln!</span>(
                     <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>,
                     <span class="string">&quot;{} -&gt; {};&quot;</span>,
-                    <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#94">predecessor</a>),
-                    <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#65">index</a>)
+                    <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#86">predecessor</a>),
+                    <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#57">index</a>)
                 )<span class="question-mark">?</span>;
             }
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">successor</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#65">block</a>.<span class="ident">successors</span> {
+            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">successor</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#57">block</a>.<span class="ident">successors</span> {
                 <span class="macro">writeln!</span>(
                     <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>,
                     <span class="string">&quot;{} -&gt; {};&quot;</span>,
-                    <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#65">index</a>),
-                    <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#102">successor</a>)
+                    <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#57">index</a>),
+                    <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#94">successor</a>)
                 )<span class="question-mark">?</span>;
             }
         }
 
         <span class="kw">for</span> (<span class="kw-2">&amp;</span>(<span class="ident">from</span>, <span class="ident">to</span>), <span class="ident">stmts</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<span class="ident">edges</span> {
-            <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;{} [shape=none,label=&lt;&quot;</span>, <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#44">edge_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#112">from</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#112">to</a>))<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;{} [shape=none,label=&lt;&quot;</span>, <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#44">edge_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#104">from</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#104">to</a>))<span class="question-mark">?</span>;
             <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;&lt;table&gt;&quot;</span>)<span class="question-mark">?</span>;
-            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#112">stmts</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#104">stmts</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
                 <span class="macro">write!</span>(
                     <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>,
                     <span class="string">&quot;&lt;tr&gt;&lt;td&gt;{}&lt;/td&gt;&lt;td&gt;{}&lt;/td&gt;&lt;/tr&gt;&quot;</span>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#115">i</a>,
-                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#52">escape_html</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#115">stmt</a>)
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#107">i</a>,
+                    <a class="ident" href="../../../../vir/common/graphviz/helpers/fn.escape_html.html">escape_html</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#107">stmt</a>)
                 )<span class="question-mark">?</span>;
             }
             <span class="macro">write!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;&lt;/table&gt;&quot;</span>)<span class="question-mark">?</span>;
@@ -276,21 +260,21 @@
             <span class="macro">writeln!</span>(
                 <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>,
                 <span class="string">&quot;{} -&gt; {};&quot;</span>,
-                <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#112">from</a>),
-                <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#44">edge_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#112">from</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#112">to</a>)
+                <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#104">from</a>),
+                <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#44">edge_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#104">from</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#104">to</a>)
             )<span class="question-mark">?</span>;
             <span class="macro">writeln!</span>(
                 <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>,
                 <span class="string">&quot;{} -&gt; {};&quot;</span>,
-                <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#44">edge_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#112">from</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#112">to</a>),
-                <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#112">to</a>)
+                <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#44">edge_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#104">from</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#104">to</a>),
+                <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#48">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#41">block_label</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#104">to</a>)
             )<span class="question-mark">?</span>;
         }
 
         <span class="macro">writeln!</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;}}&quot;</span>)
     }
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">to_graphviz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">graph</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>, <span class="ident">curr_block_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#141">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#47-51">write_to_graphviz</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#141">graph</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#141">curr_block_index</a>).<span class="ident">unwrap</span>();
+        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#47-51">write_to_graphviz</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">graph</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">curr_block_index</a>).<span class="ident">unwrap</span>();
     }
 }
 </code></pre></div>
