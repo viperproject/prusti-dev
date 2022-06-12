@@ -6,7 +6,7 @@ use crate::encoder::{
         lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{
             IntoPureSnapshot, IntoSnapshot, SnapshotAdtsInterface, SnapshotDomainsInterface,
-            SnapshotValidityInterface,
+            SnapshotValidityInterface, SnapshotValuesInterface,
         },
     },
 };
@@ -228,11 +228,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         let domain_name = self.encode_snapshot_domain_name(ty)?;
         let snapshot_type = ty.to_snapshot(self)?;
         let mut constructor_calls = Vec::new();
+        let mut parameters_validity = Vec::new();
         for parameter in parameters.iter() {
-            constructor_calls.push(self.snapshot_constructor_constant_call(
+            let constructor_call = self.snapshot_constructor_constant_call(
                 &parameter_domain_name,
                 vec![parameter.clone().into()],
-            )?);
+            )?;
+            constructor_calls.push(constructor_call.clone());
+            parameters_validity.push(self
+                .encode_snapshot_valid_call_for_type(constructor_call, parameter_type)?);
         }
         let constructor_call_op =
             self.snapshot_constructor_constant_call(&domain_name, vec![simplification_result])?;
@@ -242,11 +246,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             constructor_calls,
             snapshot_type,
         );
+        let validity_op_constructor_call = self
+            .encode_snapshot_valid_call_for_type(op_constructor_call.clone(), ty)?;
         let body = vir_low::Expression::forall(
             parameters,
-            vec![vir_low::Trigger::new(vec![op_constructor_call.clone()])],
-            expr! { [op_constructor_call] == [constructor_call_op] },
+            vec![vir_low::Trigger::new(vec![validity_op_constructor_call.clone()])],
+            expr! { [parameters_validity.into_iter().conjoin()] ==> ([op_constructor_call] == [constructor_call_op]) },
         );
+
+        // TODO: trigger: valid(op_constructor_call)
+        // body: valid(*parameters) ==>
         let axiom = vir_low::DomainAxiomDecl {
             name: format!("{}$simplification_axiom", variant),
             body,
@@ -324,7 +333,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                 &result_domain,
                 &variant_name,
                 false,
-                vars! { argument: {snapshot_type} },
+                vars! { argument: {snapshot_type.clone()} },
             )?;
             // Simplification axioms.
             let op = op.to_snapshot(self)?;
@@ -349,6 +358,40 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                     argument_type,
                     simplification_result,
                 )?;
+            }
+            match argument_type {
+                vir_mid::Type::Bool => {
+                    assert_eq!(op, vir_low::UnaryOpKind::Not);
+                    let ty = result_type;
+                    let variant = &variant_name;
+
+                    let domain_name = self.encode_snapshot_domain_name(ty)?;
+                    var_decls! {value: {snapshot_type.clone()}};
+                    let parameters = vec![value.clone()];
+                    let op_constructor = vir_low::Expression::domain_function_call(
+                        &domain_name,
+                        self.snapshot_constructor_struct_alternative_name(&domain_name, variant)?,
+                        vec![value.clone().into()],
+                        snapshot_type,
+                    );
+                    let destructor =
+                        self.obtain_constant_value(ty, op_constructor, Default::default())?;
+                    let destructor_op =
+                        self.obtain_constant_value(ty, value.clone().into(), Default::default())?;
+
+                    let body = vir_low::Expression::forall(
+                        parameters,
+                        vec![vir_low::Trigger::new(vec![destructor.clone()])],
+                        expr! { [destructor] == (![destructor_op]) },
+                    );
+
+                    let axiom = vir_low::DomainAxiomDecl {
+                        name: format!("{}$eval_axiom", variant),
+                        body,
+                    };
+                    self.declare_axiom(&domain_name, axiom)?;
+                }
+                _ => {}
             }
         }
         Ok(variant_name)
@@ -395,6 +438,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                     argument_type,
                     result,
                 )?;
+                // destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(operand1_value, operand2_value)) ==
+                // (destructor(operand1_value) <= destructor(operand2_value))
+
+                let ty = result_type;
+                let parameter_type = argument_type;
+                let variant = &variant_name;
+                let domain_name = self.encode_snapshot_domain_name(ty)?;
+                var_decls! {left: {snapshot_type.clone()}, right: {snapshot_type.clone()}};
+                let parameters = vec![left.clone(), right.clone()];
+
+                let op_constructor = vir_low::Expression::domain_function_call(
+                    &domain_name,
+                    self.snapshot_constructor_struct_alternative_name(&domain_name, variant)?,
+                    vec![left.clone().into(), right.clone().into()],
+                    ty.to_snapshot(self)?,
+                );
+                let destructor =
+                        self.obtain_constant_value(ty, op_constructor, Default::default())?;
+
+                let destructor_left =
+                    self.obtain_constant_value(parameter_type, left.clone().into(), Default::default())?;
+                let destructor_right =
+                    self.obtain_constant_value(parameter_type, right.clone().into(), Default::default())?;
+                let destructor_op = vir_low::Expression::binary_op_no_pos(op, destructor_left, destructor_right);
+
+                let body = vir_low::Expression::forall(
+                    parameters,
+                    vec![vir_low::Trigger::new(vec![destructor.clone()])],
+                    expr! { [destructor] == [destructor_op] },
+                );
+
+                let axiom = vir_low::DomainAxiomDecl {
+                    name: format!("{}$eval_axiom", variant),
+                    body,
+                };
+                self.declare_axiom(&domain_name, axiom)?;
+
+
             } else if op == vir_low::BinaryOpKind::EqCmp {
                 // FIXME: For now, we treat Rust's == as bit equality.
                 var_decls! { left: {snapshot_type.clone()}, right: {snapshot_type} };

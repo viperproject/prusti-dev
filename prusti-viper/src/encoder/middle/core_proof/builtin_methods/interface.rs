@@ -645,6 +645,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             }
         };
         posts.push(exprp! { position => result_value == [assigned_value.clone()]});
+        posts.push(
+            self.encode_snapshot_valid_call_for_type(result_value.clone().into(), result_type)?,
+        );
         pre_write_statements.push(vir_low::Statement::assign(
             result_value.clone(),
             assigned_value,
@@ -1432,6 +1435,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     source_value.clone(),
                     lifetime.clone(),
                 ];
+                let validity =
+                    self.encode_snapshot_valid_call_for_type(source_value.clone().into(), ty)?;
                 preconditions = vec![
                     expr! {(acc(MemoryBlock((ComputeAddress::compute_address(target_place, target_root_address)), [size_of.clone()])))},
                     expr! {(acc(OwnedNonAliased<ty>(source_place, source_root_address, source_value, lifetime)))},
@@ -1440,6 +1445,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     expr! {(acc(OwnedNonAliased<ty>(target_place, target_root_address, source_value, lifetime)))},
                     expr! {(acc(MemoryBlock((ComputeAddress::compute_address(source_place, source_root_address)), [size_of])))},
                     expr! {(([bytes]) == (Snap<ty>::to_bytes(source_value)))},
+                    expr! {[validity]},
                 ];
             } else {
                 statements.push(stmtp! { position =>
@@ -1452,6 +1458,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     source_root_address.clone(),
                     source_value.clone(),
                 ];
+                let validity =
+                    self.encode_snapshot_valid_call_for_type(source_value.clone().into(), ty)?;
                 preconditions = vec![
                     expr! {(acc(MemoryBlock((ComputeAddress::compute_address(target_place, target_root_address)), [size_of.clone()])))},
                     expr! {(acc(OwnedNonAliased<ty>(source_place, source_root_address, source_value)))},
@@ -1460,6 +1468,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     expr! {(acc(OwnedNonAliased<ty>(target_place, target_root_address, source_value)))},
                     expr! {(acc(MemoryBlock((ComputeAddress::compute_address(source_place, source_root_address)), [size_of])))},
                     expr! {(([bytes]) == (Snap<ty>::to_bytes(source_value)))},
+                    expr! {[validity]},
                 ];
             }
 
@@ -1580,12 +1589,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             source_value.clone().into(),
                             position,
                         )?;
+                        let validity = self.encode_snapshot_valid_call_for_type(source_value.clone().into(), ty)?;
                     }
                     requires ([vir_low::Expression::no_permission()] < source_permission);
                     requires (acc(MemoryBlock((ComputeAddress::compute_address(target_place, target_address)), [size_of])));
                     requires (acc(OwnedNonAliased<ty>(source_place, source_address, source_value), source_permission));
                     ensures (acc(OwnedNonAliased<ty>(target_place, target_address, source_value)));
                     ensures (acc(OwnedNonAliased<ty>(source_place, source_address, source_value), source_permission));
+                    ensures ([validity]);
             };
             method.body = if ty.is_reference() {
                 None

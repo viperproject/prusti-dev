@@ -602,6 +602,12 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                     app.position,
                 ))
             }
+            BuiltinFunc::Len => {
+                assert_eq!(args.len(), 1);
+                // FIXME: Remove duplication with SeqLen.
+                let value = seq(ContainerOpKind::SeqLen)?;
+                lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
+            }
         }
     }
 

@@ -4,6 +4,7 @@ use crate::encoder::{
         adts::AdtsInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{SnapshotAdtsInterface, SnapshotDomainsInterface, SnapshotValuesInterface},
+        type_layouts::TypeLayoutsInterface,
     },
 };
 use vir_crate::{
@@ -376,11 +377,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         let valid_sequence =
             self.encode_snapshot_valid_call(domain_name, snapshot.clone().into())?;
 
-        var_decls! { index: Int };
+        let size_type = self.size_type()?;
+        let size_type_mid = self.size_type_mid()?;
+        var_decls! { index: { size_type.clone() } };
+        let index_int =
+            self.obtain_constant_value(&size_type_mid, index.clone().into(), Default::default())?;
+        let index_validity =
+            self.encode_snapshot_valid_call_for_type(index.clone().into(), &size_type_mid)?;
         let element = vir_low::Expression::container_op_no_pos(
             vir_low::expression::ContainerOpKind::SeqIndex,
             snapshot.clone().into(),
-            index.clone().into(),
+            index_int.clone(),
         );
         let len = vir_low::Expression::container_op_no_pos(
             vir_low::expression::ContainerOpKind::SeqLen,
@@ -394,7 +401,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 valid_sequence.clone(),
                 valid_element.clone(),
             ])],
-            expr! { (([0.into()] <= index) && (index < [len])) ==> [valid_element]},
+            expr! { ([index_validity] && ([index_int] < [len])) ==> [valid_element]},
         );
         let axiom_top_down_body = vir_low::Expression::forall(
             vec![snapshot],

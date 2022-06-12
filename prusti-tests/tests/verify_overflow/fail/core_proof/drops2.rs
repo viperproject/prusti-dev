@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Pcheck_no_drops=true
+// compile-flags: -Punsafe_core_proof=true -Psmt_quant_instantiations_bound=1000
 
 use prusti_contracts::*;
 

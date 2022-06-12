@@ -149,6 +149,10 @@ fn new_viper_verifier<'v, 't: 'v>(
             verifier_args.extend(vec!["--disableTempDirectory".to_string()]);
         }
     }
+    if let Some(bound) = config::smt_quant_instantiations_bound() {
+        // We need to set the environment variable to reach our Z3 wrapper.
+        std::env::set_var("PRUSTI_SMT_QUANT_INSTANTIATIONS_BOUND", bound.to_string());
+    }
 
     verification_context.new_verifier_with_args(backend_config.backend, verifier_args, report_path)
 }

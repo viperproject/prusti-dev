@@ -49,6 +49,25 @@ impl<'v, 'tcx: 'v> MirProcedureEncoderInterface<'tcx> for super::super::super::E
                 |writer| procedure.to_graphviz(writer).unwrap(),
             );
         }
+        if config::dump_debug_info() {
+            // FIXME: Clean-up.
+            let source_filename = self.env().source_file_name();
+            prusti_common::report::log::report_with_writer(
+                "graphviz_method_pass_propagate_assertions_back_before",
+                format!("{}.{}.dot", source_filename, procedure.name),
+                |writer| procedure.to_graphviz(writer).unwrap(),
+            );
+        }
+        let procedure = passes::propagate_assertions_back(self, procedure)?;
+        if config::dump_debug_info() {
+            // FIXME: Clean-up.
+            let source_filename = self.env().source_file_name();
+            prusti_common::report::log::report_with_writer(
+                "graphviz_method_pass_propagate_assertions_back_after",
+                format!("{}.{}.dot", source_filename, procedure.name),
+                |writer| procedure.to_graphviz(writer).unwrap(),
+            );
+        }
         assert!(
             self.mir_procedure_encoder_state
                 .encoded_procedure_def_ids

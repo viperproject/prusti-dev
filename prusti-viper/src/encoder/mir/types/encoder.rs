@@ -328,7 +328,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 }
                 if config::encode_unsigned_num_constraint() && lower_bound.is_none() {
                     if let ty::TyKind::Uint(_) = self.ty.kind() {
-                        lower_bound = Some(Box::new(0usize.into()));
+                        let mut bound: vir::Expression = 0usize.into();
+                        bound.set_type(vir::Type::MInt);
+                        lower_bound = Some(Box::new(bound));
                     }
                 }
                 vir::TypeDecl::int(lower_bound, upper_bound)

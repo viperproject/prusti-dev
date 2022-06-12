@@ -1,4 +1,8 @@
-// compile-flags: -Punsafe_core_proof=true -Ponly_memory_safety=true
+// compile-flags: -Punsafe_core_proof=true -Psmt_quant_instantiations_bound=10000
+//
+// FIXME: This example requires a large smt_quant_instantiations_bound
+// because most of our quantifiers used in background theories are
+// reinstantiated on every push/pop cycle performed by Silicon.
 
 use prusti_contracts::*;
 
