@@ -18,7 +18,7 @@ use super::{
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
 
 use vir_crate::{
-    common::graphviz::ToGraphviz,
+    common::{graphviz::ToGraphviz, cfg::Cfg},
     low::{self as vir_low, operations::ty::Typed},
     middle as vir_mid,
 };
@@ -104,7 +104,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<LoweringResult> {
         let mut basic_blocks_map = BTreeMap::new();
         let mut basic_block_edges = BTreeMap::new();
-        let predecessors = procedure.get_predecessors();
+        let predecessors = procedure.predecessors_owned();
         let traversal_order = procedure.get_topological_sort();
         self.procedure_name = Some(procedure.name.clone());
         let mut marker_initialisation = Vec::new();
@@ -116,10 +116,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 marker.clone(),
                 false.into(),
             ));
-            let mut statements = vec![vir_low::Statement::assign_no_pos(marker, true.into())];
+            let mut statements = vec![
+                vir_low::Statement::assign_no_pos(marker.clone(), true.into()),
+                // We need to use a function call here because Silicon optimizes
+                // out assignments to pure variables and our Z3 wrapper does not
+                // see them.
+                vir_low::Statement::log_event(self.create_domain_func_app(
+                    "MarkerCalls",
+                    format!("basic_block_marker${}", marker.name),
+                    vec![],
+                    vir_low::Type::Bool,
+                    Default::default(),
+                )?),
+            ];
             for statement in basic_block.statements {
                 statements.extend(statement.into_low(&mut self)?);
             }
+
             let successor = basic_block.successor.into_low(&mut self)?;
             basic_blocks_map.insert(label.clone(), (statements, successor));
             self.unset_current_block_for_snapshots(label.clone())?;

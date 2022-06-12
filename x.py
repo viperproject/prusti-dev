@@ -40,6 +40,7 @@ RUSTFMT_CRATES = [
     'prusti-tests',
     'prusti-utils',
     #'prusti-viper',
+    'prusti-smt-solver',
     'viper',
     'viper-sys',
     'vir',
@@ -520,6 +521,7 @@ def verify_test(args, analyze_quantifiers=False):
     env['PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT'] = 'true'
     env['PRUSTI_RUSTC_LOG_ARGS'] = 'log/config/prusti-rustc-args'
     env['PRUSTI_RUSTC_LOG_ENV'] = 'log/config/prusti-rustc-env'
+    env['PRUSTI_RUSTC_LOG_SMT'] = 'log/smt'
     def verify_test_on_exit():
         generate_launch_json(
             'log/config/prusti-rustc-args',
@@ -605,6 +607,7 @@ def analyze_quantifier_logs(test_path):
             command = [
                 z3_exe,
                 'trace=true',
+                'proof=true',
                 'trace_file_name=' + log_file,
                 'smt.qi.profile=true',
                 'smt.qi.profile_freq=10000',
@@ -619,8 +622,17 @@ def analyze_quantifier_logs(test_path):
                 fp.write(result.stdout)
             subprocess.run([
                 'python3', qi_explorer, '--input', log_file,
-                '--csv', csv_file, '--svg', svg_file,
+                '--csv', csv_file,
             ])
+            # axiom_profiler_file = os.path.join(log_folder, 'axiom-profiler.log')
+            # command = [
+                # z3_exe,
+                # 'trace=true',
+                # 'trace_file_name=' + axiom_profiler_file,
+                # 'proof=true',
+                # smt_file
+            # ]
+            # _ = subprocess.run(command, capture_output=True)
 
 def clippy_in(cwd):
     """Run cargo clippy in given subproject."""

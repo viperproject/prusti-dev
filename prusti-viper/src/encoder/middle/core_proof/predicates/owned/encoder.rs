@@ -236,6 +236,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 }
             }
             vir_mid::TypeDecl::Array(decl) => {
+                self.lowerer.encode_place_array_index_axioms(ty)?;
                 let element_type = &decl.element_type;
                 self.lowerer.encode_place_array_index_axioms(ty)?;
                 self.lowerer.ensure_type_definition(element_type)?;
@@ -245,47 +246,60 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     .extract_non_type_parameters_from_type_validity(ty)?
                     .into_iter()
                     .conjoin();
+                let size_type = self.lowerer.size_type()?;
                 var_decls! {
-                    index: Int,
+                    index: {size_type},
                     snapshot: {snapshot_type.clone()}
                 };
                 let snapshot_length = self
                     .lowerer
                     .obtain_array_len_snapshot(snapshot.clone().into(), Default::default())?;
                 let array_length = self.lowerer.array_length_variable()?;
-                let size_type = self.lowerer.size_type_mid()?;
+                let size_type_mid = self.lowerer.size_type_mid()?;
                 let array_length_int = self.lowerer.obtain_constant_value(
-                    &size_type,
+                    &size_type_mid,
                     array_length.into(),
                     Default::default(),
                 )?;
-                let index_usize = self.lowerer.construct_constant_snapshot(
-                    &size_type,
+                let index_int = self.lowerer.obtain_constant_value(
+                    &size_type_mid,
                     index.clone().into(),
-                    Default::default(),
+                    position,
                 )?;
+                let index_validity = self
+                    .lowerer
+                    .encode_snapshot_valid_call_for_type(index.clone().into(), &size_type_mid)?;
+                // let index_usize =
+                // self.lowerer.construct_constant_snapshot(
+                //     &size_type,
+                //     index.clone().into(),
+                //     Default::default(),
+                // )?;
                 let element_place = self.lowerer.encode_index_place(
                     ty,
                     place.into(),
-                    index_usize,
+                    index.clone().into(),
                     Default::default(),
                 )?;
                 let element_snapshot = self.lowerer.obtain_array_element_snapshot(
                     snapshot.into(),
-                    index.clone().into(),
+                    index_int.clone(),
                     Default::default(),
                 )?;
 
                 let element_predicate_acc = expr! {
                     (acc(OwnedNonAliased<element_type>(
-                        [element_place], root_address, [element_snapshot]
+                        [element_place], root_address, [element_snapshot.clone()]
                     )))
                 };
                 let elements = vir_low::Expression::forall(
                     vec![index.clone()],
-                    vec![vir_low::Trigger::new(vec![element_predicate_acc.clone()])],
+                    vec![vir_low::Trigger::new(vec![
+                        // element_snapshot
+                        element_predicate_acc.clone(),
+                    ])],
                     expr! {
-                        (([0.into()] <= index) && (index < [array_length_int.clone()])) ==>
+                        ([index_validity] && ([index_int] < [array_length_int.clone()])) ==>
                         [element_predicate_acc]
                     },
                 );

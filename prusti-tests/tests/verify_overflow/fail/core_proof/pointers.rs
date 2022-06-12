@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Ponly_memory_safety=true
+// compile-flags: -Punsafe_core_proof=true -Psmt_quant_instantiations_bound=1000
 //
 // Note: it should be impossible to prove that two pointers are **not**
 // equal because compiler optimizations may make them equal. This is

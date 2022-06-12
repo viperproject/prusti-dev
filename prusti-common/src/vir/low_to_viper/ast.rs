@@ -50,6 +50,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         match self {
             Statement::Comment(statement) => statement.to_viper(context, ast),
+            Statement::LogEvent(statement) => statement.to_viper(context, ast),
             Statement::Assume(statement) => statement.to_viper(context, ast),
             Statement::Assert(statement) => statement.to_viper(context, ast),
             Statement::Inhale(statement) => statement.to_viper(context, ast),
@@ -67,6 +68,17 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Comment {
     fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         ast.comment(&self.comment)
+    }
+}
+
+impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::LogEvent {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        assert!(
+            self.expression.is_domain_func_app(),
+            "The log event has to be a domain function application: {}",
+            self
+        );
+        ast.inhale(self.expression.to_viper(context, ast), ast.no_position())
     }
 }
 

@@ -28,8 +28,10 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         .to_path_buf();
 
     let mut prusti_driver_path = current_executable_dir.join("prusti-driver");
+    let mut prusti_smt_wrapper_path = current_executable_dir.join("prusti-smt-solver");
     if cfg!(windows) {
         prusti_driver_path.set_extension("exe");
+        prusti_smt_wrapper_path.set_extension("exe");
     }
 
     let java_home = match env::var("JAVA_HOME") {
@@ -66,9 +68,11 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         }
     };
 
-    if env::var("Z3_EXE").ok().is_none() {
-        if let Some(z3_exe) = find_z3_exe(&current_executable_dir) {
-            cmd.env("Z3_EXE", z3_exe);
+    let z3_exe = if let Some(path) = env::var("Z3_EXE").ok() {
+        path.into()
+    } else {
+        if let Some(path) = find_z3_exe(&current_executable_dir) {
+            path
         } else {
             panic!(
                 "Could not find the Z3 executable. \
@@ -77,6 +81,13 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
             );
         }
     };
+    if let Ok(path) = env::var("PRUSTI_RUSTC_LOG_SMT") {
+        cmd.env("PRUSTI_ORIGINAL_Z3_EXE", z3_exe);
+        cmd.env("PRUSTI_LOG_SMT", path);
+        cmd.env("Z3_EXE", prusti_smt_wrapper_path);
+    } else {
+        cmd.env("Z3_EXE", z3_exe);
+    }
 
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
     // We're invoking the compiler programmatically, so we ignore this
@@ -96,7 +107,6 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         args.remove(remove_index);
         args.remove(remove_index);
     }
-
     cmd.args(&args);
 
     let has_no_sysroot_arg = !args.iter().any(|s| s == "--sysroot");

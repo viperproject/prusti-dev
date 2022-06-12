@@ -103,6 +103,7 @@ lazy_static! {
         settings.set_default("enable_purification_optimization", false).unwrap();
         // settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_quant_instantiations_bound", None).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
         settings.set_default("only_memory_safety", false).unwrap();
         settings.set_default("check_no_drops", false).unwrap();
@@ -135,6 +136,9 @@ lazy_static! {
         allowed_keys.insert("log_style".to_string());
         allowed_keys.insert("rustc_log_args".to_string());
         allowed_keys.insert("rustc_log_env".to_string());
+        allowed_keys.insert("rustc_log_smt".to_string());
+        allowed_keys.insert("log_smt".to_string());
+        allowed_keys.insert("original_z3_exe".to_string());
 
         // 2. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
         settings.merge(
@@ -553,6 +557,16 @@ pub fn verification_deadline() -> Option<u64> {
     read_setting::<Option<i64>>("verification_deadline").map(|value| {
         value.try_into().expect("verification_deadline must be a valid u64")
     })
+}
+
+/// Limit how many quantifier instantiations Z3 can make while verifying the
+/// program.
+///
+/// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
+/// This flag is intended to be used for tests that aim to catch performance
+/// regressions and matching loops.
+pub fn smt_quant_instantiations_bound() -> Option<u64> {
+    read_setting("smt_quant_instantiations_bound")
 }
 
 /// When enabled, the new core proof is used, suitable for unsafe code
