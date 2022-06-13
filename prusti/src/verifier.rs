@@ -9,7 +9,7 @@ use prusti_interface::{
 };
 use prusti_viper::verifier::Verifier;
 
-pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
+pub fn verify<'tcx>(env: Environment<'tcx>, def_spec: typed::DefSpecificationMap<'tcx>) {
     trace!("[verify] enter");
 
     if env.has_errors() {

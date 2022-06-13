@@ -3730,7 +3730,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let precondition_spans = MultiSpan::from_spans(
             contract.functional_precondition(self.encoder.env(), substs)
                 .iter()
-                .map(|(ts, _)| self.encoder.env().tcx().def_span(ts.to_def_id()))
+                .map(|(ts, _)| self.encoder.env().tcx().def_span(ts))
                 .collect(),
         );
 
@@ -3815,7 +3815,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             // The spans are used for error reporting
             let spec_functions_span = MultiSpan::from_spans(from.iter().chain(to.iter())
-                .map(|spec_def_id| self.encoder.env().tcx().def_span(spec_def_id.to_def_id())).collect()
+                .map(|spec_def_id| self.encoder.env().tcx().def_span(spec_def_id)).collect()
             );
 
             weakening = Some(RefinementCheckExpr {
@@ -3862,7 +3862,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             // The spans are used for error reporting
             let spec_functions_span = MultiSpan::from_spans(from.iter().chain(to.iter())
-                .map(|spec_def_id| self.encoder.env().tcx().def_span(spec_def_id.to_def_id())).collect()
+                .map(|spec_def_id| self.encoder.env().tcx().def_span(spec_def_id)).collect()
             );
 
             let strengthening_expr = self.wrap_arguments_into_old(
@@ -4023,7 +4023,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
                 let mut assertion_lhs = if let Some(body_lhs) = body_lhs {
                     self.encoder.encode_assertion(
-                        body_lhs,
+                        &body_lhs.to_def_id(),
                         Some(pre_label),
                         &encoded_args,
                         Some(&encoded_return),
@@ -4035,7 +4035,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     true.into()
                 };
                 let mut assertion_rhs = self.encoder.encode_assertion(
-                    body_rhs,
+                    &body_rhs.to_def_id(),
                     Some(pre_label),
                     &encoded_args,
                     Some(&encoded_return),
@@ -4273,7 +4273,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.proc_def_id,
                 assertion_substs,
             )?;
-            let assertion_span = self.encoder.env().tcx().def_span(typed_assertion.to_def_id());
+            let assertion_span = self.encoder.env().tcx().def_span(typed_assertion);
             func_spec_spans.push(assertion_span);
             let assertion_pos = self.mir_encoder.register_span(assertion_span);
             assertion = self.wrap_arguments_into_old(
@@ -5314,8 +5314,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         } else {
             // FIXME: why are we getting the MIR body for this?
-            let mir = self.encoder.env().local_mir(
-                containing_def_id.expect_local(),
+            let mir = self.encoder.get_mir(
+                containing_def_id,
                 // TODO(tymap): identity substs here are probably wrong?
                 self.encoder.env().identity_substs(containing_def_id),
             );

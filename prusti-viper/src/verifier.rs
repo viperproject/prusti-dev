@@ -146,7 +146,7 @@ where
 impl<'v, 'tcx> Verifier<'v, 'tcx> {
     pub fn new(
         env: &'v Environment<'tcx>,
-        def_spec: typed::DefSpecificationMap,
+        def_spec: typed::DefSpecificationMap<'tcx>,
     ) -> Self {
         Verifier {
             env,

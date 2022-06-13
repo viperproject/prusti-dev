@@ -7,7 +7,7 @@ use prusti_interface::{
 };
 use prusti_rustc_interface::{
     errors::MultiSpan,
-    hir::def_id::{DefId, LocalDefId},
+    hir::def_id::DefId,
     middle::{
         ty,
         ty::subst::{Subst, SubstsRef},
@@ -220,20 +220,22 @@ pub mod trait_bounds {
     ) -> ty::ParamEnv<'tcx> {
         let mut param_envs: FxHashMap<ty::ParamEnv<'tcx>, Vec<Span>> = FxHashMap::default();
 
-        let pres: Vec<LocalDefId> = spec
+        let pres: Vec<DefId> = spec
             .pres
             .expect_empty_or_inherent()
             .cloned()
             .unwrap_or_default();
-        let posts: Vec<LocalDefId> = spec
+        let posts: Vec<DefId> = spec
             .posts
             .expect_empty_or_inherent()
             .cloned()
             .unwrap_or_default();
-        for spec_id in pres.iter().chain(posts.iter()) {
+        for spec_id in pres.iter().chain(posts.iter())
+            // Parameter substitution is not yet implemented for external specification
+            .map(|spec_id| spec_id.expect_local()) {
             let param_env = env.tcx().param_env(spec_id.to_def_id());
             let spec_span = env.tcx().def_span(spec_id.to_def_id());
-            let attrs = env.get_local_attributes(*spec_id);
+            let attrs = env.get_local_attributes(spec_id);
             if has_trait_bounds_ghost_constraint(attrs) {
                 param_envs
                     .entry(param_env)

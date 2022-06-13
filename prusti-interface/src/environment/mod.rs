@@ -47,6 +47,7 @@ use self::borrowck::facts::BorrowckFacts;
 use crate::data::ProcedureDefId;
 use prusti_rustc_interface::span::source_map::SourceMap;
 
+#[derive(Clone)]
 struct CachedBody<'tcx> {
     /// MIR body as known to the compiler.
     base_body: Rc<mir::Body<'tcx>>,
@@ -277,13 +278,10 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self, proc_def_id)
     }
 
-    /// Get the MIR body of a local procedure, monomorphised with the given
-    /// type substitutions.
-    pub fn local_mir(
+   fn local_mir_raw(
         &self,
         def_id: LocalDefId,
-        substs: SubstsRef<'tcx>,
-    ) -> Rc<mir::Body<'tcx>> {
+    ) -> CachedBody<'tcx> {
         let mut bodies = self.bodies.borrow_mut();
         let body = bodies.entry(def_id)
             .or_insert_with(|| {
@@ -305,6 +303,23 @@ impl<'tcx> Environment<'tcx> {
                     borrowck_facts: Rc::new(facts),
                 }
             });
+        return body.clone()
+    }
+
+    /// Get the MIR body of a local procedure, without performing any type substitution
+    pub fn local_base_mir(&self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
+        let body = self.local_mir_raw(def_id);
+        return body.base_body;
+    }
+
+    /// Get the MIR body of a local procedure, monomorphised with the given
+    /// type substitutions.
+    pub fn local_mir(
+        &self,
+        def_id: LocalDefId,
+        substs: SubstsRef<'tcx>,
+    ) -> Rc<mir::Body<'tcx>> {
+        let mut body = self.local_mir_raw(def_id);
         body
             .monomorphised_bodies
             .entry(substs)

@@ -3,22 +3,26 @@ use prusti_rustc_interface::errors::MultiSpan;
 use prusti_rustc_interface::hir::intravisit;
 use prusti_rustc_interface::middle::{hir::map::Map, ty::TyCtxt};
 use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::middle::dep_graph::DepContext;
 
 use crate::{
     environment::Environment,
+    PrustiError,
     utils::{
         has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, read_prusti_attr,
         read_prusti_attrs,
     },
-    PrustiError,
 };
 use log::debug;
 use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
-use std::{collections::HashMap, convert::TryInto, fmt::Debug};
+use std::{collections::HashMap, convert::TryInto, fmt::Debug, path::PathBuf};
 
 pub mod checker;
 pub mod external;
 pub mod typed;
+pub mod lite;
+pub mod encoder;
+pub mod decoder;
 
 use typed::SpecIdRef;
 
@@ -27,6 +31,10 @@ use crate::specs::{
     typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph, SpecificationItem},
 };
 use prusti_specs::specifications::common::SpecificationId;
+
+use std::path::Path;
+use lite::DefSpecificationMapLite;
+use crate::specs::lite::DefSpecificationMapLiteOwned;
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -82,7 +90,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
-    pub fn build_def_specs(&self) -> typed::DefSpecificationMap {
+    pub fn build_def_specs(&self, build_output_dir: &PathBuf) -> typed::DefSpecificationMap<'tcx> {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
         self.determine_extern_specs(&mut def_spec);
@@ -93,7 +101,62 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_ghost_begin_ends(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
 
+        self.fetch_local_mirs(&mut def_spec);
+
+        self.write_specs_to_file(&def_spec, build_output_dir);
+        self.merge_specs_from_dependencies(&mut def_spec, build_output_dir);
+
         def_spec
+    }
+
+    fn get_local_crate_specs_filename(&self) -> String {
+        let name = (&self.tcx.sess().opts.crate_name).as_ref().unwrap();
+        let stable_id = &self.tcx.sess().local_stable_crate_id().to_u64();
+
+        return format!("{}-{:x}.bin", name, stable_id).to_owned();
+    }
+
+    fn get_serialized_mirs_dir(build_output_dir: &PathBuf) -> Box<PathBuf> {
+        let mut output_dir = Box::new(build_output_dir.clone());
+        output_dir.push("serialized_mirs");
+        return output_dir;
+    }
+
+    fn get_local_crate_specs_path(&self, build_output_dir: &PathBuf) -> Box<PathBuf> {
+        let mut output_file = Self::get_serialized_mirs_dir(build_output_dir);
+        output_file.push(self.get_local_crate_specs_filename());
+        return output_file;
+    }
+
+    fn write_specs_to_file(&self, def_spec: &typed::DefSpecificationMap<'tcx>, build_output_dir: &PathBuf) {
+        let def_spec_lite = DefSpecificationMapLite::from_def_spec(def_spec);
+        let target_filename = self.get_local_crate_specs_path(build_output_dir);
+        return def_spec_lite.write_into_file(
+            self.tcx,
+            &target_filename,
+        ).unwrap();
+    }
+
+    fn merge_specs_from_dependencies(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, build_output_dir: &PathBuf) {
+        // TODO only load serialized specs of dependencies (instead of loading all existing files)
+
+        let serialized_mirs_dir = Self::get_serialized_mirs_dir(build_output_dir);
+        let local_crate_specs_filename = self.get_local_crate_specs_filename();
+        for d in serialized_mirs_dir.read_dir().unwrap() {
+            let path = d.unwrap().path();
+            if path.is_file() && !path.file_name().unwrap().eq(local_crate_specs_filename.as_str()) {
+                self.merge_specs_from_file(def_spec, &path);
+            }
+        }
+    }
+
+    fn merge_specs_from_file(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, path: &Path) {
+        let def_spec_lite = DefSpecificationMapLiteOwned::read_from_file(
+            self.tcx,
+            path,
+        ).unwrap();
+
+        def_spec_lite.extend(def_spec);
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
@@ -131,7 +194,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     }
                     SpecIdRef::Predicate(spec_id) => {
                         kind = ProcedureSpecificationKind::Predicate(Some(
-                            *self.spec_functions.get(spec_id).unwrap(),
+                            (*self.spec_functions.get(spec_id).unwrap()).to_def_id(),
                         ));
                     }
                 }
@@ -214,7 +277,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             def_spec.type_specs.insert(
                 type_id.to_def_id(),
                 typed::TypeSpecification {
-                    invariant: SpecificationItem::Inherent(refs.invariants.clone()),
+                    invariant: SpecificationItem::Inherent(
+                        refs.invariants.clone().into_iter().map(LocalDefId::to_def_id).collect()
+                    ),
                     trusted: SpecificationItem::Inherent(refs.trusted),
                 },
             );
@@ -251,6 +316,23 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             def_spec
                 .ghost_end
                 .insert(local_id.to_def_id(), typed::GhostEnd { marker: *local_id });
+        }
+    }
+
+    fn fetch_local_mirs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
+        for def_id in def_spec.proc_specs
+            // collect [DefId]s in specs of all procedures
+            .values()
+            // TODO: extend also to specs_with_constraints instead of base_spec only
+            .map(|spec_graph| &spec_graph.base_spec)
+            .flat_map(|proc_spec| {
+                vec![&proc_spec.pres, &proc_spec.posts].into_iter().filter_map(|spec_item| {
+                    spec_item.extract_with_selective_replacement()
+                })
+                    .flatten()
+            }) {
+            let base_mir = self.env.local_base_mir(def_id.expect_local());
+            def_spec.local_mirs.insert(*def_id,base_mir);
         }
     }
 }
