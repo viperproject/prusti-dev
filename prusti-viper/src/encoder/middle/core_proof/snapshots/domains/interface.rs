@@ -73,6 +73,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotDomainsInterface for Lowerer<'p, 'v, 'tcx> {
 
                 Ok(vir_low::Type::map(enc_key, enc_val))
             }
+            vir_mid::Type::Array(array) => {
+                let enc_elem = self.encode_snapshot_domain_type(&array.element_type)?;
+                Ok(vir_low::Type::seq(enc_elem))
+            }
             _ => {
                 let domain_name = self.encode_snapshot_domain_name(ty)?;
                 self.domain_type(domain_name)
