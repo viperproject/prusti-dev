@@ -25,6 +25,7 @@ impl ComputeAddressState {
                 name: "ComputeAddress".to_string(),
                 functions: vec![vir_low::DomainFunctionDecl {
                     name: "compute_address".to_string(),
+                    is_unique: false,
                     parameters: vir_low::macros::vars! {
                         place: Place,
                         address: Address
@@ -208,7 +209,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                         self.encode_compute_address(&variant_ty)?;
                     }
                 }
-                // vir_mid::TypeDecl::Array(Array) => {},
+                vir_mid::TypeDecl::Array(_decl) => {
+                    // FIXME: Doing nothing is probably wrong.
+                }
                 vir_mid::TypeDecl::Reference(_reference) => {
                     // Do nothing
                 }

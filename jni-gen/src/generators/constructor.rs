@@ -168,6 +168,24 @@ fn generate(
 
     code.push(") -> JNIResult<JObject<'a>> {".to_string());
 
+    // Generate dynamic type check for the arguments
+    if cfg!(debug_assertions) {
+        for i in 0..parameter_names.len() {
+            let par_name = &parameter_names[i];
+            let par_sign = &parameter_signatures[i];
+            if par_sign.starts_with('L') {
+                let par_class = &par_sign[1..(par_sign.len()-1)];
+                code.push("    debug_assert!(".to_string());
+                code.push(format!(
+                    "        self.env.is_instance_of({}, self.env.find_class(\"{}\")?)?",
+                    par_name,
+                    par_class
+                ));
+                code.push("    );".to_string());
+            }
+        }
+    }
+
     code.push(format!("    let class = self.env.find_class(\"{}\")?;", class.path()));
 
     code.push(format!(

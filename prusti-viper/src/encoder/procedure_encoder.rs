@@ -3598,7 +3598,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Ref(_, ty, mutability) => {
                 // Use unfolded references.
                 let encoded_local = self.encode_prusti_local(local);
-                let span = override_span.unwrap_or_else(|| self.mir_encoder.get_local_span(local.into()));
+                let span = if let Some(fake_local_span) = override_span {
+                    fake_local_span
+                } else {
+                    if self.mir.local_decls.get(local.into()).is_none() {
+                        return Err(SpannedEncodingError::internal(
+                            format!(
+                                "In ProcedureEncoder::encode_local_variable_permission the local \
+                                {:?} is fake but override_span is None",
+                                local,
+                            ),
+                            self.mir.span
+                        ));
+                    }
+                    self.mir_encoder.get_local_span(local.into())
+                };
                 let field = self.encoder.encode_dereference_field(*ty)
                     .with_span(span)?;
                 let place = vir::Expr::from(encoded_local).field(field);

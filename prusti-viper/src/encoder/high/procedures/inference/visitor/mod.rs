@@ -195,12 +195,23 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     enum_variant: _,
                     condition,
                 }) => {
-                    let position = place.position();
-                    vir_mid::Statement::unfold_owned(
-                        place.to_middle_expression(self.encoder)?,
-                        condition,
-                        position,
-                    )
+                    if let Some((lifetime, uniqueness)) = place.get_dereference_kind() {
+                        let position = place.position();
+                        vir_mid::Statement::unfold_ref(
+                            place.to_middle_expression(self.encoder)?,
+                            lifetime.to_middle_type(self.encoder)?,
+                            uniqueness.to_middle_type(self.encoder)?,
+                            condition,
+                            position,
+                        )
+                    } else {
+                        let position = place.position();
+                        vir_mid::Statement::unfold_owned(
+                            place.to_middle_expression(self.encoder)?,
+                            condition,
+                            position,
+                        )
+                    }
                 }
                 Action::Fold(FoldingActionState {
                     kind: PermissionKind::Owned,
@@ -208,12 +219,23 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     enum_variant: _,
                     condition,
                 }) => {
-                    let position = place.position();
-                    vir_mid::Statement::fold_owned(
-                        place.to_middle_expression(self.encoder)?,
-                        condition,
-                        position,
-                    )
+                    if let Some((lifetime, uniqueness)) = place.get_dereference_kind() {
+                        let position = place.position();
+                        vir_mid::Statement::fold_ref(
+                            place.to_middle_expression(self.encoder)?,
+                            lifetime.to_middle_type(self.encoder)?,
+                            uniqueness.to_middle_type(self.encoder)?,
+                            condition,
+                            position,
+                        )
+                    } else {
+                        let position = place.position();
+                        vir_mid::Statement::fold_owned(
+                            place.to_middle_expression(self.encoder)?,
+                            condition,
+                            position,
+                        )
+                    }
                 }
                 Action::Unfold(FoldingActionState {
                     kind: PermissionKind::MemoryBlock,

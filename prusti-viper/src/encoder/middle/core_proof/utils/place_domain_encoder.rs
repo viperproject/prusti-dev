@@ -1,6 +1,9 @@
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    middle::core_proof::lowerer::{DomainsLowererInterface, Lowerer},
+    middle::core_proof::{
+        lowerer::{DomainsLowererInterface, Lowerer},
+        snapshots::IntoProcedureSnapshot,
+    },
 };
 use vir_crate::{
     low as vir_low,
@@ -20,6 +23,11 @@ pub(in super::super) trait PlaceExpressionDomainEncoder {
         lowerer: &mut Lowerer,
         arg: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_array_index_axioms(
+        &mut self,
+        base_type: &vir_mid::Type,
+        lowerer: &mut Lowerer,
+    ) -> SpannedEncodingResult<()>;
     fn encode_expression(
         &mut self,
         place: &vir_mid::Expression,
@@ -54,6 +62,25 @@ pub(in super::super) trait PlaceExpressionDomainEncoder {
             vir_mid::Expression::Deref(deref) => {
                 let arg = self.encode_expression(&deref.base, lowerer)?;
                 self.encode_deref(deref, lowerer, arg)?
+            }
+            vir_mid::Expression::BuiltinFuncApp(vir_mid::BuiltinFuncApp {
+                function: vir_mid::BuiltinFunc::Index,
+                arguments,
+                position,
+                ..
+            }) => {
+                assert_eq!(arguments.len(), 2);
+                self.encode_array_index_axioms(arguments[0].get_type(), lowerer)?;
+                let array = self.encode_expression(&arguments[0], lowerer)?;
+                let index = arguments[1].to_procedure_snapshot(lowerer)?;
+                let domain_name = self.domain_name(lowerer);
+                lowerer.encode_index_access_function_app(
+                    domain_name,
+                    array,
+                    arguments[0].get_type(),
+                    index,
+                    *position,
+                )?
             }
             x => unimplemented!("{}", x),
         };
