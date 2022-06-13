@@ -9,6 +9,7 @@ use std::{
     collections::HashMap,
     fmt::{Debug, Display, Formatter},
 };
+use rustc_middle::ty::Ty;
 
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
@@ -18,6 +19,7 @@ pub struct DefSpecificationMap {
     pub type_specs: HashMap<DefId, TypeSpecification>,
     pub prusti_assertions: HashMap<DefId, PrustiAssertion>,
     pub prusti_assumptions: HashMap<DefId, PrustiAssumption>,
+    pub prusti_counterexample_print: HashMap<DefId, PrustiCounterexamplePrint>,
 }
 
 impl DefSpecificationMap {
@@ -43,6 +45,10 @@ impl DefSpecificationMap {
 
     pub fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         self.prusti_assumptions.get(def_id)
+    }
+
+    pub fn get_counterexample_print(&self, def_id: &DefId) -> Option<&PrustiCounterexamplePrint>{
+        self.prusti_counterexample_print.get(def_id)
     }
 }
 
@@ -124,6 +130,11 @@ pub struct PrustiAssertion {
 #[derive(Debug, Clone)]
 pub struct PrustiAssumption {
     pub assumption: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct PrustiCounterexamplePrint {
+    pub counterexample_print: LocalDefId,
 }
 
 /// The base container to store a contract of a procedure.

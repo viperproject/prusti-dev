@@ -17,11 +17,11 @@ fn test(x: X) -> bool{
 
 #[requires(x.a > 0)]
 #[ensures(result)]
-fn test_mut(mut x: X, a: i32) -> bool{
+fn test_mut(x: &mut X, a: i32) -> bool{
     x.a = 1;
     x.b = 1;
     x.a = 2;
-    x. a = a;
+    x.a = a;
     x.a > 0
 }
 

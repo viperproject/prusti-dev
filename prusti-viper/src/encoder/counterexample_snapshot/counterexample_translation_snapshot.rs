@@ -2,6 +2,7 @@ use rustc_hash::{FxHashMap};
 use super::{VarMappingInterface, VarMapping};
 //use super::DiscriminantsStateInterface;
 use crate::encoder::errors::PositionManager;
+use crate::encoder::mir::specifications::SpecificationsInterface;
 
 
 use log::{debug};
@@ -18,6 +19,7 @@ use rustc_middle::mir::{self, VarDebugInfo};
 use rustc_errors::MultiSpan;
 use rustc_middle::ty::{self, Ty, TyCtxt};
 use std::iter;
+use rustc_span::symbol::Ident;
 
 
 pub fn backtranslate(
@@ -32,14 +34,15 @@ pub fn backtranslate(
     let label_markers = translator.get_label_markers();
     debug!("label_markers: {:?}", &label_markers);
 
-    let counterexample_entry_vec = translator.process_entries(position_manager, &label_markers);
+    let counterexample_entry_vec = translator.process_entries(position_manager, &label_markers, encoder);
 
     debug!("found counterexample entry: {:?}", counterexample_entry_vec);
+    //TODO sort counterexample entries by span for testing
 
     Counterexample::new(counterexample_entry_vec)
 }
 
-//Cache for domains
+//Cache for domains //TODO remove struct and use just a map
 #[derive(Default)]
 struct TranslatedDomains{
     cached_domains: FxHashMap<(String, String), Entry>,
@@ -117,7 +120,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         snapshot_var_vec
     }
 
-    fn process_entries(&self, position_manager: &PositionManager, label_markers: &FxHashMap<String, bool>) -> Vec< CounterexampleEntry> {
+    fn process_entries(&self, position_manager: &PositionManager, label_markers: &FxHashMap<String, bool>, encoder: &Encoder) -> Vec< CounterexampleEntry> {
         let mut translated_domains = TranslatedDomains::default();
         let mut entries = vec![];
 
@@ -142,6 +145,26 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
             debug!("trace: {:?}", &trace);
             let history = self.process_entry(&trace, typ, &mut translated_domains);
+
+            //let hir = self.tcx.hir();
+            //let hir_id = Hir::Ty::From
+
+            match typ.kind(){
+                ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() || adt_def.is_enum() => {
+                    if let Some(local_id) = encoder.get_counterexample_print(adt_def.did()){
+                    debug!("Counterexample print found: {:?}", &local_id);
+                    let hir_id = self.tcx.hir().local_def_id_to_hir_id(local_id.counterexample_print); //TODO deal with multiple macros
+                    let body = self.tcx.hir().body_owned_by(hir_id);
+                    //let node = self.tcx.hir().find_by_def_id(local_id.counterexample_print);
+                    debug!("print node0: {:?}", self.tcx.hir().body(body).value);
+                   /* debug!("print node1: {:?}", self.tcx.hir().body_param_names(body).next());
+                    debug!("print node2: {:?}", self.tcx.hir().body_param_names(body).next());
+                    debug!("print node3: {:?}", self.tcx.hir().body_param_names(body).next());*/
+                    }
+                },
+                _ => debug!("skip"),
+            }
+            
             
             entries.push( CounterexampleEntry::new(Some(rust_name), history))
         } 

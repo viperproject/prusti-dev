@@ -1,5 +1,5 @@
 use crate::encoder::mir::specifications::specs::Specifications;
-use log::trace;
+use log::{info, trace};
 use prusti_interface::{
     specs::{
         typed,
@@ -18,6 +18,7 @@ pub(crate) struct SpecificationsState<'tcx> {
 
 impl<'tcx> SpecificationsState<'tcx> {
     pub fn new(user_typed_specs: DefSpecificationMap) -> Self {
+        info!("print DefSpecificationMap: {:?}", user_typed_specs);
         Self {
             specs: RefCell::new(Specifications::new(user_typed_specs)),
         }
@@ -119,6 +120,8 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the span of the declared specification, if any, or else the span of
     /// the method declaration.
     fn get_spec_span(&self, def_id: DefId) -> Span;
+
+    fn get_counterexample_print(&self, def_id: DefId)-> Option<typed::PrustiCounterexamplePrint>;
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -253,5 +256,14 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .get_and_refine_proc_spec(self.env(), query)
             .and_then(|spec| spec.span)
             .unwrap_or_else(|| self.env().get_def_span(def_id))
+    }
+
+    fn get_counterexample_print(&self, def_id: DefId) -> Option<typed::PrustiCounterexamplePrint> {
+        info!("get counterexample print");
+        self.specifications_state
+        .specs
+        .borrow()
+        .get_print_counterexample(&def_id)
+        .cloned()
     }
 }

@@ -1,26 +1,24 @@
-// compile-flags: -Punsafe_core_proof=true -Pcounterexample=true
-
 use prusti_contracts::*;
 
-struct A(i32);
+#[trusted]
+struct VecWrapper<T> {
+    values: Vec<T>,
+}
 
 #[model]
-struct A {
-    val: i32,
+struct VecWrapper<#[concrete] i32> {
+    last_pushed: i32,
 }
 
 #[trusted]
-#[ensures( result.model().val == model_val)]
-fn create_a(model_val: i32) -> A {
-    A{ 0: 0 }
+#[ensures( v.model().last_pushed == val )]
+fn push_i32(v: &mut VecWrapper<i32>, val: i32) {
+    v.values.push(val);
 }
 
-#[requires( a.model().val == expected_val )]
-fn verify_model(a: A, expected_val: i32) {
-
+#[ensures(v.model().last_pushed == 5)] //~ ERROR postcondition might not hold.
+fn len(v: VecWrapper<i32>){
+    ()
 }
 
-fn main(val: i32){
-    let a = create_a(val);
-    verify_model(a, val);
-}
+fn main() {}
