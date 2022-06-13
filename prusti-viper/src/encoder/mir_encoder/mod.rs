@@ -105,7 +105,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
         let elem = projection.last().unwrap();
         Ok(match elem {
-            mir::ProjectionElem::Field(ref field, _) => {
+            mir::ProjectionElem::Field(ref field, projection_field_ty) => {
                 match base_ty.kind() {
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
@@ -145,7 +145,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         };
                         let field = &variant_def.fields[field.index()];
                         let field_ty = field.ty(tcx, subst);
-                        if utils::is_reference(field_ty) {
+                        if utils::is_reference(&field_ty) {
                             return Err(EncodingError::unsupported(
                                 "access to reference-typed fields is not supported",
                             ));
@@ -165,6 +165,12 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
                         let closure_subst = closure_subst.as_closure();
                         debug!("Closure subst: {:?}", closure_subst);
+
+                        if utils::is_reference(projection_field_ty) {
+                            return Err(EncodingError::unsupported(
+                                "access to reference-typed fields in a closure is not supported",
+                            ));
+                        }
 
                         // let tcx = self.encoder().env().tcx();
                         // let node_id = tcx.hir.as_local_node_id(def_id).unwrap();

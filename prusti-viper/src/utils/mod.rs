@@ -41,6 +41,6 @@ pub fn ty_to_string(typ: &ty::TyKind) -> String {
     }).to_string()
 }
 
-pub fn is_reference(base_ty: ty::Ty) -> bool {
+pub fn is_reference(base_ty: &ty::Ty) -> bool {
     matches!(base_ty.kind(), ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..))
 }
