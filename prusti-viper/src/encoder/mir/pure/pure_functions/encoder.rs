@@ -23,7 +23,7 @@ use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local
 
 use prusti_rustc_interface::{
     hir,
-    hir::def_id::{DefId, LocalDefId},
+    hir::def_id::DefId,
     middle::{mir, ty, ty::subst::SubstsRef},
     span::Span,
 };
@@ -60,7 +60,7 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir::Expr> {
-    let mir = encoder.env().local_mir(proc_def_id.expect_local(), substs);
+    let mir = encoder.get_mir(proc_def_id, substs);
     let interpreter = PureFunctionBackwardInterpreter::new(
         encoder,
         &mir,
@@ -190,7 +190,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_predicate_function(
         &self,
-        predicate_body: &LocalDefId,
+        predicate_body: &DefId,
     ) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode predicate function {}", function_name);

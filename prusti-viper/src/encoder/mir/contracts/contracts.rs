@@ -3,7 +3,7 @@ use crate::encoder::places;
 use prusti_interface::{environment::Environment, specs::typed};
 use prusti_rustc_interface::{
     hir::{
-        def_id::{DefId, LocalDefId},
+        def_id::DefId,
         Mutability,
     },
     middle::{mir, ty::subst::SubstsRef},
@@ -48,7 +48,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         &'a self,
         env: &'a Environment<'tcx>,
         substs: SubstsRef<'tcx>,
-    ) -> Vec<(LocalDefId, SubstsRef<'tcx>)> {
+    ) -> Vec<(DefId, SubstsRef<'tcx>)> {
         match &self.specification.pres {
             typed::SpecificationItem::Empty => vec![],
             typed::SpecificationItem::Inherent(pres)
@@ -78,7 +78,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         &'a self,
         env: &'a Environment<'tcx>,
         substs: SubstsRef<'tcx>,
-    ) -> Vec<(LocalDefId, SubstsRef<'tcx>)> {
+    ) -> Vec<(DefId, SubstsRef<'tcx>)> {
         match &self.specification.posts {
             typed::SpecificationItem::Empty => vec![],
             typed::SpecificationItem::Inherent(posts)

@@ -5,14 +5,17 @@ use prusti_specs::specifications::common;
 use rustc_hash::FxHashMap;
 use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
 use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::macros::{TyEncodable, TyDecodable};
 use std::{
     collections::HashMap,
     fmt::{Debug, Display, Formatter},
 };
+use std::rc::Rc;
 
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
-pub struct DefSpecificationMap {
+pub struct DefSpecificationMap<'tcx> {
     pub proc_specs: HashMap<DefId, SpecGraph<ProcedureSpecification>>,
     pub loop_specs: HashMap<DefId, LoopSpecification>,
     pub type_specs: HashMap<DefId, TypeSpecification>,
@@ -20,9 +23,11 @@ pub struct DefSpecificationMap {
     pub prusti_assumptions: HashMap<DefId, PrustiAssumption>,
     pub ghost_begin: HashMap<DefId, GhostBegin>,
     pub ghost_end: HashMap<DefId, GhostEnd>,
+
+    pub local_mirs: HashMap<DefId, Rc<mir::Body<'tcx>>>,
 }
 
-impl DefSpecificationMap {
+impl<'specs> DefSpecificationMap<'specs> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -56,12 +61,12 @@ impl DefSpecificationMap {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, TyEncodable, TyDecodable)]
 pub struct ProcedureSpecification {
     pub span: Option<Span>,
     pub kind: SpecificationItem<ProcedureSpecificationKind>,
-    pub pres: SpecificationItem<Vec<LocalDefId>>,
-    pub posts: SpecificationItem<Vec<LocalDefId>>,
+    pub pres: SpecificationItem<Vec<DefId>>,
+    pub posts: SpecificationItem<Vec<DefId>>,
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
 }
@@ -81,16 +86,16 @@ impl ProcedureSpecification {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, TyEncodable, TyDecodable)]
 pub enum ProcedureSpecificationKind {
     Impure,
     Pure,
     /// The specification is a predicate with the enclosed body.
     /// The body can be None to account for abstract predicates.
-    Predicate(Option<LocalDefId>),
+    Predicate(Option<DefId>),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, TyEncodable, TyDecodable)]
 pub enum SpecConstraintKind {
     ResolveGenericParamTraitBounds,
 }
@@ -111,9 +116,9 @@ pub struct LoopSpecification {
 }
 
 /// Specification of a type.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, TyEncodable, TyDecodable)]
 pub struct TypeSpecification {
-    pub invariant: SpecificationItem<Vec<LocalDefId>>,
+    pub invariant: SpecificationItem<Vec<DefId>>,
     pub trusted: SpecificationItem<bool>,
 }
 
@@ -126,12 +131,12 @@ impl TypeSpecification {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, TyEncodable, TyDecodable)]
 pub struct PrustiAssertion {
     pub assertion: LocalDefId,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, TyEncodable, TyDecodable)]
 pub struct PrustiAssumption {
     pub assumption: LocalDefId,
 }
@@ -150,7 +155,7 @@ pub struct GhostEnd {
 /// A contract can be divided into multiple specifications:
 /// - **Base spec**: A spec without constraints.
 /// - **Constrained specs**: Multiple specs which have [SpecConstraintKind] constraints.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, TyEncodable, TyDecodable)]
 pub struct SpecGraph<T> {
     /// The base specification which has no constraints
     pub base_spec: T,
@@ -249,12 +254,12 @@ impl SpecGraph<ProcedureSpecification> {
     pub fn add_precondition<'tcx>(&mut self, pre: LocalDefId, env: &Environment<'tcx>) {
         match self.get_constraint(pre, env) {
             None => {
-                self.base_spec.pres.push(pre);
+                self.base_spec.pres.push(pre.to_def_id());
                 // Preconditions are explicitly not copied (as opposed to postconditions)
                 // This would always violate behavioral subtyping rules
             }
             Some(constraint) => {
-                self.get_constrained_spec_mut(constraint).pres.push(pre);
+                self.get_constrained_spec_mut(constraint).pres.push(pre.to_def_id());
             }
         }
     }
@@ -266,13 +271,13 @@ impl SpecGraph<ProcedureSpecification> {
     pub fn add_postcondition<'tcx>(&mut self, post: LocalDefId, env: &Environment<'tcx>) {
         match self.get_constraint(post, env) {
             None => {
-                self.base_spec.posts.push(post);
+                self.base_spec.posts.push(post.to_def_id());
                 self.specs_with_constraints
                     .values_mut()
-                    .for_each(|s| s.posts.push(post));
+                    .for_each(|s| s.posts.push(post.to_def_id()));
             }
             Some(obligation) => {
-                self.get_constrained_spec_mut(obligation).posts.push(post);
+                self.get_constrained_spec_mut(obligation).posts.push(post.to_def_id());
             }
         }
     }
@@ -337,7 +342,7 @@ impl SpecGraph<ProcedureSpecification> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, TyEncodable, TyDecodable)]
 pub struct Pledge {
     pub reference: Option<()>, // TODO: pledge references
     pub lhs: Option<LocalDefId>,
@@ -346,7 +351,7 @@ pub struct Pledge {
 
 /// A specification, such as preconditions or a `#[pure]` annotation.
 /// Contains information about the refinement of these specifications.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, TyEncodable, TyDecodable)]
 pub enum SpecificationItem<T> {
     /// Represents an empty specification, i.e. when the user has not defined the property
     Empty,
@@ -482,7 +487,7 @@ impl SpecificationItem<ProcedureSpecificationKind> {
 
     pub fn get_predicate_body(
         &self,
-    ) -> Result<Option<&LocalDefId>, ProcedureSpecificationKindError> {
+    ) -> Result<Option<&DefId>, ProcedureSpecificationKindError> {
         self.validate()?;
 
         Ok(match self.extract_with_selective_replacement() {

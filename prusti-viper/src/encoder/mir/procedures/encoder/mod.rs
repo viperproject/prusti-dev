@@ -264,7 +264,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             procedure_contract.functional_precondition(self.encoder.env(), call_substs)
         {
             let expression = self.encoder.encode_assertion_high(
-                &assertion,
+                assertion,
                 None,
                 arguments,
                 None,
@@ -300,7 +300,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             procedure_contract.functional_postcondition(self.encoder.env(), call_substs)
         {
             let expression = self.encoder.encode_assertion_high(
-                &assertion,
+                assertion,
                 Some(precondition_label),
                 &arguments_in_old,
                 Some(result),

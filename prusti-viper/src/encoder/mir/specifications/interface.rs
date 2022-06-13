@@ -8,18 +8,19 @@ use prusti_interface::{
     utils::has_spec_only_attr,
 };
 use prusti_rustc_interface::{
-    hir::def_id::{DefId, LocalDefId},
-    middle::ty::subst::SubstsRef,
+    hir::def_id::DefId,
+    middle::{mir, ty::subst::SubstsRef},
     span::Span,
 };
 use std::{cell::RefCell, hash::Hash};
+use std::rc::Rc;
 
 pub(crate) struct SpecificationsState<'tcx> {
     specs: RefCell<Specifications<'tcx>>,
 }
 
 impl<'tcx> SpecificationsState<'tcx> {
-    pub fn new(user_typed_specs: DefSpecificationMap) -> Self {
+    pub fn new(user_typed_specs: DefSpecificationMap<'tcx>) -> Self {
         Self {
             specs: RefCell::new(Specifications::new(user_typed_specs)),
         }
@@ -85,7 +86,7 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
-    fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<LocalDefId>;
+    fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<DefId>;
 
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
@@ -127,6 +128,8 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the span of the declared specification, if any, or else the span of
     /// the method declaration.
     fn get_spec_span(&self, def_id: DefId) -> Span;
+
+    fn get_local_mir(&self, def_id: DefId) -> Rc<mir::Body<'tcx>>;
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -180,7 +183,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         result
     }
 
-    fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<LocalDefId> {
+    fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<DefId> {
         let query = SpecQuery::FunctionDefEncoding(def_id, substs);
         let mut specs = self.specifications_state.specs.borrow_mut();
         let result = specs
@@ -279,5 +282,9 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .get_and_refine_proc_spec(self.env(), query)
             .and_then(|spec| spec.span)
             .unwrap_or_else(|| self.env().get_def_span(def_id))
+    }
+
+    fn get_local_mir(&self, def_id: DefId) -> Rc<mir::Body<'tcx>> {
+        return self.specifications_state.specs.borrow().get_local_mirs().get(&def_id).unwrap().clone();
     }
 }
