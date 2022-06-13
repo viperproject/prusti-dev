@@ -2,8 +2,7 @@
 
 use prusti_contracts::*;
 
-
-//#[derive(Copy, Clone)]
+#[print_counterexample("text {} {}", a, b)]
 struct X{
     a: i32, 
     b: i32,
@@ -15,14 +14,10 @@ fn test(x: X) -> bool{
     x.a == x.b
 }*/
 
-#[requires(x.a > 0)]
-#[ensures(result)]
-fn test_mut(x: &mut X, a: i32) -> bool{
-    x.a = 1;
-    x.b = 1;
-    x.a = 2;
-    x.a = a;
-    x.a > 0
+#[ensures(!result)]
+fn test_mut(x: X, a: i32) -> bool{
+    prusti_assume!(a > 0);
+    x.a == a
 }
 
 fn main() {}

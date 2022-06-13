@@ -19,7 +19,10 @@ mod spec_attribute_kind;
 pub mod specifications;
 mod type_model;
 mod user_provided_type_params;
+mod print_counterexample;
 
+use syn::{punctuated::Punctuated, parse::Parser, Expr, Token, Pat};
+use log::{error};
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote_spanned, ToTokens};
 use rewriter::AstRewriter;
@@ -620,4 +623,137 @@ pub fn type_model(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         )
         .to_compile_error(),
     }
+}
+
+pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    //TODO if attr is empty error
+    //TODO check if number of {} an params are equal
+    
+    env_logger::init();
+    error!("print attr: {}", attr);
+    error!("print attr: {:?}", attr);
+    //let parser = syn::Attribute::parse_outer;
+    let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
+    let attrs = handle_result!(parser.parse(attr.clone().into()));
+    error!("parsed attr: {:?}", attrs);
+    let callsite_span = Span::call_site();
+    //let attrs2 = attrs.into_iter().map(|a|  Punctuated::new(a, Token![;])).collect::<Punctuated<Pat, Token![,]>>();
+    //let attrs2 = attrs.into_iter().skip(1).collect::<Punctuated<Pat, Token![,]>>(); //map(|(a , b) |       ).collect::<Punctuated<Pat, Token![,]>>();
+    /*let attrs2 = attrs.into_iter().map(| a |{  let name = 
+        match a {
+            Pat::Ident(PatIdent) => PatIdent.ident,
+            Pat::Lit(PatLit) => ,
+            _ => "",
+        }
+        
+        
+        a.ident.as_ref().unwrap().clone(); let typ = a.ty.clone(); quote_spanned! {callsite_span=> let #name: #typ = self.#name; }}).collect::<TokenStream>();
+    
+*/
+
+    /*let result = if is_post && !attrs.empty_or_trailing() {
+        quote_spanned! {callsite_span=> , result: #output }
+    } else if is_post {
+        quote_spanned! {callsite_span=> result: #output }
+    } else {
+        TokenStream::new()
+    };*/
+
+    //let attr2: ParseBuffer = attr.into(); // handle_result!(syn::parse(attr.into()));
+    //let mut attrs = handle_result!(syn::parse2(attr2.into() as ParseStream)); //.into().call(syn::Attribute::parse_outer));
+    //let attrs: Vec<syn::Attribute> = handle_result!(attr.call(syn::Attribute::parse_outer));
+    //let attrs: Vec<syn::Attribute> = handle_result!(syn::parse2(attr)).call(syn::Attribute::parse_outer);
+    //let attrs: Punctuated<Expr, Token![,]> = handle_result!(syn::parse2(attr));
+    //error!("parsed attr: {:?}", attrs2);
+
+
+    let tokens_clone= tokens.clone();
+    //let attr_parsed: syn::Item = handle_result!(syn::parse2(attr2));
+    //error!("print parsed attr: {:?}", attr_parsed);
+    let item: syn::Item = handle_result!(syn::parse2(tokens));
+    let item2 = item.clone();
+    error!("type of struct: {:?}", item);
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    error!("print spec_id: {:?}", spec_id);
+    let spec_item = match item {
+        syn::Item::Struct(item_struct) => {
+            let item_struct2 = item_struct.clone();
+            let item_span = item_struct.span();
+            error!("print span: {:?}", item_span);
+            //let type = syn:
+            let item_name = syn::Ident::new(
+                &format!("prusti_print_counterexample_item_{}_{}", item_struct.ident, spec_id),
+                item_span,
+            );
+
+            let callsite_span = Span::call_site();
+            let test = match item_struct.fields{
+                syn::Fields::Named(fields_named) => fields_named.named.iter().map(| a |{  let name = a.ident.as_ref().unwrap().clone(); let typ = a.ty.clone(); quote_spanned! {callsite_span=> #name: #typ, }}).collect::<TokenStream>(), 
+                _ => TokenStream::new(),//fields_named.names.iter().map(| (a, b) |  {let name = a.itent; let typ = a.typ; quote_spanned! {callsite_span=> , #name: #typ }}).collect(),
+                /*Unnamed(fields_unnamed) => (),
+                Unit => (),*/
+            };
+            error!("print params: {:?}", test);
+
+            //let typ = Token![item_struct];
+            let typ = item_struct.ident;
+            //let format = format!("format!");
+            //tmp : #item_struct.ident
+            //tmp: #typ
+            error!("print item_name: {:?}", item_name);
+            let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+                #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
+                #[prusti::spec_only]
+                #[prusti::counterexample_print]
+                #[prusti::spec_id = #spec_id_str]
+                fn #item_name(self) {
+                    "text {} {}";
+                    self.a;
+                    self.b;
+                }
+            };
+            /*fn #item_name(self, #test ) {
+                    format!(#attr);
+                }*/
+            //error!("print fuction: {:?}", spec_item);
+            //let tmp = syn::Item::Fn(spec_item).into_token_stream();
+            //error!("print function: {}", tmp);
+            //tmp
+
+            let generics = &item_struct.generics;
+            let generics_idents = generics
+                .params
+                .iter()
+                .filter_map(|generic_param| match generic_param {
+                    syn::GenericParam::Type(type_param) => Some(type_param.ident.clone()),
+                    _ => None,
+                })
+                .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
+            // TODO: similarly to extern_specs, don't generate an actual impl
+            let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
+                impl #generics #typ <#generics_idents> {
+                    #spec_item
+                }
+            };
+            let tmp = quote_spanned! { item_span =>
+                #item_struct2
+                #item_impl
+            };
+            error!("print impl: {}", tmp);
+            tmp
+        }
+        _ => syn::Error::new(
+            attr.span(),
+            "Only structs can be attributed with a custom counterexample print",
+        )
+        .to_compile_error(),
+    };
+    //let mut result = TokenStream::new();
+    //let item2: syn::Item = handle_result!(syn::parse2(tokens));
+    //item2.to_tokens(&mut result);
+    //spec_item.to_tokens(&mut result);
+    spec_item.into_token_stream()
+    //result.clone()
 }

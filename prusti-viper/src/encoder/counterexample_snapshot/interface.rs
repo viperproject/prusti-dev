@@ -29,7 +29,7 @@ pub(crate) struct BasicBlock {
 
 impl MirProcedureMapping{
     fn translate_procedure_decl(&mut self, procedure: &vir_low::ProcedureDecl) -> Vec<BasicBlock>{       
-        info!("print procedure: {:?}", procedure); 
+        //info!("print procedure: {:?}", procedure); 
         procedure.basic_blocks.iter().map(
             | basic_block | {
                 let mut stmts = Vec::new();

@@ -12,7 +12,7 @@ use crate::{
     },
     PrustiError,
 };
-use log::debug;
+use log::{debug, info};
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::{collections::HashMap, convert::TryInto, fmt::Debug};
 
@@ -60,6 +60,7 @@ pub struct SpecCollector<'a, 'tcx: 'a> {
     type_specs: HashMap<LocalDefId, TypeSpecRefs>,
     prusti_assertions: Vec<LocalDefId>,
     prusti_assumptions: Vec<LocalDefId>,
+    prusti_counterexample_print: HashMap<LocalDefId, LocalDefId>,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -75,6 +76,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             type_specs: HashMap::new(),
             prusti_assertions: vec![],
             prusti_assumptions: vec![],
+            prusti_counterexample_print: HashMap::new(),
         }
     }
 
@@ -86,8 +88,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_type_specs(&mut def_spec);
         self.determine_prusti_assertions(&mut def_spec);
         self.determine_prusti_assumptions(&mut def_spec);
+        self.determine_prusti_counterexample_print(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
-
         def_spec
     }
 
@@ -231,6 +233,19 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 local_id.to_def_id(),
                 typed::PrustiAssumption {
                     assumption: *local_id,
+                },
+            );
+        }
+    }
+    fn determine_prusti_counterexample_print(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for (type_id, local_id) in self.prusti_counterexample_print.iter() {
+            //let hir_id = self.tcx.hir().local_def_id_to_hir_id(local_id.clone());
+            //let node = self.tcx.hir().find(hir_id);
+            //info!("print node: {:?}", node);
+            def_spec.prusti_counterexample_print.insert(
+                type_id.to_def_id(),
+                typed::PrustiCounterexamplePrint {
+                    counterexample_print: *local_id,
                 },
             );
         }
@@ -384,6 +399,18 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             if has_prusti_attr(attrs, "prusti_assumption") {
                 self.prusti_assumptions.push(local_id);
+            }
+
+            if has_prusti_attr(attrs, "counterexample_print"){
+                let self_id = fn_decl.inputs[0].hir_id;
+                info!("print self_id: {:?}", self_id);
+                let hir = self.tcx.hir();
+               // info!("print hir: {:?}", hir);
+                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                info!("print impl_id: {:?}", impl_id);
+                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                info!("print type_id: {:?}", type_id);
+                self.prusti_counterexample_print.insert(type_id.as_local().unwrap(), local_id); //.as_local().unwrap());
             }
         } else {
             // Don't collect specs "for" spec items

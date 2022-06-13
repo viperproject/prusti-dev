@@ -11,7 +11,7 @@ use prusti_interface::{
     specs::typed::{
         DefSpecificationMap, LoopSpecification, ProcedureSpecification, ProcedureSpecificationKind,
         ProcedureSpecificationKindError, PrustiAssertion, PrustiAssumption, Refinable,
-        SpecificationItem, TypeSpecification,
+        SpecificationItem, TypeSpecification, PrustiCounterexamplePrint,
     },
     PrustiError,
 };
@@ -88,6 +88,11 @@ impl<'tcx> Specifications<'tcx> {
     pub(super) fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         trace!("Get assumption specs of {:?}", def_id);
         self.user_typed_specs.get_assumption(def_id)
+    }
+
+    pub(super) fn get_print_counterexample(&self, def_id: &DefId) -> Option<&PrustiCounterexamplePrint> {
+        trace!("Get custom counterexample of {:?}", def_id);
+        self.user_typed_specs.get_counterexample_print(def_id)
     }
 
     pub(super) fn get_and_refine_proc_spec<'a, 'env: 'a>(
