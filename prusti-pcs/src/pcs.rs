@@ -11,21 +11,21 @@ use rustc_middle::{
         A rewrite of the MIR into a more operational semantics
 
     The key differences from MIR are this:
-        - OpMir expands MIR operations into many small steps whose PCS can be
+        - MicroMir expands MIR operations into many small steps whose PCS can be
             represented simply with pre- and post- conditions.
-        - OpMir places are like MIR places, but with an additional projections
+        - MicroMir places are like MIR places, but with an additional projections
             for temporary places (which may or may not be used, and are always
             only used within a MIR assignment)
-        - OpMir repsects the frame rule.
+        - MicroMir repsects the frame rule.
 
-        The first OpMir encoding does not support verification along unwinding
+        The first MicroMir encoding does not support verification along unwinding
         paths, and also does not support borrows.
 
 */
 
-pub struct OpMirBlock<'tcx> {
-    pub statements: Vec<OpMirStatement<'tcx>>,
-    pub terminator: OpMirTerminator<'tcx>,
+pub struct MicroMirBlock<'tcx> {
+    pub statements: Vec<MicroMirStatement<'tcx>>,
+    pub terminator: MicroMirTerminator<'tcx>,
 }
 
 /* The pre- and post- conditions are set up this way so that
@@ -33,7 +33,7 @@ pub struct OpMirBlock<'tcx> {
     to pre- and post- conditions at the same time and require
     there be no seperating connective conflicts).
 
-  An invariant of a well-annotated OpMir program is that
+  An invariant of a well-annotated MicroMir program is that
   each pre- and post- condition is a non-conflicting superset
   of the minimal PCS for each statement.
 
@@ -41,80 +41,80 @@ pub struct OpMirBlock<'tcx> {
   A None condition represents "uncomputed", whereas Some({})
   represents "no condition".
 */
-pub struct OpMirStatement<'tcx> {
+pub struct MicroMirStatement<'tcx> {
     pre: Option<FxHashSet<PCSPermission<'tcx>>>,
     post: Option<FxHashSet<PCSPermission<'tcx>>>,
-    operator: OpMirOperator<'tcx>,
+    operator: MicroMirOperator<'tcx>,
 }
 
-pub struct OpMirTerminator<'tcx> {
-    kind: OpMirTerminatorKind,
+pub struct MicroMirTerminator<'tcx> {
+    kind: MicroMirTerminatorKind,
     pre: Option<FxHashSet<PCSPermission<'tcx>>>,
 }
 
-pub enum OpMirTerminatorKind {
+pub enum MicroMirTerminatorKind {
     Goto,
     // ...
 }
 
-impl OpMirTerminatorKind {
+impl MicroMirTerminatorKind {
     pub fn core_precondition(&self) {
         todo!();
     }
 }
 
-pub enum OpMirOperator<'tcx> {
+pub enum MicroMirOperator<'tcx> {
     /* no-op */
     Nop,
-    Set(OpMirPlace<'tcx>, OpMirPlace<'tcx>, Mutability),
+    Set(MicroMirPlace<'tcx>, MicroMirPlace<'tcx>, Mutability),
 
     /* Permissions-level model of which places rust will deallocate at a location */
     /* Also used to end the lifetimes of temporary variables? */
-    Kill(OpMirPlace<'tcx>),
+    Kill(MicroMirPlace<'tcx>),
 
     /* Clone a place into one of it's temporary projections */
-    Duplicate(OpMirPlace<'tcx>, OpMirProjection<'tcx>),
+    Duplicate(MicroMirPlace<'tcx>, MicroMirProjection<'tcx>),
     // ...
 }
 
-impl<'tcx> OpMirOperator<'tcx> {
+impl<'tcx> MicroMirOperator<'tcx> {
     pub fn core_precondition(&self) -> Option<FxHashSet<PCSPermission>> {
         match self {
-            OpMirOperator::Set(dest, assignee, m) => Some(FxHashSet::from_iter([
+            MicroMirOperator::Set(dest, assignee, m) => Some(FxHashSet::from_iter([
                 PCSPermission::Uninit(dest.clone().into()),
                 PCSPermission::new_with_read(*m, assignee.clone().into()),
             ])),
-            OpMirOperator::Kill(_) => None,
-            OpMirOperator::Duplicate(_, _) => todo!(),
-            OpMirOperator::Nop => Some(FxHashSet::default()),
+            MicroMirOperator::Kill(_) => None,
+            MicroMirOperator::Duplicate(_, _) => todo!(),
+            MicroMirOperator::Nop => Some(FxHashSet::default()),
         }
     }
 
     pub fn core_postcondition(&self) -> Option<FxHashSet<PCSPermission>> {
         match self {
-            OpMirOperator::Set(dest, assignee, m) => Some(FxHashSet::from_iter([
+            MicroMirOperator::Set(dest, assignee, m) => Some(FxHashSet::from_iter([
                 PCSPermission::new_with_read(*m, dest.clone().into()),
                 PCSPermission::Uninit(assignee.clone().into()),
             ])),
-            OpMirOperator::Kill(p) => Some(FxHashSet::from_iter([PCSPermission::Uninit(
+            MicroMirOperator::Kill(p) => Some(FxHashSet::from_iter([PCSPermission::Uninit(
                 p.clone().into(),
             )])),
-            OpMirOperator::Duplicate(p, project) => todo!(),
-            OpMirOperator::Nop => Some(FxHashSet::default()),
+            MicroMirOperator::Duplicate(p, project) => todo!(),
+            MicroMirOperator::Nop => Some(FxHashSet::default()),
         }
     }
 }
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 pub enum PCSPermission<'tcx> {
-    Shared(OpMirPlace<'tcx>),
-    Exclusive(OpMirPlace<'tcx>),
-    Uninit(OpMirPlace<'tcx>),
+    Shared(MicroMirPlace<'tcx>),
+    Exclusive(MicroMirPlace<'tcx>),
+    Uninit(MicroMirPlace<'tcx>),
 }
 
 impl<'tcx> PCSPermission<'tcx> {
     // New permission with read perms
-    pub fn new_with_read(m: Mutability, p: OpMirPlace<'tcx>) -> Self {
+    pub fn new_with_read(m: Mutability, p: MicroMirPlace<'tcx>) -> Self {
         match m {
             Mutability::Mut => PCSPermission::Exclusive(p),
             Mutability::Not => PCSPermission::Shared(p),
@@ -129,28 +129,28 @@ pub enum Mutability {
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct OpMirPlace<'tcx> {
+pub struct MicroMirPlace<'tcx> {
     local: Local,
-    projection: OpMirProjection<'tcx>,
+    projection: MicroMirProjection<'tcx>,
 }
 
-impl<'tcx> From<Place<'tcx>> for OpMirPlace<'tcx> {
+impl<'tcx> From<Place<'tcx>> for MicroMirPlace<'tcx> {
     fn from(p: Place<'tcx>) -> Self {
         todo!();
     }
 }
 
-impl<'tcx> From<Local> for OpMirPlace<'tcx> {
+impl<'tcx> From<Local> for MicroMirPlace<'tcx> {
     fn from(local: Local) -> Self {
         Self {
             local,
-            projection: OpMirProjection::Mir(rustc_middle::ty::List::empty()),
+            projection: MicroMirProjection::Mir(rustc_middle::ty::List::empty()),
         }
     }
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub enum OpMirProjection<'tcx> {
+pub enum MicroMirProjection<'tcx> {
     Mir(&'tcx List<PlaceElem<'tcx>>),
     Temp(usize),
 }
