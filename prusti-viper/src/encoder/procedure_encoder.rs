@@ -4169,9 +4169,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             if self.encoder.env().tcx().def_kind(contract.def_id) ==
                 rustc_hir::def::DefKind::Closure {
                 continue
-                // if let Place::NormalPlace(mir_place) = place {
-                //     mir_place.local == mir_place.local
-                // }
             }
             debug!(
                 "Put permission {:?} ({:?}) in postcondition",
@@ -4512,7 +4509,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         // This clone is only due to borrow checker restrictions
         let contract = self.procedure_contract().clone();
-        // println!("Contract: {:?}", contract);
 
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
