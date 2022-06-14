@@ -1,7 +1,6 @@
 // compile-flags: -Pcounterexample=true
 // normalize-stderr-test: "final value:\s*-?[0-9]+" -> "$(FINAL_VALUE)"
 
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[ensures(result != 16)]
