@@ -115,7 +115,7 @@ pub(in super::super) trait AdtsInterface {
     /// intended to be used by the snapshot encoder to supply call to the
     /// validity function.
     ///
-    /// If `generate_top_down_injectivity_axiom` is true, do not generate
+    /// If `use_main_constructor_destructors` is true, do not generate
     /// destructors and for injectivity axioms use destructors with
     /// `variant_name==""`. This assumes that this variant's parameters are a
     /// subset of the main constructor's parameters.
