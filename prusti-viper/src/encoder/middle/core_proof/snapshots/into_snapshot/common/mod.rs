@@ -456,10 +456,6 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             .collect::<Result<Vec<_>, _>>()?;
         let mut args =
             self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
-        log::debug!(
-            "BFASNAPSHOT  ty_args:{ty_args:?} app_args:{:?} args:{args:?}",
-            app.arguments
-        );
         if !app.arguments.is_empty() {
             let first_arg_type = app.arguments[0].get_type();
             if first_arg_type.is_reference() {
