@@ -44,8 +44,6 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
     fn get_local_span(&self, local: mir::Local) -> Span;
 
-    fn get_local_name(&self, local: mir::Local) -> String;
-
     fn encode_local_var_name(&self, local: mir::Local) -> String {
         format!("{:?}", local)
     }
@@ -89,8 +87,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         local: mir::Local,
         projection: &[mir::PlaceElem<'tcx>],
     ) -> EncodingResult<(PlaceEncoding<'tcx>, ty::Ty<'tcx>, Option<usize>)> {
-        // println!("Encode projection {:?}, {:?}", local, projection);
-        // println!("Local name: {:?}", self.get_local_name(local));
+        trace!("Encode projection {:?}, {:?}", local, projection);
 
         if projection.is_empty() {
             return Ok((
@@ -104,11 +101,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             local,
             &projection[..projection.len() - 1]
         )?;
-        // println!("base_ty: {:?}", base_ty);
+        trace!("base_ty: {:?}", base_ty);
 
         let elem = projection.last().unwrap();
         Ok(match elem {
-            mir::ProjectionElem::Field(ref field, _projection_field_ty) => {
+            mir::ProjectionElem::Field(ref field, _) => {
                 match base_ty.kind() {
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
@@ -148,7 +145,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         };
                         let field = &variant_def.fields[field.index()];
                         let field_ty = field.ty(tcx, subst);
-                        if utils::is_reference(&field_ty) {
+                        if utils::is_reference(field_ty) {
                             return Err(EncodingError::unsupported(
                                 "access to reference-typed fields is not supported",
                             ));
@@ -167,29 +164,20 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         debug!("def_id={:?} closure_subst {:?}", def_id, closure_subst);
 
                         let closure_subst = closure_subst.as_closure();
-                        // println!("Closure subst: {:?}", closure_subst);
-                        // let tupled_upvar_tys = closure_subst.tupled_upvars_ty();
-                        // println!("Tupled tys: {:?}", tupled_upvar_tys);
-                        // let upvar_tys: Vec<_> = closure_subst.upvar_tys().collect();
-                        // println!("Upvar tys: {:?}", upvar_tys);
-                        // println!("Field: {:?}", field);
+                        debug!("Closure subst: {:?}", closure_subst);
 
-                        // if utils::is_reference(projection_field_ty) {
-                        //     return Err(EncodingError::unsupported(
-                        //         "access to reference-typed fields in a closure is not supported",
-                        //     ));
-                        // }
-
+                        // let tcx = self.encoder().env().tcx();
+                        // let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
+                        // let field_ty = closure_subst
+                        //     .upvar_tys(def_id, tcx)
+                        //     .nth(field.index())
+                        //     .unwrap();
                         let field_ty = closure_subst.upvar_tys().nth(field.index())
-                            .ok_or_else(|| {
-                                // panic!("Boom...");
-                                EncodingError::internal(format!(
+                            .ok_or_else(|| EncodingError::internal(format!(
                                 "failed to obtain the type of the captured path #{} of closure {:?}",
                                 field.index(),
                                 base_ty,
-                                ))
-                            })?;
-                        // let field_ty = *projection_field_ty;
+                            )))?;
 
                         let field_name = format!("closure_{}", field.index());
                         let encoded_field = self.encoder()
@@ -410,10 +398,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for FakeMirEncoder<'p, 'v, 'tc
     fn get_local_span(&self, _local: mir::Local) -> Span {
         DUMMY_SP
     }
-
-    fn get_local_name(&self, _local: mir::Local) -> String {
-       "FAKENAME".to_string()
-    }
 }
 
 /// Common code used for `ProcedureEncoder` and `PureFunctionEncoder`
@@ -436,19 +420,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for MirEncoder<'p, 'v, 'tcx> {
 
     fn get_local_span(&self, local: mir::Local) -> Span {
         self.mir.local_decls[local].source_info.span
-    }
-
-    fn get_local_name(&self, local: mir::Local) -> String {
-        for vdi in &self.mir.var_debug_info {
-            if let mir::VarDebugInfoContents::Place(place) = vdi.value {
-                if let Some(c) = place.as_local() {
-                    if c == local {
-                        return vdi.name.to_ident_string()
-                    }
-                }
-            }
-        }
-        "Not found".to_string()
     }
 }
 
