@@ -1,3 +1,9 @@
+// © 2022, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 #![allow(dead_code)]
 use rustc_data_structures::stable_set::FxHashSet;
 use rustc_middle::{
@@ -5,23 +11,19 @@ use rustc_middle::{
     ty::List,
 };
 
-/*
-
-    Operational MIR
-        A rewrite of the MIR into a more operational semantics
-
-    The key differences from MIR are this:
-        - MicroMir expands MIR operations into many small steps whose PCS can be
-            represented simply with pre- and post- conditions.
-        - MicroMir places are like MIR places, but with an additional projections
-            for temporary places (which may or may not be used, and are always
-            only used within a MIR assignment)
-        - MicroMir repsects the frame rule.
-
-        The first MicroMir encoding does not support verification along unwinding
-        paths, and also does not support borrows.
-
-*/
+/// Operational MIR
+///     A rewrite of the MIR into a more operational semantics
+///
+/// The key differences from MIR are this:
+///     - MicroMir expands MIR operations into many small steps whose PCS can be
+///         represented simply with pre- and post- conditions.
+///     - MicroMir places are like MIR places, but with an additional projections
+///         for temporary places (which may or may not be used, and are always
+///         only used within a MIR assignment)
+///     - MicroMir repsects the frame rule.
+///
+///     The first MicroMir encoding does not support verification along unwinding
+///     paths, and also does not support borrows.
 
 pub struct MicroMirBlock<'tcx> {
     pub statements: Vec<MicroMirStatement<'tcx>>,

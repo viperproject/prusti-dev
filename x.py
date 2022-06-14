@@ -569,8 +569,8 @@ def fmt_check_all():
             run_command(['rustfmt', '--check', file])
 
 def analysis_on(args):
-    """Run an analysis on a provided file"""
-    sysroot = subprocess.check_output(["rustup", "run", "nightly-2022-05-16", "rustc", "--print", "sysroot"]).decode(sys.stdout.encoding)[:-1]
+    """Run an analysis on a provided file. Works only on Linux."""
+    sysroot = subprocess.check_output(["rustc", "--print", "sysroot"]).decode(sys.stdout.encoding)[:-1]
     env = get_env()
     set_env_variables(env, [("LD_LIBRARY_PATH", sysroot + "/lib"), ("LD_LIBRARY_PATH", sysroot + "/bin")])
     run_command(['cargo', 'run', '--bin', 'analysis-driver', args[0], '--sysroot=' + sysroot, '--analysis-domain=' + args[1]])
