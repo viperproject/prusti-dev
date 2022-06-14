@@ -693,7 +693,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                         ..
                     }) => {
                         let ref_type = encoded_lhs.get_type().clone();
-                        //assert!(encoded_args[0].get_type().is_sequence(), "Expected sequence type, got {:?}", encoded_args[0].get_type());
                         builtin((LookupSeq, ref_type))
                     }
                     _ => self
