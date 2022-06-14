@@ -553,6 +553,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 "len" => (MapLen, Type::int(Int::Unbounded)),
                 "lookup" => (LookupMap, val_type),
                 "delete" => unimplemented!(),
+                "contains" => (MapContains, Type::bool()),
                 _ => unreachable!("no further Map functions"),
             });
         } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {

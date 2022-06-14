@@ -208,6 +208,7 @@ impl Typed for MapOp {
                 _ => unreachable!(),
             },
             MapOpKind::Len => &Type::Int,
+            MapOpKind::Contains => &Type::Bool,
         }
     }
     fn set_type(&mut self, new_type: Type) {

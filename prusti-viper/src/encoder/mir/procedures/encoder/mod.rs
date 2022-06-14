@@ -1422,10 +1422,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                  function|
          -> SpannedEncodingResult<vir_high::Successor> {
             make_manual_assign(encoder, block_builder, &mut |ty_args, args, target_ty| {
-                if function == vir_high::BuiltinFunc::LookupSeq {
-                    assert!(args[0].get_type().is_sequence());
-                }
-                log::debug!("MAKE_BUILTIN tyargs: {ty_args:?} args:{args:?} tty:{target_ty:?}");
                 vir_high::Expression::builtin_func_app_no_pos(function, ty_args, args, target_ty)
             })
         };
@@ -1506,6 +1502,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             "prusti_contracts::Map::<K, V>::len" => {
                 make_builtin_call(self, block_builder, vir_high::BuiltinFunc::MapLen)?
+            }
+            "prusti_contracts::Map::<K, V>::contains" => {
+                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::MapContains)?
             }
             "prusti_contracts::Map::<K, V>::lookup" => {
                 make_builtin_call(self, block_builder, vir_high::BuiltinFunc::LookupMap)?
