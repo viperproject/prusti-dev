@@ -188,6 +188,7 @@ pub struct MapOp {
 pub enum MapOpKind {
     Empty,
     Update,
+    Contains,
     Lookup,
     Len,
 }

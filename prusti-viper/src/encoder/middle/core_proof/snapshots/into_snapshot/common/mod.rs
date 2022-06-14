@@ -512,6 +512,11 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 let value = map(MapOpKind::Len)?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
+            BuiltinFunc::MapContains => lowerer.construct_constant_snapshot(
+                app.get_type(),
+                map(MapOpKind::Contains)?,
+                app.position,
+            ),
             BuiltinFunc::LookupSeq => {
                 use vir_low::operations::ty::Typed;
                 assert!(

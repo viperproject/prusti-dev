@@ -256,6 +256,9 @@ mod private {
         pub fn lookup(self, _key: K) -> V {
             panic!()
         }
+        pub fn contains(self, _key: K) -> bool {
+            panic!()
+        }
     }
 
     #[macro_export]

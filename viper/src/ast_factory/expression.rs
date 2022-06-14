@@ -1291,6 +1291,16 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    pub fn map_contains(&self, map: Expr, key: Expr) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::MapContains,
+            key.to_jobject(),
+            map.to_jobject()
+        )
+    }
+
     pub fn map_len(&self, map: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::MapCardinality, map.to_jobject())
     }
