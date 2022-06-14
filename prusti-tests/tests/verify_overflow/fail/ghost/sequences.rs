@@ -23,7 +23,7 @@ fn seq_eq1() {
 }
 
 fn seq_eq2() {
-    prusti_assert!(Seq::single(1) == Seq::single(2)); //~ ERROR: asserted expression might not hold.
+    prusti_assert!(Seq::single(1) == Seq::single(2)); //~ ERROR: asserted expression might not hold
 }
 
 fn seq_construction() {
@@ -37,6 +37,11 @@ fn random_indexing_fails_usize(seq: Seq, idx: usize) {
 #[requires(idx >= Int::new(0))]
 fn random_indexing_fails_int(seq: Seq, idx: Int) {
     prusti_assert!(seq[idx] == seq[idx]); //~ ERROR: the sequence index may be out of bounds
+}
+
+fn indexing() {
+    let seq = seq![1, 2, 3, 4, 5];
+    prusti_assert!(seq[2] == 3);
 }
 
 fn seq_macro() {
