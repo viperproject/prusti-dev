@@ -32,6 +32,7 @@
 | [`FULL_COMPILATION`](#full_compilation) | `bool` | `false` |
 | [`HIDE_UUIDS`](#hide_uuids) | `bool` | `false` |
 | [`IGNORE_REGIONS`](#ignore_regions) | `bool` | `false` |
+| [`INTERNAL_ERRORS_AS_WARNINGS`](#internal_errors_as_warnings) | `bool` | `false` |
 | [`INTERN_NAMES`](#intern_names) | `bool` | `true` |
 | [`JSON_COMMUNICATION`](#json_communication) | `bool` | `false` |
 | [`LOG`](#log) | `Option<String>` | `None` |
@@ -191,6 +192,10 @@ When enabled, UUIDs of expressions and specifications printed with [`PRINT_TYPEC
 ## `IGNORE_REGIONS`
 
 When enabled, debug files dumped by `rustc` will not contain lifetime regions.
+
+## `INTERNAL_ERRORS_AS_WARNINGS`
+
+When enabled, internal errors are presented as warnings.
 
 ## `INTERN_NAMES`
 
