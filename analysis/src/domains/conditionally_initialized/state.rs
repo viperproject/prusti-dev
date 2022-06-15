@@ -21,21 +21,20 @@ use std::iter::once;
 use rustc_data_structures::stable_map::FxHashMap;
 use rustc_middle::mir::{BasicBlock, Place};
 
-/*
-    TODO:
+use crate::AnalysisError::UnsupportedStatement;
 
-    Currently, we're using FixpointEngine which only operated on MIR.
-    We want this to operate on MIR mircocode.
-
-    What we have right now duplicates concerns in that it's both guessing
-    kill locations/micro effects from the MIR, and inferring their
-    meaning.
-
-    This will probably involve rewriting the fixpoint engine, which allows
-    for a chance to do a more efficient GenKill analysis instead of the
-    current iterative method (this is essentially a GenKill problem afaik)
-
-*/
+// TODO:
+//
+// Currently, we're using FixpointEngine which only operated on MIR.
+// We want this to operate on MIR mircocode.
+//
+// What we have right now duplicates concerns in that it's both guessing
+// kill locations/micro effects from the MIR, and inferring their
+// meaning.
+//
+// This will probably involve rewriting the fixpoint engine, which allows
+// for a chance to do a more efficient GenKill analysis instead of the
+// current iterative method (this is essentially a GenKill problem afaik)
 
 #[derive(Clone)]
 pub struct PlaceBBMap<'tcx> {
@@ -119,7 +118,11 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
     /// Also kill all places which are subplaces of the killed place
     // TODO: Pretty sure this implementation is super bad... it copies everything every time.
     // Fix this if we end up using this analysis
-    pub fn coherent_kill(&mut self, p: mir_utils::Place<'tcx>, location: Location) {
+    pub fn coherent_kill(
+        &mut self,
+        p: mir_utils::Place<'tcx>,
+        location: Location,
+    ) -> Result<(), ()> {
         if let Some(set) = &mut self.set {
             // Places to add
             let mut new_places: Vec<mir_utils::Place<'tcx>> = vec![];
@@ -148,8 +151,11 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
             for place in new_places.iter() {
                 set.map.insert(*place, new_bbs.clone());
             }
+
+            return Ok(());
         } else {
-            panic!("Internal error: Top expansion/Error paths not implemented");
+            // Top expansion not supported in this representation... yet. TODO.
+            return Err(());
         }
     }
 
@@ -186,7 +192,7 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
             let ty = place.ty(&self.mir.local_decls, self.tcx).ty;
             let param_env = self.tcx.param_env(self.def_id);
             if !is_copy(self.tcx, ty, param_env) {
-                self.coherent_kill((*place).into(), location);
+                let _ = self.coherent_kill((*place).into(), location);
             }
         }
     }
@@ -217,14 +223,14 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
                     }
                     _ => {}
                 }
-                self.coherent_kill(target.into(), location);
+                let _ = self.coherent_kill(target.into(), location);
                 self.coherent_insert(target.into(), location);
             }
             mir::StatementKind::StorageDead(local) => {
                 // https://doc.rust-lang.org/beta/nightly-rustc/rustc_middle/mir/struct.Place.html
                 // Each local naturally corresponds to the place Place { local, projection: [] }.
                 // This place has the address of the local’s allocation and the type of the local.
-                self.coherent_kill(
+                let _ = self.coherent_kill(
                     Place {
                         local,
                         projection: rustc_middle::ty::List::empty(),
@@ -261,7 +267,7 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
                 target,
                 unwind,
             } => {
-                new_state.coherent_kill(place.into(), location);
+                let _ = new_state.coherent_kill(place.into(), location);
                 res_vec.push((target, new_state));
 
                 if let Some(bb) = unwind {
@@ -275,7 +281,7 @@ impl<'mir, 'tcx: 'mir> CondInitializedState<'mir, 'tcx> {
                 target,
                 unwind,
             } => {
-                new_state.coherent_kill(place.into(), location);
+                let _ = new_state.coherent_kill(place.into(), location);
                 new_state.apply_operand_effect(value, location);
                 new_state.coherent_insert(place.into(), location);
                 res_vec.push((target, new_state));
