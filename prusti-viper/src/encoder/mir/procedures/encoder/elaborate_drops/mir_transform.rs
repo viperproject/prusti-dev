@@ -536,7 +536,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
         Rvalue::Use(Operand::Constant(Box::new(Constant {
             span,
             user_ty: None,
-            literal: ty::Const::from_bool(self.tcx, val).into(),
+            literal: ConstantKind::Ty(ty::Const::from_bool(self.tcx, val)),
         })))
     }
 
@@ -561,7 +561,8 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
     fn drop_flags_for_fn_rets(&mut self) {
         for (bb, data) in self.body.basic_blocks().iter_enumerated() {
             if let TerminatorKind::Call {
-                destination: Some((ref place, tgt)),
+                destination,
+                target: Some(tgt),
                 cleanup: Some(_),
                 ..
             } = data.terminator().kind
@@ -572,7 +573,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                     block: tgt,
                     statement_index: 0,
                 };
-                let path = self.move_data().rev_lookup.find(place.as_ref());
+                let path = self.move_data().rev_lookup.find(destination.as_ref());
                 on_lookup_result_bits(self.tcx, self.body, self.move_data(), path, |child| {
                     self.set_drop_flag(loc, child, DropFlagState::Present)
                 });
@@ -650,7 +651,8 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
             // so mark the return as initialized *before* the
             // call.
             if let TerminatorKind::Call {
-                destination: Some((ref place, _)),
+                destination,
+                target: Some(_),
                 cleanup: None,
                 ..
             } = data.terminator().kind
@@ -661,7 +663,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                     block: bb,
                     statement_index: data.statements.len(),
                 };
-                let path = self.move_data().rev_lookup.find(place.as_ref());
+                let path = self.move_data().rev_lookup.find(destination.as_ref());
                 on_lookup_result_bits(self.tcx, self.body, self.move_data(), path, |child| {
                     self.set_drop_flag(loc, child, DropFlagState::Present)
                 });

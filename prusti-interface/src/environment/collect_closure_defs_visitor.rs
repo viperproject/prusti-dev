@@ -36,7 +36,7 @@ impl<'env, 'tcx> Visitor<'tcx> for CollectClosureDefsVisitor<'env, 'tcx> {
     }
 
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
-        if let hir::ExprKind::Closure(_, _, _, _, _) = expr.kind {
+        if let hir::ExprKind::Closure { .. } = expr.kind {
             if !has_spec_only_attr(self.map.attrs(expr.hir_id)) {
                 let _tcx = self.env.tcx();
                 let def_id = self.map.local_def_id(expr.hir_id).to_def_id();

@@ -232,13 +232,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
-            mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
-            | mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, place)
-            | mir::Rvalue::Ref(_, mir::BorrowKind::Shared, place) => {
-                let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
+            &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
+            | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, place)
+            | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, place) => {
+                let encoded_place = self.encoder.encode_place_high(self.mir, place, None)?;
                 let ty = self
                     .encoder
-                    .encode_type_of_place_high(self.mir, *place)
+                    .encode_type_of_place_high(self.mir, place)
                     .with_span(span)?;
                 let pure_lifetime = vir_high::ty::LifetimeConst::erased();
                 let encoded_ref = vir_high::Expression::addr_of_no_pos(
@@ -291,8 +291,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     span,
                 ));
             }
-            mir::Rvalue::Len(place) => {
-                let arg = self.encoder.encode_place_high(self.mir, *place, None)?;
+            &mir::Rvalue::Len(place) => {
+                let arg = self.encoder.encode_place_high(self.mir, place, None)?;
                 let expr = self.encoder.encode_len_call(arg).with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
@@ -300,7 +300,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let encoded_operand = self.encode_operand(operand, span)?;
                 let len: usize = self
                     .encoder
-                    .const_eval_intlike(times.val())
+                    .const_eval_intlike(mir::ConstantKind::Ty(*times))
                     .with_span(span)?
                     .to_u64()
                     .unwrap()
@@ -413,7 +413,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
     fn apply_call_terminator(
         &self,
         args: &[mir::Operand<'tcx>],
-        destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
+        destination: mir::Place<'tcx>,
+        target: &Option<mir::BasicBlock>,
         ty: ty::Ty<'tcx>,
         states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         span: Span,
@@ -428,8 +429,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             use crate::rustc_middle::ty::subst::Subst;
             let substs = ty::EarlyBinder(*call_substs).subst(self.encoder.env().tcx(), self.substs);
 
-            let state = if let Some((lhs_place, target_block)) = destination {
-                let encoded_lhs = self.encode_place(*lhs_place).with_span(span)?;
+            let state = if let Some(target_block) = target {
+                let encoded_lhs = self.encode_place(destination).with_span(span)?;
                 let encoded_args: Vec<_> = args
                     .iter()
                     .map(|arg| self.encode_operand(arg, span))
@@ -845,9 +846,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             TerminatorKind::Call {
                 args,
                 destination,
+                target,
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 ..
-            } => self.apply_call_terminator(args, destination, literal.ty(), states, span)?,
+            } => {
+                self.apply_call_terminator(args, *destination, target, literal.ty(), states, span)?
+            }
 
             TerminatorKind::Call { .. } => {
                 return Err(SpannedEncodingError::unsupported(
