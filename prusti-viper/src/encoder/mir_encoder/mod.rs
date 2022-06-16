@@ -204,6 +204,10 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (encoded_projection, field_ty, None)
                     }
 
+                    ty::TyKind::Generator(_, _, _) => {
+                        return Err(EncodingError::unsupported("generator fields are not supported yet"));
+                    }
+
                     x => {
                         return Err(EncodingError::internal(
                             format!("{} has no fields", utils::ty_to_string(x))
