@@ -6,7 +6,7 @@
 
 #![allow(dead_code)]
 #![allow(unused_imports)]
-use crate::syntacticExpansion;
+use crate::syntactic_expansion;
 use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
 use rustc_index::vec::IndexVec;
 use rustc_middle::mir::{
@@ -41,7 +41,7 @@ pub struct MicroMirTerminator {
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct TemporaryPlace {
-    id: usize,
+    pub id: usize,
 }
 
 /// Unlike the real MIR, we will not represent conditional flags as stack places.
@@ -55,6 +55,18 @@ pub struct ConditionalFlag {
     kind: ConditionalFlagKind,
 }
 
+// Control flow === lifetime flow dependendent ops
+
+// Special edge === wand \
+// fields of owned,
+// field of a borrowed place,
+// regular borrows
+//      ==> derivable from type info @ asssignments with RHS borrow
+
+// move/copy might have DAG effect, undecided if uninit is meaningful to DAG
+// Tag at every reassignment, not just at loop
+//      => know statically reassignment places, syntactic rule.
+
 #[derive(PartialEq, Eq, Hash, Clone)]
 pub enum ConditionalFlagKind {
     Init,
@@ -65,7 +77,7 @@ pub enum MicroMirStatement<'tcx> {
     Set(TemporaryPlace, Place<'tcx>, Mutability),
     Move(Place<'tcx>, TemporaryPlace),
     Duplicate(Place<'tcx>, TemporaryPlace, Mutability),
-    Constant(TemporaryPlace, Constant<'tcx>),
+    Constant(Constant<'tcx>, TemporaryPlace),
     Kill(LinearResource<'tcx>),
     NullOp(NullOp, TemporaryPlace),
     UnOp(UnOp, TemporaryPlace, TemporaryPlace),
@@ -160,7 +172,7 @@ impl<'tcx> MicroMirBody<'tcx> {
                 PCSPermission::new_initialized(*m, (*p).into()),
                 PCSPermission::new_initialized(Mutability::Mut, (*t).into()),
             ])),
-            MicroMirStatement::Constant(t, _) => {
+            MicroMirStatement::Constant(_, t) => {
                 Some(PCS::from_vec(vec![PCSPermission::new_initialized(
                     Mutability::Mut,
                     (*t).into(),
