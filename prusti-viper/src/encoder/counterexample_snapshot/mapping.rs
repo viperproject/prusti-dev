@@ -36,7 +36,7 @@ pub(crate) trait VarMappingInterface {
 
 }
 
-impl<'ce, 'tcx> VarMappingInterface for super::counterexample_translation_snapshot::CounterexampleTranslator<'ce, 'tcx> {
+impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_snapshot::CounterexampleTranslator<'ce, 'tcx, 'v> {
     fn create_mapping(&mut self, proc_def_id: ProcedureDefId, encoder: &Encoder){
         let name = encoder.env().get_absolute_item_name(proc_def_id);
         //let mut mapping:FxHashMap<String, FxHashMap<String, Vec<SnapshotVar>>> = FxHashMap::default();

@@ -21,9 +21,9 @@ mod type_model;
 mod user_provided_type_params;
 mod print_counterexample;
 
-use syn::{punctuated::Punctuated, parse::Parser, Expr, Token, Pat};
+use syn::{punctuated::Punctuated, parse::Parser, Expr, Token, Pat, PatLit, ExprLit, Lit, token::Token, Fields};
 use log::{error};
-use proc_macro2::{Span, TokenStream, TokenTree};
+use proc_macro2::{Span, TokenStream, TokenTree, Punct};
 use quote::{quote_spanned, ToTokens};
 use rewriter::AstRewriter;
 use std::convert::TryInto;
@@ -626,59 +626,120 @@ pub fn type_model(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 }
 
 pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    //TODO if attr is empty error
-    //TODO check if number of {} an params are equal
+    //TODO rewrite error messages such that the apper for al arguments at once
+    //TODO check for multiple print_counterexample, it should be allowed only once, should be fine
     
-    env_logger::init();
-    error!("print attr: {}", attr);
-    error!("print attr: {:?}", attr);
-    //let parser = syn::Attribute::parse_outer;
-    let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
-    let attrs = handle_result!(parser.parse(attr.clone().into()));
-    error!("parsed attr: {:?}", attrs);
-    let callsite_span = Span::call_site();
-    //let attrs2 = attrs.into_iter().map(|a|  Punctuated::new(a, Token![;])).collect::<Punctuated<Pat, Token![,]>>();
-    //let attrs2 = attrs.into_iter().skip(1).collect::<Punctuated<Pat, Token![,]>>(); //map(|(a , b) |       ).collect::<Punctuated<Pat, Token![,]>>();
-    /*let attrs2 = attrs.into_iter().map(| a |{  let name = 
-        match a {
-            Pat::Ident(PatIdent) => PatIdent.ident,
-            Pat::Lit(PatLit) => ,
-            _ => "",
-        }
-        
-        
-        a.ident.as_ref().unwrap().clone(); let typ = a.ty.clone(); quote_spanned! {callsite_span=> let #name: #typ = self.#name; }}).collect::<TokenStream>();
-    
-*/
-
-    /*let result = if is_post && !attrs.empty_or_trailing() {
-        quote_spanned! {callsite_span=> , result: #output }
-    } else if is_post {
-        quote_spanned! {callsite_span=> result: #output }
-    } else {
-        TokenStream::new()
-    };*/
-
-    //let attr2: ParseBuffer = attr.into(); // handle_result!(syn::parse(attr.into()));
-    //let mut attrs = handle_result!(syn::parse2(attr2.into() as ParseStream)); //.into().call(syn::Attribute::parse_outer));
-    //let attrs: Vec<syn::Attribute> = handle_result!(attr.call(syn::Attribute::parse_outer));
-    //let attrs: Vec<syn::Attribute> = handle_result!(syn::parse2(attr)).call(syn::Attribute::parse_outer);
-    //let attrs: Punctuated<Expr, Token![,]> = handle_result!(syn::parse2(attr));
-    //error!("parsed attr: {:?}", attrs2);
-
-
+    let _ = env_logger::try_init();
     let tokens_clone= tokens.clone();
-    //let attr_parsed: syn::Item = handle_result!(syn::parse2(attr2));
-    //error!("print parsed attr: {:?}", attr_parsed);
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item2 = item.clone();
+    
+    //let attr_parsed: syn::Item = handle_result!(syn::parse2(attr2));
+    //error!("print parsed attr: {:?}", attr_parsed);
+    
+    
     error!("type of struct: {:?}", item);
-    let mut rewriter = rewriter::AstRewriter::new();
-    let spec_id = rewriter.generate_spec_id();
-    let spec_id_str = spec_id.to_string();
-    error!("print spec_id: {:?}", spec_id);
+    
     let spec_item = match item {
         syn::Item::Struct(item_struct) => {
+            error!("print attr: {}", attr);
+            error!("print attr: {:?}", attr);
+            //let parser = syn::Attribute::parse_outer;
+            let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
+            let attrs = handle_result!(parser.parse(attr.clone().into()));
+            let attrs2 = attrs.clone();
+            let length = attrs.len();
+            let callsite_span = Span::call_site();
+            let mut attrs_iter = attrs.into_iter();
+            let first_arg = if let Some(text) = attrs_iter.next(){
+                let span = text.span();
+                error!("text node: {:?}", text);
+                match text {
+                    Pat::Lit(PatLit { attrs: _, expr: box Expr::Lit(ExprLit { attrs: _, lit: Lit::Str(lit_str) }) }) => {
+                        let value = lit_str.value();
+                        error!("value of text node: {}", value);
+                        let count = value.matches("{}").count();
+                        error!("count of {{}} in text node: {}", count);
+                        if count != length-1{
+                            return syn::Error::new(
+                                span,
+                                "number of arguments and number of {} do not match",
+                            )
+                            .to_compile_error().into_token_stream();
+                        }
+                        quote_spanned! {callsite_span=> #value;}
+                    },
+                    _ => return syn::Error::new(
+                        span,
+                        "first argument of custom print must be a string literal",
+                    )
+                    .to_compile_error().into_token_stream(),
+                }
+            }else {
+                return syn::Error::new(
+                    attr.span(),
+                    "print_counterexample expects at least one argument for struct",
+                )
+                .to_compile_error().into_token_stream();
+            };
+
+            
+            let args = attrs_iter.map(|pat | {
+                match pat {
+                    Pat::Ident(pat_ident) => {
+                        quote_spanned! {callsite_span=> #pat_ident; }
+                    },
+                    Pat::Lit(PatLit { attrs: _, expr: box Expr::Lit(ExprLit { attrs: _, lit: Lit::Int(lit_int)})}) => {
+                        quote_spanned! {callsite_span=> #lit_int; }
+                    },
+                    _ => {error!("variable node {:?}", pat);
+                        syn::Error::new(
+                        pat.span(),
+                        "argument must be a name or an integer",
+                    )
+                    .to_compile_error().into_token_stream()},
+                }
+            }).collect::<TokenStream>();
+
+            error!("print args: {}", args);
+            error!("print args: {:?}", args);
+            //error!("parsed attr: {:?}", attrs);
+            let callsite_span = Span::call_site();
+            //let attrs2 = attrs.into_iter().map(|a|  Punctuated::new(a, Token![;])).collect::<Punctuated<Pat, Token![,]>>();
+            //let attrs2 = attrs.into_iter().skip(1).collect::<Punctuated<Pat, Token![,]>>(); //map(|(a , b) |       ).collect::<Punctuated<Pat, Token![,]>>();
+            /*let attrs2 = attrs.into_iter().map(| a |{  let name = 
+                match a {
+                    Pat::Ident(PatIdent) => PatIdent.ident,
+                    Pat::Lit(PatLit) => ,
+                    _ => "",
+                }
+                
+                
+                a.ident.as_ref().unwrap().clone(); let typ = a.ty.clone(); quote_spanned! {callsite_span=> let #name: #typ = self.#name; }}).collect::<TokenStream>();
+            
+        */
+
+            /*let result = if is_post && !attrs.empty_or_trailing() {
+                quote_spanned! {callsite_span=> , result: #output }
+            } else if is_post {
+                quote_spanned! {callsite_span=> result: #output }
+            } else {
+                TokenStream::new()
+            };*/
+
+            //let attr2: ParseBuffer = attr.into(); // handle_result!(syn::parse(attr.into()));
+            //let mut attrs = handle_result!(syn::parse2(attr2.into() as ParseStream)); //.into().call(syn::Attribute::parse_outer));
+            //let attrs: Vec<syn::Attribute> = handle_result!(attr.call(syn::Attribute::parse_outer));
+            //let attrs: Vec<syn::Attribute> = handle_result!(syn::parse2(attr)).call(syn::Attribute::parse_outer);
+            //let attrs: Punctuated<Expr, Token![,]> = handle_result!(syn::parse2(attr));
+            //error!("parsed attr: {:?}", attrs2);
+
+
+            
+            let mut rewriter = rewriter::AstRewriter::new();
+            let spec_id = rewriter.generate_spec_id();
+            let spec_id_str = spec_id.to_string();
+            error!("print spec_id: {:?}", spec_id);
             let item_struct2 = item_struct.clone();
             let item_span = item_struct.span();
             error!("print span: {:?}", item_span);
@@ -688,32 +749,109 @@ pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStre
                 item_span,
             );
 
-            let callsite_span = Span::call_site();
-            let test = match item_struct.fields{
-                syn::Fields::Named(fields_named) => fields_named.named.iter().map(| a |{  let name = a.ident.as_ref().unwrap().clone(); let typ = a.ty.clone(); quote_spanned! {callsite_span=> #name: #typ, }}).collect::<TokenStream>(), 
+            //let callsite_span = Span::call_site();
+            /*let test = match item_struct.fields{
+                syn::Fields::Named(ref fields_named) => fields_named.named.iter().map(| a |{  let name = a.ident.as_ref().unwrap().clone(); let typ = a.ty.clone(); quote_spanned! {callsite_span=> #name: #typ, }}).collect::<TokenStream>(), 
                 _ => TokenStream::new(),//fields_named.names.iter().map(| (a, b) |  {let name = a.itent; let typ = a.typ; quote_spanned! {callsite_span=> , #name: #typ }}).collect(),
                 /*Unnamed(fields_unnamed) => (),
                 Unit => (),*/
-            };
-            error!("print params: {:?}", test);
-
+            };*/
+            //error!("print params: {:?}", test);
+            let mut args2: Punctuated<Pat, Token![,]> = attrs2.into_iter().skip(1).collect(); //TODO skip duplicate
+            //add trailing punctuation
+            if !args2.empty_or_trailing(){
+                args2.push_punct(<syn::Token![,]>::default());
+            }
             //let typ = Token![item_struct];
-            let typ = item_struct.ident;
             //let format = format!("format!");
             //tmp : #item_struct.ident
             //tmp: #typ
             error!("print item_name: {:?}", item_name);
-            let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
-                #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
-                #[prusti::spec_only]
-                #[prusti::counterexample_print]
-                #[prusti::spec_id = #spec_id_str]
-                fn #item_name(self) {
-                    "text {} {}";
-                    self.a;
-                    self.b;
-                }
+
+            let typ = item_struct.ident.clone();
+
+            let spec_item = match item_struct.fields{
+                Fields::Named(ref fields_named) => {
+                    let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+                        #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case, irrefutable_let_patterns)]
+                        #[prusti::spec_only]
+                        #[prusti::counterexample_print]
+                        #[prusti::spec_id = #spec_id_str]
+                        fn #item_name(self){
+                            if let #typ{#args2 ..} = self{
+                                #first_arg
+                                #args
+                            }
+                        }
+                    };
+                    spec_item
+                },
+                Fields::Unnamed(ref fields_unnamed) => {
+                    
+                    //check if all args are possible
+                    for arg in &args2{
+                        if let Pat::Lit(PatLit { attrs: _, expr: box Expr::Lit(ExprLit { attrs: _, lit: Lit::Int(lit_int)})}) = arg{
+                            let value:u32 = lit_int.base10_parse().ok().unwrap(); //TODO find a better solution //can only be positive //why does handle_resutl not work
+                            error!("print value: {}", value);
+                            if value >= fields_unnamed.unnamed.len() as u32 {
+                                return syn::Error::new(
+                                    arg.span(),
+                                    format!("struct `{}` does not have a field named {}", item_struct.ident, value),
+                                )
+                                .to_compile_error().into_token_stream();
+                            }
+                        } else {
+                            return syn::Error::new(
+                                arg.span(),
+                                format!("struct `{}` needs integer as arguments", item_struct.ident),
+                            )
+                            .to_compile_error().into_token_stream();
+                        }
+                    }
+                    
+                    let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+                        #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case, irrefutable_let_patterns)]
+                        #[prusti::spec_only]
+                        #[prusti::counterexample_print]
+                        #[prusti::spec_id = #spec_id_str]
+                        fn #item_name(self){
+                            if let #typ{..} = self{
+                                #first_arg
+                                #args
+                            }
+                        }
+                    };
+                    spec_item
+                },
+                Fields::Unit => {
+                    if length == 1{
+                        let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+                            #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case, irrefutable_let_patterns)]
+                            #[prusti::spec_only]
+                            #[prusti::counterexample_print]
+                            #[prusti::spec_id = #spec_id_str]
+                            fn #item_name(self){
+                                if let #typ{..} = self{
+                                    #first_arg
+                                }
+                            }
+                        };
+                        spec_item
+                    } else {
+                        return syn::Error::new(
+                            attr.span(),
+                            format!("struct `{}` expects exactly one argument", item_struct.ident),
+                        )
+                        .to_compile_error().into_token_stream();
+                    }
+                },
             };
+            /*#[print_counterexampe("test", 0, 1)]
+            enum X{
+                #[print_counterexampe("test", 0, 1)]
+                f(i32),
+                g(i32, i32),
+            }*/
             /*fn #item_name(self, #test ) {
                     format!(#attr);
                 }*/
@@ -744,9 +882,260 @@ pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStre
             error!("print impl: {}", tmp);
             tmp
         }
+        syn::Item::Enum(item_enum) => {
+            let mut item_enum2 = item_enum.clone();
+            //remove all macros inside the enum
+            for variant in &mut item_enum2.variants{
+                variant.attrs.retain( |attr| attr.path.get_ident().and_then(| x | Some(x.to_string())) != Some("print_counterexample".to_string()));
+            }
+
+            error!("print attr: {}", attr);
+            error!("print attr: {:?}", attr);
+            //let parser = syn::Attribute::parse_outer;
+            let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
+            let attrs = handle_result!(parser.parse(attr.clone().into()));
+            let length = attrs.len();
+            if length != 0{
+                return syn::Error::new(
+                    attr.span(),
+                    "Custom counterexample print for enum should not have an argument",
+                )
+                .to_compile_error();
+            }
+            let mut spec_items:Vec<syn::ItemFn> = vec![]; 
+            for variant in item_enum.variants{
+                error!("print variant: {:?}", variant);
+                if let Some(custom_print) = variant.attrs.into_iter().find( |attr| attr.path.get_ident().and_then(| x | Some(x.to_string())) == Some("print_counterexample".to_string())){
+                    error!("print custom print: {:?}", custom_print);
+                    let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
+                    let attrs = handle_result!(custom_print.parse_args_with(parser));
+                    let length = attrs.len();
+                    error!("print attrs: {:?}", attrs);
+                    error!("print length: {:?}", length);
+                    let attrs2 = attrs.clone();
+                    let callsite_span = Span::call_site();
+                    let mut attrs_iter = attrs.into_iter();
+                    let first_arg = if let Some(text) = attrs_iter.next(){
+                        let span = text.span();
+                        error!("text node: {:?}", text);
+                        match text {
+                            Pat::Lit(PatLit { attrs: _, expr: box Expr::Lit(ExprLit { attrs: _, lit: Lit::Str(lit_str) }) }) => {
+                                let value = lit_str.value();
+                                error!("value of text node: {}", value);
+                                let count = value.matches("{}").count();
+                                error!("count of {{}} in text node: {}", count);
+                                if count != length-1{
+                                    return syn::Error::new(
+                                        span,
+                                        "number of arguments and number of {} do not match",
+                                    )
+                                    .to_compile_error().into_token_stream();
+                                }
+                                quote_spanned! {callsite_span=> #value;}
+                            },
+                            _ => return syn::Error::new(
+                                span,
+                                "first argument of custom print must be a string literal",
+                            )
+                            .to_compile_error().into_token_stream(),
+                        }
+                    }else {
+                        return syn::Error::new(
+                            attr.span(),
+                            "print_counterexample expects at least one argument for struct",
+                        )
+                        .to_compile_error().into_token_stream();
+                    };
+
+            
+            let args = attrs_iter.map(|pat | {
+                match pat {
+                    Pat::Ident(pat_ident) => {
+                        quote_spanned! {callsite_span=> #pat_ident; }
+                    },
+                    Pat::Lit(PatLit { attrs: _, expr: box Expr::Lit(ExprLit { attrs: _, lit: Lit::Int(lit_int)})}) => {
+                        quote_spanned! {callsite_span=> #lit_int; }
+                    },
+                    _ => {error!("variable node {:?}", pat);
+                        syn::Error::new(
+                        pat.span(),
+                        "argument must be a name or an integer",
+                    )
+                    .to_compile_error().into_token_stream()},
+                }
+            }).collect::<TokenStream>();
+
+            error!("print args: {}", args);
+            error!("print args: {:?}", args);
+            let enum_name = item_enum.ident.clone();
+            let variant_name = variant.ident.clone();
+            let mut rewriter = rewriter::AstRewriter::new();
+            let spec_id = rewriter.generate_spec_id();
+            let spec_id_str = spec_id.to_string();
+            let item_span = variant.ident.span();
+            let item_name = syn::Ident::new(
+                &format!("prusti_print_counterexample_variant_{}_{}", variant.ident, spec_id),
+                item_span,
+            );
+            let annotation = variant_name.to_string();
+                    match variant.fields{
+                        Fields::Named(fields_named) => {
+                            let mut args2: Punctuated<Pat, Token![,]> = attrs2.into_iter().skip(1).collect(); //TODO skip duplicate
+                            if !args2.empty_or_trailing(){
+                                args2.push_punct(<syn::Token![,]>::default());
+                            }
+                            let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+                                #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case, irrefutable_let_patterns)]
+                                #[prusti::spec_only]
+                                #[prusti::counterexample_print  = #annotation]
+                                #[prusti::spec_id = #spec_id_str]
+                                fn #item_name(self) {
+                                    if let #enum_name::#variant_name{#args2 ..} = self{
+                                        #first_arg
+                                        #args
+                                    }
+                                }
+                            };
+                            spec_items.push(spec_item);
+                        },
+                        Fields::Unnamed(fields_unnamed) => {
+                            let args2: Punctuated<Pat, Token![,]> = attrs2.into_iter().skip(1).collect(); //TODO skip duplicate
+                            
+                            //check if all args are possible
+                            for arg in &args2{
+                                if let Pat::Lit(PatLit { attrs: _, expr: box Expr::Lit(ExprLit { attrs: _, lit: Lit::Int(lit_int)})}) = arg{
+                                    let value:u32 = lit_int.base10_parse().ok().unwrap(); //TODO find a better solution //can only be positive //why does handle_resutl not work
+                                    error!("print value: {}", value);
+                                    if value >= fields_unnamed.unnamed.len() as u32 {
+                                        return syn::Error::new(
+                                            arg.span(),
+                                            format!("variant `{}::{}` does not have a field named {}", item_enum.ident, variant.ident, value),
+                                        )
+                                        .to_compile_error().into_token_stream();
+                                    }
+                                } else {
+                                    return syn::Error::new(
+                                        arg.span(),
+                                        format!("variant `{}::{}` needs integer as arguments", item_enum.ident, variant.ident),
+                                    )
+                                    .to_compile_error().into_token_stream();
+                                }
+                            }
+                            
+                            let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+                                #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case, irrefutable_let_patterns)]
+                                #[prusti::spec_only]
+                                #[prusti::counterexample_print = #annotation]
+                                #[prusti::spec_id = #spec_id_str]
+                                fn #item_name(self) {
+                                    if let #enum_name::#variant_name(..) = self{
+                                        #first_arg
+                                        #args
+                                    }
+                                }
+                            };
+                            spec_items.push(spec_item);
+                        },
+                        Fields::Unit => {
+                            if length == 1{
+                                let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+                                    #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case, irrefutable_let_patterns)]
+                                    #[prusti::spec_only]
+                                    #[prusti::counterexample_print = #annotation]
+                                    #[prusti::spec_id = #spec_id_str]
+                                    fn #item_name(self) {
+                                        if let #enum_name::#variant_name = self{
+                                            #first_arg
+                                        }
+                                    }
+                                };
+                                spec_items.push(spec_item);
+                            } else {
+                                return syn::Error::new(
+                                    attr.span(),
+                                    format!("print_counterexample expects exactly one argument for variant `{}::{}`", item_enum.ident, variant.ident),
+                                )
+                                .to_compile_error().into_token_stream();
+                            }
+                        },
+                    }
+                } else {
+                    error!("no custom print found");
+                }
+            }
+            error!("print new function: {:?}", spec_items);
+
+            let mut spec_item = TokenStream::new(); //TODO change this
+            for x in spec_items{
+                x.to_tokens(&mut spec_item);
+            }
+
+            
+            let item_span = item_enum2.span();
+            let generics = &item_enum.generics;
+            let generics_idents = generics
+                .params
+                .iter()
+                .filter_map(|generic_param| match generic_param {
+                    syn::GenericParam::Type(type_param) => Some(type_param.ident.clone()),
+                    _ => None,
+                })
+                .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
+            // TODO: similarly to extern_specs, don't generate an actual impl
+            let typ = item_enum.ident;
+            let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
+                impl #generics #typ <#generics_idents> {
+                    #spec_item
+                }
+            };
+            let tmp = quote_spanned! { item_span =>
+                #item_enum2
+                #item_impl
+            };
+            error!("print impl: {}", tmp);
+            tmp
+
+
+
+            /*
+            impl Z {
+                #[prusti::spec_only]
+                fn print_item_f(self){
+                    match self{
+                        Z::E{h, i, ..} => {"text {} {}"; h; i;}, //namedfield
+                        Z::F(..) => {"text {} {}"; 1; 0;}, //check is numeric //unnamed field
+                        _ => {"text";}, //unit field
+                    };
+                }
+            }
+            
+            
+            */
+            
+            /*
+
+            
+            let implementations = variants.iter().map(|variant| {
+                
+                if let Some(print) = variant.attrs.iter().find( |attr| format!("{}", attr.path.get_ident()) == "print_counterexample");
+                let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
+                let attrs = handle_result!(parser.parse(print.clone().into()));
+                let length = attrs.len();
+                    
+                
+                
+                
+                
+                variant.to_token_stream()}).collect::<Vec<TokenStream>>();
+            error!("print implementations: {:?}", implementations);
+            //let parsed = handle_result!(syn::parse2(implementations.into_iter().next().unwrap())); //.map(| imple| handle_result!(syn::parse2(imple)));
+            //error!("print items: {:?}", parsed);*/
+        }
+        
+        
         _ => syn::Error::new(
             attr.span(),
-            "Only structs can be attributed with a custom counterexample print",
+            "Only structs and enums can be attributed with a custom counterexample print",
         )
         .to_compile_error(),
     };

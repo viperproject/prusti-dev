@@ -1,4 +1,5 @@
 use rustc_hash::{FxHashMap};
+use rustc_span::source_map::Spanned;
 use super::{VarMappingInterface, VarMapping};
 //use super::DiscriminantsStateInterface;
 use crate::encoder::errors::PositionManager;
@@ -20,6 +21,16 @@ use rustc_errors::MultiSpan;
 use rustc_middle::ty::{self, Ty, TyCtxt};
 use std::iter;
 use rustc_span::symbol::Ident;
+use rustc_hir::def_id::{DefId, LocalDefId};
+use rustc_hir::ExprKind;
+use rustc_hir::StmtKind;
+use rustc_hir::Lit;
+use rustc_hir::Expr;
+use rustc_hir::Block;
+use rustc_ast::LitKind;
+use rustc_hir::QPath;
+use rustc_hir::Path;
+
 
 
 pub fn backtranslate(
@@ -34,7 +45,7 @@ pub fn backtranslate(
     let label_markers = translator.get_label_markers();
     debug!("label_markers: {:?}", &label_markers);
 
-    let counterexample_entry_vec = translator.process_entries(position_manager, &label_markers, encoder);
+    let counterexample_entry_vec = translator.process_entries(position_manager, &label_markers);
 
     debug!("found counterexample entry: {:?}", counterexample_entry_vec);
     //TODO sort counterexample entries by span for testing
@@ -48,10 +59,11 @@ struct TranslatedDomains{
     cached_domains: FxHashMap<(String, String), Entry>,
 }
 
-pub struct CounterexampleTranslator<'ce, 'tcx> {
+pub struct CounterexampleTranslator<'ce, 'tcx, 'v> {
     //mir: mir::Body<'tcx>, //not used
     //def_id: ProcedureDefId,
     //lowerer: Lowerer, //for name encodings
+    encoder: &'ce Encoder<'v, 'tcx>,
     silicon_counterexample: &'ce SiliconCounterexample,
     tcx: TyCtxt<'tcx>, 
     //is_pure: bool,  //not used
@@ -62,9 +74,9 @@ pub struct CounterexampleTranslator<'ce, 'tcx> {
     
 }
 
-impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
+impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
     pub fn new(
-        encoder: &Encoder<'_, 'tcx>,
+        encoder: &'ce Encoder<'v, 'tcx>,
         def_id: ProcedureDefId,
         silicon_counterexample: &'ce SiliconCounterexample,
     ) -> Self {
@@ -75,6 +87,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             //mir,
             //def_id,
             //lowerer: Lowerer::new(encoder),
+            encoder: encoder,
             silicon_counterexample,
             tcx: encoder.env().tcx(),
             //is_pure: false, // No verified functions are pure. encoder.is_pure(def_id),
@@ -120,7 +133,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         snapshot_var_vec
     }
 
-    fn process_entries(&self, position_manager: &PositionManager, label_markers: &FxHashMap<String, bool>, encoder: &Encoder) -> Vec< CounterexampleEntry> {
+    fn process_entries(&self, position_manager: &PositionManager, label_markers: &FxHashMap<String, bool>) -> Vec< CounterexampleEntry> {
         let mut translated_domains = TranslatedDomains::default();
         let mut entries = vec![];
 
@@ -145,26 +158,6 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
             debug!("trace: {:?}", &trace);
             let history = self.process_entry(&trace, typ, &mut translated_domains);
-
-            //let hir = self.tcx.hir();
-            //let hir_id = Hir::Ty::From
-
-            match typ.kind(){
-                ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() || adt_def.is_enum() => {
-                    if let Some(local_id) = encoder.get_counterexample_print(adt_def.did()){
-                    debug!("Counterexample print found: {:?}", &local_id);
-                    let hir_id = self.tcx.hir().local_def_id_to_hir_id(local_id.counterexample_print); //TODO deal with multiple macros
-                    let body = self.tcx.hir().body_owned_by(hir_id);
-                    //let node = self.tcx.hir().find_by_def_id(local_id.counterexample_print);
-                    debug!("print node0: {:?}", self.tcx.hir().body(body).value);
-                   /* debug!("print node1: {:?}", self.tcx.hir().body_param_names(body).next());
-                    debug!("print node2: {:?}", self.tcx.hir().body_param_names(body).next());
-                    debug!("print node3: {:?}", self.tcx.hir().body_param_names(body).next());*/
-                    }
-                },
-                _ => debug!("skip"),
-            }
-            
             
             entries.push( CounterexampleEntry::new(Some(rust_name), history))
         } 
@@ -191,6 +184,51 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         }        
         entries
     }
+
+    fn custom_print(&self, prusti_counterexample_print: Vec<(Option<String>, LocalDefId)>, variant_option: Option<String>) -> Option<Vec<String>>{
+        let def_id_option = if matches!(Option::<String>::None, variant_option) {
+            debug!("custom print for struct");
+            prusti_counterexample_print.first()
+        } else {
+            debug!("custom print for enum");
+            prusti_counterexample_print.iter().find(|x| x.0 == variant_option)
+        };
+        
+        if let Some(def_id) = def_id_option{
+            let hir_id = self.tcx.hir().local_def_id_to_hir_id(def_id.1);
+            debug!("Counterexample print found: {:?}", hir_id);
+            let expr = &self.tcx.hir().body(self.tcx.hir().body_owned_by(hir_id)).value;
+            debug!("print expr: {:?}", expr);
+            if let ExprKind::Block(Block{ expr: Some(Expr{kind: ExprKind::If(_, expr, _), ..}), ..}, _) = expr.kind{
+                if let ExprKind::Block(block, _) = expr.kind{
+                debug!("print if expr: {:?}", expr);
+                    let stmts = block.stmts;
+                    debug!("print stmts: {:?}", stmts);
+                    let args = stmts.iter().filter_map(|stmt | {
+                        debug!("print stmt: {:?}", stmt);
+                        match stmt.kind{
+                            StmtKind::Semi(Expr{kind: ExprKind::Lit(Spanned {node: LitKind::Str(symbol, _), ..} ), ..}) => Some(symbol.to_ident_string()), //first arg
+                            StmtKind::Semi(Expr{kind: ExprKind::Lit(Spanned {node: LitKind::Int(int, _), ..} ), ..}) => Some(int.to_string()), //unnamed fields
+                            StmtKind::Semi(Expr{kind: ExprKind::Path(QPath::Resolved(_, Path{segments, ..})), ..}) => { //named fields
+                                if let Some(path_segment) = segments.first() {
+                                    Some(path_segment.ident.name.to_ident_string())
+                                } else {
+                                    None
+                                }
+                            },
+
+                            _ => None
+                        }
+                    }).collect::<Vec<String>>();
+                    debug!("print translated args: {:?}", args);
+                    return Some(args);
+                }
+            }
+        }
+        None
+    }
+
+
     fn translate_snapshot_entry(&self,
         /*typ: Ty<'tcx>,
         snapshot_var: Option<&ModelEntry>,
@@ -226,7 +264,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 Entry::Ref(box self.extract_field_value(&sil_fn_name, Some(typ.clone()), model_entry, sil_domain, translated_domains, default))
             },
            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Tuple(subst))) => {
-                debug!("typ is struct");
+                debug!("typ is tuple");
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 debug!("silicon domain: {:?}", sil_domain);
                 let len = subst.len();
@@ -264,9 +302,11 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     translated_domains,
                     default, 
                 );
+                let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, None));
                 Entry::Struct {
                     name: struct_name,
                     field_entries,
+                    custom_print_option,
                 }
             },
             (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_enum() => {
@@ -304,10 +344,13 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                                     debug!("new Model entry: {:?}", &domain_entry);
                                     let field_entries = self.translate_snapshot_adt_fields(&variant, domain_entry.as_ref(), subst, translated_domains, default);
                                     debug!("list of fields: {:?}", &field_entries);
+                                    let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, Some(variant_name.clone())));
+                                    debug!("custom print option: {:?}", custom_print_option);
                                     return Entry::Enum {
                                         super_name,
                                         name: variant_name,
                                         field_entries,
+                                        custom_print_option,
                                     };
                                 }
                             }
@@ -321,6 +364,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     super_name: format!("{:?}", adt_def),
                     name: "?".to_string(),
                     field_entries: vec![],
+                    custom_print_option: None,
                 }
             },
             (Some(ModelEntry::DomainValue(domain_name, _)), _) => { //snapshot typ for primitive typ

@@ -132,7 +132,7 @@ mod private {
     /// which are active only when these bounds are satisfied for a call.
     pub use prusti_contracts_internal::ghost_constraint;
 
-    ///A macro to custamize how an ADT should be printed in a counterexample
+    ///A macro to custamize how a struct or enum should be printed in a counterexample
     pub use prusti_contracts_internal::print_counterexample;
 
     pub fn prusti_set_union_active_field<T>(_arg: T) {
