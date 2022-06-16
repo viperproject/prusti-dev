@@ -109,6 +109,10 @@ def get_var_or(name, default):
     else:
         return default
 
+def read_json_file(filename):
+    with open(filename) as f:
+        return json.load(f)
+
 def get_linux_env():
     """Get environment variables for Linux."""
     java_home = get_var_or('JAVA_HOME', default_linux_java_loc())
@@ -376,10 +380,32 @@ def ide(args):
     """Start VS Code with the given arguments."""
     run_command(['code'] + args)
 
+def compare_benchmarks(args):
+    def format_runtime(seconds):
+        return f"{abs(seconds):.3f}s"
+    orig_file = read_json_file("benchmark-output/benchmark1645614279.600768.json")
+    new_file = read_json_file("benchmark-output/benchmark1655253113.6554124.json")
+    total_diff = 0
+    for key in orig_file:
+        orig_runtime = orig_file[key][0]
+        new_runtime = new_file[key][0]
+        diff = orig_runtime - new_runtime
+        label = key.removeprefix("prusti-tests/tests/verify/pass/")
+        if diff > 0:
+            diff_string = f"Decreased by {diff:.3f}s"
+        else:
+            diff_string = f"Increased by {abs(diff):.3f}s"
+        print(f"{label:40}: {format_runtime(orig_runtime):>7} -> {format_runtime(new_runtime):>8} ({diff_string})")
+        total_diff += diff
+    if total_diff > 0:
+        print(f"\nTotal runtime decreased by {total_diff:.3f}s")
+    else:
+        print(f"\nTotal runtime increased by {abs(total_diff):.3f}s")
+
 def run_benchmarks(args):
     """Run the benchmarks and report the time in a json file"""
     warmup_iterations = 6
-    bench_iterations = 10
+    bench_iterations = 3
     warmup_path = "prusti-tests/tests/verify/pass/quick/fibonacci.rs"
     prusti_server_exe = get_prusti_server_path_for_benchmark()
     server_port = "12345"
@@ -391,6 +417,7 @@ def run_benchmarks(args):
 
     env = get_env()
     env['PRUSTI_CHECK_OVERFLOWS'] = 'false' # FIXME: This should not be needed.
+    env['PRUSTI_ENABLE_CACHE'] = 'false'
     report("Starting prusti-server ({})", prusti_server_exe)
     server_process = subprocess.Popen([prusti_server_exe,"--port",server_port], env=env)
     time.sleep(2)
@@ -671,6 +698,9 @@ def main(argv):
             break
         elif arg == 'run-benchmarks':
             run_benchmarks(argv[i+1:])
+            break
+        elif arg == 'compare-benchmarks':
+            compare_benchmarks(argv[i+1:])
             break
         elif arg == 'verify-test':
             verify_test(argv[i+1:], analyze_quantifiers=analyze_quantifiers)
