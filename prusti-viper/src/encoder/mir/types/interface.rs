@@ -133,15 +133,9 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
                 error.set_help("you might want to mark the function as #[trusted]");
                 return Err(error);
             }
-            vir_high::TypeDecl::Unsupported(_) => {
-                return Err(SpannedEncodingError::unsupported(
-                    format!("Cannot get fields on unsupported type {}", type_decl,),
-                    primary_span,
-                ));
-            }
             _ => {
                 return Err(SpannedEncodingError::internal(
-                    format!("Type {:?} has no fields", type_decl,),
+                    format!("{} has no fields", type_decl,),
                     primary_span,
                 ));
             }

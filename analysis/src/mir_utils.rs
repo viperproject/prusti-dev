@@ -17,7 +17,6 @@ use rustc_middle::{
 use rustc_trait_selection::infer::InferCtxtExt;
 use std::mem;
 
-
 #[repr(transparent)]
 #[derive(Clone, Copy, Eq, PartialEq, derive_more::From, Hash)]
 /// A wrapper for `mir::Place` that implements `Ord`.
@@ -78,7 +77,6 @@ impl<'tcx> PlaceImpl<'tcx> for &mir::Place<'tcx> {
     }
 }
 
-
 /// Convert a `location` to a string representing the statement or terminator at that `location`
 pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String {
     let bb_mir = &mir[location.block];
@@ -115,14 +113,16 @@ pub(crate) fn is_prefix(place: Place, potential_prefix: Place) -> bool {
 /// each of the struct's fields `{x.f.g.f, x.f.g.g, x.f.g.h}`. If
 /// `without_field` is not `None`, then omits that field from the final
 /// vector.
-pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::ops::Deref<Target = mir::Place<'tcx>>>
-    (
+pub fn expand_struct_place<
+    'tcx,
+    P: PlaceImpl<'tcx> + std::ops::Deref<Target = mir::Place<'tcx>>,
+>(
     place: P,
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     without_field: Option<usize>,
 ) -> Vec<P::BaseType> {
-    let mut places : Vec<P::BaseType> = Vec::new();
+    let mut places: Vec<P::BaseType> = Vec::new();
     let typ = place.ty(mir, tcx);
     if typ.variant_index.is_some() {
         // Downcast is a no-op.
