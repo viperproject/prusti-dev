@@ -6,10 +6,11 @@
 
 #![allow(dead_code)]
 #![allow(unused_imports)]
+use crate::syntacticExpansion;
 use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
 use rustc_index::vec::IndexVec;
 use rustc_middle::mir::{
-    BasicBlock, BinOp, Constant, Local, Location, NullOp, Place, PlaceElem, UnOp,
+    BasicBlock, BinOp, Constant, Local, Location, NullOp, Place, PlaceElem, Statement, UnOp,
 };
 pub struct MicroMirBody<'tcx> {
     pub body: IndexVec<BasicBlock, MicroMirData<'tcx>>,
@@ -41,6 +42,22 @@ pub struct MicroMirTerminator {
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct TemporaryPlace {
     id: usize,
+}
+
+/// Unlike the real MIR, we will not represent conditional flags as stack places.
+/// This makes the implementation simpler, gives us more freedom for the backend
+/// encoding, and we're modelleing drops ourselves anyways.
+///
+/// TODO: Encode this and analyze it
+#[derive(PartialEq, Eq, Hash, Clone)]
+pub struct ConditionalFlag {
+    id: usize,
+    kind: ConditionalFlagKind,
+}
+
+#[derive(PartialEq, Eq, Hash, Clone)]
+pub enum ConditionalFlagKind {
+    Init,
 }
 
 pub enum MicroMirStatement<'tcx> {
