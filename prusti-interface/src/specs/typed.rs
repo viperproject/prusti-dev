@@ -106,7 +106,7 @@ pub struct LoopSpecification {
 pub struct TypeSpecification {
     pub invariant: SpecificationItem<Vec<LocalDefId>>,
     pub trusted: SpecificationItem<bool>,
-    pub has_model: bool,
+    pub has_model: Option<(String, LocalDefId)>,
     pub counterexample_print: Vec<(Option<String>, LocalDefId)>
 }
 
@@ -115,7 +115,7 @@ impl TypeSpecification {
         TypeSpecification {
             invariant: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
-            has_model: false,
+            has_model: None,
             counterexample_print: vec![],
         }
     }

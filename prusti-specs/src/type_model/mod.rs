@@ -133,7 +133,7 @@ impl ToModelTrait {
             .collect();
 
         let model_path = &model_struct.path;
-
+        
         let to_model_trait_ident = &idents.to_model_trait_ident;
         let item = parse_quote_spanned! {item_struct.span()=>
             #[allow(non_camel_case_types)]
@@ -187,12 +187,14 @@ fn create_model_impl(
 
     let to_model_trait_path = &to_model_trait.path;
     let model_struct_path = &model_struct.path;
+    let to_model_trait_str = &to_model_trait.item.ident.to_string();
 
     Ok(parse_quote_spanned! {item_struct.span()=>
         #[prusti::type_models_to_model_impl]
         impl<#(#generic_params),*> #to_model_trait_path for #impl_path {
             #[trusted]
             #[pure]
+            #[prusti::type_models_to_model_fn = #to_model_trait_str]
             fn model(&self) -> #model_struct_path {
                 unimplemented!("Models can only be used in specifications")
             }
