@@ -14,6 +14,7 @@ use rustc_middle::{
     mir,
     ty::{self, TyCtxt},
 };
+use analysis::mir_utils::expand_struct_place;
 use prusti_utils::force_matches;
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
@@ -33,72 +34,6 @@ pub fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
             .zip(potential_prefix.projection.iter())
             .all(|(e1, e2)| e1 == e2)
     }
-}
-
-/// Expands a place `x.f.g` of type struct into a vector of places for
-/// each of the struct's fields `{x.f.g.f, x.f.g.g, x.f.g.h}`. If
-/// `without_field` is not `None`, then omits that field from the final
-/// vector.
-pub fn expand_struct_place<'tcx>(
-    place: &mir::Place<'tcx>,
-    mir: &mir::Body<'tcx>,
-    tcx: TyCtxt<'tcx>,
-    without_field: Option<usize>,
-) -> Vec<mir::Place<'tcx>> {
-    let mut places = Vec::new();
-    let typ = place.ty(mir, tcx);
-    if typ.variant_index.is_some() {
-        // Downcast is a no-op.
-    } else {
-        match typ.ty.kind() {
-            ty::Adt(def, substs) => {
-                assert!(
-                    def.is_struct(),
-                    "Only structs can be expanded. Got def={:?}.",
-                    def
-                );
-                let variant = def.non_enum_variant();
-                for (index, field_def) in variant.fields.iter().enumerate() {
-                    if Some(index) != without_field {
-                        let field = mir::Field::from_usize(index);
-                        let field_place =
-                            tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
-                        places.push(field_place);
-                    }
-                }
-            }
-            ty::Tuple(slice) => {
-                for (index, ty) in slice.iter().enumerate() {
-                    if Some(index) != without_field {
-                        let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, ty);
-                        places.push(field_place);
-                    }
-                }
-            }
-            ty::Ref(_region, _ty, _) => match without_field {
-                Some(without_field) => {
-                    assert_eq!(without_field, 0, "References have only a single “field”.");
-                }
-                None => {
-                    places.push(tcx.mk_place_deref(*place));
-                }
-            },
-            ty::Closure(_, substs) => {
-                for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
-                    if Some(index) != without_field {
-                        let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, subst_ty);
-                        places.push(field_place);
-                    }
-                }
-            }
-            ref ty => {
-                unimplemented!("ty={:?}", ty);
-            }
-        }
-    }
-    places
 }
 
 /// Expand `current_place` one level down by following the `guide_place`.

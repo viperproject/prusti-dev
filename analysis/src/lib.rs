@@ -22,7 +22,7 @@ extern crate serde;
 pub mod abstract_interpretation;
 mod analysis_error;
 pub mod domains;
-mod mir_utils;
+pub mod mir_utils;
 mod pointwise_state;
 
 pub use analysis_error::AnalysisError;
