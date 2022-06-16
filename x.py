@@ -517,6 +517,7 @@ def verify_test(args, analyze_quantifiers=False):
         env['PRUSTI_CHECK_OVERFLOWS'] = 'false'
     report("env: PRUSTI_CHECK_OVERFLOWS={}", env['PRUSTI_CHECK_OVERFLOWS'])
     os.makedirs('log/config', exist_ok=True)
+    env['PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT'] = 'true'
     env['PRUSTI_RUSTC_LOG_ARGS'] = 'log/config/prusti-rustc-args'
     env['PRUSTI_RUSTC_LOG_ENV'] = 'log/config/prusti-rustc-env'
     def verify_test_on_exit():
