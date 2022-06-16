@@ -1,11 +1,12 @@
 use std::fmt;
 use rustc_errors::MultiSpan;
 use prusti_interface::PrustiError;
+use rustc_hir::def_id::{DefId, LocalDefId};
+use log::{debug};
 
 /// Counterexample information for a single variable.
 #[derive(Debug)]
 pub struct CounterexampleEntry {
-    //span: Span,
     /// Name of local variable or None for the result.
     name: Option<String>,
     /// history of all Variables with Span
@@ -87,6 +88,7 @@ pub enum Entry {
     Struct {
         name: String,
         field_entries: Vec<(String, Entry)>,
+        custom_print_option: Option<Vec<String>>,
     },
     Enum {
         super_name: String,
@@ -94,6 +96,7 @@ pub enum Entry {
         field_entries: Vec<(String, Entry)>,
         //note: if fields are not named, their order is important!
         //that is why no FxHashMap is used
+        custom_print_option: Option<Vec<String>>,
     },
     Tuple(Vec<Entry>),
     Unknown,
@@ -130,29 +133,64 @@ impl fmt::Debug for Entry {
             }
             Entry::Ref(el) => write!(f, "ref({:#?})", el),
             Entry::Box(el) => write!(f, "box({:#?})", el),
-            Entry::Enum { super_name, name, field_entries } => {
-                let named_fields = !field_entries.is_empty() && field_entries[0].0.parse::<usize>().is_err();
-                let enum_name = format!("{}::{}", super_name, name);
-                if named_fields {
-                    let mut f1 = f.debug_struct(&enum_name);
+            Entry::Enum { super_name, name, field_entries, custom_print_option} => {
+                if let Some(custom_print) = custom_print_option {
+                    let mut custom_print_iter = custom_print.iter();
+                    let text = custom_print_iter.next().unwrap(); //safe because custom_print has at least one element
+                    let mut text_iter = text.split("{}");
+                    debug!("text iter: {:?}", text_iter.clone().collect::<Vec<&str>>());
+                    let mut output = text_iter.next().unwrap().to_string(); //safe because split has at least one element
+                    while let Some(next) = text_iter.next(){
+                        let fieldname = custom_print_iter.next().unwrap(); //safe because of encoding (checked by compiler)
+                        debug!("fieldname: {}", fieldname);
+                        let field_entry = &field_entries.iter().find(|(name, _) | fieldname == name).unwrap().1; //safe because of encoding (checked by compiler)
+                        debug!("field_entry: {:?}", field_entry);
+                        output.push_str(&format!("{:#?}", field_entry));
+                        output.push_str(next);
+                    }
+                    write!(f, "{}", output)
+                } else {
+                    let named_fields = !field_entries.is_empty() && field_entries[0].0.parse::<usize>().is_err();
+                    let enum_name = format!("{}::{}", super_name, name);
+                    if named_fields {
+                        let mut f1 = f.debug_struct(&enum_name);
+                        for (fieldname, entry) in field_entries {
+                            f1.field(fieldname, entry);
+                        }
+                        f1.finish()
+                    } else {
+                        let mut f1 = f.debug_tuple(&enum_name);
+                        for (_, entry) in field_entries {
+                            f1.field(entry);
+                        }
+                        f1.finish()
+                    }
+                }
+            }
+            Entry::Struct { name, field_entries , custom_print_option} => {
+                //TODO Catch an error, inform the user and print the normal counterexample
+                if let Some(custom_print) = custom_print_option {
+                    let mut custom_print_iter = custom_print.iter();
+                    let text = custom_print_iter.next().unwrap(); //safe because custom_print has at least one element
+                    let mut text_iter = text.split("{}");
+                    debug!("text iter: {:?}", text_iter.clone().collect::<Vec<&str>>());
+                    let mut output = text_iter.next().unwrap().to_string(); //safe because split has at least one element
+                    while let Some(next) = text_iter.next(){
+                        let fieldname = custom_print_iter.next().unwrap(); //safe because of encoding (checked by compiler)
+                        debug!("fieldname: {}", fieldname);
+                        let field_entry = &field_entries.iter().find(|(name, _) | fieldname == name).unwrap().1; //safe because of encoding (checked by compiler)
+                        debug!("field_entry: {:?}", field_entry);
+                        output.push_str(&format!("{:#?}", field_entry));
+                        output.push_str(next);
+                    }
+                    write!(f, "{}", output)
+                } else {
+                    let mut f1 = f.debug_struct(name);
                     for (fieldname, entry) in field_entries {
                         f1.field(fieldname, entry);
                     }
                     f1.finish()
-                } else {
-                    let mut f1 = f.debug_tuple(&enum_name);
-                    for (_, entry) in field_entries {
-                        f1.field(entry);
-                    }
-                    f1.finish()
-                }
-            }
-            Entry::Struct { name, field_entries } => {
-                let mut f1 = f.debug_struct(name);
-                for (fieldname, entry) in field_entries {
-                    f1.field(fieldname, entry);
-                }
-                f1.finish()
+                }  
             }
             Entry::Tuple(fields) => {
                 if fields.is_empty() {

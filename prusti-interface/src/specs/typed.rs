@@ -19,7 +19,6 @@ pub struct DefSpecificationMap {
     pub type_specs: HashMap<DefId, TypeSpecification>,
     pub prusti_assertions: HashMap<DefId, PrustiAssertion>,
     pub prusti_assumptions: HashMap<DefId, PrustiAssumption>,
-    pub prusti_counterexample_print: HashMap<DefId, PrustiCounterexamplePrint>,
 }
 
 impl DefSpecificationMap {
@@ -45,10 +44,6 @@ impl DefSpecificationMap {
 
     pub fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         self.prusti_assumptions.get(def_id)
-    }
-
-    pub fn get_counterexample_print(&self, def_id: &DefId) -> Option<&PrustiCounterexamplePrint>{
-        self.prusti_counterexample_print.get(def_id)
     }
 }
 
@@ -111,6 +106,8 @@ pub struct LoopSpecification {
 pub struct TypeSpecification {
     pub invariant: SpecificationItem<Vec<LocalDefId>>,
     pub trusted: SpecificationItem<bool>,
+    pub has_model: bool,
+    pub counterexample_print: Vec<(Option<String>, LocalDefId)>
 }
 
 impl TypeSpecification {
@@ -118,6 +115,8 @@ impl TypeSpecification {
         TypeSpecification {
             invariant: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
+            has_model: false,
+            counterexample_print: vec![],
         }
     }
 }
@@ -130,11 +129,6 @@ pub struct PrustiAssertion {
 #[derive(Debug, Clone)]
 pub struct PrustiAssumption {
     pub assumption: LocalDefId,
-}
-
-#[derive(Debug, Clone)]
-pub struct PrustiCounterexamplePrint {
-    pub counterexample_print: LocalDefId,
 }
 
 /// The base container to store a contract of a procedure.

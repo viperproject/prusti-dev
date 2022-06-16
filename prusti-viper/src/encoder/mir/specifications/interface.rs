@@ -121,7 +121,6 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// the method declaration.
     fn get_spec_span(&self, def_id: DefId) -> Span;
 
-    fn get_counterexample_print(&self, def_id: DefId)-> Option<typed::PrustiCounterexamplePrint>;
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -256,14 +255,5 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .get_and_refine_proc_spec(self.env(), query)
             .and_then(|spec| spec.span)
             .unwrap_or_else(|| self.env().get_def_span(def_id))
-    }
-
-    fn get_counterexample_print(&self, def_id: DefId) -> Option<typed::PrustiCounterexamplePrint> {
-        info!("get counterexample print");
-        self.specifications_state
-        .specs
-        .borrow()
-        .get_print_counterexample(&def_id)
-        .cloned()
     }
 }
