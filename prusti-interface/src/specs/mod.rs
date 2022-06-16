@@ -3,12 +3,13 @@ use rustc_errors::MultiSpan;
 use rustc_hir::intravisit;
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::Span;
+use rustc_hir::FnRetTy;
 
 use crate::{
     environment::Environment,
     utils::{
         has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, read_prusti_attr,
-        read_prusti_attrs,
+        read_prusti_attrs, has_to_model_fn_attr
     },
     PrustiError,
 };
@@ -40,7 +41,7 @@ struct ProcedureSpecRefs {
 struct TypeSpecRefs {
     invariants: Vec<LocalDefId>,
     trusted: bool,
-    has_model: bool,
+    has_model: Option<(String, LocalDefId)>,
     countexample_print: Vec<(Option<String>, LocalDefId)>,
 }
 
@@ -212,7 +213,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 typed::TypeSpecification {
                     invariant: SpecificationItem::Inherent(refs.invariants.clone()),
                     trusted: SpecificationItem::Inherent(refs.trusted),
-                    has_model: refs.has_model,
+                    has_model: refs.has_model.clone(),
                     counterexample_print: refs.countexample_print.clone(),
                 },
             );
@@ -381,8 +382,6 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                     .trusted = true;
             }
 
-
-
             //collect counterexamples type flag
             if has_prusti_attr(attrs, "counterexample_print"){
                 let self_id = fn_decl.inputs[0].hir_id;
@@ -425,6 +424,27 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
                 self.procedure_specs.insert(local_id, procedure_spec_ref);
             }
+
+            // Collect model type flag
+            if  has_to_model_fn_attr(attrs){
+                info!("model found");
+                if let FnRetTy::Return(ty) = fn_decl.output{
+                    if let Some(node) = self.tcx.hir().find(ty.hir_id){
+                        if let Some(model_ty_id) = get_type_id_from_ty_node(node).and_then(|x| x.as_local()){
+                            if let Some(attr) = read_prusti_attr("type_models_to_model_fn", attrs){
+                                let self_id = fn_decl.inputs[0].hir_id;
+                                let hir = self.tcx.hir();
+                                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                                self.type_specs
+                                .entry(type_id.as_local().unwrap())
+                                .or_default()
+                                .has_model = Some((attr, model_ty_id));
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -456,6 +476,17 @@ fn get_type_id_from_impl_node(node: rustc_hir::Node) -> Option<DefId> {
                 if let rustc_hir::def::Res::Def(_, def_id) = path.res {
                     return Some(def_id);
                 }
+            }
+        }
+    }
+    None
+}
+
+fn get_type_id_from_ty_node(node: rustc_hir::Node) -> Option<DefId> {
+    if let rustc_hir::Node::Ty(ty) = node {
+        if let rustc_hir::TyKind::Path(rustc_hir::QPath::Resolved(_, path)) = ty.kind{
+            if let rustc_hir::def::Res::Def(_, def_id) = path.res {
+                return Some(def_id);
             }
         }
     }

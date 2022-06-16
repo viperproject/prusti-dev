@@ -228,7 +228,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         None
     }
 
-
+    //TODO remove default
     fn translate_snapshot_entry(&self,
         /*typ: Ty<'tcx>,
         snapshot_var: Option<&ModelEntry>,
@@ -288,25 +288,40 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 let entry = self.translate_silicon_entry_with_snapshot(new_typ, snapshot_var, encoded_typ_option, translated_domains).unwrap_or_default();
                 Entry::Box(box entry)
             } ,*/
-            (Some(ModelEntry::DomainValue(..)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
+            (Some(ModelEntry::DomainValue(domain_name, ..)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
                 debug!("typ is struct");
+                debug!("typ: {:?}", typ);
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
                 //let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name);
                 //debug!("Domain entry: {:?}", sil_domain);
                 let variant = adt_def.variants().iter().next().unwrap();
                 let struct_name = variant.ident(self.tcx).name.to_ident_string();
-                let field_entries = self.translate_snapshot_adt_fields(
-                    variant,
-                    model_entry,
-                    subst,
-                    translated_domains,
-                    default, 
-                );
-                let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, None));
-                Entry::Struct {
-                    name: struct_name,
-                    field_entries,
-                    custom_print_option,
+                //check if struct is a model
+                if let Some((to_model, model_id), ) = self.encoder.get_type_specs(adt_def.did()).and_then(|p| p.has_model){
+                    let entry = self.extract_model(model_entry, domain_name, translated_domains, default, to_model, model_id);
+                    if let Entry::Struct{field_entries, custom_print_option,..} = entry{
+                        Entry::Struct{
+                            name: format!("{}_model",struct_name),
+                            field_entries,
+                            custom_print_option,
+                        }
+                    }  else {
+                        entry
+                    }
+                } else {
+                    let field_entries = self.translate_snapshot_adt_fields(
+                        variant,
+                        model_entry,
+                        subst,
+                        translated_domains,
+                        default, 
+                    );
+                    let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, None));
+                    Entry::Struct {
+                        name: struct_name,
+                        field_entries,
+                        custom_print_option,
+                    }
                 }
             },
             (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_enum() => {
@@ -443,6 +458,42 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         };
         debug!("field value: {:?}", field_value);
         self.translate_snapshot_entry(field_value.as_ref(), field_typ, translated_domains, default)
+    }
+
+    fn extract_model(&self,
+        model_entry: Option<&ModelEntry>,
+        domain_name: &String, 
+        translated_domains: &mut TranslatedDomains,
+        default: bool,
+        to_model: String, 
+        model_id: LocalDefId,
+    )->Entry{
+        debug!("typ has model");
+        debug!("to model name: {:?}", to_model);
+        let domain_name_wo_snap = domain_name.trim_start_matches("Snap");
+        let ref_to_model_domain_name = format!("Snap$ref$Shared{}", domain_name_wo_snap); //might be called Snap$ref$Unique
+        debug!("ref to model name: {}", ref_to_model_domain_name);
+        let ref_to_model_function_name = format!("constructor${}$no_alloc", ref_to_model_domain_name); 
+        debug!("ref to model function name: {}", ref_to_model_function_name);
+        if let Some(sil_domain) = self.silicon_counterexample.domains.entries.get(&ref_to_model_domain_name){
+            let sil_fn_param = vec![model_entry.cloned()];
+            if let Some(ref_to_model_function) = sil_domain.functions.entries.get(&ref_to_model_function_name){
+                debug!("function found");
+                let sil_ref_domain = ref_to_model_function.get_function_value_with_default(&sil_fn_param);
+                let sil_ref_fn_param = vec![sil_ref_domain.clone()];
+                let sil_to_model_fn_name = format!("caller_for$m_{}$$model{}$",to_model, domain_name_wo_snap);
+                debug!("sil to model fn name: {}", sil_to_model_fn_name);
+                if let Some(sil_to_model_fn) = self.silicon_counterexample.functions.entries.get(&sil_to_model_fn_name){
+                    debug!("caller function found");
+                    let sil_model = sil_to_model_fn.get_function_value_with_default(&sil_ref_fn_param);
+                    debug!("model found: {:?}", sil_model);
+                    let model_typ = self.tcx.type_of(model_id);
+                    debug!("typ: {:?}", model_typ);
+                    return self.translate_snapshot_entry(sil_model.as_ref(), Some(model_typ), translated_domains, default);
+                }
+            } 
+        }
+        Entry::Unknown
     }
 }
 
