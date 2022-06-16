@@ -127,12 +127,13 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
         match terminator.kind {
             mir::TerminatorKind::Call {
                 ref destination,
+                target,
                 cleanup,
                 ..
             } => {
-                if let Some((place, bb)) = destination {
+                if let Some(bb) = target {
                     let mut dest_state = self.clone();
-                    if let Some(local) = place.as_local() {
+                    if let Some(local) = destination.as_local() {
                         let location_set = dest_state
                             .reaching_defs
                             .entry(local)
@@ -140,15 +141,15 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
                         location_set.clear();
                         location_set.insert(DefLocation::Assignment(location));
                     }
-                    res_vec.push((*bb, dest_state));
+                    res_vec.push((bb, dest_state));
                 }
 
                 if let Some(bb) = cleanup {
                     let mut cleanup_state = self.clone();
                     // error state -> be conservative & add destination as possible reaching def
                     // while keeping all others
-                    if let Some((place, _)) = destination {
-                        if let Some(local) = place.as_local() {
+                    if target.is_some() {
+                        if let Some(local) = destination.as_local() {
                             let location_set = cleanup_state
                                 .reaching_defs
                                 .entry(local)
@@ -163,7 +164,7 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
                 return Err(AnalysisError::UnsupportedStatement(location));
             }
             _ => {
-                for &bb in terminator.successors() {
+                for bb in terminator.successors() {
                     // no assignment -> no change of state
                     res_vec.push((bb, self.clone()));
                 }

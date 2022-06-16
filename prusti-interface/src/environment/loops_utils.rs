@@ -80,8 +80,8 @@ pub enum PermissionNode<'tcx> {
 }
 
 impl<'tcx> PermissionNode<'tcx> {
-    pub fn get_place(&self) -> &mir::Place<'tcx> {
-        match self {
+    pub fn get_place(&self) -> mir::Place<'tcx> {
+        match *self {
             PermissionNode::OwnedNode { place, .. } => place,
             PermissionNode::BorrowedNode { place, .. } => place,
         }
@@ -108,7 +108,7 @@ impl<'tcx> PermissionNode<'tcx> {
 
     pub fn get_or_create_child(
         &mut self,
-        place: &mir::Place<'tcx>,
+        place: mir::Place<'tcx>,
         kind: PermissionKind,
     ) -> &mut Self {
         match self {
@@ -118,7 +118,7 @@ impl<'tcx> PermissionNode<'tcx> {
                     return &mut children[index];
                 }
                 let child = PermissionNode::OwnedNode {
-                    place: *place,
+                    place,
                     kind,
                     children: Vec::new(),
                 };
@@ -133,7 +133,7 @@ impl<'tcx> PermissionNode<'tcx> {
         }
     }
 
-    pub fn get_child(&self, place: &mir::Place<'tcx>) -> Option<&PermissionNode<'tcx>> {
+    pub fn get_child(&self, place: mir::Place<'tcx>) -> Option<&PermissionNode<'tcx>> {
         match self {
             PermissionNode::OwnedNode { children, .. } => {
                 let index = children.iter().position(|child| child.get_place() == place);
@@ -229,15 +229,15 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
     pub fn new(
         mir: &'a mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-        place: &mir::Place<'tcx>,
-        target_place: &mir::Place<'tcx>,
+        place: mir::Place<'tcx>,
+        target_place: mir::Place<'tcx>,
         target_type: TargetType,
     ) -> Self {
         let place = utils::VecPlace::new(mir, tcx, place);
         let mut place_iter = place.iter().rev();
         let node_permission_kind = target_type.to_permission_kind();
         let mut node = PermissionNode::OwnedNode {
-            place: *place_iter.next().unwrap().get_mir_place(),
+            place: place_iter.next().unwrap().get_mir_place(),
             kind: node_permission_kind,
             children: Vec::new(),
         };
@@ -248,7 +248,7 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
         };
         for component in place_iter {
             node = PermissionNode::OwnedNode {
-                place: *component.get_mir_place(),
+                place: component.get_mir_place(),
                 kind: permission_kind,
                 children: vec![node],
             };
@@ -263,8 +263,8 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
     /// comment for the `new`.
     pub fn add(
         &mut self,
-        place: &mir::Place<'tcx>,
-        _target_place: &mir::Place<'tcx>,
+        place: mir::Place<'tcx>,
+        _target_place: mir::Place<'tcx>,
         target_type: TargetType,
     ) {
         let place = utils::VecPlace::new(self.mir, self.tcx, place);
@@ -302,7 +302,7 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
             current_parent_node.get_or_create_child(component.get_mir_place(), kind);
     }
 
-    pub fn get_root_place(&self) -> &mir::Place {
+    pub fn get_root_place(&self) -> mir::Place<'tcx> {
         self.root.get_place()
     }
 
@@ -319,12 +319,12 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
             for child in node.get_children().iter() {
                 to_visit.push(child);
                 if child.get_permission_kind() == PermissionKind::WriteNodeAndSubtree {
-                    visited.push((PermissionKind::WriteNode, *child.get_place()));
+                    visited.push((PermissionKind::WriteNode, child.get_place()));
                     continue;
                 }
                 match kind {
                     PermissionKind::ReadNode | PermissionKind::WriteNode => {
-                        visited.push((kind, *child.get_place()));
+                        visited.push((kind, child.get_place()));
                     }
                     _ => {
                         unreachable!();
@@ -333,10 +333,10 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
             }
             match kind {
                 PermissionKind::ReadSubtree => {
-                    visited.push((kind, *node.get_place()));
+                    visited.push((kind, node.get_place()));
                 }
                 PermissionKind::WriteNodeAndSubtree | PermissionKind::WriteSubtree => {
-                    visited.push((PermissionKind::WriteSubtree, *node.get_place()));
+                    visited.push((PermissionKind::WriteSubtree, node.get_place()));
                 }
                 PermissionKind::ReadNode | PermissionKind::WriteNode | PermissionKind::None => {}
             }
@@ -345,7 +345,7 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
         visited
     }
 
-    pub fn get_children(&self, parent_place: &mir::Place<'tcx>) -> Vec<&mir::Place<'tcx>> {
+    pub fn get_children(&self, parent_place: mir::Place<'tcx>) -> Vec<mir::Place<'tcx>> {
         trace!("[enter] get_children self={:?} parent_place={:?}", self, parent_place);
         let mut current_parent_node = &self.root;
         let components = utils::VecPlace::new(self.mir, self.tcx, parent_place);
@@ -414,10 +414,10 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
 
         /// Take the intended place to add and compute the set of places
         /// to add that are definitely initialised.
-        fn compute_places_to_add<'a, 'tcx>(
-            place: &'a mir::Place<'tcx>,
-            all_places: &'a PlaceSet<'tcx>,
-        ) -> Vec<(&'a mir::Place<'tcx>, &'a mir::Place<'tcx>)> {
+        fn compute_places_to_add<'tcx>(
+            place: mir::Place<'tcx>,
+            all_places: &PlaceSet<'tcx>,
+        ) -> Vec<(mir::Place<'tcx>, mir::Place<'tcx>)> {
             trace!(
                 "[enter] compute_places_to_add(place={:?}, all_places={:?})",
                 place,
@@ -427,13 +427,13 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
             let mut found_target_prefix = false;
             let mut result = Vec::new();
             for def_init_place in all_places.iter() {
-                if utils::is_prefix(place, def_init_place) {
+                if utils::is_prefix(place, *def_init_place) {
                     assert!(!found_target_prefix && !found_def_init_prefix);
                     result.push((place, place));
                     found_def_init_prefix = true;
-                } else if utils::is_prefix(def_init_place, place) {
+                } else if utils::is_prefix(*def_init_place, place) {
                     assert!(!found_def_init_prefix);
-                    result.push((def_init_place, place));
+                    result.push((*def_init_place, place));
                     found_target_prefix = true;
                 }
             }
@@ -452,17 +452,17 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
         ) {
             for place in paths.iter() {
                 let mut found = false;
-                let places_to_add = compute_places_to_add(place, all_places);
+                let places_to_add = compute_places_to_add(*place, all_places);
                 for tree in trees.iter_mut() {
-                    if utils::is_prefix(place, tree.get_root_place()) {
+                    if utils::is_prefix(*place, tree.get_root_place()) {
                         found = true;
                         for (actual_place, target_place) in places_to_add.iter() {
-                            tree.add(actual_place, target_place, target_type);
+                            tree.add(*actual_place, *target_place, target_type);
                         }
                     }
                 }
                 if !found {
-                    for (actual_place, target_place) in places_to_add.iter() {
+                    for (actual_place, target_place) in places_to_add {
                         let tree = PermissionTree::new(mir, tcx, actual_place, target_place, target_type);
                         trees.push(tree);
                     }
@@ -486,7 +486,7 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
         &self.trees
     }
 
-    pub fn get_children(&self, parent_place: &mir::Place<'tcx>) -> Vec<&mir::Place<'tcx>> {
+    pub fn get_children(&self, parent_place: mir::Place<'tcx>) -> Vec<mir::Place<'tcx>> {
         for tree in &self.trees {
             if utils::is_prefix(parent_place, tree.get_root_place()) {
                 return tree.get_children(parent_place);

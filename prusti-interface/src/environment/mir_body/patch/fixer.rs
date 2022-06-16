@@ -16,7 +16,7 @@ pub(super) fn fix_patch<'tcx>(body: &mir::Body<'tcx>, mut patch: MirPatch<'tcx>)
         }
         if let Some(terminator) = terminator {
             for successor in terminator.successors() {
-                reachable_blocks.insert(*successor);
+                reachable_blocks.insert(successor);
             }
         }
     }
@@ -32,8 +32,8 @@ pub(super) fn fix_patch<'tcx>(body: &mir::Body<'tcx>, mut patch: MirPatch<'tcx>)
             &patch.new_blocks[offset].terminator().kind
         };
         for successor in terminator.successors() {
-            if reachable_blocks.insert(*successor) {
-                queue.push(*successor);
+            if reachable_blocks.insert(successor) {
+                queue.push(successor);
             }
         }
     }
