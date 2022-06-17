@@ -55,6 +55,19 @@ pub struct ConditionalFlag {
     kind: ConditionalFlagKind,
 }
 
+// Approximations we need to compute the MicroMir (Permissions, approximate)
+//
+//      DefinitelyInitialized
+//
+//
+// Annotations we need to compute the MicroMir (Non-permission factors, non-approximate)
+//
+//      Flags for real initilizations / Reassignments (tags)
+//
+//      Real lifetime endings
+//
+//
+
 // Control flow === lifetime flow dependendent ops
 
 // Special edge === wand \

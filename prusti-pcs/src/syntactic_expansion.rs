@@ -139,6 +139,9 @@ fn encode_binop<'tcx>(
 }
 
 /// Appends the encoding which constructs a temporary from an operand to a current MicroMir block.
+/// Returns the mutability it decides the temporary should have... however non-mutable operands
+/// have no use yet.
+/// Eventually they will, for example in the Repeat Rvalue.
 fn encode_operand<'tcx>(
     current: &mut Vec<MicroMirStatement<'tcx>>,
     op: &Operand<'tcx>,

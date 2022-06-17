@@ -21,8 +21,6 @@ use std::iter::once;
 use rustc_data_structures::stable_map::FxHashMap;
 use rustc_middle::mir::{BasicBlock, Place};
 
-use crate::AnalysisError::UnsupportedStatement;
-
 // TODO:
 //
 // Currently, we're using FixpointEngine which only operated on MIR.
