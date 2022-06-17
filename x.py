@@ -13,13 +13,17 @@ import subprocess
 import glob
 import csv
 import time
-import json 
+import json
 import signal
 import shutil
+import traceback
 import datetime
 
 verbose = False
 dry_run = False
+
+JAVA_NOT_FOUND_ERR_MSG = """Could not detect a Java installation.
+If Java is already installed, you can fix this by setting the JAVA_HOME environment variable."""
 
 RUSTFMT_CRATES = [
     'analysis',
@@ -43,6 +47,8 @@ RUSTFMT_CRATES = [
 ]
 
 RUSTFMT_PATHS = [
+    'prusti-common/src/report/mod.rs',
+    'prusti-common/src/utils/mod.rs',
     'prusti-common/src/vir/to_viper.rs',
     'prusti-common/src/vir/low_to_viper/mod.rs',
     'prusti-common/src/vir/optimizations/mod.rs',
@@ -72,6 +78,8 @@ def default_linux_java_loc():
         return '/usr/lib/jvm/default-java'
     elif os.path.exists('/usr/lib/jvm/default'):
         return '/usr/lib/jvm/default'
+    elif os.path.exists('/usr/local/sdkman/candidates/java/current'):
+        return '/usr/local/sdkman/candidates/java/current'
     report("Could not determine default java location.")
 
 
@@ -87,6 +95,13 @@ def error(template, *args, **kwargs):
     sys.exit(1)
 
 
+def ensure(condition, err_msg):
+    """If `condition` is `False`, print `err_msg` along with a stacktrace, and abort"""
+    if not condition:
+        traceback.print_stack()
+        error(err_msg)
+
+
 def get_var_or(name, default):
     """If environment variable `name` set, return its value or `default`."""
     if name in os.environ:
@@ -94,10 +109,10 @@ def get_var_or(name, default):
     else:
         return default
 
-
 def get_linux_env():
     """Get environment variables for Linux."""
     java_home = get_var_or('JAVA_HOME', default_linux_java_loc())
+    ensure(java_home is not None, JAVA_NOT_FOUND_ERR_MSG)
     variables = [
         ('JAVA_HOME', java_home),
         ('RUST_TEST_THREADS', '1'),
@@ -120,6 +135,9 @@ def get_linux_env():
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
     if os.path.exists(z3_exe):
         variables.append(('Z3_EXE', z3_exe))
+    boogie_exe = os.path.abspath(os.path.join(viper_home, '../boogie/Binaries/Boogie'))
+    if os.path.exists(boogie_exe):
+        variables.append(('BOOGIE_EXE', boogie_exe))
     return variables
 
 
@@ -143,6 +161,8 @@ def get_mac_env():
         else:
             variables.append(('LD_LIBRARY_PATH', ld_library_path))
             variables.append(('DYLD_LIBRARY_PATH', ld_library_path))
+    else:
+        error(JAVA_NOT_FOUND_ERR_MSG)
     viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/server'))
     if not os.path.exists(viper_home):
         viper_home = os.path.abspath('viper_tools/backends')
@@ -151,12 +171,16 @@ def get_mac_env():
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
     if os.path.exists(z3_exe):
         variables.append(('Z3_EXE', z3_exe))
+    boogie_exe = os.path.abspath(os.path.join(viper_home, '../boogie/Binaries/Boogie'))
+    if os.path.exists(boogie_exe):
+        variables.append(('BOOGIE_EXE', boogie_exe))
     return variables
 
 
 def get_win_env():
     """Get environment variables for Windows."""
     java_home = get_var_or('JAVA_HOME', None)
+    ensure(java_home is not None, JAVA_NOT_FOUND_ERR_MSG)
     variables = [
         ('JAVA_HOME', java_home),
         ('RUST_TEST_THREADS', '1'),
@@ -182,6 +206,9 @@ def get_win_env():
     z3_exe = os.path.abspath(os.path.join(viper_home, os.path.join('..', 'z3', 'bin', 'z3.exe')))
     if os.path.exists(z3_exe):
         variables.append(('Z3_EXE', z3_exe))
+    boogie_exe = os.path.abspath(os.path.join(viper_home, '..', 'boogie', 'Binaries', 'Boogie'))
+    if os.path.exists(boogie_exe):
+        variables.append(('BOOGIE_EXE', boogie_exe))
     return variables
 
 
@@ -359,7 +386,7 @@ def run_benchmarks(args):
     output_dir = "benchmark-output"
     benchmark_csv = "benchmarked-files.csv"
     results = {}
-    
+
     report_name_suffix = ("-" + args[0]) if len(args) > 0 else ''
 
     env = get_env()
@@ -368,7 +395,7 @@ def run_benchmarks(args):
     server_process = subprocess.Popen([prusti_server_exe,"--port",server_port], env=env)
     time.sleep(2)
     if server_process.poll() != None:
-        raise RuntimeError('Could not start prusti-server') 
+        raise RuntimeError('Could not start prusti-server')
 
     env["PRUSTI_SERVER_ADDRESS"]="localhost:" + server_port
     try:
@@ -376,7 +403,7 @@ def run_benchmarks(args):
         for i in range(warmup_iterations):
             t = measure_prusti_time(warmup_path, env)
             report("warmup run {} took {}", i + 1, t)
-        
+
         report("Finished warmup. Starting benchmark")
         with open(benchmark_csv) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
@@ -397,15 +424,15 @@ def run_benchmarks(args):
     json_result = json.dumps(results, indent = 2)
     timestamp = time.time()
     output_file = os.path.join(output_dir, "benchmark" + report_name_suffix + str(timestamp) + ".json")
-    with open(output_file, "w") as outfile: 
-        outfile.write(json_result) 
-    
+    with open(output_file, "w") as outfile:
+        outfile.write(json_result)
+
     report("Wrote results of benchmark to {}", output_file)
 
 
 def get_prusti_server_path_for_benchmark():
     project_root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
-    
+
     if sys.platform in ("linux", "linux2"):
         return os.path.join(project_root_dir, 'target', 'release', 'prusti-server-driver')
     else:
@@ -414,7 +441,7 @@ def get_prusti_server_path_for_benchmark():
 
 def get_prusti_rustc_path_for_benchmark():
     project_root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
-    
+
     if sys.platform in ("linux", "linux2"):
         return os.path.join(project_root_dir, 'target', 'release', 'prusti-rustc')
     else:
@@ -427,7 +454,7 @@ def measure_prusti_time(input_path, env):
     run_command([prusti_rustc_exe,"--edition=2018", input_path], env=env)
     end_time = time.perf_counter()
     elapsed = end_time - start_time
-    return elapsed  
+    return elapsed
 
 
 
@@ -443,7 +470,7 @@ def select_newest_file(paths):
         error("Could not select the newest file from {}", paths)
 
 
-def verify_test(args):
+def verify_test(args, analyze_quantifiers=False):
     """Runs prusti on the specified files."""
     test = None
     compile_flags = []
@@ -490,12 +517,20 @@ def verify_test(args):
         env['PRUSTI_CHECK_OVERFLOWS'] = 'false'
     report("env: PRUSTI_CHECK_OVERFLOWS={}", env['PRUSTI_CHECK_OVERFLOWS'])
     os.makedirs('log/config', exist_ok=True)
+    env['PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT'] = 'true'
     env['PRUSTI_RUSTC_LOG_ARGS'] = 'log/config/prusti-rustc-args'
     env['PRUSTI_RUSTC_LOG_ENV'] = 'log/config/prusti-rustc-env'
+    def verify_test_on_exit():
+        generate_launch_json(
+            'log/config/prusti-rustc-args',
+            'log/config/prusti-rustc-env'
+        )
+        if analyze_quantifiers:
+            analyze_quantifier_logs(test_path)
     run_command(
         [prusti_path, '--edition=2018', test_path] + compile_flags,
         env,
-        on_exit=lambda : generate_launch_json('log/config/prusti-rustc-args', 'log/config/prusti-rustc-env'),
+        on_exit=verify_test_on_exit,
         report_time=True,
     )
 
@@ -540,6 +575,53 @@ def generate_launch_json(args_file, env_file):
     with open('.vscode/launch.json', 'w') as fp:
         json.dump(content, fp, indent=2)
 
+def analyze_quantifier_logs(test_path):
+    qi_explorer = os.path.join('scripts', 'qi_explorer.py')
+    if not os.path.exists(qi_explorer):
+        shell(
+            'curl https://raw.githubusercontent.com/fpoli/qi-explorer/'
+            'master/script.py -Lo ' + qi_explorer
+        )
+    test_file_name = os.path.basename(test_path)
+    procedures_dir = os.path.join(
+        'log', 'viper_tmp', test_file_name + '*'
+    )
+
+    z3_exe = get_env()['Z3_EXE']
+    for procedure_dir in sorted(glob.glob(procedures_dir)):
+        print("Procedure: ", procedure_dir)
+        smt_files = sorted(glob.glob(
+            os.path.join(procedure_dir, 'logfile-*.smt2')))
+        for smt_file in smt_files:
+            print("  Smt file: ", smt_file)
+            for line in open(smt_file):
+                if line.startswith('; ---------- m_'):
+                    print('    method: ', line[13:-12])
+            log_folder = os.path.splitext(smt_file)[0]
+            os.makedirs(log_folder, exist_ok=True)
+            log_file = os.path.join(log_folder, 'qi.log')
+            csv_file = os.path.join(log_folder, 'qi.csv')
+            svg_file = os.path.join(log_folder, 'qi.svg')
+            command = [
+                z3_exe,
+                'trace=true',
+                'trace_file_name=' + log_file,
+                'smt.qi.profile=true',
+                'smt.qi.profile_freq=10000',
+                smt_file
+            ]
+            with open(os.path.join(log_folder, 'command'), 'w') as fp:
+                fp.write(' '.join(command))
+            result = subprocess.run(command, capture_output=True)
+            with open(os.path.join(log_folder, 'z3.stderr'), 'wb') as fp:
+                fp.write(result.stderr)
+            with open(os.path.join(log_folder, 'z3.stdout'), 'wb') as fp:
+                fp.write(result.stdout)
+            subprocess.run([
+                'python3', qi_explorer, '--input', log_file,
+                '--csv', csv_file, '--svg', svg_file,
+            ])
+
 def clippy_in(cwd):
     """Run cargo clippy in given subproject."""
     run_command(['cargo', 'clippy', '--', '-D', 'warnings'], cwd=cwd)
@@ -570,10 +652,14 @@ def fmt_check_all():
 
 def main(argv):
     global verbose
+    analyze_quantifiers = False
     for i, arg in enumerate(argv):
         if arg.startswith('+'):
             if arg == '+v' or arg == '++verbose':
                 verbose = True
+                continue
+            elif arg == '++analyze-quantifiers':
+                analyze_quantifiers = True
                 continue
             else:
                 error('unknown option: {}', arg)
@@ -587,7 +673,7 @@ def main(argv):
             run_benchmarks(argv[i+1:])
             break
         elif arg == 'verify-test':
-            verify_test(argv[i+1:])
+            verify_test(argv[i+1:], analyze_quantifiers=analyze_quantifiers)
             break
         elif arg == 'exec':
             run_command(argv[i+1:])

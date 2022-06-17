@@ -89,6 +89,12 @@ pub(in super::super::super) trait SnapshotValidityInterface {
         discriminant: vir_low::Expression,
         invariant: vir_low::Expression,
     ) -> SpannedEncodingResult<()>;
+    fn encode_validity_axioms_sequence(
+        &mut self,
+        domain_name: &str,
+        element_domain_name: &str,
+        parameter_type: vir_low::Type,
+    ) -> SpannedEncodingResult<()>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
@@ -356,6 +362,52 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
             body: discriminant_axiom_body,
         };
         self.declare_axiom(domain_name, dicsriminant_axiom)?;
+        Ok(())
+    }
+    fn encode_validity_axioms_sequence(
+        &mut self,
+        domain_name: &str,
+        element_domain_name: &str,
+        parameter_type: vir_low::Type,
+    ) -> SpannedEncodingResult<()> {
+        use vir_low::macros::*;
+
+        let snapshot = vir_low::VariableDecl::new("value", vir_low::Type::seq(parameter_type));
+        let valid_sequence =
+            self.encode_snapshot_valid_call(domain_name, snapshot.clone().into())?;
+
+        var_decls! { index: Int };
+        let element = vir_low::Expression::container_op_no_pos(
+            vir_low::expression::ContainerOpKind::SeqIndex,
+            snapshot.clone().into(),
+            index.clone().into(),
+        );
+        let len = vir_low::Expression::container_op_no_pos(
+            vir_low::expression::ContainerOpKind::SeqLen,
+            snapshot.clone().into(),
+            true.into(),
+        );
+        let valid_element = self.encode_snapshot_valid_call(element_domain_name, element)?;
+        let valid_elements = vir_low::Expression::forall(
+            vec![index.clone()],
+            vec![vir_low::Trigger::new(vec![
+                valid_sequence.clone(),
+                valid_element.clone(),
+            ])],
+            expr! { (([0.into()] <= index) && (index < [len])) ==> [valid_element]},
+        );
+        let axiom_top_down_body = vir_low::Expression::forall(
+            vec![snapshot],
+            vec![vir_low::Trigger::new(vec![valid_sequence.clone()])],
+            expr! {
+                [ valid_sequence ] == [ valid_elements ]
+            },
+        );
+        let axiom_top_down = vir_low::DomainAxiomDecl {
+            name: format!("{}$validity_axiom_top_down", domain_name),
+            body: axiom_top_down_body,
+        };
+        self.declare_axiom(domain_name, axiom_top_down)?;
         Ok(())
     }
 }

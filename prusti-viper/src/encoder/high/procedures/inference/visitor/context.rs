@@ -67,7 +67,18 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
                     (ExpandedPermissionKind::Same, variant_place),
                 ]
             }
-            vir_high::TypeDecl::Array(_) => unimplemented!("ty: {}", ty),
+            vir_high::TypeDecl::Array(decl) => {
+                // TODO: Instead of a concrete index use a wildcard that would match any index.
+                let index = place.get_index(guiding_place);
+                let index_place = vir_high::Expression::builtin_func_app(
+                    vir_high::BuiltinFunc::Index,
+                    vec![decl.element_type.clone()],
+                    vec![place.clone(), index.clone()],
+                    decl.element_type,
+                    place.position(),
+                );
+                vec![(ExpandedPermissionKind::Same, index_place)]
+            }
             vir_high::TypeDecl::Reference(decl) => {
                 let deref_place =
                     vir_high::Expression::deref(place.clone(), decl.target_type, place.position());

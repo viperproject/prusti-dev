@@ -8,8 +8,8 @@ use super::{helpers::compute_discriminant_values, interface::MirTypeEncoderInter
 use crate::encoder::{
     errors::{SpannedEncodingError, SpannedEncodingResult},
     mir::{
-        generics::MirGenericsEncoderInterface, specifications::SpecificationsInterface,
-        types::helpers::compute_discriminant_ranges,
+        constants::ConstantsEncoderInterface, generics::MirGenericsEncoderInterface,
+        specifications::SpecificationsInterface, types::helpers::compute_discriminant_ranges,
     },
     Encoder,
 };
@@ -77,11 +77,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     fn compute_array_len(&self, size: ty::Const<'tcx>) -> u64 {
-        self.encoder
-            .const_eval_intlike(size.val())
-            .unwrap()
-            .to_u64()
-            .unwrap()
+        self.encoder.compute_array_len(size)
     }
 
     pub fn encode_type(self) -> SpannedEncodingResult<vir::Type> {

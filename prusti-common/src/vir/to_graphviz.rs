@@ -4,17 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use ::vir::common::graphviz::escape_html;
 use crate::config;
 use std::io::Write;
 use crate::vir::polymorphic_vir::{self as vir, cfg::{CfgMethod, CfgBlock, Successor}};
-
-fn escape_html<S: ToString>(s: S) -> String {
-    s.to_string()
-        .replace('&', "&amp;")
-        .replace('>', "&gt;")
-        .replace('<', "&lt;")
-        .replace('\n', "<br/>")
-}
 
 pub trait ToGraphViz {
     fn to_graphviz(&self, graph: &mut dyn Write);

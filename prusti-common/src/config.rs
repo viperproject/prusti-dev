@@ -195,7 +195,11 @@ pub fn get_filtered_args() -> Vec<String> {
 
 /// Generate a dump of the settings
 pub fn dump() -> String {
-    format!("{:#?}", SETTINGS.read().unwrap())
+    let settings = SETTINGS.read().unwrap();
+    let map = config::Source::collect(&*settings).unwrap();
+    let mut pairs: Vec<_> = map.iter().map(|(key, value)| format!("{}={:#?}", key, value)).collect();
+    pairs.sort();
+    pairs.join("\n\n")
 }
 
 fn read_optional_setting<T>(name: &'static str) -> Option<T>

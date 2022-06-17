@@ -193,8 +193,8 @@ impl PredicateState {
     pub(super) fn contains_blocked(
         &self,
         place: &vir_high::Expression,
-    ) -> SpannedEncodingResult<Option<vir_high::ty::LifetimeConst>> {
-        Ok(self.mut_borrowed.get(place).cloned())
+    ) -> SpannedEncodingResult<Option<(&vir_high::Expression, &vir_high::ty::LifetimeConst)>> {
+        Ok(self.mut_borrowed.iter().find(|(p, _)| place.has_prefix(p)))
     }
 
     pub(super) fn clear(&mut self) -> SpannedEncodingResult<()> {

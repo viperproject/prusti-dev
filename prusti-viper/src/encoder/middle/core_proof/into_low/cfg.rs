@@ -10,10 +10,9 @@ use crate::encoder::{
         lowerer::{Lowerer, VariablesLowererInterface},
         places::PlacesInterface,
         predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
-        references::ReferencesInterface,
         snapshots::{
-            IntoProcedureBoolExpression, IntoProcedureSnapshot, SnapshotValidityInterface,
-            SnapshotVariablesInterface,
+            IntoProcedureBoolExpression, IntoProcedureFinalSnapshot, IntoProcedureSnapshot,
+            SnapshotValidityInterface, SnapshotVariablesInterface,
         },
     },
 };
@@ -105,26 +104,29 @@ impl IntoLow for vir_mid::Statement {
                 };
                 Ok(vec![low_statement])
             }
+            // FIXME: Instead of having a statement per predicate kind, have two
+            // statements `Fold` and `Unfold` that would take a predicate as an
+            // argument.
             Self::FoldOwned(statement) => {
+                // FIXME: Remove code duplication between fold and unfold.
                 let ty = statement.place.get_type();
                 lowerer.mark_owned_non_aliased_as_unfolded(ty)?;
                 let place = lowerer.encode_expression_as_place(&statement.place)?;
                 let address = lowerer.extract_root_address(&statement.place)?;
                 let snapshot = statement.place.to_procedure_snapshot(lowerer)?;
-                let lifetimes = lowerer
-                    .extract_lifetime_variables(ty)?
-                    .into_iter()
-                    .map(|lifetime| lifetime.into());
+                let arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
                     stmtp! {
                         statement.position =>
-                        fold<low_condition> OwnedNonAliased<ty>([place], [address], [snapshot]; lifetimes)
+                        fold<low_condition> OwnedNonAliased<ty>(
+                            [place], [address], [snapshot]; arguments
+                        )
                     }
                 } else {
                     stmtp! {
                         statement.position =>
-                        fold OwnedNonAliased<ty>([place], [address], [snapshot]; lifetimes)
+                        fold OwnedNonAliased<ty>([place], [address], [snapshot]; arguments)
                     }
                 };
                 Ok(vec![low_statement])
@@ -135,20 +137,125 @@ impl IntoLow for vir_mid::Statement {
                 let place = lowerer.encode_expression_as_place(&statement.place)?;
                 let address = lowerer.extract_root_address(&statement.place)?;
                 let snapshot = statement.place.to_procedure_snapshot(lowerer)?;
-                let lifetimes = lowerer
-                    .extract_lifetime_variables(ty)?
-                    .into_iter()
-                    .map(|lifetime| lifetime.into());
+                let arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
                     stmtp! {
                         statement.position =>
-                        unfold<low_condition> OwnedNonAliased<ty>([place], [address], [snapshot]; lifetimes)
+                        unfold<low_condition> OwnedNonAliased<ty>(
+                            [place], [address], [snapshot]; arguments
+                        )
                     }
                 } else {
                     stmtp! {
                         statement.position =>
-                        unfold OwnedNonAliased<ty>([place], [address], [snapshot]; lifetimes)
+                        unfold OwnedNonAliased<ty>([place], [address], [snapshot]; arguments)
+                    }
+                };
+                Ok(vec![low_statement])
+            }
+            Self::FoldRef(statement) => {
+                let ty = statement.place.get_type();
+                lowerer.mark_owned_non_aliased_as_unfolded(ty)?;
+                let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
+                let place = lowerer.encode_expression_as_place(&statement.place)?;
+                let address = lowerer.extract_root_address(&statement.place)?;
+                let current_snapshot = statement.place.to_procedure_snapshot(lowerer)?;
+                let lifetimes = lowerer
+                    .extract_lifetime_variables(ty)?
+                    .into_iter()
+                    .map(|lifetime| lifetime.into());
+                let low_statement = if statement.uniqueness.is_shared() {
+                    if let Some(condition) = statement.condition {
+                        let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                        stmtp! {
+                            statement.position =>
+                            fold<low_condition> FracRef<ty>(
+                                lifetime, [place], [address], [current_snapshot];
+                                lifetimes
+                            )
+                        }
+                    } else {
+                        stmtp! {
+                            statement.position =>
+                            fold FracRef<ty>(
+                                lifetime, [place], [address], [current_snapshot];
+                                lifetimes
+                            )
+                        }
+                    }
+                } else {
+                    let final_snapshot = statement.place.to_procedure_final_snapshot(lowerer)?;
+                    if let Some(condition) = statement.condition {
+                        let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                        stmtp! {
+                            statement.position =>
+                            fold<low_condition> UniqueRef<ty>(
+                                lifetime, [place], [address], [current_snapshot], [final_snapshot];
+                                lifetimes
+                            )
+                        }
+                    } else {
+                        stmtp! {
+                            statement.position =>
+                            fold UniqueRef<ty>(
+                                lifetime, [place], [address], [current_snapshot], [final_snapshot];
+                                lifetimes
+                            )
+                        }
+                    }
+                };
+                Ok(vec![low_statement])
+            }
+            Self::UnfoldRef(statement) => {
+                let ty = statement.place.get_type();
+                lowerer.mark_owned_non_aliased_as_unfolded(ty)?;
+                let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
+                let place = lowerer.encode_expression_as_place(&statement.place)?;
+                let address = lowerer.extract_root_address(&statement.place)?;
+                let current_snapshot = statement.place.to_procedure_snapshot(lowerer)?;
+                let lifetimes = lowerer
+                    .extract_lifetime_variables(ty)?
+                    .into_iter()
+                    .map(|lifetime| lifetime.into());
+                let low_statement = if statement.uniqueness.is_shared() {
+                    if let Some(condition) = statement.condition {
+                        let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                        stmtp! {
+                            statement.position =>
+                            unfold<low_condition> FracRef<ty>(
+                                lifetime, [place], [address], [current_snapshot];
+                                lifetimes
+                            )
+                        }
+                    } else {
+                        stmtp! {
+                            statement.position =>
+                            unfold FracRef<ty>(
+                                lifetime, [place], [address], [current_snapshot];
+                                lifetimes
+                            )
+                        }
+                    }
+                } else {
+                    let final_snapshot = statement.place.to_procedure_final_snapshot(lowerer)?;
+                    if let Some(condition) = statement.condition {
+                        let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                        stmtp! {
+                            statement.position =>
+                            unfold<low_condition> UniqueRef<ty>(
+                                lifetime, [place], [address], [current_snapshot], [final_snapshot];
+                                lifetimes
+                            )
+                        }
+                    } else {
+                        stmtp! {
+                            statement.position =>
+                            unfold UniqueRef<ty>(
+                                lifetime, [place], [address], [current_snapshot], [final_snapshot];
+                                lifetimes
+                            )
+                        }
                     }
                 };
                 Ok(vec![low_statement])
@@ -177,23 +284,31 @@ impl IntoLow for vir_mid::Statement {
                     if let Some(discriminant) = discriminant {
                         stmtp! {
                             statement.position =>
-                            call<low_condition> memory_block_join<ty>([address], [discriminant])
+                            call<low_condition> memory_block_join<ty>(
+                                [address], [vir_low::Expression::full_permission()], [discriminant]
+                            )
                         }
                     } else {
                         stmtp! {
                             statement.position =>
-                            call<low_condition> memory_block_join<ty>([address])
+                            call<low_condition> memory_block_join<ty>(
+                                [address], [vir_low::Expression::full_permission()]
+                            )
                         }
                     }
                 } else if let Some(discriminant) = discriminant {
                     stmtp! {
                         statement.position =>
-                        call memory_block_join<ty>([address], [discriminant])
+                        call memory_block_join<ty>(
+                            [address], [vir_low::Expression::full_permission()], [discriminant]
+                        )
                     }
                 } else {
                     stmtp! {
                         statement.position =>
-                        call memory_block_join<ty>([address])
+                        call memory_block_join<ty>(
+                            [address], [vir_low::Expression::full_permission()]
+                        )
                     }
                 };
                 Ok(vec![low_statement])
@@ -222,23 +337,31 @@ impl IntoLow for vir_mid::Statement {
                     if let Some(discriminant) = discriminant {
                         stmtp! {
                             statement.position =>
-                            call<low_condition> memory_block_split<ty>([address], [discriminant])
+                            call<low_condition> memory_block_split<ty>(
+                                [address], [vir_low::Expression::full_permission()], [discriminant]
+                            )
                         }
                     } else {
                         stmtp! {
                             statement.position =>
-                            call<low_condition> memory_block_split<ty>([address])
+                            call<low_condition> memory_block_split<ty>(
+                                [address], [vir_low::Expression::full_permission()]
+                            )
                         }
                     }
                 } else if let Some(discriminant) = discriminant {
                     stmtp! {
                         statement.position =>
-                        call memory_block_split<ty>([address], [discriminant])
+                        call memory_block_split<ty>(
+                            [address], [vir_low::Expression::full_permission()], [discriminant]
+                        )
                     }
                 } else {
                     stmtp! {
                         statement.position =>
-                        call memory_block_split<ty>([address])
+                        call memory_block_split<ty>(
+                            [address], [vir_low::Expression::full_permission()]
+                        )
                     }
                 };
                 Ok(vec![low_statement])
@@ -249,17 +372,17 @@ impl IntoLow for vir_mid::Statement {
                 let place = lowerer.encode_expression_as_place(&statement.place)?;
                 let address = lowerer.extract_root_address(&statement.place)?;
                 let snapshot = statement.place.to_procedure_snapshot(lowerer)?;
-                let lifetimes = lowerer.extract_lifetime_variables_as_expr(ty)?;
+                let arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
                     stmtp! {
                         statement.position =>
-                        call<low_condition> into_memory_block<ty>([place], [address], [snapshot]; lifetimes)
+                        call<low_condition> into_memory_block<ty>([place], [address], [snapshot]; arguments)
                     }
                 } else {
                     stmtp! {
                         statement.position =>
-                        call into_memory_block<ty>([place], [address], [snapshot]; lifetimes)
+                        call into_memory_block<ty>([place], [address], [snapshot]; arguments)
                     }
                 };
                 Ok(vec![low_statement])
@@ -448,9 +571,34 @@ impl IntoLow for vir_mid::Statement {
                     statement.position,
                 )])
             }
-            Self::Dead(_statement) => {
-                // TODO: implement Dead statment in vir_low
-                Ok(vec![])
+            Self::Dead(statement) => {
+                let ty = statement.target.get_type();
+                let mut statements = Vec::new();
+                if let vir_mid::Type::Reference(vir_mid::ty::Reference {
+                    uniqueness: vir_mid::ty::Uniqueness::Unique,
+                    box target_type,
+                    ..
+                }) = ty
+                {
+                    let target_type = target_type.clone();
+                    let lifetimes = lowerer.extract_lifetime_variables(ty)?;
+                    for lifetime in lifetimes {
+                        let low_statement = vir_low::Statement::assert(
+                            expr! { (acc(DeadLifetimeToken(lifetime))) },
+                            statement.position,
+                        );
+                        statements.push(low_statement);
+                    }
+                    let place = statement.target.deref(target_type, statement.position);
+                    let current_snapshot = place.to_procedure_snapshot(lowerer)?;
+                    let final_snapshot = place.to_procedure_final_snapshot(lowerer)?;
+                    let low_statement = vir_low::Statement::assume(
+                        expr! { [current_snapshot] == [final_snapshot] },
+                        statement.position,
+                    );
+                    statements.push(low_statement);
+                }
+                Ok(statements)
             }
             Self::LifetimeTake(statement) => {
                 if statement.value.len() == 1 {
@@ -516,15 +664,15 @@ impl IntoLow for vir_mid::Statement {
                 }
             }
             Self::OpenFracRef(statement) => {
-                let place = statement.place.get_parent_ref().unwrap();
-                let ty = place.get_type();
-                lowerer.encode_frac_bor_atomic_acc_method(ty)?;
+                let ty = statement.place.get_type();
+                lowerer.encode_open_frac_bor_atomic_method(ty)?;
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
                 let perm_amount = statement
                     .lifetime_token_permission
                     .to_procedure_snapshot(lowerer)?;
-                let reference_place = lowerer.encode_expression_as_place(place)?;
-                let reference_value = place.to_procedure_snapshot(lowerer)?;
+                let place = lowerer.encode_expression_as_place(&statement.place)?;
+                let address = lowerer.extract_root_address(&statement.place)?;
+                let current_snapshot = statement.place.to_procedure_snapshot(lowerer)?;
                 let targets = vec![statement
                     .predicate_permission_amount
                     .to_procedure_snapshot(lowerer)?
@@ -534,93 +682,79 @@ impl IntoLow for vir_mid::Statement {
                     vec![
                         lifetime.into(),
                         perm_amount,
-                        reference_place,
-                        reference_value,
+                        place,
+                        address,
+                        current_snapshot,
                     ],
                     targets,
                     statement.position,
                 )])
             }
             Self::CloseFracRef(statement) => {
-                let place = statement.place.get_parent_ref().unwrap();
-                let ty = place.get_type();
+                let ty = statement.place.get_type();
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
                 let perm_amount = statement
                     .lifetime_token_permission
                     .to_procedure_snapshot(lowerer)?;
-                let reference_place = lowerer.encode_expression_as_place(place)?;
-                let deref_place =
-                    lowerer.reference_deref_place(reference_place, statement.position)?;
-                let reference_value = place.to_procedure_snapshot(lowerer)?;
-                let current_snapshot = lowerer.reference_target_current_snapshot(
-                    ty,
-                    reference_value.clone(),
-                    statement.position,
-                )?;
-                let address_snapshot =
-                    lowerer.reference_address(ty, reference_value, statement.position)?;
+                let place = lowerer.encode_expression_as_place(&statement.place)?;
+                let address = lowerer.extract_root_address(&statement.place)?;
+                let current_snapshot = statement.place.to_procedure_snapshot(lowerer)?;
                 let tmp_frac_ref_perm = statement
                     .predicate_permission_amount
                     .to_procedure_snapshot(lowerer)?;
-                let type_decl = lowerer.encoder.get_type_decl_mid(ty)?;
-                let target_type = &type_decl.unwrap_reference().target_type;
                 Ok(vec![stmtp! {
                     statement.position =>
-                    apply (acc(OwnedNonAliased<target_type>(
-                        [deref_place], [address_snapshot], [current_snapshot]), tmp_frac_ref_perm))
-                    --* (acc(LifetimeToken([lifetime.into()]), [perm_amount]))
+                    apply (
+                        acc(OwnedNonAliased<ty>(
+                            [place.clone()], [address.clone()], [current_snapshot.clone()]),
+                            tmp_frac_ref_perm
+                        )
+                    ) --* (
+                        (acc(LifetimeToken(lifetime), [perm_amount])) &&
+                        (acc(FracRef<ty>(lifetime, [place], [address], [current_snapshot])))
+                    )
                 }])
             }
             Self::OpenMutRef(statement) => {
-                let place = statement.place.get_parent_ref().unwrap();
-                let ty = place.get_type();
+                let ty = statement.place.get_type();
                 lowerer.encode_open_close_mut_ref_methods(ty)?;
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
                 let perm_amount = statement
                     .lifetime_token_permission
                     .to_procedure_snapshot(lowerer)?;
-                let reference_place = lowerer.encode_expression_as_place(place)?;
-                let reference_value = place.to_procedure_snapshot(lowerer)?;
+                let place = lowerer.encode_expression_as_place(&statement.place)?;
+                let address = lowerer.extract_root_address(&statement.place)?;
+                let current_snapshot = statement.place.to_procedure_snapshot(lowerer)?;
+                let final_snapshot = statement.place.to_procedure_final_snapshot(lowerer)?;
                 let statements = vec![stmtp! { statement.position =>
                     call open_mut_ref<ty>(
                         lifetime,
                         [perm_amount],
-                        [reference_place],
-                        [reference_value]
+                        [place],
+                        [address],
+                        [current_snapshot],
+                        [final_snapshot]
                     )
                 }];
                 Ok(statements)
             }
             Self::CloseMutRef(statement) => {
-                let place = statement.place.get_parent_ref().unwrap();
-                let ty = place.get_type();
+                let ty = statement.place.get_type();
                 lowerer.encode_open_close_mut_ref_methods(ty)?;
                 let lifetime = lowerer.encode_lifetime_const_into_variable(statement.lifetime)?;
                 let perm_amount = statement
                     .lifetime_token_permission
                     .to_procedure_snapshot(lowerer)?;
-                let reference_place = lowerer.encode_expression_as_place(place)?;
-                let reference_value = place.to_procedure_snapshot(lowerer)?;
-                let deref_place =
-                    lowerer.reference_deref_place(reference_place, statement.position)?;
-                let address_snapshot =
-                    lowerer.reference_address(ty, reference_value.clone(), statement.position)?;
-                let current_snapshot = lowerer.reference_target_current_snapshot(
-                    ty,
-                    reference_value.clone(),
-                    statement.position,
-                )?;
-                let final_snapshot = lowerer.reference_target_final_snapshot(
-                    ty,
-                    reference_value,
-                    statement.position,
-                )?;
+                let place = lowerer.encode_expression_as_place(&statement.place)?;
+                let address = lowerer.extract_root_address(&statement.place)?;
+                let current_snapshot = statement.place.to_procedure_snapshot(lowerer)?;
+                let final_snapshot = statement.place.to_procedure_final_snapshot(lowerer)?;
                 let statements = vec![stmtp! { statement.position =>
                     call close_mut_ref<ty>(
                         lifetime,
                         [perm_amount],
-                        [deref_place],
-                        [address_snapshot],
+                        [place],
+                        [address],
                         [current_snapshot],
                         [final_snapshot]
                     )

@@ -139,10 +139,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.encode_functional_specifications()?;
         let (assume_lifetime_preconditions, assert_lifetime_postconditions) =
             self.encode_lifetime_specifications()?;
-        let mut pre_statements = allocate_parameters;
+        let mut pre_statements = assume_lifetime_preconditions;
+        pre_statements.extend(allocate_parameters);
         pre_statements.extend(assume_preconditions);
         pre_statements.extend(allocate_returns);
-        pre_statements.extend(assume_lifetime_preconditions);
         let mut post_statements = assert_postconditions;
         post_statements.extend(deallocate_parameters);
         post_statements.extend(deallocate_returns);
@@ -432,6 +432,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let terminator_index = statements.len();
         let mut original_lifetimes: BTreeSet<String> =
             self.lifetimes.get_loan_live_at_start(location);
+        // FIXME: This misses the lifetimes that need to be generated at the
+        // beginning of the block.
         let mut derived_lifetimes: BTreeMap<String, BTreeSet<String>> =
             self.lifetimes.get_origin_contains_loan_at_mid(location);
         while location.statement_index < terminator_index {
@@ -537,7 +539,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Use(operand) => {
                 self.encode_assign_operand(block_builder, location, encoded_target, operand)?;
             }
-            // mir::Rvalue::Repeat(Operand<'tcx>, Const<'tcx>),
+            mir::Rvalue::Repeat(operand, count) => {
+                let encoded_operand = self.encode_statement_operand(location, operand)?;
+                let encoded_count = self.encoder.compute_array_len(*count);
+                let encoded_rvalue = vir_high::Rvalue::repeat(encoded_operand, encoded_count);
+                let assign_statement = vir_high::Statement::assign(
+                    encoded_target,
+                    encoded_rvalue,
+                    self.register_error(location, ErrorCtxt::Assign),
+                );
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::Assign,
+                    assign_statement,
+                )?);
+            }
             mir::Rvalue::Ref(region, borrow_kind, place) => {
                 let is_mut = matches!(
                     borrow_kind,
@@ -575,7 +591,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
                 )?);
             }
-            // mir::Rvalue::Len(Place<'tcx>),
+            mir::Rvalue::Len(place) => {
+                let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
+                let encoded_rvalue = vir_high::Rvalue::len(encoded_place);
+                block_builder.add_statement(self.set_statement_error(
+                    location,
+                    ErrorCtxt::Assign,
+                    vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
+                )?);
+            }
             // mir::Rvalue::Cast(CastKind, Operand<'tcx>, Ty<'tcx>),
             mir::Rvalue::BinaryOp(op, box (left, right)) => {
                 let encoded_left = self.encode_statement_operand(location, left)?;
@@ -650,8 +674,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         operands: &[mir::Operand<'tcx>],
     ) -> SpannedEncodingResult<()> {
         let ty = match aggregate_kind {
-            mir::AggregateKind::Array(_) => unimplemented!(),
-            mir::AggregateKind::Tuple => encoded_target.get_type().clone(),
+            mir::AggregateKind::Array(_) | mir::AggregateKind::Tuple => {
+                encoded_target.get_type().clone()
+            }
             mir::AggregateKind::Adt(adt_did, variant_index, _substs, _, active_field_index) => {
                 let mut ty = encoded_target.get_type().clone();
                 let tcx = self.encoder.env().tcx();
@@ -779,7 +804,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     )?);
                 }
             } else {
-                unreachable!();
+                unreachable!("place: {} deref_base: {:?}", place, deref_base);
             }
         };
         Ok(variable)
@@ -794,10 +819,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         let span = self.encoder.get_span_of_location(self.mir, location);
 
-        let deref_base: Option<vir_high::Expression> = match &encoded_target {
-            vir_high::Expression::Deref(vir_high::Deref { box base, .. }) => Some(base.clone()),
-            _ => None,
-        };
+        let deref_base = encoded_target.get_dereference_base().cloned();
         let target_permission = self.encode_open_reference(
             block_builder,
             location,
@@ -820,13 +842,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let encoded_source =
                     self.encoder
                         .encode_place_high(self.mir, *source, Some(span))?;
+                assert!(
+                    encoded_source.is_place(),
+                    "{} is not place (encoded from: {:?}",
+                    encoded_source,
+                    source
+                );
 
-                let deref_base: Option<vir_high::Expression> = match &encoded_source {
-                    vir_high::Expression::Deref(vir_high::Deref { box base, .. }) => {
-                        Some(base.clone())
-                    }
-                    _ => None,
-                };
+                let deref_base = encoded_source.get_dereference_base().cloned();
                 let source_permission = self.encode_open_reference(
                     block_builder,
                     location,

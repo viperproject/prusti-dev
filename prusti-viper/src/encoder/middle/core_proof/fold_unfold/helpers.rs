@@ -22,6 +22,7 @@ pub(super) struct OwnedUnFolder<'a> {
 
 pub(super) struct MemoryBlockSplitJoiner<'a> {
     pub(super) statements: &'a mut Vec<vir_low::Statement>,
+    pub(super) permission_amount: Option<vir_low::Expression>,
     pub(super) position: vir_low::Position,
     /// Are we joining or splitting?
     pub(super) is_joining: bool,
@@ -79,6 +80,16 @@ impl<'a> TypeDeclWalker for OwnedUnFolder<'a> {
     }
 }
 
+impl<'a> MemoryBlockSplitJoiner<'a> {
+    fn permission_amount(&self) -> vir_low::Expression {
+        if let Some(permission_amount) = &self.permission_amount {
+            permission_amount.clone()
+        } else {
+            vir_low::Expression::full_permission()
+        }
+    }
+}
+
 type PM = vir_low::Expression;
 impl<'a> TypeDeclWalker for MemoryBlockSplitJoiner<'a> {
     const IS_EMPTY_PRIMITIVE: bool = true;
@@ -90,8 +101,8 @@ impl<'a> TypeDeclWalker for MemoryBlockSplitJoiner<'a> {
             if ty.has_variants() {
                 unreachable!("ty: {}", ty);
             } else {
-                self.statements.push(stmtp! {
-                    self.position => call memory_block_split<ty>([address.clone()])
+                self.statements.push(stmtp! { self.position =>
+                    call memory_block_split<ty>([address.clone()], [self.permission_amount()])
                 });
             }
         }
@@ -101,8 +112,8 @@ impl<'a> TypeDeclWalker for MemoryBlockSplitJoiner<'a> {
         assert!(!lowerer.encoder.is_type_empty(ty)?);
         if self.is_joining {
             lowerer.encode_memory_block_join_method(ty)?;
-            self.statements.push(stmtp! {
-                self.position => call memory_block_join<ty>([address])
+            self.statements.push(stmtp! { self.position =>
+                call memory_block_join<ty>([address], [self.permission_amount()])
             });
         }
         Ok(())

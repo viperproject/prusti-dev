@@ -35,6 +35,7 @@ pub struct DomainDecl {
 )]
 pub struct DomainFunctionDecl {
     pub name: String,
+    pub is_unique: bool,
     pub parameters: Vec<VariableDecl>,
     pub return_type: Type,
 }

@@ -6,7 +6,12 @@
 
 use crate::{VerificationRequest, ViperBackendConfig};
 use log::info;
-use prusti_common::{config, report::log::report, vir::ToViper, Stopwatch};
+use prusti_common::{
+    config,
+    report::log::{report, to_legal_file_name},
+    vir::ToViper,
+    Stopwatch,
+};
 use std::{fs::create_dir_all, path::PathBuf};
 use viper::{Cache, VerificationBackend, VerificationContext, VerificationResult};
 
@@ -27,7 +32,9 @@ pub fn process_verification_request<'v, 't: 'v>(
     let build_or_dump_viper_program = || {
         let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
         let ast_factory = verification_context.new_ast_factory();
-        let viper_program = request.program.to_viper(&ast_factory);
+        let viper_program = request
+            .program
+            .to_viper(prusti_common::vir::LoweringContext::default(), &ast_factory);
 
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");
@@ -74,11 +81,13 @@ pub fn process_verification_request<'v, 't: 'v>(
 
     ast_utils.with_local_frame(16, || {
         let viper_program = build_or_dump_viper_program();
+        let program_name = request.program.get_name();
 
         // Create a new verifier each time.
         // Workaround for https://github.com/viperproject/prusti-dev/issues/744
         let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
-        let verifier = new_viper_verifier(verification_context, request.backend_config);
+        let verifier =
+            new_viper_verifier(program_name, verification_context, request.backend_config);
 
         stopwatch.start_next("verification");
         let result = verifier.verify(viper_program);
@@ -106,23 +115,28 @@ fn dump_viper_program(ast_utils: &viper::AstUtils, program: viper::Program, prog
 }
 
 fn new_viper_verifier<'v, 't: 'v>(
+    program_name: &str,
     verification_context: &'v viper::VerificationContext<'t>,
     backend_config: ViperBackendConfig,
 ) -> viper::Verifier<'v> {
     let mut verifier_args: Vec<String> = backend_config.verifier_args;
     let report_path: Option<PathBuf>;
     if config::dump_debug_info() {
-        let log_path = config::log_dir().join("viper_tmp");
+        let log_path = config::log_dir()
+            .join("viper_tmp")
+            .join(to_legal_file_name(program_name));
         create_dir_all(&log_path).unwrap();
         report_path = Some(log_path.join("report.csv"));
         let log_dir_str = log_path.to_str().unwrap();
         match backend_config.backend {
-            VerificationBackend::Silicon => verifier_args.extend(vec![
-                "--tempDirectory".to_string(),
-                log_dir_str.to_string(),
-                "--printMethodCFGs".to_string(),
-                //"--printTranslatedProgram".to_string(),
-            ]),
+            VerificationBackend::Silicon => {
+                verifier_args.extend(vec![
+                    "--tempDirectory".to_string(),
+                    log_dir_str.to_string(),
+                    "--printMethodCFGs".to_string(),
+                    //"--printTranslatedProgram".to_string(),
+                ])
+            }
             VerificationBackend::Carbon => verifier_args.extend(vec![
                 "--boogieOpt".to_string(),
                 format!("/logPrefix {}", log_dir_str),

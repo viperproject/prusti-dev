@@ -331,10 +331,16 @@ impl CollectPermissionChanges for vir_high::Rvalue {
         produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
         match self {
+            Self::Repeat(rvalue) => {
+                rvalue.collect(encoder, consumed_permissions, produced_permissions)
+            }
             Self::Ref(rvalue) => {
                 rvalue.collect(encoder, consumed_permissions, produced_permissions)
             }
             Self::AddressOf(rvalue) => {
+                rvalue.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            Self::Len(rvalue) => {
                 rvalue.collect(encoder, consumed_permissions, produced_permissions)
             }
             Self::UnaryOp(rvalue) => {
@@ -353,6 +359,19 @@ impl CollectPermissionChanges for vir_high::Rvalue {
                 rvalue.collect(encoder, consumed_permissions, produced_permissions)
             }
         }
+    }
+}
+
+impl CollectPermissionChanges for vir_high::ast::rvalue::Repeat {
+    fn collect<'v, 'tcx>(
+        &self,
+        encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        self.argument
+            .collect(encoder, consumed_permissions, produced_permissions)?;
+        Ok(())
     }
 }
 
@@ -396,6 +415,19 @@ impl CollectPermissionChanges for vir_high::ast::rvalue::AddressOf {
         //     let _x = std::ptr::addr_of!(c);
         // }
         // ```
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::ast::rvalue::Len {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
         consumed_permissions.push(Permission::Owned(self.place.clone()));
         produced_permissions.push(Permission::Owned(self.place.clone()));
         Ok(())
