@@ -28,6 +28,7 @@ use quote::{quote_spanned, ToTokens};
 use rewriter::AstRewriter;
 use std::convert::TryInto;
 use syn::spanned::Spanned;
+use itertools::Itertools;
 
 use crate::{
     common::{merge_generics, RewritableReceiver, SelfTypeRewriter},
@@ -611,8 +612,8 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
 }
 
 pub fn type_model(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let _ = env_logger::try_init();
     let item: syn::Item = handle_result!(syn::parse2(tokens));
-
     match item {
         syn::Item::Struct(item_struct) => {
             handle_result!(type_model::rewrite(item_struct))
@@ -642,6 +643,22 @@ pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStre
     
     let spec_item = match item {
         syn::Item::Struct(item_struct) => {
+            error!("counterexample print other attriutes: {:#?}", item_struct.attrs);
+            //check if type is a model
+            if let Some(_) = item_struct.attrs.iter().find( |attr| attr.path.get_ident().and_then(| x | Some(x.to_string())) == Some("model".to_string())){
+                let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
+                let item_span = item_struct.span();
+                let spec_item: syn::Item = parse_quote_spanned! {item_span=>
+                    #[print_counterexample(#attr)]
+                    #item_struct
+                };
+                match &spec_item{
+                    syn::Item::Struct(tmp) => error!("print new struct: {:#?}", &tmp.attrs),
+                    _ => (),
+                }
+                
+                return type_model(TokenStream::new(), spec_item.into_token_stream());
+            }
             error!("print attr: {}", attr);
             error!("print attr: {:?}", attr);
             //let parser = syn::Attribute::parse_outer;
@@ -757,7 +774,7 @@ pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStre
                 Unit => (),*/
             };*/
             //error!("print params: {:?}", test);
-            let mut args2: Punctuated<Pat, Token![,]> = attrs2.into_iter().skip(1).collect(); //TODO skip duplicate
+            let mut args2: Punctuated<Pat, Token![,]> = attrs2.into_iter().skip(1).unique().collect::<Punctuated<Pat, Token![,]>>(); //TODO skip duplicate
             //add trailing punctuation
             if !args2.empty_or_trailing(){
                 args2.push_punct(<syn::Token![,]>::default());
@@ -869,7 +886,6 @@ pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStre
                     _ => None,
                 })
                 .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
-            // TODO: similarly to extern_specs, don't generate an actual impl
             let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
                 impl #generics #typ <#generics_idents> {
                     #spec_item
@@ -980,7 +996,7 @@ pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStre
             let annotation = variant_name.to_string();
                     match variant.fields{
                         Fields::Named(fields_named) => {
-                            let mut args2: Punctuated<Pat, Token![,]> = attrs2.into_iter().skip(1).collect(); //TODO skip duplicate
+                            let mut args2: Punctuated<Pat, Token![,]> = attrs2.into_iter().skip(1).unique().collect::<Punctuated<Pat, Token![,]>>();//TODO skip duplicate
                             if !args2.empty_or_trailing(){
                                 args2.push_punct(<syn::Token![,]>::default());
                             }
@@ -999,7 +1015,7 @@ pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStre
                             spec_items.push(spec_item);
                         },
                         Fields::Unnamed(fields_unnamed) => {
-                            let args2: Punctuated<Pat, Token![,]> = attrs2.into_iter().skip(1).collect(); //TODO skip duplicate
+                            let args2: Punctuated<Pat, Token![,]> = attrs2.into_iter().skip(1).unique().collect::<Punctuated<Pat, Token![,]>>();//TODO skip duplicate
                             
                             //check if all args are possible
                             for arg in &args2{
@@ -1143,6 +1159,6 @@ pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStre
     //let item2: syn::Item = handle_result!(syn::parse2(tokens));
     //item2.to_tokens(&mut result);
     //spec_item.to_tokens(&mut result);
-    spec_item.into_token_stream()
+    spec_item
     //result.clone()
 }

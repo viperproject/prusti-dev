@@ -186,12 +186,10 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
     }
 
     fn custom_print(&self, prusti_counterexample_print: Vec<(Option<String>, LocalDefId)>, variant_option: Option<String>) -> Option<Vec<String>>{
-        let def_id_option = if matches!(Option::<String>::None, variant_option) {
-            debug!("custom print for struct");
-            prusti_counterexample_print.first()
-        } else {
-            debug!("custom print for enum");
-            prusti_counterexample_print.iter().find(|x| x.0 == variant_option)
+        debug!("variant: {:?}", variant_option);
+        let def_id_option = match variant_option{
+            Some(_) => prusti_counterexample_print.iter().find(|x| x.0 == variant_option),
+            None => prusti_counterexample_print.first(),
         };
         
         if let Some(def_id) = def_id_option{
