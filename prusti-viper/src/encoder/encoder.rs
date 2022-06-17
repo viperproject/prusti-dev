@@ -291,7 +291,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
             mir::ConstantKind::Val(val, _) => val.try_to_scalar(),
         };
-        opt_scalar_value.ok_or(EncodingError::unsupported(format!("unsupported constant value: {:?}", value)))
+        opt_scalar_value.ok_or_else(|| EncodingError::unsupported(format!("unsupported constant value: {:?}", value)))
     }
 
     /// Encodes a value in a field if the base expression is a reference or

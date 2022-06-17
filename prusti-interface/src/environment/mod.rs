@@ -469,7 +469,7 @@ impl<'tcx> Environment<'tcx> {
             let param_env = ty::ParamEnv::reveal_all();
             let key = ty::ParamEnvAnd { param_env, value: (proc_def_id, substs) };
             let resolved_instance = traits::resolve_instance(self.tcx(), key);
-            return match resolved_instance {
+            match resolved_instance {
                 Ok(method_impl_instance) => {
                     let impl_method_def_id = method_impl_instance.map(|instance| instance.def_id());
                     debug!("Resolved to-be called method: {:?}", impl_method_def_id);
@@ -479,7 +479,7 @@ impl<'tcx> Environment<'tcx> {
                     debug!("Error while resolving the to-be called method: {:?}", err);
                     None
                 }
-            };
+            }
         } else {
             None
         }
