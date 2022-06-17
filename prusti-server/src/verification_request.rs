@@ -56,6 +56,11 @@ impl Default for ViperBackendConfig {
                     "--logLevel".to_string(),
                     "ERROR".to_string(),
                 ]);
+
+                if let Some(check_timeout) = config::check_timeout() {
+                    verifier_args.push("--checkTimeout".to_string());
+                    verifier_args.push(check_timeout.to_string());
+                }
             }
             VerificationBackend::Carbon => {
                 verifier_args.extend(vec!["--disableAllocEncoding".to_string()]);

@@ -9,6 +9,7 @@
 | [`CHECK_FOLDUNFOLD_STATE`](#check_foldunfold_state) | `bool` | `false` |
 | [`CHECK_OVERFLOWS`](#check_overflows) | `bool` | `true` |
 | [`CHECK_PANICS`](#check_panics) | `bool` | `true` |
+| [`CHECK_TIMEOUT`](#check_timeout) | `Option<u32>` | `None` |
 | [`CONTRACTS_LIB`](#contracts_lib) | `String` | `""` |
 | [`COUNTEREXAMPLE`](#counterexample) | `bool` | `false` |
 | [`DELETE_BASIC_BLOCKS`](#delete_basic_blocks) | `Vec<String>` | `vec![]` |
@@ -86,6 +87,14 @@ When enabled, binary operations and numeric casts will be checked for overflows.
 ## `CHECK_PANICS`
 
 When enabled, Prusti will check for an absence of `panic!`s.
+
+## `CHECK_TIMEOUT`
+
+Maximum time (in milliseconds) for the verifier to spend on checks.
+Set to None uses the verifier's default value. Maps to the verifier command-line
+argument `--checkTimeout`.
+For more information see [here]( https://github.com/viperproject/silicon/blob/4c70514379f89e7ec6f96588290ade32518f0527/src/main/scala/Config.scala#L203).
+
 
 ## `CONTRACTS_LIB`
 
