@@ -2,7 +2,7 @@ use std::fmt;
 use rustc_errors::MultiSpan;
 use prusti_interface::PrustiError;
 use rustc_hir::def_id::{DefId, LocalDefId};
-use log::{debug};
+use log::{debug, info};
 
 /// Counterexample information for a single variable.
 #[derive(Debug)]
@@ -138,13 +138,15 @@ impl fmt::Debug for Entry {
                     let mut custom_print_iter = custom_print.iter();
                     let text = custom_print_iter.next().unwrap(); //safe because custom_print has at least one element
                     let mut text_iter = text.split("{}");
-                    debug!("text iter: {:?}", text_iter.clone().collect::<Vec<&str>>());
+                    info!("text iter: {:?}", text_iter.clone().collect::<Vec<&str>>());
+                    info!("custom print option: {:?}", custom_print_option);
                     let mut output = text_iter.next().unwrap().to_string(); //safe because split has at least one element
                     while let Some(next) = text_iter.next(){
                         let fieldname = custom_print_iter.next().unwrap(); //safe because of encoding (checked by compiler)
-                        debug!("fieldname: {}", fieldname);
+                        info!("fieldname: {}", fieldname);
+                        info!("fields: {:?}", &field_entries);
                         let field_entry = &field_entries.iter().find(|(name, _) | fieldname == name).unwrap().1; //safe because of encoding (checked by compiler)
-                        debug!("field_entry: {:?}", field_entry);
+                        info!("field_entry: {:?}", field_entry);
                         output.push_str(&format!("{:#?}", field_entry));
                         output.push_str(next);
                     }
@@ -173,13 +175,13 @@ impl fmt::Debug for Entry {
                     let mut custom_print_iter = custom_print.iter();
                     let text = custom_print_iter.next().unwrap(); //safe because custom_print has at least one element
                     let mut text_iter = text.split("{}");
-                    debug!("text iter: {:?}", text_iter.clone().collect::<Vec<&str>>());
+                    info!("text iter: {:?}", text_iter.clone().collect::<Vec<&str>>());
                     let mut output = text_iter.next().unwrap().to_string(); //safe because split has at least one element
                     while let Some(next) = text_iter.next(){
                         let fieldname = custom_print_iter.next().unwrap(); //safe because of encoding (checked by compiler)
-                        debug!("fieldname: {}", fieldname);
+                        info!("fieldname: {}", fieldname);
                         let field_entry = &field_entries.iter().find(|(name, _) | fieldname == name).unwrap().1; //safe because of encoding (checked by compiler)
-                        debug!("field_entry: {:?}", field_entry);
+                        info!("field_entry: {:?}", field_entry);
                         output.push_str(&format!("{:#?}", field_entry));
                         output.push_str(next);
                     }

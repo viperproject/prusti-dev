@@ -19,18 +19,34 @@ use crate::{
     common::add_phantom_data_for_generic_params,
     user_provided_type_params::{
         UserAnnotatedTypeParam, UserAnnotatedTypeParamParser, UserAnnotatedTypeParamParserError,
-    },
+    }, print_counterexample,
 };
+use log::error;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
-use syn::{parse_quote, punctuated::Punctuated, spanned::Spanned};
+use syn::{parse_quote, punctuated::Punctuated, spanned::Spanned, Pat, Token};
 use uuid::Uuid;
 
 /// See module level documentation
 pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<TokenStream> {
-    let res = rewrite_internal(item_struct);
+    let res = rewrite_internal(item_struct.clone());
     match res {
-        Ok(result) => Ok(result.into_token_stream()),
+        Ok(result) => {
+            if let Some(attr) = item_struct.attrs.iter().find( |attr| attr.path.get_ident().and_then(| x | Some(x.to_string())) == Some("print_counterexample".to_string())){
+                let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
+                match attr.parse_args_with(parser){
+                    Ok(args) => {
+                        let mut token_stream = print_counterexample(args.into_token_stream(), result.model_struct.into_token_stream());
+                        result.to_model_trait.to_tokens(&mut token_stream);
+                        result.model_impl.to_tokens(&mut token_stream);
+                        Ok(token_stream)
+                    },
+                    Err(err) => Err(err.into()),
+                }
+            } else {
+                Ok(result.into_token_stream())
+            }
+        },
         Err(err) => Err(err.into()),
     }
 }
