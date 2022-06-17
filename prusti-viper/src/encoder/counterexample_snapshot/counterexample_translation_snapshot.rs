@@ -30,6 +30,7 @@ use rustc_hir::Block;
 use rustc_ast::LitKind;
 use rustc_hir::QPath;
 use rustc_hir::Path;
+use prusti_common::config;
 
 
 
@@ -176,11 +177,15 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
 
     fn process_entry(&self, trace: &Vec<(String, MultiSpan)>, ty: Ty<'tcx>, translated_domains: &mut TranslatedDomains) -> Vec<(Entry,MultiSpan)> {
         let mut entries = vec![];
-        for (snapshot_var, span) in trace{ //FIXME is domain_name really needed?
+        for (snapshot_var, span) in trace{ 
             debug!("start translation for {:?}", snapshot_var);
             let model_entry = self.silicon_counterexample.model.entries.get(snapshot_var);
             let entry = self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, false);
             entries.push((entry, span.clone()));
+            if config::counterexample_model(){
+                let entry = self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, true);
+                entries.push((entry, span.clone()));
+            }
         }        
         entries
     }
@@ -226,7 +231,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         None
     }
 
-    //TODO remove default
+    
     fn translate_snapshot_entry(&self,
         /*typ: Ty<'tcx>,
         snapshot_var: Option<&ModelEntry>,
@@ -235,7 +240,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         model_entry: Option<&ModelEntry>,
         typ: Option<Ty<'tcx>>,
         translated_domains: &mut TranslatedDomains,
-        default: bool, //if we use default cases
+        wo_model: bool, //if we skip models
     ) -> Entry {
         if let Some(ModelEntry::DomainValue(domain, var)) = model_entry{
             debug!("print cache: {:?}", translated_domains.cached_domains);
@@ -259,7 +264,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 debug!("domain for ref type: {:?}", domain_name);
                 let sil_fn_name = format!("destructor${}$$target_current", domain_name);
-                Entry::Ref(box self.extract_field_value(&sil_fn_name, Some(typ.clone()), model_entry, sil_domain, translated_domains, default))
+                Entry::Ref(box self.extract_field_value(&sil_fn_name, Some(typ.clone()), model_entry, sil_domain, translated_domains, wo_model))
             },
            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Tuple(subst))) => {
                 debug!("typ is tuple");
@@ -273,7 +278,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     let field_name = format!("tuple_{}", i);
                     debug!("field name: {:?}", &field_name);
                     let sil_fn_name = format!("destructor${}$${}", domain_name, &field_name);
-                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, translated_domains, default);
+                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, translated_domains, wo_model);
                     fields.push(field_entry);
                 }
                 Entry::Tuple(fields)
@@ -294,33 +299,36 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 //debug!("Domain entry: {:?}", sil_domain);
                 let variant = adt_def.variants().iter().next().unwrap();
                 let struct_name = variant.ident(self.tcx).name.to_ident_string();
-                //check if struct is a model
-                if let Some((to_model, model_id), ) = self.encoder.get_type_specs(adt_def.did()).and_then(|p| p.has_model){
-                    let entry = self.extract_model(model_entry, domain_name, translated_domains, default, to_model, model_id);
-                    if let Entry::Struct{field_entries, custom_print_option,..} = entry{
-                        Entry::Struct{
-                            name: format!("{}_model",struct_name),
-                            field_entries,
-                            custom_print_option,
-                        }
-                    }  else {
-                        entry
-                    }
-                } else {
-                    let field_entries = self.translate_snapshot_adt_fields(
-                        variant,
-                        model_entry,
-                        subst,
-                        translated_domains,
-                        default, 
-                    );
-                    let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, None));
-                    Entry::Struct {
-                        name: struct_name,
-                        field_entries,
-                        custom_print_option,
-                    }
+                //check if model should be used
+                if !wo_model{
+                    //check if struct is a model
+                    if let Some((to_model, model_id), ) = self.encoder.get_type_specs(adt_def.did()).and_then(|p| p.has_model){
+                        let entry = self.extract_model(model_entry, domain_name, translated_domains, to_model, model_id);
+                        return if let Entry::Struct{field_entries, custom_print_option,..} = entry{
+                            Entry::Struct{
+                                name: format!("{}_model",struct_name),
+                                field_entries,
+                                custom_print_option,
+                            }
+                        }  else {
+                            entry
+                        };
+                    } 
                 }
+                let field_entries = self.translate_snapshot_adt_fields(
+                    variant,
+                    model_entry,
+                    subst,
+                    translated_domains,
+                    wo_model, 
+                );
+                let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, None));
+                Entry::Struct {
+                    name: struct_name,
+                    field_entries,
+                    custom_print_option,
+                }
+                
             },
             (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_enum() => {
                 debug!("typ is enum");
@@ -349,13 +357,9 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                                 let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
                                  if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
                                     debug!("destructor found: {:?}", &value_function);
-                                    let domain_entry = if default {
-                                        value_function.get_function_value_with_default(&sil_fn_param)
-                                    } else {
-                                        value_function.get_function_value(&sil_fn_param)
-                                    };
+                                    let domain_entry = value_function.get_function_value_with_default(&sil_fn_param);
                                     debug!("new Model entry: {:?}", &domain_entry);
-                                    let field_entries = self.translate_snapshot_adt_fields(&variant, domain_entry.as_ref(), subst, translated_domains, default);
+                                    let field_entries = self.translate_snapshot_adt_fields(&variant, domain_entry.as_ref(), subst, translated_domains, wo_model);
                                     debug!("list of fields: {:?}", &field_entries);
                                     let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, Some(variant_name.clone())));
                                     debug!("custom print option: {:?}", custom_print_option);
@@ -385,7 +389,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 debug!("domain for primitive type: {:?}", domain_name);
                 let sil_fn_name = format!("destructor${}$$value", domain_name);
-                self.extract_field_value(&sil_fn_name, None, model_entry, sil_domain, translated_domains, default)
+                self.extract_field_value(&sil_fn_name, None, model_entry, sil_domain, translated_domains, wo_model)
             }  
             _ => Entry::Unknown,
         };
@@ -403,7 +407,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
     //sil_domain_option: Option<&DomainEntry>, 
     subst: ty::subst::SubstsRef<'tcx>,
     translated_domains: &mut TranslatedDomains,
-    default: bool, //if we use default cases
+    wo_model: bool, //if we skip models
     ) -> Vec<(String, Entry)> {
         match model_entry {
             Some(ModelEntry::DomainValue(domain_name, _)) => {
@@ -422,7 +426,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     } else { 
                         format!("destructor${}$$value", domain_name)
                     };*/
-                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, translated_domains, default);
+                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, translated_domains, wo_model);
 
                     fields.push((field_name, field_entry));
                 }
@@ -439,30 +443,23 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
     model_entry: Option<&ModelEntry>,
     sil_domain: &DomainEntry,
     translated_domains: &mut TranslatedDomains,
-    default: bool, //if we use default cases
+    wo_model: bool, //if we skip models
     ) -> Entry {
         debug!("function name: {:?}", &sil_fn_name);
         let sil_fn_param = vec![model_entry.cloned()];
         let field_value = if let Some(function) = sil_domain.functions.entries.get(sil_fn_name){
-            if default {
-                debug!("without default");
-                function.get_function_value_with_default(&sil_fn_param)
-            } else {
-                debug!("with default");
-                function.get_function_value(&sil_fn_param)
-            }    
+            function.get_function_value_with_default(&sil_fn_param)
         } else {
             &None
         };
         debug!("field value: {:?}", field_value);
-        self.translate_snapshot_entry(field_value.as_ref(), field_typ, translated_domains, default)
+        self.translate_snapshot_entry(field_value.as_ref(), field_typ, translated_domains, wo_model)
     }
 
     fn extract_model(&self,
         model_entry: Option<&ModelEntry>,
         domain_name: &String, 
         translated_domains: &mut TranslatedDomains,
-        default: bool,
         to_model: String, 
         model_id: LocalDefId,
     )->Entry{
@@ -487,7 +484,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     debug!("model found: {:?}", sil_model);
                     let model_typ = self.tcx.type_of(model_id);
                     debug!("typ: {:?}", model_typ);
-                    return self.translate_snapshot_entry(sil_model.as_ref(), Some(model_typ), translated_domains, default);
+                    return self.translate_snapshot_entry(sil_model.as_ref(), Some(model_typ), translated_domains, false);
                 }
             } 
         }
