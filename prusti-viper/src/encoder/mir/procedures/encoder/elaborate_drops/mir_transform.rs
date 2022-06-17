@@ -46,7 +46,6 @@ pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> 
         }
     };
     let elaborate_patch = {
-        let body = &*body;
         let env = MoveDataParamEnv {
             move_data,
             param_env,

@@ -277,16 +277,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
                 };
 
                 let self_arg = vir::LocalVar::new("self", arg_typ);
-                let df = vir::DomainFunc {
+                vir::DomainFunc {
                     name: format!("{}$valid", domain_name),
                     type_arguments: vec![], // FIXME: This is most likely wrong.
                     formal_args: vec![self_arg],
                     return_type: vir::Type::Bool,
                     unique: false,
                     domain_name,
-                };
-
-                df
+                }
             };
             functions.push(f.clone());
 

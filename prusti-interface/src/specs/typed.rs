@@ -71,7 +71,7 @@ impl ProcedureSpecification {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ProcedureSpecificationKind {
     Impure,
     Pure,
@@ -317,7 +317,7 @@ impl SpecGraph<ProcedureSpecification> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Pledge {
     pub reference: Option<()>, // TODO: pledge references
     pub lhs: Option<LocalDefId>,
