@@ -373,7 +373,14 @@ impl IntoLow for vir_mid::Statement {
                 let place = lowerer.encode_expression_as_place(&statement.place)?;
                 let address = lowerer.extract_root_address(&statement.place)?;
                 let snapshot = statement.place.to_procedure_snapshot(lowerer)?;
-                let arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
+                let mut arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
+                let lifetimes = lowerer.extract_lifetime_arguments_from_type(ty)?;
+                arguments.extend(
+                    lifetimes
+                        .iter()
+                        .map(|x| x.clone().into())
+                        .collect::<Vec<vir_low::Expression>>(),
+                );
                 let low_statement = if let Some(condition) = statement.condition {
                     let low_condition = lowerer.lower_block_marker_condition(condition)?;
                     stmtp! {
