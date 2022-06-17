@@ -540,6 +540,21 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 )?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
+            BuiltinFunc::Index => {
+                assert_eq!(args.len(), 2);
+                // FIXME: Remove duplication with LookupSeq.
+                let index = lowerer.obtain_constant_value(
+                    app.arguments[1].get_type(),
+                    args[1].clone(),
+                    app.position,
+                )?;
+                Ok(vir_low::Expression::container_op(
+                    ContainerOpKind::SeqIndex,
+                    args[0].clone(),
+                    index,
+                    app.position,
+                ))
+            }
         }
     }
 

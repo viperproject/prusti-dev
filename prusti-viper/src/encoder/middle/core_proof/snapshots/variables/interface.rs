@@ -89,13 +89,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                                 parent_type,
                                 &field,
                                 old_snapshot.clone(),
-                                Default::default(),
+                                position,
                             )?;
                             let new_field_snapshot = self.obtain_struct_field_snapshot(
                                 parent_type,
                                 &field,
                                 new_snapshot.clone(),
-                                Default::default(),
+                                position,
                             )?;
                             statements.push(
                                 stmtp! { position => assume ([new_field_snapshot] == [old_field_snapshot])},
@@ -107,13 +107,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             parent_type,
                             &place_field.field,
                             old_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                         self.obtain_struct_field_snapshot(
                             parent_type,
                             &place_field.field,
                             new_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                     ))
                 }
@@ -126,13 +126,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                                 parent_type,
                                 &field,
                                 old_snapshot.clone(),
-                                Default::default(),
+                                position,
                             )?;
                             let new_field_snapshot = self.obtain_struct_field_snapshot(
                                 parent_type,
                                 &field,
                                 new_snapshot.clone(),
-                                Default::default(),
+                                position,
                             )?;
                             statements.push(
                                 stmtp! { position => assume ([new_field_snapshot] == [old_field_snapshot])},
@@ -144,13 +144,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             parent_type,
                             &place_field.field,
                             old_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                         self.obtain_struct_field_snapshot(
                             parent_type,
                             &place_field.field,
                             new_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                     ))
                 }
@@ -161,41 +161,68 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             parent_type,
                             &place_variant.variant_index,
                             old_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                         self.obtain_enum_variant_snapshot(
                             parent_type,
                             &place_variant.variant_index,
                             new_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                     ))
                 }
-                vir_mid::TypeDecl::Array(_) => unimplemented!("ty: {}", type_decl),
+                vir_mid::TypeDecl::Array(_) => {
+                    let call = place.clone().unwrap_builtin_func_app(); // FIXME: Implement a macro that takes a reference to avoid clonning.
+                    assert_eq!(call.function, vir_mid::BuiltinFunc::Index);
+                    let index = call.arguments[1].to_procedure_snapshot(self)?;
+                    let index =
+                        self.obtain_constant_value(call.arguments[1].get_type(), index, position)?;
+                    let old_len = self.obtain_array_len_snapshot(old_snapshot.clone(), position)?;
+                    let new_len = self.obtain_array_len_snapshot(new_snapshot.clone(), position)?;
+                    var_decls! { i: Int };
+                    let new_element_snapshot = self.obtain_array_element_snapshot(
+                        new_snapshot.clone(),
+                        i.clone().into(),
+                        position,
+                    )?;
+                    let old_element_snapshot = self.obtain_array_element_snapshot(
+                        old_snapshot.clone(),
+                        i.into(),
+                        position,
+                    )?;
+                    statements.push(stmtp! { position => assume ([new_len.clone()] == [old_len])});
+                    statements.push(stmtp! { position =>
+                        assume (
+                            forall(
+                                i: Int :: [ {[new_element_snapshot.clone()]} ]
+                                (([0.into()] <= i) && (i < [new_len]) && (i != [index.clone()])) ==>
+                                ([new_element_snapshot] == [old_element_snapshot])
+                            )
+                        )
+                    });
+                    Ok((
+                        self.obtain_array_element_snapshot(old_snapshot, index.clone(), position)?,
+                        self.obtain_array_element_snapshot(new_snapshot, index, position)?,
+                    ))
+                }
                 vir_mid::TypeDecl::Reference(_) => {
                     if place.is_deref() {
-                        let old_address_snapshot = self.reference_address(
-                            parent_type,
-                            old_snapshot.clone(),
-                            Default::default(),
-                        )?;
-                        let new_address_snapshot = self.reference_address(
-                            parent_type,
-                            new_snapshot.clone(),
-                            Default::default(),
-                        )?;
+                        let old_address_snapshot =
+                            self.reference_address(parent_type, old_snapshot.clone(), position)?;
+                        let new_address_snapshot =
+                            self.reference_address(parent_type, new_snapshot.clone(), position)?;
                         statements.push(stmtp! { position =>
                             assume ([new_address_snapshot] == [old_address_snapshot])
                         });
                         let old_final_snapshot = self.reference_target_final_snapshot(
                             parent_type,
                             old_snapshot.clone(),
-                            Default::default(),
+                            position,
                         )?;
                         let new_final_snapshot = self.reference_target_final_snapshot(
                             parent_type,
                             new_snapshot.clone(),
-                            Default::default(),
+                            position,
                         )?;
                         statements.push(stmtp! { position =>
                             assume ([new_final_snapshot] == [old_final_snapshot])
@@ -204,12 +231,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             self.reference_target_current_snapshot(
                                 parent_type,
                                 old_snapshot,
-                                Default::default(),
+                                position,
                             )?,
                             self.reference_target_current_snapshot(
                                 parent_type,
                                 new_snapshot,
-                                Default::default(),
+                                position,
                             )?,
                         ))
                     } else {

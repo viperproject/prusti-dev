@@ -70,3 +70,25 @@ impl<T: IntoProcedureSnapshot> IntoProcedureSnapshot for Vec<T> {
         Ok(snapshots)
     }
 }
+
+pub(in super::super::super::super) trait IntoProcedureFinalSnapshot {
+    type Target;
+    fn to_procedure_final_snapshot<'p, 'v: 'p, 'tcx: 'v>(
+        &self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    ) -> SpannedEncodingResult<Self::Target>;
+}
+
+impl IntoProcedureFinalSnapshot for vir_mid::Expression {
+    type Target = vir_low::Expression;
+    fn to_procedure_final_snapshot<'p, 'v: 'p, 'tcx: 'v>(
+        &self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    ) -> SpannedEncodingResult<Self::Target> {
+        let mut snapshot_encoder = ProcedureSnapshot {
+            deref_to_final: true,
+            ..ProcedureSnapshot::default()
+        };
+        snapshot_encoder.expression_to_snapshot(lowerer, self, false)
+    }
+}

@@ -30,7 +30,7 @@ pub enum ExternSpecResolverError {
     InvalidExternSpecForTraitImpl(DefId, Span),
 
     /// Occurs when the extern spec is invalid due to mismatched type params.
-    InvalidGenerics(DefId, Span),
+    InvalidGenerics(isize, DefId, Span),
 
     /// Occurs when a trait impl extern spec resolves to the trait method.
     ResolvedToDefault(DefId, Span),
@@ -160,8 +160,10 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
                     // TODO: there is more that we could check, e.g. that trait
                     // constraints are the same (otherwise specs might not make sense)
                     if self.env.identity_substs(resolved_def_id).len() != self.env.identity_substs(current_def_id).len() {
+                        let diff = self.env.identity_substs(resolved_def_id).len() as isize
+                                            - self.env.identity_substs(current_def_id).len() as isize;
                         self.errors.push(
-                            ExternSpecResolverError::InvalidGenerics(resolved_def_id, span),
+                            ExternSpecResolverError::InvalidGenerics(diff, resolved_def_id, span),
                         );
                     }
                 }
@@ -214,9 +216,9 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
                     ).add_note(err_note, None)
                         .emit(env);
                 }
-                ExternSpecResolverError::InvalidGenerics(def_id, span) => {
+                ExternSpecResolverError::InvalidGenerics(diff, def_id, span) => {
                     let function_name = env.get_item_name(*def_id);
-                    let err_note = format!("Invalid type parameters for method '{}'. The number of type parameters must match the target method.", function_name);
+                    let err_note = format!("Invalid type parameters for method '{}'. The number of type parameters must match the target method; change by {} to get rid of this error.", function_name, diff);
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),

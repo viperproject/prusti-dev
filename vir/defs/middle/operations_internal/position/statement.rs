@@ -13,6 +13,8 @@ impl Positioned for Statement {
             Self::Assert(statement) => statement.position(),
             Self::FoldOwned(statement) => statement.position(),
             Self::UnfoldOwned(statement) => statement.position(),
+            Self::FoldRef(statement) => statement.position(),
+            Self::UnfoldRef(statement) => statement.position(),
             Self::JoinBlock(statement) => statement.position(),
             Self::SplitBlock(statement) => statement.position(),
             Self::ConvertOwnedIntoMemoryBlock(statement) => statement.position(),
@@ -85,6 +87,18 @@ impl Positioned for FoldOwned {
 }
 
 impl Positioned for UnfoldOwned {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for FoldRef {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for UnfoldRef {
     fn position(&self) -> Position {
         self.position
     }
