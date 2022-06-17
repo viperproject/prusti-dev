@@ -3,7 +3,7 @@
 use prusti_contracts::*;
 
 //#[print_counterexample("text",)]
-#[print_counterexample("text {} text", b,)]
+#[print_counterexample("text {} text {}", b, b)]
 struct X{
     a: i32, 
     b: i32,
@@ -15,7 +15,7 @@ struct Y(i32);
 
 #[print_counterexample]
 enum Z{
-    #[print_counterexample("text {}, {} {}", g, h , i)]
+    #[print_counterexample("text {}, {}", g, h)]
     E {
         g: i32,
         h: i32,
