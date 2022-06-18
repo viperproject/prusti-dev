@@ -1,13 +1,17 @@
 use super::{Context, ToViper, ToViperDecl};
+use prusti_utils::force_matches;
 use viper::{self, AstFactory};
-use vir::low::ast::{
-    expression::{self, Expression},
-    function::FunctionDecl,
-    position::Position,
-    predicate::PredicateDecl,
-    statement::{self, Statement},
-    ty::{BitVector, BitVectorSize, Float, Map, Type},
-    variable::VariableDecl,
+use vir::low::{
+    ast::{
+        expression::{self, Expression},
+        function::FunctionDecl,
+        position::Position,
+        predicate::PredicateDecl,
+        statement::{self, Statement},
+        ty::{BitVector, BitVectorSize, Float, Map, Type},
+        variable::VariableDecl,
+    },
+    ty::Seq,
 };
 
 impl<'a, 'v> ToViper<'v, viper::Predicate<'v>> for &'a PredicateDecl {
@@ -532,7 +536,8 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Seq {
             .map(|e| e.to_viper(context, ast))
             .collect::<Vec<_>>();
         if elems.is_empty() {
-            ast.empty_seq(self.ty.to_viper(context, ast))
+            let elem_ty = force_matches!(&self.ty, Type::Seq(Seq { element_type }) => element_type);
+            ast.empty_seq(elem_ty.to_viper(context, ast))
         } else {
             ast.explicit_seq(&elems)
         }
@@ -565,6 +570,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::MapOp {
         match self.kind {
             expression::MapOpKind::Empty => ast.empty_map(key_ty, val_ty),
             expression::MapOpKind::Update => ast.update_map(arg(0), arg(1), arg(2)),
+            expression::MapOpKind::Contains => ast.map_contains(arg(0), arg(1)),
             expression::MapOpKind::Lookup => ast.lookup_map(arg(0), arg(1)),
             expression::MapOpKind::Len => ast.map_len(arg(0)),
         }

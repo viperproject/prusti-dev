@@ -234,6 +234,7 @@ pub enum BuiltinFunc {
     LifetimeIntersect,
     EmptyMap,
     UpdateMap,
+    MapContains,
     LookupMap,
     MapLen,
     EmptySeq,
