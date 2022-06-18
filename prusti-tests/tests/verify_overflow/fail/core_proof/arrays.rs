@@ -43,7 +43,7 @@ fn test7() {
     assert!(c == 2);     //~ ERROR: the asserted expression might not hold
 }
 
-// FIXME: test8/test9 sometimes fail nondeterministically
+// FIXME: test8 sometimes fail nondeterministically
 // fn test8() {
 //     let mut a = [1; 100];
 //     a[1] = 2;
@@ -55,6 +55,7 @@ fn test7() {
 //     assert!(a[5] == 1);
 // }
 //
+// FIXME: test9 sometimes fail nondeterministically
 // fn test9() {
 //     let mut a = [1; 100];
 //     a[1] = 2;
@@ -64,7 +65,7 @@ fn test7() {
 //     assert!(a[3] == 1);
 //     assert!(a[4] == 1);
 //     assert!(a[5] == 1);
-//     assert!(a[0] == 2);     //~ ERROR: the asserted expression might not hold
+//     assert!(a[0] == 2);     the asserted expression might not hold
 // }
 
 //fn test10() {
