@@ -136,6 +136,8 @@ impl Expression {
             None
         }
     }
+
+    #[must_use]
     pub fn erase_lifetime(self) -> Expression {
         struct DefaultLifetimeEraser {}
         impl ExpressionFolder for DefaultLifetimeEraser {
