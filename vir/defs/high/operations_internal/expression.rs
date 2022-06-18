@@ -302,7 +302,7 @@ impl Expression {
                     ..
                 }) => arguments[field.index].clone(),
                 Expression::BinaryOp(BinaryOp {
-                    op_kind: BinaryOpKind::EqCmp,
+                    op_kind,
                     left:
                         box Expression::AddrOf(AddrOf {
                             base: left,
@@ -310,7 +310,8 @@ impl Expression {
                                 Type::Reference(ty::Reference {
                                     lifetime: _,
                                     uniqueness: ty::Uniqueness::Shared,
-                                    target_type: box Type::Map(_) | box Type::Sequence(_),
+                                    target_type:
+                                        box Type::Map(_) | box Type::Sequence(_) | box Type::Int(_),
                                 }),
                             ..
                         }),
@@ -321,13 +322,14 @@ impl Expression {
                                 Type::Reference(ty::Reference {
                                     lifetime: _,
                                     uniqueness: ty::Uniqueness::Shared,
-                                    target_type: box Type::Map(_) | box Type::Sequence(_),
+                                    target_type:
+                                        box Type::Map(_) | box Type::Sequence(_) | box Type::Int(_),
                                 }),
                             ..
                         }),
                     position,
                 }) => Expression::BinaryOp(BinaryOp {
-                    op_kind: BinaryOpKind::EqCmp,
+                    op_kind,
                     left,
                     right,
                     position,
@@ -342,6 +344,33 @@ impl Expression {
                         }),
                     ..
                 }) if op_kind_inner == op_kind_outer => *argument,
+                Expression::Deref(Deref {
+                    base: box Expression::BuiltinFuncApp(ref app),
+                    ..
+                }) => match app.function {
+                    BuiltinFunc::LookupMap | BuiltinFunc::LookupSeq => {
+                        match (&app.arguments[0], &app.return_type) {
+                            (
+                                Expression::AddrOf(AddrOf { base, .. }),
+                                Type::Reference(ty::Reference {
+                                    target_type: box return_type,
+                                    ..
+                                }),
+                            ) => {
+                                let mut arguments = app.arguments.clone();
+                                arguments[0] = (**base).clone();
+                                let return_type = return_type.clone();
+                                Expression::BuiltinFuncApp(BuiltinFuncApp {
+                                    arguments,
+                                    return_type,
+                                    ..app.clone()
+                                })
+                            }
+                            _ => break expression,
+                        }
+                    }
+                    _ => break expression,
+                },
                 _ => {
                     break expression;
                 }
