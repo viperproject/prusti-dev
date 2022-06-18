@@ -13,6 +13,7 @@ pub enum Rvalue {
     // Use(Use),
     Repeat(Repeat),
     Ref(Ref),
+    Reborrow(Reborrow),
     // ThreadLocalRef(ThreadLocalRef),
     AddressOf(AddressOf),
     Len(Len),
@@ -37,6 +38,16 @@ pub struct Repeat {
 pub struct Ref {
     pub place: Expression,
     pub lifetime: LifetimeConst,
+    pub is_mut: bool,
+    pub lifetime_token_permission: Expression,
+    pub target: Expression,
+}
+
+#[display(fmt = "{} := &'{} (*{})", target, operand_lifetime, place)]
+pub struct Reborrow {
+    pub place: Expression,
+    pub operand_lifetime: LifetimeConst,
+    pub place_lifetime: LifetimeConst,
     pub is_mut: bool,
     pub lifetime_token_permission: Expression,
     pub target: Expression,
