@@ -481,7 +481,9 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
-            | vir_mid::TypeDecl::Pointer(_) => vir_low::PredicateDecl::new(
+            | vir_mid::TypeDecl::Pointer(_)
+            | vir_mid::TypeDecl::Sequence(_)
+            | vir_mid::TypeDecl::Map(_) => vir_low::PredicateDecl::new(
                 predicate_name! {FracRef<ty>},
                 vec![lifetime, place, root_address, snapshot],
                 None,
@@ -582,7 +584,9 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
-            | vir_mid::TypeDecl::Pointer(_) => vir_low::PredicateDecl::new(
+            | vir_mid::TypeDecl::Pointer(_)
+            | vir_mid::TypeDecl::Sequence(_)
+            | vir_mid::TypeDecl::Map(_) => vir_low::PredicateDecl::new(
                 predicate_name! {UniqueRef<ty>},
                 vec![
                     lifetime,

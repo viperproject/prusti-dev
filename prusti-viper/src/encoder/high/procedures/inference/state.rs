@@ -55,6 +55,12 @@ impl std::fmt::Display for PredicateState {
 
 impl PredicateState {
     fn is_empty(&self) -> bool {
+        self.owned_non_aliased.is_empty()
+            && self.memory_block_stack.is_empty()
+            && self.mut_borrowed.is_empty()
+    }
+
+    fn contains_only_leakable(&self) -> bool {
         self.owned_non_aliased.is_empty() && self.memory_block_stack.is_empty()
     }
 
@@ -200,6 +206,7 @@ impl PredicateState {
     pub(super) fn clear(&mut self) -> SpannedEncodingResult<()> {
         self.owned_non_aliased.clear();
         self.memory_block_stack.clear();
+        self.mut_borrowed.clear();
         self.check_no_default_position();
         Ok(())
     }
@@ -247,8 +254,13 @@ impl FoldUnfoldState {
         debug!("state:\n{}", self);
     }
 
-    pub(in super::super) fn is_empty(&self) -> bool {
-        self.unconditional.is_empty() && self.conditional.is_empty()
+    pub(in super::super) fn contains_only_leakable(&self) -> bool {
+        for state in self.conditional.values() {
+            if !state.contains_only_leakable() {
+                return false;
+            }
+        }
+        self.unconditional.contains_only_leakable()
     }
 
     pub(in super::super) fn reset_incoming_labels_with(
@@ -304,6 +316,12 @@ impl FoldUnfoldState {
             incoming_state.unconditional.memory_block_stack,
             &mut new_conditional.memory_block_stack,
             &mut incoming_conditional.memory_block_stack,
+        )?;
+        Self::merge_unconditional_mut_borrowed(
+            &mut self.unconditional.mut_borrowed,
+            incoming_state.unconditional.mut_borrowed,
+            &mut new_conditional.mut_borrowed,
+            &mut incoming_conditional.mut_borrowed,
         )?;
 
         // Copy over conditional.
@@ -371,6 +389,30 @@ impl FoldUnfoldState {
         }
         self.incoming_labels.push(incoming_label);
         self.check_no_default_position();
+        Ok(())
+    }
+
+    fn merge_unconditional_mut_borrowed(
+        unconditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+        incoming_unconditional: BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+        new_conditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+        incoming_conditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+    ) -> SpannedEncodingResult<()> {
+        let mut unconditional_predicates = BTreeMap::default();
+        // Unconditional: merge incoming into self.
+        for (predicate, lifetime) in &incoming_unconditional {
+            if unconditional.contains_key(predicate) {
+                unconditional_predicates.insert(predicate, lifetime);
+            } else {
+                incoming_conditional.insert(predicate.clone(), lifetime.clone());
+            }
+        }
+        // Unconditional: check what needs to be made conditional.
+        for (predicate, lifetime) in unconditional
+            .drain_filter(|predicate, _| !unconditional_predicates.contains_key(predicate))
+        {
+            new_conditional.insert(predicate, lifetime);
+        }
         Ok(())
     }
 
