@@ -40,6 +40,7 @@ pub(in super::super) trait LifetimesInterface {
     ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
     fn encode_lifetime_intersect(&mut self, lft_count: usize) -> SpannedEncodingResult<()>;
     fn encode_lifetime_included(&mut self) -> SpannedEncodingResult<()>;
+    fn encode_lifetime_included_in_itself_axiom(&mut self) -> SpannedEncodingResult<()>;
     fn encode_lifetime_included_intersect_axiom(
         &mut self,
         lft_count: usize,
@@ -145,12 +146,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             let arguments: Vec<vir_low::Expression> = vec![lft_1.into(), lft_2.into()];
             self.create_domain_func_app(
                 "Lifetime",
-                "included$",
+                "included",
                 arguments,
                 vir_low::ty::Type::Bool,
                 Default::default(),
             )?;
+            self.encode_lifetime_included_in_itself_axiom()?;
         }
+        Ok(())
+    }
+
+    fn encode_lifetime_included_in_itself_axiom(&mut self) -> SpannedEncodingResult<()> {
+        use vir_low::macros::*;
+        var_decls!(lft: Lifetime);
+        let quantifier_body = self.create_domain_func_app(
+            "Lifetime",
+            "included",
+            vec![lft.clone().into(), lft.clone().into()],
+            vir_low::ty::Type::Bool,
+            Default::default(),
+        )?;
+        let axiom = vir_low::DomainAxiomDecl {
+            name: "included_in_itself$".to_string(),
+            body: QuantifierHelpers::forall(vec![lft], vec![], quantifier_body),
+        };
+        self.declare_axiom("Lifetime", axiom)?;
         Ok(())
     }
 
@@ -200,7 +220,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             for i in 1..(lft_count + 1) {
                 trigger_expressions.push(self.create_domain_func_app(
                     "Lifetime",
-                    "included$",
+                    "included",
                     arguments.get_mut(i - 1).unwrap().clone(),
                     vir_low::ty::Type::Bool,
                     Default::default(),

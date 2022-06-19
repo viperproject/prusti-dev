@@ -10,6 +10,7 @@ use crate::encoder::{
         lowerer::{Lowerer, VariablesLowererInterface},
         places::PlacesInterface,
         predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
+        references::ReferencesInterface,
         snapshots::{
             IntoProcedureBoolExpression, IntoProcedureFinalSnapshot, IntoProcedureSnapshot,
             SnapshotValidityInterface, SnapshotVariablesInterface,
@@ -401,6 +402,7 @@ impl IntoLow for vir_mid::Statement {
                         statement.position =>
                         apply<low_condition> (acc(DeadLifetimeToken(lifetime))) --* (
                             (acc(OwnedNonAliased<ty>([place], [address], [snapshot]))) &&
+                            [validity] &&
                             (acc(DeadLifetimeToken(lifetime)))
                         )
                     }
@@ -600,20 +602,34 @@ impl IntoLow for vir_mid::Statement {
                 }
                 Ok(statements)
             }
+            Self::DeadInclusion(statement) => {
+                lowerer.encode_dead_inclusion_method()?;
+                Ok(vec![Statement::method_call(
+                    String::from("dead_inclusion"),
+                    vec![
+                        statement.target.to_procedure_snapshot(lowerer)?.into(),
+                        statement.value.to_procedure_snapshot(lowerer)?.into(),
+                    ],
+                    vec![],
+                    statement.position,
+                )])
+            }
             Self::LifetimeTake(statement) => {
                 if statement.value.len() == 1 {
-                    let expr = vir_low::Expression::local_no_pos(
+                    let value = vir_low::Expression::local_no_pos(
                         statement
                             .value
                             .first()
                             .unwrap()
                             .to_procedure_snapshot(lowerer)?,
                     );
-                    Ok(vec![Statement::assign(
-                        statement.target.to_procedure_snapshot(lowerer)?,
-                        expr,
+                    let statements = vec![Statement::assign(
+                        lowerer
+                            .new_snapshot_variable_version(&statement.target, statement.position)?,
+                        value,
                         statement.position,
-                    )])
+                    )];
+                    Ok(statements)
                 } else {
                     lowerer.encode_lft_tok_sep_take_method(statement.value.len())?;
                     let mut arguments: Vec<vir_low::Expression> = vec![];
@@ -626,15 +642,15 @@ impl IntoLow for vir_mid::Statement {
                         .lifetime_token_permission
                         .to_procedure_snapshot(lowerer)?;
                     arguments.push(perm_amount);
-                    let target = vec![vir_low::Expression::local_no_pos(
-                        statement.target.to_procedure_snapshot(lowerer)?,
-                    )];
-                    Ok(vec![Statement::method_call(
+                    let statements = vec![Statement::method_call(
                         format!("lft_tok_sep_take${}", statement.value.len()),
-                        arguments,
-                        target,
+                        arguments.clone(),
+                        vec![lowerer
+                            .new_snapshot_variable_version(&statement.target, statement.position)?
+                            .into()],
                         statement.position,
-                    )])
+                    )];
+                    Ok(statements)
                 }
             }
             Self::LifetimeReturn(statement) => {
@@ -715,6 +731,9 @@ impl IntoLow for vir_mid::Statement {
                     )
                 }])
             }
+            Self::ObtainMutRef(_statement) => {
+                Ok(vec![]) // NOTE: nothing to do, we only want the fold_unfold
+            }
             Self::OpenMutRef(statement) => {
                 let ty = statement.place.get_type();
                 lowerer.encode_open_close_mut_ref_methods(ty)?;
@@ -760,6 +779,44 @@ impl IntoLow for vir_mid::Statement {
                     )
                 }];
                 Ok(statements)
+            }
+            Self::BorShorten(statement) => {
+                let ty = statement.value.get_type();
+                lowerer.encode_bor_shorten_method(ty)?;
+                let perm_amount = statement
+                    .lifetime_token_permission
+                    .to_procedure_snapshot(lowerer)?;
+                let lifetime =
+                    lowerer.encode_lifetime_const_into_variable(statement.lifetime.clone())?;
+                let old_lifetime =
+                    lowerer.encode_lifetime_const_into_variable(statement.old_lifetime.clone())?;
+                let reference_place = lowerer.encode_expression_as_place(&statement.value)?;
+                let deref_place =
+                    lowerer.reference_deref_place(reference_place, statement.position)?;
+                let reference_value = statement.value.to_procedure_snapshot(lowerer)?;
+                let address =
+                    lowerer.reference_address(ty, reference_value.clone(), statement.position)?;
+                let current_snapshot = lowerer.reference_target_current_snapshot(
+                    ty,
+                    reference_value.clone(),
+                    statement.position,
+                )?;
+                let final_snapshot = lowerer.reference_target_final_snapshot(
+                    ty,
+                    reference_value,
+                    statement.position,
+                )?;
+                Ok(vec![stmtp! { statement.position =>
+                    call bor_shorten<ty>(
+                        lifetime,
+                        old_lifetime,
+                        [perm_amount],
+                        [deref_place],
+                        [address],
+                        [current_snapshot],
+                        [final_snapshot]
+                    )
+                }])
             }
         }
     }
