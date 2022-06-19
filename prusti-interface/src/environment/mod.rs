@@ -40,7 +40,6 @@ pub mod debug_utils;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
-use rustc_hir::intravisit::Visitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
 pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block, is_loop_invariant_block, get_loop_invariant};
@@ -209,10 +208,10 @@ impl<'tcx> Environment<'tcx> {
     pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
         let tcx = self.tcx;
         let mut visitor = CollectPrustiSpecVisitor::new(self);
-        tcx.hir().visit_all_item_likes(&mut visitor);
+        visitor.visit_all_item_likes();
 
         let mut cl_visitor = CollectClosureDefsVisitor::new(self);
-        tcx.hir().visit_all_item_likes(&mut cl_visitor.as_deep_visitor());
+        tcx.hir().deep_visit_all_item_likes(&mut cl_visitor);
 
         let mut result: Vec<_> = visitor.get_annotated_procedures();
         result.extend(cl_visitor.get_closure_defs());
@@ -470,7 +469,7 @@ impl<'tcx> Environment<'tcx> {
             let param_env = ty::ParamEnv::reveal_all();
             let key = ty::ParamEnvAnd { param_env, value: (proc_def_id, substs) };
             let resolved_instance = traits::resolve_instance(self.tcx(), key);
-            return match resolved_instance {
+            match resolved_instance {
                 Ok(method_impl_instance) => {
                     let impl_method_def_id = method_impl_instance.map(|instance| instance.def_id());
                     debug!("Resolved to-be called method: {:?}", impl_method_def_id);
@@ -480,7 +479,7 @@ impl<'tcx> Environment<'tcx> {
                     debug!("Error while resolving the to-be called method: {:?}", err);
                     None
                 }
-            };
+            }
         } else {
             None
         }

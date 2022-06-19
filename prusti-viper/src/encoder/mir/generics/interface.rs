@@ -58,7 +58,13 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
             .collect::<Result<Vec<_>, _>>()?)
     }
     fn encode_param(&self, name: Symbol, index: u32) -> vir_high::ty::TypeVar {
-        let identifier = format!("{}${}", name.as_str(), index);
+        let sanitized_name = name
+            .as_str()
+            .replace(' ', "_")
+            .replace('>', "_gt_")
+            .replace('<', "_lt_")
+            .replace('=', "_eq_");
+        let identifier = format!("{}${}", sanitized_name, index);
         vir_high::ty::TypeVar::generic_type(identifier)
     }
 }

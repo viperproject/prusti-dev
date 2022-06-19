@@ -67,9 +67,9 @@ fn real_targets(terminator: &mir::Terminator) -> Vec<mir::BasicBlock> {
         | TerminatorKind::Drop { ref target, .. } => vec![*target],
 
         TerminatorKind::Call {
-            ref destination, ..
-        } => match *destination {
-            Some((_, target)) => vec![target],
+            target, ..
+        } => match target {
+            Some(target) => vec![target],
             None => vec![],
         },
 

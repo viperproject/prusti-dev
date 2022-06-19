@@ -96,7 +96,7 @@ impl<'tcx> LocalVariableManager<'tcx> {
 }
 
 /// This place is a generalisation of mir::Place.
-#[derive(Debug, Eq, PartialEq, Hash, Clone)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Place<'tcx> {
     /// A place that is a MIR place.
     NormalPlace(mir::Place<'tcx>),
@@ -120,7 +120,7 @@ impl<'a, 'tcx: 'a> From<&'a mir::Place<'tcx>> for Place<'tcx> {
 
 impl<'tcx> Place<'tcx> {
     pub fn is_root(&self, local: Local) -> bool {
-        // fn check_if_root(place: &mir::Place, local: Local) -> bool {
+        // fn check_if_root(place: mir::Place, local: Local) -> bool {
         //     match place {
         //         mir::Place::Local(root) => local.index() == root.index(),
         //         mir::Place::Projection(box mir::Projection { ref base, .. }) => {

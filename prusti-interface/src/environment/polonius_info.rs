@@ -629,8 +629,8 @@ fn compute_loan_conflict_sets(
                         continue;
                     }
                     for place in get_borrowed_places(mir, loan_position, *loan_alive)? {
-                        if utils::is_prefix(borrowed_place, place)
-                            || utils::is_prefix(place, borrowed_place)
+                        if utils::is_prefix(*borrowed_place, *place)
+                            || utils::is_prefix(*place, *borrowed_place)
                         {
                             loan_conflict_sets
                                 .get_mut(&loan_created)
@@ -1822,7 +1822,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 .successors()
             {
                 successors.push(mir::Location {
-                    block: *successor,
+                    block: successor,
                     statement_index: 0,
                 });
             }
@@ -1903,13 +1903,9 @@ fn get_call_destination<'tcx>(
     }
     match terminator.as_ref().unwrap().kind {
         mir::TerminatorKind::Call {
-            ref destination, ..
+            ref destination, target, ..
         } => {
-            if let Some((ref place, _)) = destination {
-                Some(*place)
-            } else {
-                None
-            }
+            target.map(|_| *destination)
         }
         ref x => {
             panic!("Expected call, got {:?} at {:?}", x, location);

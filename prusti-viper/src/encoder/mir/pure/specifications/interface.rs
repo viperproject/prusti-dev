@@ -329,7 +329,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             block: invariant_block,
             statement_index: inv_loc,
         });
-        let (inv_cl_expr_encoded, _, _) = mir_encoder.encode_place(&inv_cl_expr).with_span(span)?;
+        let (inv_cl_expr_encoded, _, _) = mir_encoder.encode_place(inv_cl_expr).with_span(span)?;
 
         // inline invariant body
         let encoded_invariant = inline_closure(

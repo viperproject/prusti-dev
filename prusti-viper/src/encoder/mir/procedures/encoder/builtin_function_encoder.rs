@@ -10,7 +10,8 @@ pub(super) trait BuiltinFuncAppEncoder<'p, 'v, 'tcx> {
         called_def_id: DefId,
         call_substs: SubstsRef<'tcx>,
         args: &[mir::Operand<'tcx>],
-        destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
+        destination: mir::Place<'tcx>,
+        target: &Option<mir::BasicBlock>,
         cleanup: &Option<mir::BasicBlock>,
     ) -> SpannedEncodingResult<bool>;
 }
@@ -24,7 +25,8 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
         called_def_id: DefId,
         call_substs: SubstsRef<'tcx>,
         args: &[mir::Operand<'tcx>],
-        destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
+        destination: mir::Place<'tcx>,
+        target: &Option<mir::BasicBlock>,
         cleanup: &Option<mir::BasicBlock>,
     ) -> SpannedEncodingResult<bool> {
         let full_called_function_name = self.encoder.env().tcx().def_path_str(called_def_id);
@@ -34,7 +36,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
              block_builder: &mut BasicBlockBuilder,
              rhs_gen: &mut dyn FnMut(_, Vec<vir_high::Expression>, _) -> vir_high::Expression|
              -> SpannedEncodingResult<vir_high::Successor> {
-                let (target_place, target_block) = destination.unwrap();
+                let (target_place, target_block) = (destination, target.unwrap());
                 let position = encoder
                     .encoder
                     .error_manager()
@@ -180,7 +182,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 } else {
                     debug!("Absence of panic will not be checked")
                 }
-                assert!(destination.is_none());
+                assert!(target.is_none());
                 if let Some(cleanup) = cleanup {
                     vir_high::Successor::Goto(self.encode_basic_block_label(*cleanup))
                 } else {
