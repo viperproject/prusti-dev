@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.10/src/tls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/tls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -467,10 +467,6 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
 </pre><pre class="rust"><code><span class="doccomment">//! TLS configuration</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! By default, a `Client` will make use of system-native transport layer</span>
@@ -657,7 +653,7 @@
     <span class="doccomment">/// The input should contain a PEM encoded private key</span>
     <span class="doccomment">/// and at least one PEM encoded certificate.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Note: The private key must be in RSA or PKCS#8 format.</span>
+    <span class="doccomment">/// Note: The private key must be in RSA, SEC1 Elliptic Curve or PKCS#8 format.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -683,33 +679,29 @@
 
         <span class="kw">let</span> (<span class="ident">key</span>, <span class="ident">certs</span>) <span class="op">=</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pem</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="ident">buf</span>);
-            <span class="kw">let</span> <span class="ident">certs</span> <span class="op">=</span> <span class="ident">rustls_pemfile::certs</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pem</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TLSError::General</span>(<span class="ident">String::from</span>(<span class="string">&quot;No valid certificate was found&quot;</span>)))
-                .<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>
-                .<span class="ident">into_iter</span>()
-                .<span class="ident">map</span>(<span class="ident">rustls::Certificate</span>)
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-            <span class="ident">pem</span>.<span class="ident">set_position</span>(<span class="number">0</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sk</span> <span class="op">=</span> <span class="ident">rustls_pemfile::pkcs8_private_keys</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pem</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">pkcs8_keys</span><span class="op">|</span> {
-                    <span class="kw">if</span> <span class="ident">pkcs8_keys</span>.<span class="ident">is_empty</span>() {
-                        <span class="prelude-val">Err</span>(<span class="ident">std::io::Error::new</span>(
-                            <span class="ident">std::io::ErrorKind::NotFound</span>,
-                            <span class="string">&quot;No valid private key was found&quot;</span>,
-                        ))
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">pkcs8_keys</span>)
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sk</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">rustls::PrivateKey</span><span class="op">&gt;</span><span class="ident">::new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">certs</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">rustls::Certificate</span><span class="op">&gt;</span><span class="ident">::new</span>();
+
+            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">std::iter::from_fn</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">rustls_pemfile::read_one</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pem</span>).<span class="ident">transpose</span>()) {
+                <span class="kw">match</span> <span class="ident">item</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                    <span class="ident"><span class="kw">crate</span>::error::builder</span>(<span class="ident">TLSError::General</span>(<span class="ident">String::from</span>(
+                        <span class="string">&quot;Invalid identity PEM file&quot;</span>,
+                    )))
+                })<span class="question-mark">?</span> {
+                    <span class="ident">rustls_pemfile::Item::X509Certificate</span>(<span class="ident">cert</span>) =&gt; {
+                        <span class="ident">certs</span>.<span class="ident">push</span>(<span class="ident">rustls::Certificate</span>(<span class="ident">cert</span>))
                     }
-                })
-                .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="ident">pem</span>.<span class="ident">set_position</span>(<span class="number">0</span>);
-                    <span class="ident">rustls_pemfile::rsa_private_keys</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pem</span>)
-                })
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TLSError::General</span>(<span class="ident">String::from</span>(<span class="string">&quot;No valid private key was found&quot;</span>)))
-                .<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>
-                .<span class="ident">into_iter</span>()
-                .<span class="ident">map</span>(<span class="ident">rustls::PrivateKey</span>)
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                    <span class="ident">rustls_pemfile::Item::PKCS8Key</span>(<span class="ident">key</span>) =&gt; <span class="ident">sk</span>.<span class="ident">push</span>(<span class="ident">rustls::PrivateKey</span>(<span class="ident">key</span>)),
+                    <span class="ident">rustls_pemfile::Item::RSAKey</span>(<span class="ident">key</span>) =&gt; <span class="ident">sk</span>.<span class="ident">push</span>(<span class="ident">rustls::PrivateKey</span>(<span class="ident">key</span>)),
+                    <span class="ident">rustls_pemfile::Item::ECKey</span>(<span class="ident">key</span>) =&gt; <span class="ident">sk</span>.<span class="ident">push</span>(<span class="ident">rustls::PrivateKey</span>(<span class="ident">key</span>)),
+                    <span class="kw">_</span> =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>(<span class="ident">TLSError::General</span>(<span class="ident">String::from</span>(
+                            <span class="string">&quot;No valid certificate was found&quot;</span>,
+                        ))))
+                    }
+                }
+            }
+
             <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">sk</span>), <span class="bool-val">false</span>) <span class="op">=</span> (<span class="ident">sk</span>.<span class="ident">pop</span>(), <span class="ident">certs</span>.<span class="ident">is_empty</span>()) {
                 (<span class="ident">sk</span>, <span class="ident">certs</span>)
             } <span class="kw">else</span> {
@@ -759,19 +751,19 @@
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/tls.rs.html#23-28">Certificate</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/reqwest/tls.rs.html#288">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Certificate&quot;</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../src/reqwest/tls.rs.html#284">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Certificate&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/tls.rs.html#39-42">Identity</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/reqwest/tls.rs.html#294">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Identity&quot;</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../src/reqwest/tls.rs.html#290">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Identity&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
 <span class="doccomment">/// A TLS protocol version.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Version</span>(<a class="ident" href="../../src/reqwest/tls.rs.html#305-310">InnerVersion</a>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Version</span>(<a class="ident" href="../../src/reqwest/tls.rs.html#301-306">InnerVersion</a>);
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
@@ -784,23 +776,23 @@
 
 <span class="comment">// These could perhaps be From/TryFrom implementations, but those would be</span>
 <span class="comment">// part of the public API so let&#39;s be careful</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/reqwest/tls.rs.html#301">Version</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a> {
     <span class="doccomment">/// Version 1.0 of the TLS protocol.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_0</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#301">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#301">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#306">InnerVersion::Tls1_0</a>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_0</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#302">InnerVersion::Tls1_0</a>);
     <span class="doccomment">/// Version 1.1 of the TLS protocol.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_1</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#301">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#301">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#307">InnerVersion::Tls1_1</a>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_1</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#303">InnerVersion::Tls1_1</a>);
     <span class="doccomment">/// Version 1.2 of the TLS protocol.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_2</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#301">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#301">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#308">InnerVersion::Tls1_2</a>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_2</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#304">InnerVersion::Tls1_2</a>);
     <span class="doccomment">/// Version 1.3 of the TLS protocol.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_3</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#301">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#301">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#309">InnerVersion::Tls1_3</a>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLS_1_3</span>: <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a> <span class="op">=</span> <a class="ident" href="../../src/reqwest/tls.rs.html#297">Version</a>(<a class="ident" href="../../src/reqwest/tls.rs.html#305">InnerVersion::Tls1_3</a>);
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_native_tls</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../native_tls/enum.Protocol.html">native_tls_crate::Protocol</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/reqwest/tls.rs.html#325">self</a>.<span class="number">0</span> {
-            <a class="ident" href="../../src/reqwest/tls.rs.html#306">InnerVersion::Tls1_0</a> =&gt; <span class="prelude-val">Some</span>(<span class="ident">native_tls_crate::Protocol::Tlsv10</span>),
-            <a class="ident" href="../../src/reqwest/tls.rs.html#307">InnerVersion::Tls1_1</a> =&gt; <span class="prelude-val">Some</span>(<span class="ident">native_tls_crate::Protocol::Tlsv11</span>),
-            <a class="ident" href="../../src/reqwest/tls.rs.html#308">InnerVersion::Tls1_2</a> =&gt; <span class="prelude-val">Some</span>(<span class="ident">native_tls_crate::Protocol::Tlsv12</span>),
-            <a class="ident" href="../../src/reqwest/tls.rs.html#309">InnerVersion::Tls1_3</a> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">match</span> <a class="self" href="../../src/reqwest/tls.rs.html#321">self</a>.<span class="number">0</span> {
+            <a class="ident" href="../../src/reqwest/tls.rs.html#302">InnerVersion::Tls1_0</a> =&gt; <span class="prelude-val">Some</span>(<span class="ident">native_tls_crate::Protocol::Tlsv10</span>),
+            <a class="ident" href="../../src/reqwest/tls.rs.html#303">InnerVersion::Tls1_1</a> =&gt; <span class="prelude-val">Some</span>(<span class="ident">native_tls_crate::Protocol::Tlsv11</span>),
+            <a class="ident" href="../../src/reqwest/tls.rs.html#304">InnerVersion::Tls1_2</a> =&gt; <span class="prelude-val">Some</span>(<span class="ident">native_tls_crate::Protocol::Tlsv12</span>),
+            <a class="ident" href="../../src/reqwest/tls.rs.html#305">InnerVersion::Tls1_3</a> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -831,11 +823,11 @@
     <span class="ident">UnknownPreconfigured</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/tls.rs.html#348-359">TlsBackend</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/tls.rs.html#344-355">TlsBackend</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/reqwest/tls.rs.html#362">self</a> {
+        <span class="kw">match</span> <a class="self" href="../../src/reqwest/tls.rs.html#358">self</a> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-            <a class="ident" href="../../src/reqwest/tls.rs.html#350">TlsBackend::Default</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/tls.rs.html#362">f</a>, <span class="string">&quot;Default&quot;</span>),
+            <a class="ident" href="../../src/reqwest/tls.rs.html#346">TlsBackend::Default</a> =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/tls.rs.html#358">f</a>, <span class="string">&quot;Default&quot;</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
             <span class="ident">TlsBackend::BuiltNativeTls</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;BuiltNativeTls&quot;</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>)]</span>
@@ -848,11 +840,11 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/tls.rs.html#348-359">TlsBackend</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/reqwest/tls.rs.html#348-359">TlsBackend</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/tls.rs.html#344-355">TlsBackend</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/reqwest/tls.rs.html#344-355">TlsBackend</a> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
         {
-            <a class="ident" href="../../src/reqwest/tls.rs.html#350">TlsBackend::Default</a>
+            <a class="ident" href="../../src/reqwest/tls.rs.html#346">TlsBackend::Default</a>
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)))]</span>
@@ -938,5 +930,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (42e1761c7 2022-05-15)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

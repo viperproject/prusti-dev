@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.18/src/proto/h1/dispatch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.19/src/proto/h1/dispatch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -762,7 +762,7 @@
 <span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#36-62">Http1Transaction</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#106">Wants</a>};
+<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#35-61">Http1Transaction</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#107">Wants</a>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::body</span>::{<a class="ident" href="../../../../src/hyper/body/body.rs.html#36-41">Body</a>, <a class="ident" href="../../../../src/hyper/body/length.rs.html#4">DecodedLength</a>, <a class="ident" href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::proto</span>::{
@@ -823,7 +823,7 @@
     <span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     <span class="ident">D::PollError</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">I</span>: <a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">T</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#36-62">Http1Transaction</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    <span class="ident">T</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#35-61">Http1Transaction</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     <span class="ident">Bs</span>: <a class="ident" href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">Bs::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
@@ -840,13 +840,13 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">disable_keep_alive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#84">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#769">disable_keep_alive</a>();
-        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#84">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#146">is_write_closed</a>() {
+        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#84">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#153">is_write_closed</a>() {
             <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#84">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; (<span class="ident">I</span>, <a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a>, <span class="ident">D</span>) {
-        <span class="kw">let</span> (<span class="ident">io</span>, <span class="ident">buf</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#91">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#134">into_inner</a>();
+        <span class="kw">let</span> (<span class="ident">io</span>, <span class="ident">buf</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#91">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#141">into_inner</a>();
         (<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#92">io</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#92">buf</a>, <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#91">self</a>.<span class="ident">dispatch</span>)
     }
 
@@ -894,11 +894,11 @@
         <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#131">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#153">poll_loop</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#132">cx</a>))<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#131">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">is_done</a>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pending</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#131">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#138">pending_upgrade</a>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pending</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#131">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#145">pending_upgrade</a>() {
                 <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#131">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#779">take_error</a>()<span class="question-mark">?</span>;
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#59">Dispatched::Upgrade</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#140">pending</a>)));
             } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#133">should_shutdown</a> {
-                <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#131">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#733">poll_shutdown</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#132">cx</a>)).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_shutdown</span>)<span class="question-mark">?</span>;
+                <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#131">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#736">poll_shutdown</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#132">cx</a>)).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_shutdown</span>)<span class="question-mark">?</span>;
             }
             <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#131">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#779">take_error</a>()<span class="question-mark">?</span>;
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/mod.rs.html#56">Dispatched::Shutdown</a>))
@@ -926,7 +926,7 @@
             <span class="comment">//</span>
             <span class="comment">// Using this instead of task::current() and notify() inside</span>
             <span class="comment">// the Conn is noticeably faster in pipelined benchmarks.</span>
-            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#153">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#339">wants_read_again</a>() {
+            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#153">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#344">wants_read_again</a>() {
                 <span class="comment">//break;</span>
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
             }
@@ -941,10 +941,10 @@
         <span class="kw">loop</span> {
             <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">is_closing</span> {
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#150">can_read_head</a>() {
+            } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#157">can_read_head</a>() {
                 <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">poll_read_head</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>))<span class="question-mark">?</span>;
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">body</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">body_tx</span>.<span class="ident">take</span>() {
-                <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#166">can_read_body</a>() {
+                <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#169">can_read_body</a>() {
                     <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>.<a class="ident" href="../../../../src/hyper/body/body.rs.html#548">poll_ready</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>) {
                         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())) =&gt; (),
                         <span class="ident">Poll::Pending</span> =&gt; {
@@ -955,17 +955,17 @@
                             <span class="comment">// user doesn&#39;t care about the body</span>
                             <span class="comment">// so we should stop reading</span>
                             <span class="macro">trace!</span>(<span class="string">&quot;body receiver dropped before eof, draining or closing&quot;</span>);
-                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#747">poll_drain_or_close_read</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>);
+                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#750">poll_drain_or_close_read</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>);
                             <span class="kw">continue</span>;
                         }
                     }
-                    <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#282-285">poll_read_body</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>) {
+                    <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#287-290">poll_read_body</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>) {
                         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">chunk</span>))) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>.<a class="ident" href="../../../../src/hyper/body/body.rs.html#598">try_send_data</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#206">chunk</a>) {
                             <span class="prelude-val">Ok</span>(()) =&gt; {
                                 <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">body_tx</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#189">body</a>);
                             }
                             <span class="prelude-val">Err</span>(<span class="ident">_canceled</span>) =&gt; {
-                                <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#166">can_read_body</a>() {
+                                <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#169">can_read_body</a>() {
                                     <span class="macro">trace!</span>(<span class="string">&quot;body receiver dropped before eof, closing&quot;</span>);
                                     <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#760">close_read</a>();
                                 }
@@ -986,7 +986,7 @@
                     <span class="comment">// just drop, the body will close automatically</span>
                 }
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#345-348">poll_read_keep_alive</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>);
+                <span class="kw">return</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#350-353">poll_read_keep_alive</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#183">cx</a>);
             }
         }
     }
@@ -1002,17 +1002,17 @@
             }
         }
         <span class="comment">// dispatch is ready for a message, try to read one</span>
-        <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#183-186">poll_read_head</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">cx</a>)) {
+        <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#186-189">poll_read_head</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">cx</a>)) {
             <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<span class="kw-2">mut</span> <span class="ident">head</span>, <span class="ident">body_len</span>, <span class="ident">wants</span>))) =&gt; {
                 <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">body_len</a> {
                     <span class="ident">DecodedLength::ZERO</span> =&gt; <span class="ident">Body::empty</span>(),
                     <span class="ident">other</span> =&gt; {
-                        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">Body::new_channel</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#252">other</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">wants</a>.<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#118">contains</a>(<span class="ident">Wants::EXPECT</span>));
+                        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">Body::new_channel</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#252">other</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">wants</a>.<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#119">contains</a>(<span class="ident">Wants::EXPECT</span>));
                         <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<span class="ident">body_tx</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#253">tx</a>);
                         <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#253">rx</a>
                     }
                 };
-                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">wants</a>.<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#118">contains</a>(<span class="ident">Wants::UPGRADE</span>) {
+                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">wants</a>.<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#119">contains</a>(<span class="ident">Wants::UPGRADE</span>) {
                     <span class="kw">let</span> <span class="ident">upgrade</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#787">on_upgrade</a>();
                     <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#259">upgrade</a>.<a class="ident" href="../../../../src/hyper/upgrade.rs.html#205">is_none</a>(), <span class="string">&quot;empty upgrade&quot;</span>);
                     <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#249">head</a>.<span class="ident">extensions</span>.<span class="ident">get</span>::<span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/upgrade.rs.html#72-74">OnUpgrade</a><span class="op">&gt;</span>().<span class="ident">is_none</span>(), <span class="string">&quot;OnUpgrade already set&quot;</span>);
@@ -1034,8 +1034,8 @@
                 <span class="comment">// read eof, the write side will have been closed too unless</span>
                 <span class="comment">// allow_read_close was set to true, in which case just do</span>
                 <span class="comment">// nothing...</span>
-                <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#142">is_read_closed</a>());
-                <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#146">is_write_closed</a>() {
+                <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#149">is_read_closed</a>());
+                <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#153">is_write_closed</a>() {
                     <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#237">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
                 }
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
@@ -1048,7 +1048,7 @@
             <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">is_closing</span> {
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
             } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">body_rx</span>.<span class="ident">is_none</span>()
-                <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#486">can_write_head</a>()
+                <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#491">can_write_head</a>()
                 <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">dispatch</span>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#35">should_poll</a>()
             {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">dispatch</span>).<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#29-32">poll_msg</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">cx</a>)) {
@@ -1059,7 +1059,7 @@
                     <span class="comment">// If so, we can skip a bit of bookkeeping that streaming</span>
                     <span class="comment">// bodies need to do.</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">full</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/body/mod.rs.html#36"><span class="kw">crate</span>::body::take_full_data</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">body</a>) {
-                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#521">write_full_msg</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">head</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#304">full</a>);
+                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#525">write_full_msg</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">head</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#304">full</a>);
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
                     }
 
@@ -1075,12 +1075,12 @@
                         <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">body_rx</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">body</a>));
                         <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#313">btype</a>
                     };
-                    <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#509">write_head</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">head</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#309">body_type</a>);
+                    <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#513">write_head</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#298">head</a>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#309">body_type</a>);
                 } <span class="kw">else</span> {
                     <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#383">close</a>();
                     <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#505">can_buffer_body</a>() {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#509">can_buffer_body</a>() {
                 <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#376">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">cx</a>))<span class="question-mark">?</span>;
             } <span class="kw">else</span> {
                 <span class="comment">// A new scope is needed :(</span>
@@ -1088,7 +1088,7 @@
                     <span class="ident">OptGuard::new</span>(<a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">body_rx</span>.<span class="ident">as_mut</span>()).<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#439">guard_mut</a>()
                 {
                     <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">clear_body</a>, <span class="string">&quot;opt guard defaults to keeping body&quot;</span>);
-                    <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#498">can_write_body</a>() {
+                    <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#502">can_write_body</a>() {
                         <span class="macro">trace!</span>(
                             <span class="string">&quot;no more write body allowed, user body is_end_stream = {}&quot;</span>,
                             <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">body</a>.<a class="ident" href="../../../../hyper/body/trait.HttpBody.html">is_end_stream</a>(),
@@ -1108,20 +1108,20 @@
                             <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">clear_body</a> <span class="op">=</span> <span class="bool-val">true</span>;
                             <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#345">chunk</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">==</span> <span class="number">0</span> {
                                 <span class="macro">trace!</span>(<span class="string">&quot;discarding empty chunk&quot;</span>);
-                                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#671">end_body</a>()<span class="question-mark">?</span>;
+                                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#675">end_body</a>()<span class="question-mark">?</span>;
                             } <span class="kw">else</span> {
-                                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#651">write_body_and_end</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#345">chunk</a>);
+                                <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#655">write_body_and_end</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#345">chunk</a>);
                             }
                         } <span class="kw">else</span> {
                             <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#345">chunk</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">==</span> <span class="number">0</span> {
                                 <span class="macro">trace!</span>(<span class="string">&quot;discarding empty chunk&quot;</span>);
                                 <span class="kw">continue</span>;
                             }
-                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#626">write_body</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#345">chunk</a>);
+                            <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#630">write_body</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#345">chunk</a>);
                         }
                     } <span class="kw">else</span> {
                         <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#330">clear_body</a> <span class="op">=</span> <span class="bool-val">true</span>;
-                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#671">end_body</a>()<span class="question-mark">?</span>;
+                        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#289">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#675">end_body</a>()<span class="question-mark">?</span>;
                     }
                 } <span class="kw">else</span> {
                     <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
@@ -1131,7 +1131,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#376">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#726">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#376">cx</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+        <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#376">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#729">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#376">cx</a>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
             <span class="macro">debug!</span>(<span class="string">&quot;error writing: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#377">err</a>);
             <span class="ident"><span class="kw">crate</span>::Error::new_body_write</span>(<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#377">err</a>)
         })
@@ -1148,13 +1148,13 @@
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">read_done</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#142">is_read_closed</a>();
+        <span class="kw">let</span> <span class="ident">read_done</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#149">is_read_closed</a>();
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">T::should_read_first</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#394">read_done</a> {
             <span class="comment">// a client that cannot read may was well be done.</span>
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">write_done</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#146">is_write_closed</a>()
+            <span class="kw">let</span> <span class="ident">write_done</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.<span class="ident">conn</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#153">is_write_closed</a>()
                 <span class="op">|</span><span class="op">|</span> (<span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.<span class="ident">dispatch</span>.<a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#35">should_poll</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/hyper/proto/h1/dispatch.rs.html#389">self</a>.<span class="ident">body_rx</span>.<span class="ident">is_none</span>());
             <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#394">read_done</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../../src/hyper/proto/h1/dispatch.rs.html#400">write_done</a>
         }
@@ -1170,7 +1170,7 @@
     <span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     <span class="ident">D::PollError</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">I</span>: <a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
-    <span class="ident">T</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#36-62">Http1Transaction</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+    <span class="ident">T</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#35-61">Http1Transaction</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     <span class="ident">Bs</span>: <a class="ident" href="../../../../hyper/body/trait.HttpBody.html">HttpBody</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">Bs::Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
@@ -1506,5 +1506,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (42e1761c7 2022-05-15)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

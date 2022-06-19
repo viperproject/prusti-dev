@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.18/src/proto/h1/io.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.19/src/proto/h1/io.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -996,23 +996,34 @@
 <span id="989">989</span>
 <span id="990">990</span>
 <span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
+<span id="997">997</span>
+<span id="998">998</span>
+<span id="999">999</span>
+<span id="1000">1000</span>
+<span id="1001">1001</span>
+<span id="1002">1002</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
 <span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">std::marker::Unpin</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="../../../../tokio/time/instant/struct.Instant.html">tokio::time::Instant</a>;
 <span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a>, <a class="ident" href="../../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
 <span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a class="ident" href="../../../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
+<span class="kw">use</span> <a class="ident" href="../../../../tokio/time/instant/struct.Instant.html">tokio::time::Instant</a>;
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#36-62">Http1Transaction</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#76-92">ParseContext</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#68-74">ParsedMessage</a>};
+<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#35-61">Http1Transaction</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#75-93">ParseContext</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#67-73">ParsedMessage</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../src/hyper/common/buf.rs.html#6-8"><span class="kw">crate</span>::common::buf::BufList</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">Pin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
@@ -1039,7 +1050,7 @@
     <span class="ident">io</span>: <span class="ident">T</span>,
     <span class="ident">read_blocked</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">read_buf</span>: <a class="ident" href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
-    <span class="ident">read_buf_strategy</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#381-389">ReadStrategy</a>,
+    <span class="ident">read_buf_strategy</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#389-397">ReadStrategy</a>,
     <span class="ident">write_buf</span>: <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 }
 
@@ -1062,9 +1073,9 @@
 {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">T</span>) -&gt; <span class="ident">Buffered</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">strategy</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#65">io</a>.<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">is_write_vectored</a>() {
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#664">WriteStrategy::Queue</a>
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#672">WriteStrategy::Queue</a>
         } <span class="kw">else</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#663">WriteStrategy::Flatten</a>
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#671">WriteStrategy::Flatten</a>
         };
         <span class="kw">let</span> <span class="ident">write_buf</span> <span class="op">=</span> <span class="ident">WriteBuf::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#66">strategy</a>);
         <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#39-46">Buffered</a> {
@@ -1098,21 +1109,21 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_read_buf_exact_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">sz</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#102">self</a>.<span class="ident">read_buf_strategy</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#388">ReadStrategy::Exact</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#102">sz</a>);
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#102">self</a>.<span class="ident">read_buf_strategy</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#396">ReadStrategy::Exact</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#102">sz</a>);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_write_strategy_flatten</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// this should always be called only at construction time,</span>
         <span class="comment">// so this assert is here to catch myself</span>
         <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#106">self</a>.<span class="ident">write_buf</span>.<span class="ident">queue</span>.<a class="ident" href="../../../../src/hyper/common/buf.rs.html#25">bufs_cnt</a>() <span class="op">==</span> <span class="number">0</span>);
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#106">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#558">set_strategy</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#663">WriteStrategy::Flatten</a>);
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#106">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#566">set_strategy</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#671">WriteStrategy::Flatten</a>);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_write_strategy_queue</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// this should always be called only at construction time,</span>
         <span class="comment">// so this assert is here to catch myself</span>
         <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#113">self</a>.<span class="ident">write_buf</span>.<span class="ident">queue</span>.<a class="ident" href="../../../../src/hyper/common/buf.rs.html#25">bufs_cnt</a>() <span class="op">==</span> <span class="number">0</span>);
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#113">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#558">set_strategy</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#664">WriteStrategy::Queue</a>);
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#113">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#566">set_strategy</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#672">WriteStrategy::Queue</a>);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">read_buf</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
@@ -1141,7 +1152,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">headers_buf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#145">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#608">headers_mut</a>();
+        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#145">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#616">headers_mut</a>();
         <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#146">buf</a>.<span class="ident">bytes</span>
     }
 
@@ -1150,11 +1161,11 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">buffer</span><span class="op">&lt;</span><span class="ident">BB</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="ident">BB</span>) {
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#154">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#562">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#154">buf</a>)
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#154">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#570">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#154">buf</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">can_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#158">self</a>.<span class="ident">flush_pipeline</span> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#158">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#599">can_buffer</a>()
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#158">self</a>.<span class="ident">flush_pipeline</span> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#158">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#607">can_buffer</a>()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">consume_leading_lines</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
@@ -1176,12 +1187,12 @@
         <span class="ident">parse_ctx</span>: <span class="ident">ParseContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="ident">ParsedMessage</span><span class="op">&lt;</span><span class="ident">S::Incoming</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">S</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#36-62">Http1Transaction</a>,
+        <span class="ident">S</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#35-61">Http1Transaction</a>,
     {
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="ident"><span class="kw">super</span>::role::parse_headers</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(
                 <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#176">self</a>.<span class="ident">read_buf</span>,
-                <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#76-92">ParseContext</a> {
+                <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#75-93">ParseContext</a> {
                     <span class="ident">cached_headers</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">cached_headers</span>,
                     <span class="ident">req_method</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">req_method</span>,
                     <span class="ident">h1_parser_config</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">h1_parser_config</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
@@ -1192,6 +1203,8 @@
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
                     <span class="ident">h1_header_read_timeout_running</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">h1_header_read_timeout_running</span>,
                     <span class="ident">preserve_header_case</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">preserve_header_case</span>,
+                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
+                    <span class="ident">preserve_header_order</span>: <span class="ident">parse_ctx</span>.<span class="ident">preserve_header_order</span>,
                     <span class="ident">h09_responses</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">h09_responses</span>,
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
                     <span class="ident">on_informational</span>: <span class="ident">parse_ctx</span>.<span class="ident">on_informational</span>,
@@ -1200,40 +1213,46 @@
                 },
             )<span class="question-mark">?</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">msg</span>) =&gt; {
-                    <span class="macro">debug!</span>(<span class="string">&quot;parsed {} headers&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#204">msg</a>.<span class="ident">head</span>.<span class="ident">headers</span>.<span class="ident">len</span>());
+                    <span class="macro">debug!</span>(<span class="string">&quot;parsed {} headers&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#206">msg</a>.<span class="ident">head</span>.<span class="ident">headers</span>.<span class="ident">len</span>());
 
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
                     {
                         <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">h1_header_read_timeout_running</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">h1_header_read_timeout_fut</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">h1_header_read_timeout_fut</span> {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">h1_header_read_timeout_fut</span>) <span class="op">=</span>
+                            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">h1_header_read_timeout_fut</span>
+                        {
                             <span class="comment">// Reset the timer in order to avoid woken up when the timeout finishes</span>
-                            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#211">h1_header_read_timeout_fut</a>.<span class="ident">as_mut</span>().<span class="ident">reset</span>(<span class="ident">Instant::now</span>() <span class="op">+</span> <span class="ident">Duration::from_secs</span>(<span class="number">30</span> <span class="op">*</span> <span class="number">24</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span>));
+                            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#213">h1_header_read_timeout_fut</a>
+                                .<span class="ident">as_mut</span>()
+                                .<span class="ident">reset</span>(<span class="ident">Instant::now</span>() <span class="op">+</span> <span class="ident">Duration::from_secs</span>(<span class="number">30</span> <span class="op">*</span> <span class="number">24</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span>));
                         }
                     }
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#204">msg</a>));
+                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#206">msg</a>));
                 }
                 <span class="prelude-val">None</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#176">self</a>.<span class="ident">read_buf_strategy</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#408">max</a>();
-                    <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#176">self</a>.<span class="ident">read_buf</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#219">max</a> {
-                        <span class="macro">debug!</span>(<span class="string">&quot;max_buf_size ({}) reached, closing&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#219">max</a>);
+                    <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#176">self</a>.<span class="ident">read_buf_strategy</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#416">max</a>();
+                    <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#176">self</a>.<span class="ident">read_buf</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#225">max</a> {
+                        <span class="macro">debug!</span>(<span class="string">&quot;max_buf_size ({}) reached, closing&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#225">max</a>);
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_too_large</span>()));
                     }
 
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
                     <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">h1_header_read_timeout_running</span> {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">h1_header_read_timeout_fut</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">h1_header_read_timeout_fut</span> {
-                            <span class="kw">if</span> <span class="ident">Pin::new</span>( <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#227">h1_header_read_timeout_fut</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#177">cx</a>).<span class="ident">is_ready</span>() {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">h1_header_read_timeout_fut</span>) <span class="op">=</span>
+                            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">h1_header_read_timeout_fut</span>
+                        {
+                            <span class="kw">if</span> <span class="ident">Pin::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#233">h1_header_read_timeout_fut</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#177">cx</a>).<span class="ident">is_ready</span>() {
                                 <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#178">parse_ctx</a>.<span class="ident">h1_header_read_timeout_running</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
                                 <span class="macro">tracing::warn!</span>(<span class="string">&quot;read header from client timeout&quot;</span>);
-                                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_header_timeout</span>()))
+                                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_header_timeout</span>()));
                             }
                         }
                     }
                 }
             }
-            <span class="kw">if</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#176">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#245-248">poll_read_from_io</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#177">cx</a>)).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_io</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#176">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#253-256">poll_read_from_io</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#177">cx</a>)).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_io</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="macro">trace!</span>(<span class="string">&quot;parse eof&quot;</span>);
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_incomplete</span>()));
             }
@@ -1244,81 +1263,81 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#246">self</a>.<span class="ident">read_blocked</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#246">self</a>.<span class="ident">read_buf_strategy</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#400">next</a>();
-        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#246">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#132">read_buf_remaining_mut</a>() <span class="op">&lt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#250">next</a> {
-            <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#246">self</a>.<span class="ident">read_buf</span>.<span class="ident">reserve</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#250">next</a>);
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#254">self</a>.<span class="ident">read_blocked</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#254">self</a>.<span class="ident">read_buf_strategy</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#408">next</a>();
+        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#254">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#132">read_buf_remaining_mut</a>() <span class="op">&lt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#258">next</a> {
+            <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#254">self</a>.<span class="ident">read_buf</span>.<span class="ident">reserve</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#258">next</a>);
         }
 
-        <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#246">self</a>.<span class="ident">read_buf</span>.<a class="ident" href="../../../../bytes/buf/buf_mut/trait.BufMut.html">chunk_mut</a>();
-        <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#255">dst</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>]) };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ReadBuf::uninit</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#256">dst</a>);
-        <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#246">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#247">cx</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#257">buf</a>) {
+        <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#254">self</a>.<span class="ident">read_buf</span>.<a class="ident" href="../../../../bytes/buf/buf_mut/trait.BufMut.html">chunk_mut</a>();
+        <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#263">dst</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>]) };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ReadBuf::uninit</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#264">dst</a>);
+        <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#254">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#255">cx</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#265">buf</a>) {
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#257">buf</a>.<span class="ident">filled</span>().<span class="ident">len</span>();
-                <span class="macro">trace!</span>(<span class="string">&quot;received {} bytes&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#260">n</a>);
+                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#265">buf</a>.<span class="ident">filled</span>().<span class="ident">len</span>();
+                <span class="macro">trace!</span>(<span class="string">&quot;received {} bytes&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#268">n</a>);
                 <span class="kw">unsafe</span> {
                     <span class="comment">// Safety: we just read that many bytes into the</span>
                     <span class="comment">// uninitialized part of the buffer, so this is okay.</span>
                     <span class="comment">// @tokio pls give me back `poll_read_buf` thanks</span>
-                    <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#246">self</a>.<span class="ident">read_buf</span>.<a class="ident" href="../../../../bytes/buf/buf_mut/trait.BufMut.html">advance_mut</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#260">n</a>);
+                    <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#254">self</a>.<span class="ident">read_buf</span>.<a class="ident" href="../../../../bytes/buf/buf_mut/trait.BufMut.html">advance_mut</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#268">n</a>);
                 }
-                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#246">self</a>.<span class="ident">read_buf_strategy</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#416">record</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#260">n</a>);
-                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#260">n</a>))
+                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#254">self</a>.<span class="ident">read_buf_strategy</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#424">record</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#268">n</a>);
+                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#268">n</a>))
             }
             <span class="ident">Poll::Pending</span> =&gt; {
-                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#246">self</a>.<span class="ident">read_blocked</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#254">self</a>.<span class="ident">read_blocked</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="ident">Poll::Pending</span>
             }
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#275">e</a>)),
+            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#283">e</a>)),
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; (<span class="ident">T</span>, <a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a>) {
-        (<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#279">self</a>.<span class="ident">io</span>, <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#279">self</a>.<span class="ident">read_buf</span>.<span class="ident">freeze</span>())
+        (<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#287">self</a>.<span class="ident">io</span>, <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#287">self</a>.<span class="ident">read_buf</span>.<span class="ident">freeze</span>())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">io_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#283">self</a>.<span class="ident">io</span>
+        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">io</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_read_blocked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#287">self</a>.<span class="ident">read_blocked</span>
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#295">self</a>.<span class="ident">read_blocked</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">flush_pipeline</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">read_buf</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">flush_pipeline</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">read_buf</span>.<span class="ident">is_empty</span>() {
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">==</span> <span class="number">0</span> {
-            <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#291">cx</a>)
+        } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">==</span> <span class="number">0</span> {
+            <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#299">cx</a>)
         } <span class="kw">else</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#663">WriteStrategy::Flatten</a> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">write_buf</span>.<span class="ident">strategy</span> {
-                <span class="kw">return</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#331">poll_flush_flattened</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#291">cx</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#671">WriteStrategy::Flatten</a> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">write_buf</span>.<span class="ident">strategy</span> {
+                <span class="kw">return</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#339">poll_flush_flattened</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#299">cx</a>);
             }
 
             <span class="kw">const</span> <span class="ident">MAX_WRITEV_BUFS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">64</span>;
             <span class="kw">loop</span> {
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iovs</span> <span class="op">=</span> [<span class="ident">IoSlice::new</span>(<span class="kw-2">&amp;</span>[]); <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#301">MAX_WRITEV_BUFS</a>];
-                    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunks_vectored</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#304">iovs</a>);
-                    <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write_vectored</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#291">cx</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#304">iovs</a>[..<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#305">len</a>]))<span class="question-mark">?</span>
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iovs</span> <span class="op">=</span> [<span class="ident">IoSlice::new</span>(<span class="kw-2">&amp;</span>[]); <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#309">MAX_WRITEV_BUFS</a>];
+                    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunks_vectored</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#312">iovs</a>);
+                    <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write_vectored</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#299">cx</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#312">iovs</a>[..<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#313">len</a>]))<span class="question-mark">?</span>
                 };
                 <span class="comment">// TODO(eliza): we have to do this manually because</span>
                 <span class="comment">// `poll_write_buf` doesn&#39;t exist in Tokio 0.3 yet...when</span>
                 <span class="comment">// `poll_write_buf` comes back, the manual advance will need to leave!</span>
-                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#303">n</a>);
-                <span class="macro">debug!</span>(<span class="string">&quot;flushed {} bytes&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#303">n</a>);
-                <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">==</span> <span class="number">0</span> {
+                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#311">n</a>);
+                <span class="macro">debug!</span>(<span class="string">&quot;flushed {} bytes&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#311">n</a>);
+                <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">==</span> <span class="number">0</span> {
                     <span class="kw">break</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#303">n</a> <span class="op">==</span> <span class="number">0</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#311">n</a> <span class="op">==</span> <span class="number">0</span> {
                     <span class="macro">trace!</span>(
                         <span class="string">&quot;write returned zero, but {} bytes remaining&quot;</span>,
-                        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>()
+                        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>()
                     );
                     <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WriteZero</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
                 }
             }
-            <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#291">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#291">cx</a>)
+            <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#299">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#299">cx</a>)
         }
     }
 
@@ -1328,21 +1347,21 @@
     <span class="doccomment">/// that skips some bookkeeping around using multiple buffers.</span>
     <span class="kw">fn</span> <span class="ident">poll_flush_flattened</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#331">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#331">cx</a>, <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#331">self</a>.<span class="ident">write_buf</span>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunk</a>()))<span class="question-mark">?</span>;
-            <span class="macro">debug!</span>(<span class="string">&quot;flushed {} bytes&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#333">n</a>);
-            <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#331">self</a>.<span class="ident">write_buf</span>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#333">n</a>);
-            <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#331">self</a>.<span class="ident">write_buf</span>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">==</span> <span class="number">0</span> {
-                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#331">self</a>.<span class="ident">write_buf</span>.<span class="ident">headers</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#500">reset</a>();
+            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#339">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#339">cx</a>, <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#339">self</a>.<span class="ident">write_buf</span>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunk</a>()))<span class="question-mark">?</span>;
+            <span class="macro">debug!</span>(<span class="string">&quot;flushed {} bytes&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#341">n</a>);
+            <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#339">self</a>.<span class="ident">write_buf</span>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#341">n</a>);
+            <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#339">self</a>.<span class="ident">write_buf</span>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">==</span> <span class="number">0</span> {
+                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#339">self</a>.<span class="ident">write_buf</span>.<span class="ident">headers</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#508">reset</a>();
                 <span class="kw">break</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#333">n</a> <span class="op">==</span> <span class="number">0</span> {
+            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#341">n</a> <span class="op">==</span> <span class="number">0</span> {
                 <span class="macro">trace!</span>(
                     <span class="string">&quot;write returned zero, but {} bytes remaining&quot;</span>,
-                    <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#331">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>()
+                    <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#339">self</a>.<span class="ident">write_buf</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>()
                 );
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::ErrorKind::WriteZero</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
             }
         }
-        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#331">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#331">cx</a>)
+        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#339">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#339">cx</a>)
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -1359,18 +1378,18 @@
     <span class="kw">fn</span> <span class="ident">read_mem</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#360-362">MemRead</a> <span class="kw">for</span> <span class="ident">Buffered</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#368-370">MemRead</a> <span class="kw">for</span> <span class="ident">Buffered</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
     <span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a>,
 {
     <span class="kw">fn</span> <span class="ident">read_mem</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#369">self</a>.<span class="ident">read_buf</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#369">len</a>, <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#369">self</a>.<span class="ident">read_buf</span>.<span class="ident">len</span>());
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#369">self</a>.<span class="ident">read_buf</span>.<span class="ident">split_to</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#371">n</a>).<span class="ident">freeze</span>()))
+        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#377">self</a>.<span class="ident">read_buf</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#377">len</a>, <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#377">self</a>.<span class="ident">read_buf</span>.<span class="ident">len</span>());
+            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#377">self</a>.<span class="ident">read_buf</span>.<span class="ident">split_to</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#379">n</a>).<span class="ident">freeze</span>()))
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#369">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#245-248">poll_read_from_io</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#369">cx</a>))<span class="question-mark">?</span>;
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#369">self</a>.<span class="ident">read_buf</span>.<span class="ident">split_to</span>(<span class="ident">::std::cmp::min</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#369">len</a>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#374">n</a>)).<span class="ident">freeze</span>()))
+            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#377">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#253-256">poll_read_from_io</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#377">cx</a>))<span class="question-mark">?</span>;
+            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#377">self</a>.<span class="ident">read_buf</span>.<span class="ident">split_to</span>(<span class="ident">::std::cmp::min</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#377">len</a>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#382">n</a>)).<span class="ident">freeze</span>()))
         }
     }
 }
@@ -1386,79 +1405,79 @@
     <span class="ident">Exact</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#381-389">ReadStrategy</a> {
-    <span class="kw">fn</span> <span class="ident">with_max</span>(<span class="ident">max</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#381-389">ReadStrategy</a> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#382-386">ReadStrategy::Adaptive</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#389-397">ReadStrategy</a> {
+    <span class="kw">fn</span> <span class="ident">with_max</span>(<span class="ident">max</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#389-397">ReadStrategy</a> {
+        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#390-394">ReadStrategy::Adaptive</a> {
             <span class="ident">decrease_now</span>: <span class="bool-val">false</span>,
             <span class="ident">next</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#22">INIT_BUFFER_SIZE</a>,
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#392">max</a>,
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#400">max</a>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#400">self</a> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#382-386">ReadStrategy::Adaptive</a> { <span class="ident">next</span>, .. } =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#402">next</a>,
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#408">self</a> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#390-394">ReadStrategy::Adaptive</a> { <span class="ident">next</span>, .. } =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#410">next</a>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#388">ReadStrategy::Exact</a>(<span class="ident">exact</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#404">exact</a>,
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#396">ReadStrategy::Exact</a>(<span class="ident">exact</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#412">exact</a>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">max</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#408">self</a> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#382-386">ReadStrategy::Adaptive</a> { <span class="ident">max</span>, .. } =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#410">max</a>,
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#416">self</a> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#390-394">ReadStrategy::Adaptive</a> { <span class="ident">max</span>, .. } =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#418">max</a>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#388">ReadStrategy::Exact</a>(<span class="ident">exact</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#412">exact</a>,
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#396">ReadStrategy::Exact</a>(<span class="ident">exact</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#420">exact</a>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bytes_read</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#416">self</a> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#382-386">ReadStrategy::Adaptive</a> {
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#424">self</a> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#390-394">ReadStrategy::Adaptive</a> {
                 <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">decrease_now</span>,
                 <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">next</span>,
                 <span class="ident">max</span>,
                 ..
             } =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#416">bytes_read</a> <span class="op">&gt;</span><span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#420">next</a> {
-                    <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#420">next</a> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#451">incr_power_of_two</a>(<span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#420">next</a>), <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#421">max</a>);
-                    <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#419">decrease_now</a> <span class="op">=</span> <span class="bool-val">false</span>;
+                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#424">bytes_read</a> <span class="op">&gt;</span><span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#428">next</a> {
+                    <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#428">next</a> <span class="op">=</span> <span class="ident">cmp::min</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#459">incr_power_of_two</a>(<span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#428">next</a>), <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#429">max</a>);
+                    <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#427">decrease_now</a> <span class="op">=</span> <span class="bool-val">false</span>;
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">decr_to</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#455">prev_power_of_two</a>(<span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#420">next</a>);
-                    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#416">bytes_read</a> <span class="op">&lt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#428">decr_to</a> {
-                        <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#419">decrease_now</a> {
-                            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#420">next</a> <span class="op">=</span> <span class="ident">cmp::max</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#428">decr_to</a>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#22">INIT_BUFFER_SIZE</a>);
-                            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#419">decrease_now</a> <span class="op">=</span> <span class="bool-val">false</span>;
+                    <span class="kw">let</span> <span class="ident">decr_to</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#463">prev_power_of_two</a>(<span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#428">next</a>);
+                    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#424">bytes_read</a> <span class="op">&lt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#436">decr_to</a> {
+                        <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#427">decrease_now</a> {
+                            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#428">next</a> <span class="op">=</span> <span class="ident">cmp::max</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#436">decr_to</a>, <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#22">INIT_BUFFER_SIZE</a>);
+                            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#427">decrease_now</a> <span class="op">=</span> <span class="bool-val">false</span>;
                         } <span class="kw">else</span> {
                             <span class="comment">// Decreasing is a two &quot;record&quot; process.</span>
-                            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#419">decrease_now</a> <span class="op">=</span> <span class="bool-val">true</span>;
+                            <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#427">decrease_now</a> <span class="op">=</span> <span class="bool-val">true</span>;
                         }
                     } <span class="kw">else</span> {
                         <span class="comment">// A read within the current range should cancel</span>
                         <span class="comment">// a potential decrease, since we just saw proof</span>
                         <span class="comment">// that we still need this size.</span>
-                        <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#419">decrease_now</a> <span class="op">=</span> <span class="bool-val">false</span>;
+                        <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#427">decrease_now</a> <span class="op">=</span> <span class="bool-val">false</span>;
                     }
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;client&quot;</span>)]</span>
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#388">ReadStrategy::Exact</a>(<span class="kw">_</span>) =&gt; (),
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#396">ReadStrategy::Exact</a>(<span class="kw">_</span>) =&gt; (),
         }
     }
 }
 
 <span class="kw">fn</span> <span class="ident">incr_power_of_two</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#451">n</a>.<span class="ident">saturating_mul</span>(<span class="number">2</span>)
+    <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#459">n</a>.<span class="ident">saturating_mul</span>(<span class="number">2</span>)
 }
 
 <span class="kw">fn</span> <span class="ident">prev_power_of_two</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
     <span class="comment">// Only way this shift can underflow is if n is less than 4.</span>
     <span class="comment">// (Which would means `usize::MAX &gt;&gt; 64` and underflowed!)</span>
-    <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#455">n</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">4</span>);
-    (<span class="ident">::std::usize::MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> (<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#455">n</a>.<span class="ident">leading_zeros</span>() <span class="op">+</span> <span class="number">2</span>)) <span class="op">+</span> <span class="number">1</span>
+    <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#463">n</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">4</span>);
+    (<span class="ident">::std::usize::MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> (<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#463">n</a>.<span class="ident">leading_zeros</span>() <span class="op">+</span> <span class="number">2</span>)) <span class="op">+</span> <span class="number">1</span>
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#381-389">ReadStrategy</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#381-389">ReadStrategy</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#389-397">ReadStrategy</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#389-397">ReadStrategy</a> {
         <span class="ident">ReadStrategy::with_max</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#30">DEFAULT_MAX_BUFFER_SIZE</a>)
     }
 }
@@ -1472,7 +1491,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bytes</span>: <span class="ident">T</span>) -&gt; <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#469-472">Cursor</a> { <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#476">bytes</a>, <span class="ident">pos</span>: <span class="number">0</span> }
+        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#477-480">Cursor</a> { <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#484">bytes</a>, <span class="ident">pos</span>: <span class="number">0</span> }
     }
 }
 
@@ -1481,31 +1500,31 @@
     <span class="doccomment">/// extend the underlying vector, we may wish to unshift the &quot;read&quot; bytes</span>
     <span class="doccomment">/// off, and move everything else over.</span>
     <span class="kw">fn</span> <span class="ident">maybe_unshift</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">additional</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#485">self</a>.<span class="ident">pos</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#493">self</a>.<span class="ident">pos</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// nothing to do</span>
             <span class="kw">return</span>;
         }
 
-        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#485">self</a>.<span class="ident">bytes</span>.<span class="ident">capacity</span>() <span class="op">-</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#485">self</a>.<span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#485">additional</a> {
+        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#493">self</a>.<span class="ident">bytes</span>.<span class="ident">capacity</span>() <span class="op">-</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#493">self</a>.<span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#493">additional</a> {
             <span class="comment">// there&#39;s room!</span>
             <span class="kw">return</span>;
         }
 
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#485">self</a>.<span class="ident">bytes</span>.<span class="ident">drain</span>(<span class="number">0</span>..<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#485">self</a>.<span class="ident">pos</span>);
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#485">self</a>.<span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#493">self</a>.<span class="ident">bytes</span>.<span class="ident">drain</span>(<span class="number">0</span>..<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#493">self</a>.<span class="ident">pos</span>);
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#493">self</a>.<span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
     }
 
     <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#500">self</a>.<span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#500">self</a>.<span class="ident">bytes</span>.<span class="ident">clear</span>();
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#508">self</a>.<span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#508">self</a>.<span class="ident">bytes</span>.<span class="ident">clear</span>();
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#507">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Cursor&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;pos&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#507">self</a>.<span class="ident">pos</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#507">self</a>.<span class="ident">bytes</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>())
+        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#515">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Cursor&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;pos&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#515">self</a>.<span class="ident">pos</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#515">self</a>.<span class="ident">bytes</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>())
             .<span class="ident">finish</span>()
     }
 }
@@ -1513,18 +1532,18 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#517">self</a>.<span class="ident">bytes</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>() <span class="op">-</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#517">self</a>.<span class="ident">pos</span>
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#525">self</a>.<span class="ident">bytes</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>() <span class="op">-</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#525">self</a>.<span class="ident">pos</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">chunk</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#522">self</a>.<span class="ident">bytes</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()[<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#522">self</a>.<span class="ident">pos</span>..]
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#530">self</a>.<span class="ident">bytes</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()[<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#530">self</a>.<span class="ident">pos</span>..]
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#527">self</a>.<span class="ident">pos</span> <span class="op">+</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#527">cnt</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#527">self</a>.<span class="ident">bytes</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>());
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#527">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#527">cnt</a>;
+        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#535">self</a>.<span class="ident">pos</span> <span class="op">+</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#535">cnt</a> <span class="op">&lt;</span><span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#535">self</a>.<span class="ident">bytes</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>());
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#535">self</a>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#535">cnt</a>;
     }
 }
 
@@ -1535,16 +1554,16 @@
     <span class="ident">max_buf_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="doccomment">/// Deque of user buffers if strategy is Queue</span>
     <span class="ident">queue</span>: <span class="ident">BufList</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-    <span class="ident">strategy</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#662-665">WriteStrategy</a>,
+    <span class="ident">strategy</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#670-673">WriteStrategy</a>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a><span class="op">&gt;</span> <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">strategy</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#662-665">WriteStrategy</a>) -&gt; <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#534-541">WriteBuf</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">strategy</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#670-673">WriteStrategy</a>) -&gt; <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#542-549">WriteBuf</a> {
             <span class="ident">headers</span>: <span class="ident">Cursor::new</span>(<span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#22">INIT_BUFFER_SIZE</a>)),
             <span class="ident">max_buf_size</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#30">DEFAULT_MAX_BUFFER_SIZE</a>,
             <span class="ident">queue</span>: <span class="ident">BufList::new</span>(),
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#544">strategy</a>,
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#552">strategy</a>,
         }
     }
 }
@@ -1553,67 +1572,67 @@
 <span class="kw">where</span>
     <span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a>,
 {
-    <span class="kw">fn</span> <span class="ident">set_strategy</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strategy</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#662-665">WriteStrategy</a>) {
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#558">self</a>.<span class="ident">strategy</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#558">strategy</a>;
+    <span class="kw">fn</span> <span class="ident">set_strategy</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strategy</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#670-673">WriteStrategy</a>) {
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#566">self</a>.<span class="ident">strategy</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#566">strategy</a>;
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">buffer</span><span class="op">&lt;</span><span class="ident">BB</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>: <span class="ident">BB</span>) {
-        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#562">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">has_remaining</a>());
-        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#562">self</a>.<span class="ident">strategy</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#663">WriteStrategy::Flatten</a> =&gt; {
-                <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#562">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#608">headers_mut</a>();
+        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#570">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">has_remaining</a>());
+        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#570">self</a>.<span class="ident">strategy</span> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#671">WriteStrategy::Flatten</a> =&gt; {
+                <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#570">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#616">headers_mut</a>();
 
-                <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#566">head</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#485">maybe_unshift</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#562">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>());
+                <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#574">head</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#493">maybe_unshift</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#570">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>());
                 <span class="macro">trace!</span>(
-                    <span class="self">self</span>.<span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#566">head</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>(),
-                    <span class="ident">buf</span>.<span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#562">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>(),
+                    <span class="self">self</span>.<span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#574">head</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>(),
+                    <span class="ident">buf</span>.<span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#570">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>(),
                     <span class="string">&quot;buffer.flatten&quot;</span>
                 );
                 <span class="comment">//perf: This is a little faster than &lt;Vec as BufMut&gt;&gt;::put,</span>
                 <span class="comment">//but accomplishes the same result.</span>
                 <span class="kw">loop</span> {
                     <span class="kw">let</span> <span class="ident">adv</span> <span class="op">=</span> {
-                        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#562">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunk</a>();
-                        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#578">slice</a>.<span class="ident">is_empty</span>() {
+                        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#570">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunk</a>();
+                        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#586">slice</a>.<span class="ident">is_empty</span>() {
                             <span class="kw">return</span>;
                         }
-                        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#566">head</a>.<span class="ident">bytes</span>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#578">slice</a>);
-                        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#578">slice</a>.<span class="ident">len</span>()
+                        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#574">head</a>.<span class="ident">bytes</span>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#586">slice</a>);
+                        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#586">slice</a>.<span class="ident">len</span>()
                     };
-                    <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#562">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#577">adv</a>);
+                    <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#570">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#585">adv</a>);
                 }
             }
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#664">WriteStrategy::Queue</a> =&gt; {
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#672">WriteStrategy::Queue</a> =&gt; {
                 <span class="macro">trace!</span>(
-                    <span class="self">self</span>.<span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#562">self</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>(),
-                    <span class="ident">buf</span>.<span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#562">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>(),
+                    <span class="self">self</span>.<span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#570">self</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>(),
+                    <span class="ident">buf</span>.<span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#570">buf</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>(),
                     <span class="string">&quot;buffer.queue&quot;</span>
                 );
-                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#562">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../src/hyper/common/buf.rs.html#18">push</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#562">buf</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#570">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../src/hyper/common/buf.rs.html#18">push</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#570">buf</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
             }
         }
     }
 
     <span class="kw">fn</span> <span class="ident">can_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#599">self</a>.<span class="ident">strategy</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#663">WriteStrategy::Flatten</a> =&gt; <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#599">self</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">&lt;</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#599">self</a>.<span class="ident">max_buf_size</span>,
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#664">WriteStrategy::Queue</a> =&gt; {
-                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#599">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../src/hyper/common/buf.rs.html#25">bufs_cnt</a>() <span class="op">&lt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#37">MAX_BUF_LIST_BUFFERS</a> <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#599">self</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">&lt;</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#599">self</a>.<span class="ident">max_buf_size</span>
+        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#607">self</a>.<span class="ident">strategy</span> {
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#671">WriteStrategy::Flatten</a> =&gt; <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#607">self</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">&lt;</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#607">self</a>.<span class="ident">max_buf_size</span>,
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#672">WriteStrategy::Queue</a> =&gt; {
+                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#607">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../src/hyper/common/buf.rs.html#25">bufs_cnt</a>() <span class="op">&lt;</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#37">MAX_BUF_LIST_BUFFERS</a> <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#607">self</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">&lt;</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#607">self</a>.<span class="ident">max_buf_size</span>
             }
         }
     }
 
     <span class="kw">fn</span> <span class="ident">headers_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#608">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">has_remaining</a>());
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#608">self</a>.<span class="ident">headers</span>
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#616">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">has_remaining</a>());
+        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#616">self</a>.<span class="ident">headers</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#615">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;WriteBuf&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#615">self</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>())
-            .<span class="ident">field</span>(<span class="string">&quot;strategy&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#615">self</a>.<span class="ident">strategy</span>)
+        <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#623">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;WriteBuf&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#623">self</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>())
+            .<span class="ident">field</span>(<span class="string">&quot;strategy&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#623">self</a>.<span class="ident">strategy</span>)
             .<span class="ident">finish</span>()
     }
 }
@@ -1621,38 +1640,38 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a><span class="op">&gt;</span> <a class="ident" href="../../../../hyper/body/trait.Buf.html">Buf</a> <span class="kw">for</span> <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#625">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">+</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#625">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>()
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#633">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">+</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#633">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">chunk</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#630">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunk</a>();
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#631">headers</a>.<span class="ident">is_empty</span>() {
-            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#631">headers</a>
+        <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#638">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunk</a>();
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#639">headers</a>.<span class="ident">is_empty</span>() {
+            <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#639">headers</a>
         } <span class="kw">else</span> {
-            <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#630">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunk</a>()
+            <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#638">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunk</a>()
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cnt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">hrem</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#640">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>();
+        <span class="kw">let</span> <span class="ident">hrem</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#648">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>();
 
-        <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#641">hrem</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#640">cnt</a>) {
-            <span class="ident">cmp::Ordering::Equal</span> =&gt; <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#640">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#500">reset</a>(),
-            <span class="ident">cmp::Ordering::Greater</span> =&gt; <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#640">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#640">cnt</a>),
+        <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#649">hrem</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#648">cnt</a>) {
+            <span class="ident">cmp::Ordering::Equal</span> =&gt; <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#648">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#508">reset</a>(),
+            <span class="ident">cmp::Ordering::Greater</span> =&gt; <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#648">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#648">cnt</a>),
             <span class="ident">cmp::Ordering::Less</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">qcnt</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#640">cnt</a> <span class="op">-</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#641">hrem</a>;
-                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#640">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#500">reset</a>();
-                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#640">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#647">qcnt</a>);
+                <span class="kw">let</span> <span class="ident">qcnt</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#648">cnt</a> <span class="op">-</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#649">hrem</a>;
+                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#648">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#508">reset</a>();
+                <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#648">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#655">qcnt</a>);
             }
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">chunks_vectored</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#655">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunks_vectored</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#655">dst</a>);
-        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#655">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunks_vectored</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#655">dst</a>[<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#656">n</a>..]) <span class="op">+</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#656">n</a>
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#663">self</a>.<span class="ident">headers</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunks_vectored</a>(<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#663">dst</a>);
+        <a class="self" href="../../../../src/hyper/proto/h1/io.rs.html#663">self</a>.<span class="ident">queue</span>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">chunks_vectored</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#663">dst</a>[<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#664">n</a>..]) <span class="op">+</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#664">n</a>
     }
 }
 
@@ -1725,10 +1744,15 @@
                 <span class="ident">cached_headers</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-val">None</span>,
                 <span class="ident">req_method</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-val">None</span>,
                 <span class="ident">h1_parser_config</span>: <span class="ident">Default::default</span>(),
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
                 <span class="ident">h1_header_read_timeout</span>: <span class="prelude-val">None</span>,
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
                 <span class="ident">h1_header_read_timeout_fut</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-val">None</span>,
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
                 <span class="ident">h1_header_read_timeout_running</span>: <span class="kw-2">&amp;mut</span> <span class="bool-val">false</span>,
                 <span class="ident">preserve_header_case</span>: <span class="bool-val">false</span>,
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
+                <span class="ident">preserve_header_order</span>: <span class="bool-val">false</span>,
                 <span class="ident">h09_responses</span>: <span class="bool-val">false</span>,
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
                 <span class="ident">on_informational</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-val">None</span>,
@@ -1892,9 +1916,7 @@
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">write_buf_flatten</span>() {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">pretty_env_logger::try_init</span>();
 
-        <span class="kw">let</span> <span class="ident">mock</span> <span class="op">=</span> <span class="ident">Mock::new</span>()
-            .<span class="ident">write</span>(<span class="string">b&quot;hello world, it&#39;s hyper!&quot;</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let</span> <span class="ident">mock</span> <span class="op">=</span> <span class="ident">Mock::new</span>().<span class="ident">write</span>(<span class="string">b&quot;hello world, it&#39;s hyper!&quot;</span>).<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffered</span> <span class="op">=</span> <span class="ident">Buffered</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">mock</span>);
         <span class="ident">buffered</span>.<span class="ident">write_buf</span>.<span class="ident">set_strategy</span>(<span class="ident">WriteStrategy::Flatten</span>);
@@ -1988,5 +2010,5 @@
     <span class="comment">// }</span>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (42e1761c7 2022-05-15)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

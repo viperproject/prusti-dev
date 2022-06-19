@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.53/src/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.56/src/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../async_trait/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -467,10 +467,17 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/async_trait/lifetime.rs.html#5-10"><span class="kw">crate</span>::lifetime::CollectLifetimes</a>;
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::lifetime</span>::{<a class="ident" href="../../src/async_trait/lifetime.rs.html#70">AddLifetimeToImplTrait</a>, <a class="ident" href="../../src/async_trait/lifetime.rs.html#9-14">CollectLifetimes</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/async_trait/parse.rs.html#5-8"><span class="kw">crate</span>::parse::Item</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::receiver</span>::{<a class="ident" href="../../src/async_trait/receiver.rs.html#15">has_self_in_block</a>, <a class="ident" href="../../src/async_trait/receiver.rs.html#9">has_self_in_sig</a>, <a class="ident" href="../../src/async_trait/receiver.rs.html#29">mut_pat</a>, <a class="ident" href="../../src/async_trait/receiver.rs.html#88">ReplaceSelf</a>};
-<span class="kw">use</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
+<span class="kw">use</span> <span class="ident">proc_macro2</span>::{<a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
 <span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">format_ident</span>, <span class="ident">quote</span>, <span class="ident">quote_spanned</span>, <a class="ident" href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">std::collections::BTreeSet</a> <span class="kw">as</span> <span class="ident">Set</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
@@ -538,7 +545,7 @@
                         <a class="ident" href="../../src/async_trait/expand.rs.html#64">method</a>.<span class="ident">attrs</span>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(<span class="attribute">#[<span class="ident">must_use</span>]</span>));
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block</span>) <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#67">block</a> {
                             <a class="ident" href="../../src/async_trait/expand.rs.html#68">has_self</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/async_trait/receiver.rs.html#15">has_self_in_block</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#70">block</a>);
-                            <a class="ident" href="../../src/async_trait/expand.rs.html#320">transform_block</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#59">context</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#65">sig</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#70">block</a>);
+                            <a class="ident" href="../../src/async_trait/expand.rs.html#321">transform_block</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#59">context</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#65">sig</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#70">block</a>);
                             <a class="ident" href="../../src/async_trait/expand.rs.html#64">method</a>.<span class="ident">attrs</span>.<span class="ident">push</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#120">lint_suppress_with_body</a>());
                         } <span class="kw">else</span> {
                             <a class="ident" href="../../src/async_trait/expand.rs.html#64">method</a>.<span class="ident">attrs</span>.<span class="ident">push</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#133">lint_suppress_without_body</a>());
@@ -576,7 +583,7 @@
                     <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#106">sig</a>.<span class="ident">asyncness</span>.<span class="ident">is_some</span>() {
                         <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#105">method</a>.<span class="ident">block</span>;
                         <span class="kw">let</span> <span class="ident">has_self</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/receiver.rs.html#9">has_self_in_sig</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#106">sig</a>) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/async_trait/receiver.rs.html#15">has_self_in_block</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#108">block</a>);
-                        <a class="ident" href="../../src/async_trait/expand.rs.html#320">transform_block</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#100">context</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#106">sig</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#108">block</a>);
+                        <a class="ident" href="../../src/async_trait/expand.rs.html#321">transform_block</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#100">context</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#106">sig</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#108">block</a>);
                         <a class="ident" href="../../src/async_trait/expand.rs.html#155-161">transform_sig</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#100">context</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#106">sig</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#109">has_self</a>, <span class="bool-val">false</span>, <a class="ident" href="../../src/async_trait/expand.rs.html#56">is_local</a>);
                         <a class="ident" href="../../src/async_trait/expand.rs.html#105">method</a>.<span class="ident">attrs</span>.<span class="ident">push</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#120">lint_suppress_with_body</a>());
                     }
@@ -658,7 +665,7 @@
                     <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/async_trait/expand.rs.html#186">param_name</a>.<span class="ident">span</span>(),
                 };
                 <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#185">param</a>.<span class="ident">bounds</span>, <span class="ident">Punctuated::new</span>());
-                <a class="ident" href="../../src/async_trait/expand.rs.html#457">where_clause_or_default</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">where_clause</span>)
+                <a class="ident" href="../../src/async_trait/expand.rs.html#464">where_clause_or_default</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">where_clause</span>)
                     .<span class="ident">predicates</span>
                     .<span class="ident">push</span>(<span class="macro">parse_quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#187">span</a>=&gt; #<span class="ident">param_name</span>: <span class="lifetime">&#39;async_trait</span> <span class="op">+</span> #<span class="ident">bounds</span>));
             }
@@ -669,7 +676,7 @@
                     <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/async_trait/expand.rs.html#197">param_name</a>.<span class="ident">span</span>(),
                 };
                 <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#196">param</a>.<span class="ident">bounds</span>, <span class="ident">Punctuated::new</span>());
-                <a class="ident" href="../../src/async_trait/expand.rs.html#457">where_clause_or_default</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">where_clause</span>)
+                <a class="ident" href="../../src/async_trait/expand.rs.html#464">where_clause_or_default</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">where_clause</span>)
                     .<span class="ident">predicates</span>
                     .<span class="ident">push</span>(<span class="macro">parse_quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#198">span</a>=&gt; #<span class="ident">param</span>: <span class="lifetime">&#39;async_trait</span> <span class="op">+</span> #<span class="ident">bounds</span>));
             }
@@ -680,7 +687,7 @@
     <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <a class="ident" href="../../src/async_trait/expand.rs.html#156">context</a>.<a class="ident" href="../../src/async_trait/expand.rs.html#38">lifetimes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#175">lifetimes</a>.<span class="ident">explicit</span>) {
         <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#211">param</a>.<span class="ident">lifetime</span>;
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#212">param</a>.<span class="ident">span</span>();
-        <a class="ident" href="../../src/async_trait/expand.rs.html#457">where_clause_or_default</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">where_clause</span>)
+        <a class="ident" href="../../src/async_trait/expand.rs.html#464">where_clause_or_default</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">where_clause</span>)
             .<span class="ident">predicates</span>
             .<span class="ident">push</span>(<span class="macro">parse_quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#213">span</a>=&gt; #<span class="ident">param</span>: <span class="lifetime">&#39;async_trait</span>));
     }
@@ -694,7 +701,7 @@
 
     <span class="kw">for</span> <span class="ident">elided</span> <span class="kw">in</span> <a class="ident" href="../../src/async_trait/expand.rs.html#175">lifetimes</a>.<span class="ident">elided</span> {
         <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">params</span>.<span class="ident">push</span>(<span class="macro">parse_quote!</span>(#<span class="ident">elided</span>));
-        <a class="ident" href="../../src/async_trait/expand.rs.html#457">where_clause_or_default</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">where_clause</span>)
+        <a class="ident" href="../../src/async_trait/expand.rs.html#464">where_clause_or_default</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">where_clause</span>)
             .<span class="ident">predicates</span>
             .<span class="ident">push</span>(<span class="macro">parse_quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#226">elided</a>.<span class="ident">span</span>()=&gt; #<span class="ident">elided</span>: <span class="lifetime">&#39;async_trait</span>));
     }
@@ -725,11 +732,11 @@
         };
 
         <span class="kw">let</span> <span class="ident">assume_bound</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/async_trait/expand.rs.html#156">context</a> {
-            <a class="ident" href="../../src/async_trait/expand.rs.html#27-30">Context::Trait</a> { <span class="ident">supertraits</span>, .. } =&gt; <span class="op">!</span><a class="ident" href="../../src/async_trait/expand.rs.html#159">has_default</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/async_trait/expand.rs.html#405">has_bound</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#259">supertraits</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#239">bound</a>),
+            <a class="ident" href="../../src/async_trait/expand.rs.html#27-30">Context::Trait</a> { <span class="ident">supertraits</span>, .. } =&gt; <span class="op">!</span><a class="ident" href="../../src/async_trait/expand.rs.html#159">has_default</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/async_trait/expand.rs.html#412">has_bound</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#259">supertraits</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#239">bound</a>),
             <a class="ident" href="../../src/async_trait/expand.rs.html#31-34">Context::Impl</a> { .. } =&gt; <span class="bool-val">true</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">where_clause</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#457">where_clause_or_default</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">where_clause</span>);
+        <span class="kw">let</span> <span class="ident">where_clause</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#464">where_clause_or_default</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">generics</span>.<span class="ident">where_clause</span>);
         <a class="ident" href="../../src/async_trait/expand.rs.html#263">where_clause</a>.<span class="ident">predicates</span>.<span class="ident">push</span>(<span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#258">assume_bound</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/async_trait/expand.rs.html#160">is_local</a> {
             <span class="macro">parse_quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#238">bound_span</a>=&gt; <span class="self">Self</span>: <span class="lifetime">&#39;async_trait</span>)
         } <span class="kw">else</span> {
@@ -748,21 +755,22 @@
                     <a class="ident" href="../../src/async_trait/expand.rs.html#278">ident</a>.<span class="ident">by_ref</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                     <a class="ident" href="../../src/async_trait/expand.rs.html#278">ident</a>.<span class="ident">mutability</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">positional</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#400">positional_arg</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#271">i</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#277">arg</a>.<span class="ident">pat</span>);
+                    <span class="kw">let</span> <span class="ident">positional</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#405">positional_arg</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#271">i</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#277">arg</a>.<span class="ident">pat</span>);
                     <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/receiver.rs.html#29">mut_pat</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#277">arg</a>.<span class="ident">pat</span>);
                     <a class="ident" href="../../src/async_trait/expand.rs.html#277">arg</a>.<span class="ident">pat</span> <span class="op">=</span> <span class="macro">parse_quote!</span>(#<span class="ident">m</span> #<span class="ident">positional</span>);
                 }
+                <a class="ident" href="../../src/async_trait/lifetime.rs.html#70">AddLifetimeToImplTrait</a>.<a class="ident" href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_type_mut</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#277">arg</a>.<span class="ident">ty</span>);
             }
         }
     }
 
     <span class="kw">let</span> <span class="ident">ret_span</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">ident</span>.<span class="ident">span</span>();
     <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#160">is_local</a> {
-        <span class="macro">quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#290">ret_span</a>=&gt; <span class="lifetime">&#39;async_trait</span>)
+        <span class="macro">quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#291">ret_span</a>=&gt; <span class="lifetime">&#39;async_trait</span>)
     } <span class="kw">else</span> {
-        <span class="macro">quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#290">ret_span</a>=&gt; <span class="ident">::core::marker::Send</span> <span class="op">+</span> <span class="lifetime">&#39;async_trait</span>)
+        <span class="macro">quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#291">ret_span</a>=&gt; <span class="ident">::core::marker::Send</span> <span class="op">+</span> <span class="lifetime">&#39;async_trait</span>)
     };
-    <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">output</span> <span class="op">=</span> <span class="macro">parse_quote_spanned!</span> {<a class="ident" href="../../src/async_trait/expand.rs.html#290">ret_span</a>=&gt;
+    <a class="ident" href="../../src/async_trait/expand.rs.html#157">sig</a>.<span class="ident">output</span> <span class="op">=</span> <span class="macro">parse_quote_spanned!</span> {<a class="ident" href="../../src/async_trait/expand.rs.html#291">ret_span</a>=&gt;
         -&gt; <span class="ident">::core::pin::Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>
             <span class="kw">dyn</span> <span class="ident">::core::future::Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> #<span class="ident">ret</span><span class="op">&gt;</span> <span class="op">+</span> #<span class="ident">bounds</span>
         <span class="op">&gt;</span><span class="op">&gt;</span>
@@ -787,68 +795,72 @@
 <span class="comment">//         ___ret</span>
 <span class="comment">//     })</span>
 <span class="kw">fn</span> <span class="ident">transform_block</span>(<span class="ident">context</span>: <a class="ident" href="../../src/async_trait/expand.rs.html#26-35">Context</a>, <span class="ident">sig</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../syn/item/struct.Signature.html">Signature</a>, <span class="ident">block</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../syn/stmt/struct.Block.html">Block</a>) {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Stmt::Item</span>(<span class="ident">syn::Item::Verbatim</span>(<span class="ident">item</span>))) <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#320">block</a>.<span class="ident">stmts</span>.<span class="ident">first</span>() {
-        <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#320">block</a>.<span class="ident">stmts</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/async_trait/expand.rs.html#321">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>() <span class="op">==</span> <span class="string">&quot;;&quot;</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Stmt::Item</span>(<span class="ident">syn::Item::Verbatim</span>(<span class="ident">item</span>))) <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#321">block</a>.<span class="ident">stmts</span>.<span class="ident">first</span>() {
+        <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#321">block</a>.<span class="ident">stmts</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/async_trait/expand.rs.html#322">item</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>() <span class="op">==</span> <span class="string">&quot;;&quot;</span> {
             <span class="kw">return</span>;
         }
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">self_span</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-    <span class="kw">let</span> <span class="ident">decls</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#320">sig</a>
+    <span class="kw">let</span> <span class="ident">decls</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#321">sig</a>
         .<span class="ident">inputs</span>
         .<span class="ident">iter</span>()
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">arg</span>)<span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/async_trait/expand.rs.html#332">arg</a> {
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">arg</span>)<span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/async_trait/expand.rs.html#333">arg</a> {
             <span class="ident">FnArg::Receiver</span>(<a class="ident" href="../../syn/item/struct.Receiver.html">Receiver</a> {
                 <span class="ident">self_token</span>,
                 <span class="ident">mutability</span>,
                 ..
             }) =&gt; {
-                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">Ident::new</span>(<span class="string">&quot;__self&quot;</span>, <a class="ident" href="../../src/async_trait/expand.rs.html#334">self_token</a>.<span class="ident">span</span>);
-                <a class="ident" href="../../src/async_trait/expand.rs.html#327">self_span</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#334">self_token</a>.<span class="ident">span</span>);
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">Ident::new</span>(<span class="string">&quot;__self&quot;</span>, <a class="ident" href="../../src/async_trait/expand.rs.html#335">self_token</a>.<span class="ident">span</span>);
+                <a class="ident" href="../../src/async_trait/expand.rs.html#328">self_span</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#335">self_token</a>.<span class="ident">span</span>);
                 <span class="macro">quote!</span>(<span class="kw">let</span> #<span class="ident">mutability</span> #<span class="ident">ident</span> <span class="op">=</span> #<span class="ident">self_token</span>;)
             }
             <span class="ident">FnArg::Typed</span>(<span class="ident">arg</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Pat::Ident</span>(<a class="ident" href="../../syn/pat/struct.PatIdent.html">PatIdent</a> {
                     <span class="ident">ident</span>, <span class="ident">mutability</span>, ..
-                }) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/async_trait/expand.rs.html#342">arg</a>.<span class="ident">pat</span>
+                }) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/async_trait/expand.rs.html#343">arg</a>.<span class="ident">pat</span>
                 {
-                    <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#344">ident</a> <span class="op">==</span> <span class="string">&quot;self&quot;</span> {
-                        <a class="ident" href="../../src/async_trait/expand.rs.html#327">self_span</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#344">ident</a>.<span class="ident">span</span>());
-                        <span class="kw">let</span> <span class="ident">prefixed</span> <span class="op">=</span> <span class="ident">Ident::new</span>(<span class="string">&quot;__self&quot;</span>, <a class="ident" href="../../src/async_trait/expand.rs.html#344">ident</a>.<span class="ident">span</span>());
+                    <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#345">ident</a> <span class="op">==</span> <span class="string">&quot;self&quot;</span> {
+                        <a class="ident" href="../../src/async_trait/expand.rs.html#328">self_span</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#345">ident</a>.<span class="ident">span</span>());
+                        <span class="kw">let</span> <span class="ident">prefixed</span> <span class="op">=</span> <span class="ident">Ident::new</span>(<span class="string">&quot;__self&quot;</span>, <a class="ident" href="../../src/async_trait/expand.rs.html#345">ident</a>.<span class="ident">span</span>());
                         <span class="macro">quote!</span>(<span class="kw">let</span> #<span class="ident">mutability</span> #<span class="ident">prefixed</span> <span class="op">=</span> #<span class="ident">ident</span>;)
                     } <span class="kw">else</span> {
                         <span class="macro">quote!</span>(<span class="kw">let</span> #<span class="ident">mutability</span> #<span class="ident">ident</span> <span class="op">=</span> #<span class="ident">ident</span>;)
                     }
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#342">arg</a>.<span class="ident">pat</span>;
-                    <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#400">positional_arg</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#332">i</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#355">pat</a>);
-                    <span class="macro">quote!</span>(<span class="kw">let</span> #<span class="ident">pat</span> <span class="op">=</span> #<span class="ident">ident</span>;)
+                    <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#343">arg</a>.<span class="ident">pat</span>;
+                    <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#405">positional_arg</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#333">i</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#356">pat</a>);
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Pat::Wild</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../src/async_trait/expand.rs.html#356">pat</a> {
+                        <span class="macro">quote!</span>(<span class="kw">let</span> #<span class="ident">ident</span> <span class="op">=</span> #<span class="ident">ident</span>;)
+                    } <span class="kw">else</span> {
+                        <span class="macro">quote!</span>(<span class="kw">let</span> #<span class="ident">pat</span> <span class="op">=</span> #<span class="ident">ident</span>;)
+                    }
                 }
             }
         })
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#327">self_span</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replace_self</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/receiver.rs.html#88">ReplaceSelf</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#363">span</a>);
-        <a class="ident" href="../../src/async_trait/expand.rs.html#364">replace_self</a>.<a class="ident" href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_block_mut</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#320">block</a>);
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#328">self_span</a> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replace_self</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/receiver.rs.html#88">ReplaceSelf</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#368">span</a>);
+        <a class="ident" href="../../src/async_trait/expand.rs.html#369">replace_self</a>.<a class="ident" href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_block_mut</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#321">block</a>);
     }
 
-    <span class="kw">let</span> <span class="ident">stmts</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#320">block</a>.<span class="ident">stmts</span>;
-    <span class="kw">let</span> <span class="ident">let_ret</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#320">sig</a>.<span class="ident">output</span> {
-        <span class="ident">ReturnType::Default</span> =&gt; <span class="macro">quote_spanned!</span> {<a class="ident" href="../../src/async_trait/expand.rs.html#320">block</a>.<span class="ident">brace_token</span>.<span class="ident">span</span>=&gt;
+    <span class="kw">let</span> <span class="ident">stmts</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#321">block</a>.<span class="ident">stmts</span>;
+    <span class="kw">let</span> <span class="ident">let_ret</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_trait/expand.rs.html#321">sig</a>.<span class="ident">output</span> {
+        <span class="ident">ReturnType::Default</span> =&gt; <span class="macro">quote_spanned!</span> {<a class="ident" href="../../src/async_trait/expand.rs.html#321">block</a>.<span class="ident">brace_token</span>.<span class="ident">span</span>=&gt;
             #(#<span class="ident">decls</span>)<span class="op">*</span>
             <span class="kw">let</span> <span class="kw">_</span>: () <span class="op">=</span> { #(#<span class="ident">stmts</span>)<span class="op">*</span> };
         },
         <span class="ident">ReturnType::Type</span>(<span class="kw">_</span>, <span class="ident">ret</span>) =&gt; {
-            <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#422">contains_associated_type_impl_trait</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#320">context</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#374">ret</a>) {
-                <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#328">decls</a>.<span class="ident">is_empty</span>() {
+            <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#429">contains_associated_type_impl_trait</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#321">context</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#379">ret</a>) {
+                <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#329">decls</a>.<span class="ident">is_empty</span>() {
                     <span class="macro">quote!</span>(#(#<span class="ident">stmts</span>)<span class="kw-2">*</span>)
                 } <span class="kw">else</span> {
                     <span class="macro">quote!</span>(#(#<span class="ident">decls</span>)<span class="op">*</span> { #(#<span class="ident">stmts</span>)<span class="op">*</span> })
                 }
             } <span class="kw">else</span> {
-                <span class="macro">quote_spanned!</span> {<a class="ident" href="../../src/async_trait/expand.rs.html#320">block</a>.<span class="ident">brace_token</span>.<span class="ident">span</span>=&gt;
+                <span class="macro">quote_spanned!</span> {<a class="ident" href="../../src/async_trait/expand.rs.html#321">block</a>.<span class="ident">brace_token</span>.<span class="ident">span</span>=&gt;
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">::core::option::Option::Some</span>(<span class="ident">__ret</span>) <span class="op">=</span> <span class="ident">::core::option::Option::None</span>::<span class="op">&lt;</span>#<span class="ident">ret</span><span class="op">&gt;</span> {
                         <span class="kw">return</span> <span class="ident">__ret</span>;
                     }
@@ -860,26 +872,28 @@
             }
         }
     };
-    <span class="kw">let</span> <span class="ident">box_pin</span> <span class="op">=</span> <span class="macro">quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#320">block</a>.<span class="ident">brace_token</span>.<span class="ident">span</span>=&gt;
+    <span class="kw">let</span> <span class="ident">box_pin</span> <span class="op">=</span> <span class="macro">quote_spanned!</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#321">block</a>.<span class="ident">brace_token</span>.<span class="ident">span</span>=&gt;
         <span class="ident">Box::pin</span>(<span class="kw">async</span> <span class="kw">move</span> { #<span class="ident">let_ret</span> })
     );
-    <a class="ident" href="../../src/async_trait/expand.rs.html#320">block</a>.<span class="ident">stmts</span> <span class="op">=</span> <span class="macro">parse_quote!</span>(#<span class="ident">box_pin</span>);
+    <a class="ident" href="../../src/async_trait/expand.rs.html#321">block</a>.<span class="ident">stmts</span> <span class="op">=</span> <span class="macro">parse_quote!</span>(#<span class="ident">box_pin</span>);
 }
 
 <span class="kw">fn</span> <span class="ident">positional_arg</span>(<span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">pat</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/pat/enum.Pat.html">Pat</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.Ident.html">Ident</a> {
-    <span class="kw">use</span> <a class="ident" href="../../syn/spanned/trait.Spanned.html">syn::spanned::Spanned</a>;
-    <span class="macro">format_ident!</span>(<span class="string">&quot;__arg{}&quot;</span>, <a class="ident" href="../../src/async_trait/expand.rs.html#400">i</a>, <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#400">pat</a>.<a class="ident" href="../../syn/spanned/trait.Spanned.html">span</a>())
+    <span class="kw">let</span> <span class="ident">span</span>: <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a> <span class="op">=</span> <a class="ident" href="../../syn/spanned/trait.Spanned.html">syn::spanned::Spanned::span</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#405">pat</a>);
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">no_span_mixed_site</span>))]</span>
+    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#406">span</a>.<span class="ident">resolved_at</span>(<span class="ident">Span::mixed_site</span>());
+    <span class="macro">format_ident!</span>(<span class="string">&quot;__arg{}&quot;</span>, <a class="ident" href="../../src/async_trait/expand.rs.html#405">i</a>, <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#408">span</a>)
 }
 
 <span class="kw">fn</span> <span class="ident">has_bound</span>(<span class="ident">supertraits</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#54">Supertraits</a>, <span class="ident">marker</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">Ident</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <a class="ident" href="../../src/async_trait/expand.rs.html#405">supertraits</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TypeParamBound::Trait</span>(<span class="ident">bound</span>) <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#406">bound</a> {
-            <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#407">bound</a>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#405">marker</a>)
-                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/async_trait/expand.rs.html#407">bound</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">3</span>
-                    <span class="op">&amp;&amp;</span> (<a class="ident" href="../../src/async_trait/expand.rs.html#407">bound</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;std&quot;</span>
-                        <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/async_trait/expand.rs.html#407">bound</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;core&quot;</span>)
-                    <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/async_trait/expand.rs.html#407">bound</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">1</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;marker&quot;</span>
-                    <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/async_trait/expand.rs.html#407">bound</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">2</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="kw-2">*</span><a class="ident" href="../../src/async_trait/expand.rs.html#405">marker</a>
+    <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <a class="ident" href="../../src/async_trait/expand.rs.html#412">supertraits</a> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TypeParamBound::Trait</span>(<span class="ident">bound</span>) <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#413">bound</a> {
+            <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#414">bound</a>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<a class="ident" href="../../src/async_trait/expand.rs.html#412">marker</a>)
+                <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/async_trait/expand.rs.html#414">bound</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">3</span>
+                    <span class="op">&amp;&amp;</span> (<a class="ident" href="../../src/async_trait/expand.rs.html#414">bound</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;std&quot;</span>
+                        <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/async_trait/expand.rs.html#414">bound</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;core&quot;</span>)
+                    <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/async_trait/expand.rs.html#414">bound</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">1</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;marker&quot;</span>
+                    <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/async_trait/expand.rs.html#414">bound</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">2</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="kw-2">*</span><a class="ident" href="../../src/async_trait/expand.rs.html#412">marker</a>
             {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
@@ -896,39 +910,39 @@
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="../../syn/gen/visit_mut/trait.VisitMut.html">VisitMut</a> <span class="kw">for</span> <span class="ident">AssociatedTypeImplTraits</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">visit_type_path_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../syn/ty/struct.TypePath.html">TypePath</a>) {
-            <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#429">ty</a>.<span class="ident">qself</span>.<span class="ident">is_none</span>()
-                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/async_trait/expand.rs.html#429">ty</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span>
-                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/async_trait/expand.rs.html#429">ty</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;Self&quot;</span>
-                <span class="op">&amp;&amp;</span> <a class="self" href="../../src/async_trait/expand.rs.html#429">self</a>.<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#429">ty</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">1</span>].<span class="ident">ident</span>)
+            <span class="kw">if</span> <a class="ident" href="../../src/async_trait/expand.rs.html#436">ty</a>.<span class="ident">qself</span>.<span class="ident">is_none</span>()
+                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/async_trait/expand.rs.html#436">ty</a>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span>
+                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/async_trait/expand.rs.html#436">ty</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;Self&quot;</span>
+                <span class="op">&amp;&amp;</span> <a class="self" href="../../src/async_trait/expand.rs.html#436">self</a>.<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/async_trait/expand.rs.html#436">ty</a>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">1</span>].<span class="ident">ident</span>)
             {
-                <a class="self" href="../../src/async_trait/expand.rs.html#429">self</a>.<span class="ident">contains</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                <a class="self" href="../../src/async_trait/expand.rs.html#436">self</a>.<span class="ident">contains</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
-            <span class="ident">visit_mut::visit_type_path_mut</span>(<a class="self" href="../../src/async_trait/expand.rs.html#429">self</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#429">ty</a>);
+            <span class="ident">visit_mut::visit_type_path_mut</span>(<a class="self" href="../../src/async_trait/expand.rs.html#436">self</a>, <a class="ident" href="../../src/async_trait/expand.rs.html#436">ty</a>);
         }
     }
 
-    <span class="kw">match</span> <a class="ident" href="../../src/async_trait/expand.rs.html#422">context</a> {
+    <span class="kw">match</span> <a class="ident" href="../../src/async_trait/expand.rs.html#429">context</a> {
         <a class="ident" href="../../src/async_trait/expand.rs.html#27-30">Context::Trait</a> { .. } =&gt; <span class="bool-val">false</span>,
         <a class="ident" href="../../src/async_trait/expand.rs.html#31-34">Context::Impl</a> {
             <span class="ident">associated_type_impl_traits</span>,
             ..
         } =&gt; {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visit</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#423-426">AssociatedTypeImplTraits</a> {
-                <span class="ident">set</span>: <a class="ident" href="../../src/async_trait/expand.rs.html#444">associated_type_impl_traits</a>,
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visit</span> <span class="op">=</span> <a class="ident" href="../../src/async_trait/expand.rs.html#430-433">AssociatedTypeImplTraits</a> {
+                <span class="ident">set</span>: <a class="ident" href="../../src/async_trait/expand.rs.html#451">associated_type_impl_traits</a>,
                 <span class="ident">contains</span>: <span class="bool-val">false</span>,
             };
-            <a class="ident" href="../../src/async_trait/expand.rs.html#447">visit</a>.<a class="ident" href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_type_mut</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#422">ret</a>);
-            <a class="ident" href="../../src/async_trait/expand.rs.html#447">visit</a>.<span class="ident">contains</span>
+            <a class="ident" href="../../src/async_trait/expand.rs.html#454">visit</a>.<a class="ident" href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_type_mut</a>(<a class="ident" href="../../src/async_trait/expand.rs.html#429">ret</a>);
+            <a class="ident" href="../../src/async_trait/expand.rs.html#454">visit</a>.<span class="ident">contains</span>
         }
     }
 }
 
 <span class="kw">fn</span> <span class="ident">where_clause_or_default</span>(<span class="ident">clause</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../syn/generics/struct.WhereClause.html">WhereClause</a><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../syn/generics/struct.WhereClause.html">WhereClause</a> {
-    <a class="ident" href="../../src/async_trait/expand.rs.html#457">clause</a>.<span class="ident">get_or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../syn/generics/struct.WhereClause.html">WhereClause</a> {
+    <a class="ident" href="../../src/async_trait/expand.rs.html#464">clause</a>.<span class="ident">get_or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../syn/generics/struct.WhereClause.html">WhereClause</a> {
         <span class="ident">where_token</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         <span class="ident">predicates</span>: <span class="ident">Punctuated::new</span>(),
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_trait" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (42e1761c7 2022-05-15)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_trait" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

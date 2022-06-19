@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["de",""],["error",""],["extensions",""],["ser",""],["value","Value module."]]});
+initSidebarItems({"mod":[["de",""],["error",""],["extensions",""],["options","Roundtrip serde Options module."],["ser",""],["value","Value module."]]});

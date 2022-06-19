@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.23/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.24/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../flate2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -209,12 +209,6 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A DEFLATE-based stream compression/decompression library</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This library provides support for compression and decompression of</span>
@@ -230,30 +224,24 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Implementation</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! In addition to supporting three formats, this crate supports three different</span>
+<span class="doccomment">//! In addition to supporting three formats, this crate supports several different</span>
 <span class="doccomment">//! backends, controlled through this crate&#39;s features:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! * `default`, or `rust_backend` - this implementation uses the `miniz_oxide`</span>
 <span class="doccomment">//!   crate which is a port of `miniz.c` (below) to Rust. This feature does not</span>
 <span class="doccomment">//!   require a C compiler and only requires Rust code.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! * `miniz-sys` - when enabled this feature will enable this crate to instead</span>
-<span class="doccomment">//!   use `miniz.c`, distributed with `miniz-sys`, to implement</span>
-<span class="doccomment">//!   compression/decompression.</span>
+<span class="doccomment">//! * `zlib` - this feature will enable linking against the `libz` library, typically found on most</span>
+<span class="doccomment">//!   Linux systems by default. If the library isn&#39;t found to already be on the system it will be</span>
+<span class="doccomment">//!   compiled from source (this is a C library).</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! * `zlib` - finally, this feature will enable linking against the `libz`</span>
-<span class="doccomment">//!   library, typically found on most Linux systems by default. If the library</span>
-<span class="doccomment">//!   isn&#39;t found to already be on the system it will be compiled from source</span>
-<span class="doccomment">//!   (this is a C library).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! There&#39;s various tradeoffs associated with each implementation, but in</span>
-<span class="doccomment">//! general you probably won&#39;t have to tweak the defaults. The default choice is</span>
-<span class="doccomment">//! selected to avoid the need for a C compiler at build time. The `miniz-sys`</span>
-<span class="doccomment">//! feature is largely a historical artifact at this point and is unlikely to be</span>
-<span class="doccomment">//! needed, and `zlib` is often useful if you&#39;re already using `zlib` for other</span>
-<span class="doccomment">//! C dependencies. The compression ratios and performance of each of these</span>
-<span class="doccomment">//! feature should be roughly comparable, but you&#39;ll likely want to run your own</span>
-<span class="doccomment">//! tests if you&#39;re curious about the performance.</span>
+<span class="doccomment">//! There&#39;s various tradeoffs associated with each implementation, but in general you probably</span>
+<span class="doccomment">//! won&#39;t have to tweak the defaults. The default choice is selected to avoid the need for a C</span>
+<span class="doccomment">//! compiler at build time. `zlib-ng-compat` is useful if you&#39;re using zlib for compatibility but</span>
+<span class="doccomment">//! want performance via zlib-ng&#39;s zlib-compat mode. `zlib` is useful if something else in your</span>
+<span class="doccomment">//! dependencies links the original zlib so you cannot use zlib-ng-compat. The compression ratios</span>
+<span class="doccomment">//! and performance of each of these feature should be roughly comparable, but you&#39;ll likely want</span>
+<span class="doccomment">//! to run your own tests if you&#39;re curious about the performance.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Organization</span>
 <span class="doccomment">//!</span>
@@ -379,42 +367,42 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Compression</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a> {
     <span class="doccomment">/// Creates a new description of the compression level with an explicitly</span>
     <span class="doccomment">/// specified integer.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The integer here is typically on a scale of 0-9 where 0 means &quot;no</span>
     <span class="doccomment">/// compression&quot; and 9 means &quot;take as long as you&#39;d like&quot;.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">level</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a> {
-        <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a>(<a class="ident" href="../../src/flate2/lib.rs.html#171">level</a>)
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">level</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a> {
+        <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a>(<a class="ident" href="../../src/flate2/lib.rs.html#165">level</a>)
     }
 
     <span class="doccomment">/// No compression is to be performed, this may actually inflate data</span>
     <span class="doccomment">/// slightly when encoding.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a> {
-        <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a>(<span class="number">0</span>)
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a> {
+        <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a>(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Optimize for the best speed of encoding.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">fast</span>() -&gt; <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a> {
-        <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a>(<span class="number">1</span>)
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">fast</span>() -&gt; <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a> {
+        <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a>(<span class="number">1</span>)
     }
 
     <span class="doccomment">/// Optimize for the size of data being encoded.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">best</span>() -&gt; <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a> {
-        <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a>(<span class="number">9</span>)
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">best</span>() -&gt; <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a> {
+        <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a>(<span class="number">9</span>)
     }
 
     <span class="doccomment">/// Returns an integer representing the compression level, typically on a</span>
     <span class="doccomment">/// scale of 0-9</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">level</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../src/flate2/lib.rs.html#193">self</a>.<span class="number">0</span>
+        <a class="self" href="../../src/flate2/lib.rs.html#187">self</a>.<span class="number">0</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a> {
-        <a class="ident" href="../../src/flate2/lib.rs.html#163">Compression</a>(<span class="number">6</span>)
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a> {
+        <a class="ident" href="../../src/flate2/lib.rs.html#157">Compression</a>(<span class="number">6</span>)
     }
 }
 
@@ -426,5 +414,5 @@
     <span class="ident">iter::repeat</span>(()).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">rand::thread_rng</span>().<span class="ident">gen</span>())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (42e1761c7 2022-05-15)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flate2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

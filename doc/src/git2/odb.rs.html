@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.25/src/odb.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>odb.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/odb.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>odb.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -729,6 +729,13 @@
 <span id="722">722</span>
 <span id="723">723</span>
 <span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
@@ -737,11 +744,13 @@
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/type.CString.html">std::ffi::CString</a>;
 
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>};
+<span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>, <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../src/git2/lib.rs.html#644"><span class="kw">crate</span>::panic</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/git2/lib.rs.html#655"><span class="kw">crate</span>::panic</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/git2/util.rs.html#25-42"><span class="kw">crate</span>::util::Binding</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a>, <a class="ident" href="../../src/git2/indexer.rs.html#25">IndexerProgress</a>, <a class="ident" href="../../src/git2/mempack.rs.html#9-12">Mempack</a>, <a class="ident" href="../../src/git2/object.rs.html#12-15">Object</a>, <a class="ident" href="../../src/git2/lib.rs.html#336-347">ObjectType</a>, <a class="ident" href="../../src/git2/oid.rs.html#15-17">Oid</a>, <a class="ident" href="../../src/git2/indexer.rs.html#7-10">Progress</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a>, <a class="ident" href="../../src/git2/indexer.rs.html#25">IndexerProgress</a>, <a class="ident" href="../../src/git2/mempack.rs.html#9-12">Mempack</a>, <a class="ident" href="../../src/git2/object.rs.html#12-15">Object</a>, <a class="ident" href="../../src/git2/lib.rs.html#336-347">ObjectType</a>, <a class="ident" href="../../src/git2/lib.rs.html#640-649">OdbLookupFlags</a>, <a class="ident" href="../../src/git2/oid.rs.html#15-17">Oid</a>, <a class="ident" href="../../src/git2/indexer.rs.html#7-10">Progress</a>,
+};
 
 <span class="doccomment">/// A structure to represent a git object database</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Odb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
@@ -757,30 +766,30 @@
     <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb.html">raw::git_odb</a>;
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb.html">raw::git_odb</a>) -&gt; <span class="ident">Odb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/odb.rs.html#16-19">Odb</a> {
-            <a class="ident" href="../../src/git2/odb.rs.html#28">raw</a>,
+        <a class="ident" href="../../src/git2/odb.rs.html#18-21">Odb</a> {
+            <a class="ident" href="../../src/git2/odb.rs.html#30">raw</a>,
             <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
         }
     }
     <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb.html">raw::git_odb</a> {
-        <a class="self" href="../../src/git2/odb.rs.html#34">self</a>.<span class="ident">raw</span>
+        <a class="self" href="../../src/git2/odb.rs.html#36">self</a>.<span class="ident">raw</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Odb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_free</span>(<a class="self" href="../../src/git2/odb.rs.html#40">self</a>.<span class="ident">raw</span>) }
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_free</span>(<a class="self" href="../../src/git2/odb.rs.html#42">self</a>.<span class="ident">raw</span>) }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Odb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates an object database without any backends.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Odb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/lib.rs.html#706"><span class="kw">crate</span>::init</a>();
+        <a class="ident" href="../../src/git2/lib.rs.html#717"><span class="kw">crate</span>::init</a>();
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#50">out</a>));
-            <span class="prelude-val">Ok</span>(<span class="ident">Odb::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#50">out</a>))
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#52">out</a>));
+            <span class="prelude-val">Ok</span>(<span class="ident">Odb::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#52">out</a>))
         }
     }
 
@@ -791,19 +800,19 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reader</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oid</span>: <a class="ident" href="../../src/git2/oid.rs.html#15-17">Oid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">OdbReader</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/git2/lib.rs.html#336-347">ObjectType</a>), <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span> <span class="op">=</span> <span class="number">0usize</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">otype</span>: <a class="ident" href="../../libgit2_sys/type.git_object_t.html">raw::git_object_t</a> <span class="op">=</span> <a class="ident" href="../../src/git2/lib.rs.html#338">ObjectType::Any</a>.<a class="ident" href="../../src/git2/lib.rs.html#888">raw</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">otype</span>: <a class="ident" href="../../libgit2_sys/type.git_object_t.html">raw::git_object_t</a> <span class="op">=</span> <a class="ident" href="../../src/git2/lib.rs.html#338">ObjectType::Any</a>.<a class="ident" href="../../src/git2/lib.rs.html#899">raw</a>();
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_open_rstream</span>(
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#61">out</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#62">size</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#63">otype</a>,
-                <a class="self" href="../../src/git2/odb.rs.html#60">self</a>.<span class="ident">raw</span>,
-                <a class="ident" href="../../src/git2/odb.rs.html#60">oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>()
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#63">out</a>,
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#64">size</a>,
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#65">otype</a>,
+                <a class="self" href="../../src/git2/odb.rs.html#62">self</a>.<span class="ident">raw</span>,
+                <a class="ident" href="../../src/git2/odb.rs.html#62">oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>()
             ));
             <span class="prelude-val">Ok</span>((
-                <span class="ident">OdbReader::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#61">out</a>),
-                <a class="ident" href="../../src/git2/odb.rs.html#62">size</a>,
-                <span class="ident">ObjectType::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#63">otype</a>).<span class="ident">unwrap</span>(),
+                <span class="ident">OdbReader::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#63">out</a>),
+                <a class="ident" href="../../src/git2/odb.rs.html#64">size</a>,
+                <span class="ident">ObjectType::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#65">otype</a>).<span class="ident">unwrap</span>(),
             ))
         }
     }
@@ -816,12 +825,12 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_open_wstream</span>(
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#85">out</a>,
-                <a class="self" href="../../src/git2/odb.rs.html#84">self</a>.<span class="ident">raw</span>,
-                <a class="ident" href="../../src/git2/odb.rs.html#84">size</a> <span class="kw">as</span> <span class="ident">raw::git_object_size_t</span>,
-                <a class="ident" href="../../src/git2/odb.rs.html#84">obj_type</a>.<a class="ident" href="../../src/git2/lib.rs.html#888">raw</a>()
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#87">out</a>,
+                <a class="self" href="../../src/git2/odb.rs.html#86">self</a>.<span class="ident">raw</span>,
+                <a class="ident" href="../../src/git2/odb.rs.html#86">size</a> <span class="kw">as</span> <span class="ident">raw::git_object_size_t</span>,
+                <a class="ident" href="../../src/git2/odb.rs.html#86">obj_type</a>.<a class="ident" href="../../src/git2/lib.rs.html#899">raw</a>()
             ));
-            <span class="prelude-val">Ok</span>(<span class="ident">OdbWriter::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#85">out</a>))
+            <span class="prelude-val">Ok</span>(<span class="ident">OdbWriter::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#87">out</a>))
         }
     }
 
@@ -831,14 +840,14 @@
         <span class="ident">C</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/oid.rs.html#15-17">Oid</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#517-519">ForeachCbData</a> {
-                <span class="ident">callback</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#98">callback</a>,
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#524-526">ForeachCbData</a> {
+                <span class="ident">callback</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#100">callback</a>,
             };
-            <span class="kw">let</span> <span class="ident">cb</span>: <span class="ident">raw::git_odb_foreach_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/odb.rs.html#521">foreach_cb</a>);
+            <span class="kw">let</span> <span class="ident">cb</span>: <span class="ident">raw::git_odb_foreach_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/odb.rs.html#528">foreach_cb</a>);
             <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_foreach</span>(
-                <a class="self" href="../../src/git2/odb.rs.html#98">self</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>(),
-                <a class="ident" href="../../src/git2/odb.rs.html#106">cb</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#103">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
+                <a class="self" href="../../src/git2/odb.rs.html#100">self</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>(),
+                <a class="ident" href="../../src/git2/odb.rs.html#108">cb</a>,
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#105">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
             ));
             <span class="prelude-val">Ok</span>(())
         }
@@ -848,8 +857,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oid</span>: <a class="ident" href="../../src/git2/oid.rs.html#15-17">Oid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OdbObject</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_read</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#118">out</a>, <a class="self" href="../../src/git2/odb.rs.html#117">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#117">oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>()));
-            <span class="prelude-val">Ok</span>(<span class="ident">OdbObject::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#118">out</a>))
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_read</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#120">out</a>, <a class="self" href="../../src/git2/odb.rs.html#119">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#119">oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>()));
+            <span class="prelude-val">Ok</span>(<span class="ident">OdbObject::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#120">out</a>))
         }
     }
 
@@ -857,17 +866,17 @@
     <span class="doccomment">/// without reading the full content.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oid</span>: <a class="ident" href="../../src/git2/oid.rs.html#15-17">Oid</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/git2/lib.rs.html#336-347">ObjectType</a>), <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">kind_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> <span class="op">=</span> <a class="ident" href="../../src/git2/lib.rs.html#338">ObjectType::Any</a>.<a class="ident" href="../../src/git2/lib.rs.html#888">raw</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">kind_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> <span class="op">=</span> <a class="ident" href="../../src/git2/lib.rs.html#338">ObjectType::Any</a>.<a class="ident" href="../../src/git2/lib.rs.html#899">raw</a>();
 
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_read_header</span>(
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#128">size</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#129">kind_id</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/type.git_object_t.html">raw::git_object_t</a>,
-                <a class="self" href="../../src/git2/odb.rs.html#127">self</a>.<span class="ident">raw</span>,
-                <a class="ident" href="../../src/git2/odb.rs.html#127">oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>()
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#130">size</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>,
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#131">kind_id</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/type.git_object_t.html">raw::git_object_t</a>,
+                <a class="self" href="../../src/git2/odb.rs.html#129">self</a>.<span class="ident">raw</span>,
+                <a class="ident" href="../../src/git2/odb.rs.html#129">oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>()
             ));
 
-            <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/git2/odb.rs.html#128">size</a>, <span class="ident">ObjectType::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#129">kind_id</a>).<span class="ident">unwrap</span>()))
+            <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/git2/odb.rs.html#130">size</a>, <span class="ident">ObjectType::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#131">kind_id</a>).<span class="ident">unwrap</span>()))
         }
     }
 
@@ -878,13 +887,13 @@
                 <span class="ident">id</span>: [<span class="number">0</span>; <span class="ident">raw::GIT_OID_RAWSZ</span>],
             };
             <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_write</span>(
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#146">out</a>,
-                <a class="self" href="../../src/git2/odb.rs.html#144">self</a>.<span class="ident">raw</span>,
-                <a class="ident" href="../../src/git2/odb.rs.html#144">data</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-                <a class="ident" href="../../src/git2/odb.rs.html#144">data</a>.<span class="ident">len</span>(),
-                <a class="ident" href="../../src/git2/odb.rs.html#144">kind</a>.<a class="ident" href="../../src/git2/lib.rs.html#888">raw</a>()
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#148">out</a>,
+                <a class="self" href="../../src/git2/odb.rs.html#146">self</a>.<span class="ident">raw</span>,
+                <a class="ident" href="../../src/git2/odb.rs.html#146">data</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+                <a class="ident" href="../../src/git2/odb.rs.html#146">data</a>.<span class="ident">len</span>(),
+                <a class="ident" href="../../src/git2/odb.rs.html#146">kind</a>.<a class="ident" href="../../src/git2/lib.rs.html#899">raw</a>()
             ));
-            <span class="prelude-val">Ok</span>(<span class="ident">Oid::from_raw</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#146">out</a>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Oid::from_raw</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#148">out</a>))
         }
     }
 
@@ -892,29 +901,34 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">packwriter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OdbPackwriter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">let</span> <span class="ident">progress</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-        <span class="kw">let</span> <span class="ident">progress_cb</span>: <span class="ident">raw::git_indexer_progress_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/odb.rs.html#538-541">write_pack_progress_cb</a>);
-        <span class="kw">let</span> <span class="ident">progress_payload</span> <span class="op">=</span> <span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/odb.rs.html#434-436">OdbPackwriterCb</a> { <span class="ident">cb</span>: <span class="prelude-val">None</span> });
-        <span class="kw">let</span> <span class="ident">progress_payload_ptr</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#165">progress_payload</a>);
+        <span class="kw">let</span> <span class="ident">progress_cb</span>: <span class="ident">raw::git_indexer_progress_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/odb.rs.html#545-548">write_pack_progress_cb</a>);
+        <span class="kw">let</span> <span class="ident">progress_payload</span> <span class="op">=</span> <span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/odb.rs.html#441-443">OdbPackwriterCb</a> { <span class="ident">cb</span>: <span class="prelude-val">None</span> });
+        <span class="kw">let</span> <span class="ident">progress_payload_ptr</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#167">progress_payload</a>);
 
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_write_pack</span>(
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#162">out</a>,
-                <a class="self" href="../../src/git2/odb.rs.html#161">self</a>.<span class="ident">raw</span>,
-                <a class="ident" href="../../src/git2/odb.rs.html#164">progress_cb</a>,
-                <a class="ident" href="../../src/git2/odb.rs.html#166">progress_payload_ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#164">out</a>,
+                <a class="self" href="../../src/git2/odb.rs.html#163">self</a>.<span class="ident">raw</span>,
+                <a class="ident" href="../../src/git2/odb.rs.html#166">progress_cb</a>,
+                <a class="ident" href="../../src/git2/odb.rs.html#168">progress_payload_ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>
             ));
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/odb.rs.html#439-443">OdbPackwriter</a> {
-            <span class="ident">raw</span>: <a class="ident" href="../../src/git2/odb.rs.html#162">out</a>,
-            <a class="ident" href="../../src/git2/odb.rs.html#163">progress</a>,
-            <a class="ident" href="../../src/git2/odb.rs.html#166">progress_payload_ptr</a>,
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/odb.rs.html#446-450">OdbPackwriter</a> {
+            <span class="ident">raw</span>: <a class="ident" href="../../src/git2/odb.rs.html#164">out</a>,
+            <a class="ident" href="../../src/git2/odb.rs.html#165">progress</a>,
+            <a class="ident" href="../../src/git2/odb.rs.html#168">progress_payload_ptr</a>,
         })
     }
 
     <span class="doccomment">/// Checks if the object database has an object.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exists</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oid</span>: <a class="ident" href="../../src/git2/oid.rs.html#15-17">Oid</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_exists</span>(<a class="self" href="../../src/git2/odb.rs.html#185">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#185">oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>()) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> }
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_exists</span>(<a class="self" href="../../src/git2/odb.rs.html#187">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#187">oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>()) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> }
+    }
+
+    <span class="doccomment">/// Checks if the object database has an object, with extended flags.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exists_ext</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oid</span>: <a class="ident" href="../../src/git2/oid.rs.html#15-17">Oid</a>, <span class="ident">flags</span>: <a class="ident" href="../../src/git2/lib.rs.html#640-649">OdbLookupFlags</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_exists_ext</span>(<a class="self" href="../../src/git2/odb.rs.html#192">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#192">oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>(), <a class="ident" href="../../src/git2/odb.rs.html#192">flags</a>.<a class="ident" href="../../src/git2/lib.rs.html#640-649">bits</a>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> }
     }
 
     <span class="doccomment">/// Potentially finds an object that starts with the given prefix.</span>
@@ -924,12 +938,12 @@
                 <span class="ident">id</span>: [<span class="number">0</span>; <span class="ident">raw::GIT_OID_RAWSZ</span>],
             };
             <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_exists_prefix</span>(
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#192">out</a>,
-                <a class="self" href="../../src/git2/odb.rs.html#190">self</a>.<span class="ident">raw</span>,
-                <a class="ident" href="../../src/git2/odb.rs.html#190">short_oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>(),
-                <a class="ident" href="../../src/git2/odb.rs.html#190">len</a>
+                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#199">out</a>,
+                <a class="self" href="../../src/git2/odb.rs.html#197">self</a>.<span class="ident">raw</span>,
+                <a class="ident" href="../../src/git2/odb.rs.html#197">short_oid</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>(),
+                <a class="ident" href="../../src/git2/odb.rs.html#197">len</a>
             ));
-            <span class="prelude-val">Ok</span>(<span class="ident">Oid::from_raw</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/odb.rs.html#192">out</a>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Oid::from_raw</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/odb.rs.html#199">out</a>))
         }
     }
 
@@ -941,7 +955,7 @@
     <span class="doccomment">/// requested.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refresh</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_refresh</span>(<a class="self" href="../../src/git2/odb.rs.html#211">self</a>.<span class="ident">raw</span>));
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_refresh</span>(<a class="self" href="../../src/git2/odb.rs.html#218">self</a>.<span class="ident">raw</span>));
             <span class="prelude-val">Ok</span>(())
         }
     }
@@ -949,8 +963,8 @@
     <span class="doccomment">/// Adds an alternate disk backend to the object database.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_disk_alternate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/git2/odb.rs.html#219">path</a>)<span class="question-mark">?</span>;
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_add_disk_alternate</span>(<a class="self" href="../../src/git2/odb.rs.html#219">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#221">path</a>));
+            <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/git2/odb.rs.html#226">path</a>)<span class="question-mark">?</span>;
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_add_disk_alternate</span>(<a class="self" href="../../src/git2/odb.rs.html#226">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#228">path</a>));
             <span class="prelude-val">Ok</span>(())
         }
     }
@@ -986,13 +1000,13 @@
             <span class="comment">// mempack is also bound to the lifetime of the odb, so that users</span>
             <span class="comment">// can&#39;t end up with a dangling reference to a mempack object that</span>
             <span class="comment">// was actually freed when the odb was destroyed.</span>
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_mempack_new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#250">mempack</a>));
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_mempack_new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#257">mempack</a>));
             <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_add_backend</span>(
-                <a class="self" href="../../src/git2/odb.rs.html#246">self</a>.<span class="ident">raw</span>,
-                <a class="ident" href="../../src/git2/odb.rs.html#250">mempack</a>,
-                <a class="ident" href="../../src/git2/odb.rs.html#247">priority</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>
+                <a class="self" href="../../src/git2/odb.rs.html#253">self</a>.<span class="ident">raw</span>,
+                <a class="ident" href="../../src/git2/odb.rs.html#257">mempack</a>,
+                <a class="ident" href="../../src/git2/odb.rs.html#254">priority</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>
             ));
-            <span class="prelude-val">Ok</span>(<span class="ident">Mempack::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#250">mempack</a>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Mempack::from_raw</span>(<a class="ident" href="../../src/git2/odb.rs.html#257">mempack</a>))
         }
     }
 }
@@ -1007,47 +1021,47 @@
     <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb_object.html">raw::git_odb_object</a>;
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb_object.html">raw::git_odb_object</a>) -&gt; <span class="ident">OdbObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/odb.rs.html#270-273">OdbObject</a> {
-            <a class="ident" href="../../src/git2/odb.rs.html#278">raw</a>,
+        <a class="ident" href="../../src/git2/odb.rs.html#277-280">OdbObject</a> {
+            <a class="ident" href="../../src/git2/odb.rs.html#285">raw</a>,
             <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb_object.html">raw::git_odb_object</a> {
-        <a class="self" href="../../src/git2/odb.rs.html#285">self</a>.<span class="ident">raw</span>
+        <a class="self" href="../../src/git2/odb.rs.html#292">self</a>.<span class="ident">raw</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">OdbObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_object_free</span>(<a class="self" href="../../src/git2/odb.rs.html#291">self</a>.<span class="ident">raw</span>) }
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_object_free</span>(<a class="self" href="../../src/git2/odb.rs.html#298">self</a>.<span class="ident">raw</span>) }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">OdbObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Get the object type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/git2/lib.rs.html#336-347">ObjectType</a> {
-        <span class="kw">unsafe</span> { <span class="ident">ObjectType::from_raw</span>(<span class="ident">raw::git_odb_object_type</span>(<a class="self" href="../../src/git2/odb.rs.html#298">self</a>.<span class="ident">raw</span>)).<span class="ident">unwrap</span>() }
+        <span class="kw">unsafe</span> { <span class="ident">ObjectType::from_raw</span>(<span class="ident">raw::git_odb_object_type</span>(<a class="self" href="../../src/git2/odb.rs.html#305">self</a>.<span class="ident">raw</span>)).<span class="ident">unwrap</span>() }
     }
 
     <span class="doccomment">/// Get the object size.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_object_size</span>(<a class="self" href="../../src/git2/odb.rs.html#303">self</a>.<span class="ident">raw</span>) }
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_object_size</span>(<a class="self" href="../../src/git2/odb.rs.html#310">self</a>.<span class="ident">raw</span>) }
     }
 
     <span class="doccomment">/// Get the object data.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <a class="self" href="../../src/git2/odb.rs.html#308">self</a>.<a class="ident" href="../../src/git2/odb.rs.html#303">len</a>();
-            <span class="kw">let</span> <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="ident">raw::git_odb_object_data</span>(<a class="self" href="../../src/git2/odb.rs.html#308">self</a>.<span class="ident">raw</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-            <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../src/git2/odb.rs.html#311">ptr</a>, <a class="ident" href="../../src/git2/odb.rs.html#310">size</a>);
-            <span class="kw">return</span> <a class="ident" href="../../src/git2/odb.rs.html#312">buffer</a>;
+            <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <a class="self" href="../../src/git2/odb.rs.html#315">self</a>.<a class="ident" href="../../src/git2/odb.rs.html#310">len</a>();
+            <span class="kw">let</span> <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="ident">raw::git_odb_object_data</span>(<a class="self" href="../../src/git2/odb.rs.html#315">self</a>.<span class="ident">raw</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
+            <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts</span>(<a class="ident" href="../../src/git2/odb.rs.html#318">ptr</a>, <a class="ident" href="../../src/git2/odb.rs.html#317">size</a>);
+            <span class="kw">return</span> <a class="ident" href="../../src/git2/odb.rs.html#319">buffer</a>;
         }
     }
 
     <span class="doccomment">/// Get the object id.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/git2/oid.rs.html#15-17">Oid</a> {
-        <span class="kw">unsafe</span> { <span class="ident">Oid::from_raw</span>(<span class="ident">raw::git_odb_object_id</span>(<a class="self" href="../../src/git2/odb.rs.html#318">self</a>.<span class="ident">raw</span>)) }
+        <span class="kw">unsafe</span> { <span class="ident">Oid::from_raw</span>(<span class="ident">raw::git_odb_object_id</span>(<a class="self" href="../../src/git2/odb.rs.html#325">self</a>.<span class="ident">raw</span>)) }
     }
 }
 
@@ -1065,32 +1079,32 @@
     <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb_stream.html">raw::git_odb_stream</a>;
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb_stream.html">raw::git_odb_stream</a>) -&gt; <span class="ident">OdbReader</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/odb.rs.html#324-327">OdbReader</a> {
-            <a class="ident" href="../../src/git2/odb.rs.html#336">raw</a>,
+        <a class="ident" href="../../src/git2/odb.rs.html#331-334">OdbReader</a> {
+            <a class="ident" href="../../src/git2/odb.rs.html#343">raw</a>,
             <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
         }
     }
     <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb_stream.html">raw::git_odb_stream</a> {
-        <a class="self" href="../../src/git2/odb.rs.html#342">self</a>.<span class="ident">raw</span>
+        <a class="self" href="../../src/git2/odb.rs.html#349">self</a>.<span class="ident">raw</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">OdbReader</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_stream_free</span>(<a class="self" href="../../src/git2/odb.rs.html#348">self</a>.<span class="ident">raw</span>) }
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_stream_free</span>(<a class="self" href="../../src/git2/odb.rs.html#355">self</a>.<span class="ident">raw</span>) }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a> <span class="kw">for</span> <span class="ident">OdbReader</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#354">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#354">buf</a>.<span class="ident">len</span>();
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">raw::git_odb_stream_read</span>(<a class="self" href="../../src/git2/odb.rs.html#354">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#356">ptr</a>, <a class="ident" href="../../src/git2/odb.rs.html#357">len</a>);
-            <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#358">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#361">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#361">buf</a>.<span class="ident">len</span>();
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">raw::git_odb_stream_read</span>(<a class="self" href="../../src/git2/odb.rs.html#361">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#363">ptr</a>, <a class="ident" href="../../src/git2/odb.rs.html#364">len</a>);
+            <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#365">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="string">&quot;Read error&quot;</span>))
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/odb.rs.html#357">len</a>)
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/odb.rs.html#364">len</a>)
             }
         }
     }
@@ -1118,8 +1132,8 @@
             <span class="ident">id</span>: [<span class="number">0</span>; <span class="ident">raw::GIT_OID_RAWSZ</span>],
         };
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_stream_finalize_write</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#386">raw</a>, <a class="self" href="../../src/git2/odb.rs.html#385">self</a>.<span class="ident">raw</span>));
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/odb.rs.html#386">raw</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_stream_finalize_write</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#393">raw</a>, <a class="self" href="../../src/git2/odb.rs.html#392">self</a>.<span class="ident">raw</span>));
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/odb.rs.html#393">raw</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
         }
     }
 }
@@ -1128,32 +1142,32 @@
     <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb_stream.html">raw::git_odb_stream</a>;
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb_stream.html">raw::git_odb_stream</a>) -&gt; <span class="ident">OdbWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/git2/odb.rs.html#369-372">OdbWriter</a> {
-            <a class="ident" href="../../src/git2/odb.rs.html#399">raw</a>,
+        <a class="ident" href="../../src/git2/odb.rs.html#376-379">OdbWriter</a> {
+            <a class="ident" href="../../src/git2/odb.rs.html#406">raw</a>,
             <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
         }
     }
     <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_odb_stream.html">raw::git_odb_stream</a> {
-        <a class="self" href="../../src/git2/odb.rs.html#405">self</a>.<span class="ident">raw</span>
+        <a class="self" href="../../src/git2/odb.rs.html#412">self</a>.<span class="ident">raw</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">OdbWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_stream_free</span>(<a class="self" href="../../src/git2/odb.rs.html#411">self</a>.<span class="ident">raw</span>) }
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_odb_stream_free</span>(<a class="self" href="../../src/git2/odb.rs.html#418">self</a>.<span class="ident">raw</span>) }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for</span> <span class="ident">OdbWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#417">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#417">buf</a>.<span class="ident">len</span>();
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">raw::git_odb_stream_write</span>(<a class="self" href="../../src/git2/odb.rs.html#417">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#419">ptr</a>, <a class="ident" href="../../src/git2/odb.rs.html#420">len</a>);
-            <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#421">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#424">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#424">buf</a>.<span class="ident">len</span>();
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">raw::git_odb_stream_write</span>(<a class="self" href="../../src/git2/odb.rs.html#424">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#426">ptr</a>, <a class="ident" href="../../src/git2/odb.rs.html#427">len</a>);
+            <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#428">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="string">&quot;Write error&quot;</span>))
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/odb.rs.html#417">buf</a>.<span class="ident">len</span>())
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/odb.rs.html#424">buf</a>.<span class="ident">len</span>())
             }
         }
     }
@@ -1177,16 +1191,16 @@
     <span class="doccomment">/// Finish writing the packfile</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">commit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">writepack</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/odb.rs.html#447">self</a>.<span class="ident">raw</span>;
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/odb.rs.html#449">writepack</a>.<span class="ident">commit</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">commit</span>) =&gt; <a class="ident" href="../../src/git2/odb.rs.html#451">commit</a>(<a class="self" href="../../src/git2/odb.rs.html#447">self</a>.<span class="ident">raw</span>, <a class="self" href="../../src/git2/odb.rs.html#447">self</a>.<span class="ident">progress</span>.<span class="ident">as_mut_ptr</span>()),
+            <span class="kw">let</span> <span class="ident">writepack</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/odb.rs.html#454">self</a>.<span class="ident">raw</span>;
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/odb.rs.html#456">writepack</a>.<span class="ident">commit</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">commit</span>) =&gt; <a class="ident" href="../../src/git2/odb.rs.html#458">commit</a>(<a class="self" href="../../src/git2/odb.rs.html#454">self</a>.<span class="ident">raw</span>, <a class="self" href="../../src/git2/odb.rs.html#454">self</a>.<span class="ident">progress</span>.<span class="ident">as_mut_ptr</span>()),
                 <span class="prelude-val">None</span> =&gt; <span class="op">-</span><span class="number">1</span>,
             };
 
-            <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#450">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">Error::last_error</span>(<a class="ident" href="../../src/git2/odb.rs.html#450">res</a>).<span class="ident">unwrap</span>())
+            <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#457">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">Error::last_error</span>(<a class="ident" href="../../src/git2/odb.rs.html#457">res</a>).<span class="ident">unwrap</span>())
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/odb.rs.html#450">res</a>)
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/odb.rs.html#457">res</a>)
             }
         }
     }
@@ -1198,29 +1212,29 @@
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">Progress</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> <span class="op">+</span> <span class="lifetime">&#39;repo</span>,
     {
         <span class="kw">let</span> <span class="ident">progress_payload</span> <span class="op">=</span>
-            <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="self" href="../../src/git2/odb.rs.html#465">self</a>.<span class="ident">progress_payload_ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">OdbPackwriterCb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) };
+            <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="self" href="../../src/git2/odb.rs.html#472">self</a>.<span class="ident">progress_payload_ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">OdbPackwriterCb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) };
 
-        <a class="ident" href="../../src/git2/odb.rs.html#469">progress_payload</a>.<span class="ident">cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/odb.rs.html#465">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">IndexerProgress</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-        <a class="self" href="../../src/git2/odb.rs.html#465">self</a>
+        <a class="ident" href="../../src/git2/odb.rs.html#476">progress_payload</a>.<span class="ident">cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/git2/odb.rs.html#472">cb</a>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">IndexerProgress</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+        <a class="self" href="../../src/git2/odb.rs.html#472">self</a>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a> <span class="kw">for</span> <span class="ident">OdbPackwriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#478">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#478">buf</a>.<span class="ident">len</span>();
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#485">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/git2/odb.rs.html#485">buf</a>.<span class="ident">len</span>();
 
-            <span class="kw">let</span> <span class="ident">writepack</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/odb.rs.html#478">self</a>.<span class="ident">raw</span>;
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/odb.rs.html#483">writepack</a>.<span class="ident">append</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">append</span>) =&gt; <a class="ident" href="../../src/git2/odb.rs.html#485">append</a>(<a class="self" href="../../src/git2/odb.rs.html#478">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#480">ptr</a>, <a class="ident" href="../../src/git2/odb.rs.html#481">len</a>, <a class="self" href="../../src/git2/odb.rs.html#478">self</a>.<span class="ident">progress</span>.<span class="ident">as_mut_ptr</span>()),
+            <span class="kw">let</span> <span class="ident">writepack</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/odb.rs.html#485">self</a>.<span class="ident">raw</span>;
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/odb.rs.html#490">writepack</a>.<span class="ident">append</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">append</span>) =&gt; <a class="ident" href="../../src/git2/odb.rs.html#492">append</a>(<a class="self" href="../../src/git2/odb.rs.html#485">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/odb.rs.html#487">ptr</a>, <a class="ident" href="../../src/git2/odb.rs.html#488">len</a>, <a class="self" href="../../src/git2/odb.rs.html#485">self</a>.<span class="ident">progress</span>.<span class="ident">as_mut_ptr</span>()),
                 <span class="prelude-val">None</span> =&gt; <span class="op">-</span><span class="number">1</span>,
             };
 
-            <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#484">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
+            <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#491">res</a> <span class="op">&lt;</span> <span class="number">0</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="string">&quot;Write error&quot;</span>))
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/odb.rs.html#478">buf</a>.<span class="ident">len</span>())
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/odb.rs.html#485">buf</a>.<span class="ident">len</span>())
             }
         }
     }
@@ -1232,13 +1246,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">OdbPackwriter</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">writepack</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/odb.rs.html#502">self</a>.<span class="ident">raw</span>;
-            <span class="kw">match</span> <a class="ident" href="../../src/git2/odb.rs.html#504">writepack</a>.<span class="ident">free</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">free</span>) =&gt; <a class="ident" href="../../src/git2/odb.rs.html#506">free</a>(<a class="self" href="../../src/git2/odb.rs.html#502">self</a>.<span class="ident">raw</span>),
+            <span class="kw">let</span> <span class="ident">writepack</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/git2/odb.rs.html#509">self</a>.<span class="ident">raw</span>;
+            <span class="kw">match</span> <a class="ident" href="../../src/git2/odb.rs.html#511">writepack</a>.<span class="ident">free</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">free</span>) =&gt; <a class="ident" href="../../src/git2/odb.rs.html#513">free</a>(<a class="self" href="../../src/git2/odb.rs.html#509">self</a>.<span class="ident">raw</span>),
                 <span class="prelude-val">None</span> =&gt; (),
             };
 
-            <span class="ident">Box::from_raw</span>(<a class="self" href="../../src/git2/odb.rs.html#502">self</a>.<span class="ident">progress_payload_ptr</span>);
+            <span class="ident">Box::from_raw</span>(<a class="self" href="../../src/git2/odb.rs.html#509">self</a>.<span class="ident">progress_payload_ptr</span>);
         }
     }
 }
@@ -1251,13 +1265,13 @@
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">foreach_cb</span>(<span class="ident">id</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_oid.html">raw::git_oid</a>, <span class="ident">payload</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
     <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/odb.rs.html#521">payload</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">ForeachCbData</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
+        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/odb.rs.html#528">payload</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">ForeachCbData</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#523">data</a>.<span class="ident">callback</span>;
-            <a class="ident" href="../../src/git2/odb.rs.html#525">callback</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/odb.rs.html#521">id</a>))
+            <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/odb.rs.html#530">data</a>.<span class="ident">callback</span>;
+            <a class="ident" href="../../src/git2/odb.rs.html#532">callback</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/odb.rs.html#528">id</a>))
         };
 
-        <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#524">res</a> {
+        <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#531">res</a> {
             <span class="number">0</span>
         } <span class="kw">else</span> {
             <span class="number">1</span>
@@ -1271,17 +1285,17 @@
     <span class="ident">payload</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
 ) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
     <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <a class="ident" href="../../src/git2/panic.rs.html#8">panic::wrap</a>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/odb.rs.html#540">payload</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">OdbPackwriterCb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
+        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../src/git2/odb.rs.html#547">payload</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">OdbPackwriterCb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
 
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/odb.rs.html#543">payload</a>.<span class="ident">cb</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">cb</span>) =&gt; <a class="ident" href="../../src/git2/odb.rs.html#546">cb</a>,
+        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/git2/odb.rs.html#550">payload</a>.<span class="ident">cb</span> {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">cb</span>) =&gt; <a class="ident" href="../../src/git2/odb.rs.html#553">cb</a>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">progress</span>: <span class="ident">Progress</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/odb.rs.html#539">stats</a>);
-        <a class="ident" href="../../src/git2/odb.rs.html#545">callback</a>(<a class="ident" href="../../src/git2/odb.rs.html#550">progress</a>)
+        <span class="kw">let</span> <span class="ident">progress</span>: <span class="ident">Progress</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/odb.rs.html#546">stats</a>);
+        <a class="ident" href="../../src/git2/odb.rs.html#552">callback</a>(<a class="ident" href="../../src/git2/odb.rs.html#557">progress</a>)
     });
-    <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#542">ok</a> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+    <span class="kw">if</span> <a class="ident" href="../../src/git2/odb.rs.html#549">ok</a> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
         <span class="number">0</span>
     } <span class="kw">else</span> {
         <span class="op">-</span><span class="number">1</span>
@@ -1454,5 +1468,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (42e1761c7 2022-05-15)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.73/src/x509_vfy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>x509_vfy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.74/src/x509_vfy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>x509_vfy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -152,6 +152,8 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
 
 <span class="kw">use</span> <span class="kw-2">*</span>;
@@ -251,6 +253,8 @@
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">X509_V_ERR_PROXY_SUBJECT_NAME_VIOLATION</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">67</span>;
     }
 }
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">X509_V_ERR_INVALID_CA</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">79</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">X509_V_FLAG_CB_ISSUER_CHECK</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x1</span>;
@@ -292,13 +296,13 @@
 ) -&gt; <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
     <span class="kw">const</span> <span class="ident">X509_L_ADD_DIR</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> <span class="op">=</span> <span class="number">2</span>;
     <a class="ident" href="../../src/openssl_sys/handwritten/x509_vfy.rs.html#15-21">X509_LOOKUP_ctrl</a>(
-        <a class="ident" href="../../src/openssl_sys/x509_vfy.rs.html#135">ctx</a>,
-        <a class="ident" href="../../src/openssl_sys/x509_vfy.rs.html#139">X509_L_ADD_DIR</a>,
-        <a class="ident" href="../../src/openssl_sys/x509_vfy.rs.html#136">name</a>,
-        <a class="ident" href="../../src/openssl_sys/x509_vfy.rs.html#137">_type</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+        <a class="ident" href="../../src/openssl_sys/x509_vfy.rs.html#137">ctx</a>,
+        <a class="ident" href="../../src/openssl_sys/x509_vfy.rs.html#141">X509_L_ADD_DIR</a>,
+        <a class="ident" href="../../src/openssl_sys/x509_vfy.rs.html#138">name</a>,
+        <a class="ident" href="../../src/openssl_sys/x509_vfy.rs.html#139">_type</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
         <span class="ident">std::ptr::null_mut</span>(),
     )
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (42e1761c7 2022-05-15)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

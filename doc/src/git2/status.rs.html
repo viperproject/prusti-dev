@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.25/src/status.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>status.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/status.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>status.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -422,6 +422,14 @@
 <span id="415">415</span>
 <span id="416">416</span>
 <span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">libc</span>::{<a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>, <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/type.CString.html">std::ffi::CString</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
@@ -429,8 +437,8 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html">std::ops::Range</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">std::str</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<a class="self" href="../../src/git2/lib.rs.html#647">self</a>, <a class="ident" href="../../src/git2/util.rs.html#25-42">Binding</a>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/diff.rs.html#27-30">DiffDelta</a>, <a class="ident" href="../../src/git2/util.rs.html#101-104">IntoCString</a>, <a class="ident" href="../../src/git2/repo.rs.html#108-110">Repository</a>, <a class="ident" href="../../src/git2/lib.rs.html#974-1014">Status</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<a class="self" href="../../src/git2/lib.rs.html#658">self</a>, <a class="ident" href="../../src/git2/util.rs.html#25-42">Binding</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../libgit2_sys/index.html">raw</a>, <a class="ident" href="../../src/git2/diff.rs.html#27-30">DiffDelta</a>, <a class="ident" href="../../src/git2/util.rs.html#101-104">IntoCString</a>, <a class="ident" href="../../src/git2/repo.rs.html#108-110">Repository</a>, <a class="ident" href="../../src/git2/lib.rs.html#985-1025">Status</a>};
 
 <span class="doccomment">/// Options that can be provided to `repo.statuses()` to control how the status</span>
 <span class="doccomment">/// information is gathered.</span>
@@ -640,14 +648,22 @@
         <a class="self" href="../../src/git2/status.rs.html#215">self</a>.<a class="ident" href="../../src/git2/status.rs.html#107">flag</a>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_UNREADABLE_AS_UNTRACKED</span>, <a class="ident" href="../../src/git2/status.rs.html#215">include</a>)
     }
 
+    <span class="doccomment">/// Set threshold above which similar files will be considered renames.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to the `-M` option. Defaults to 50.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rename_threshold</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">threshold</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/status.rs.html#13-17">StatusOptions</a> {
+        <a class="self" href="../../src/git2/status.rs.html#222">self</a>.<span class="ident">raw</span>.<span class="ident">rename_threshold</span> <span class="op">=</span> <a class="ident" href="../../src/git2/status.rs.html#222">threshold</a>;
+        <a class="self" href="../../src/git2/status.rs.html#222">self</a>
+    }
+
     <span class="doccomment">/// Get a pointer to the inner list of status options.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function is unsafe as the returned structure has interior pointers</span>
     <span class="doccomment">/// and may no longer be valid if these options continue to be mutated.</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_status_options.html">raw::git_status_options</a> {
-        <a class="self" href="../../src/git2/status.rs.html#223">self</a>.<span class="ident">raw</span>.<span class="ident">pathspec</span>.<span class="ident">strings</span> <span class="op">=</span> <a class="self" href="../../src/git2/status.rs.html#223">self</a>.<span class="ident">ptrs</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
-        <a class="self" href="../../src/git2/status.rs.html#223">self</a>.<span class="ident">raw</span>.<span class="ident">pathspec</span>.<span class="ident">count</span> <span class="op">=</span> <a class="self" href="../../src/git2/status.rs.html#223">self</a>.<span class="ident">ptrs</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>;
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/status.rs.html#223">self</a>.<span class="ident">raw</span>
+        <a class="self" href="../../src/git2/status.rs.html#231">self</a>.<span class="ident">raw</span>.<span class="ident">pathspec</span>.<span class="ident">strings</span> <span class="op">=</span> <a class="self" href="../../src/git2/status.rs.html#231">self</a>.<span class="ident">ptrs</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
+        <a class="self" href="../../src/git2/status.rs.html#231">self</a>.<span class="ident">raw</span>.<span class="ident">pathspec</span>.<span class="ident">count</span> <span class="op">=</span> <a class="self" href="../../src/git2/status.rs.html#231">self</a>.<span class="ident">ptrs</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>;
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/git2/status.rs.html#231">self</a>.<span class="ident">raw</span>
     }
 }
 
@@ -657,8 +673,8 @@
     <span class="doccomment">/// Returns `None` if the index is out of bounds.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">raw::git_status_byindex</span>(<a class="self" href="../../src/git2/status.rs.html#234">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/status.rs.html#234">index</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>);
-            <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a class="ident" href="../../src/git2/status.rs.html#236">p</a>)
+            <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">raw::git_status_byindex</span>(<a class="self" href="../../src/git2/status.rs.html#242">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/status.rs.html#242">index</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>);
+            <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>(<a class="ident" href="../../src/git2/status.rs.html#244">p</a>)
         }
     }
 
@@ -667,19 +683,19 @@
     <span class="doccomment">/// If there are no changes in status (according to the options given</span>
     <span class="doccomment">/// when the status list was created), this should return 0.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_status_list_entrycount</span>(<a class="self" href="../../src/git2/status.rs.html#245">self</a>.<span class="ident">raw</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_status_list_entrycount</span>(<a class="self" href="../../src/git2/status.rs.html#253">self</a>.<span class="ident">raw</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Return `true` if there is no status entry in this list.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/git2/status.rs.html#250">self</a>.<a class="ident" href="../../src/git2/status.rs.html#245">len</a>() <span class="op">==</span> <span class="number">0</span>
+        <a class="self" href="../../src/git2/status.rs.html#258">self</a>.<a class="ident" href="../../src/git2/status.rs.html#253">len</a>() <span class="op">==</span> <span class="number">0</span>
     }
 
     <span class="doccomment">/// Returns an iterator over the statuses in this list.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/git2/status.rs.html#48-51">StatusIter</a> {
-            <span class="ident">statuses</span>: <a class="self" href="../../src/git2/status.rs.html#255">self</a>,
-            <span class="ident">range</span>: <span class="number">0</span>..<a class="self" href="../../src/git2/status.rs.html#255">self</a>.<a class="ident" href="../../src/git2/status.rs.html#245">len</a>(),
+            <span class="ident">statuses</span>: <a class="self" href="../../src/git2/status.rs.html#263">self</a>,
+            <span class="ident">range</span>: <span class="number">0</span>..<a class="self" href="../../src/git2/status.rs.html#263">self</a>.<a class="ident" href="../../src/git2/status.rs.html#253">len</a>(),
         }
     }
 }
@@ -688,19 +704,19 @@
     <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a>;
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a>) -&gt; <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/git2/status.rs.html#40-45">Statuses</a> {
-            <a class="ident" href="../../src/git2/status.rs.html#265">raw</a>,
+            <a class="ident" href="../../src/git2/status.rs.html#273">raw</a>,
             <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
         }
     }
     <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_status_list.html">raw::git_status_list</a> {
-        <a class="self" href="../../src/git2/status.rs.html#271">self</a>.<span class="ident">raw</span>
+        <a class="self" href="../../src/git2/status.rs.html#279">self</a>.<span class="ident">raw</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> {
-            <span class="ident">raw::git_status_list_free</span>(<a class="self" href="../../src/git2/status.rs.html#277">self</a>.<span class="ident">raw</span>);
+            <span class="ident">raw::git_status_list_free</span>(<a class="self" href="../../src/git2/status.rs.html#285">self</a>.<span class="ident">raw</span>);
         }
     }
 }
@@ -708,15 +724,15 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/status.rs.html#286">self</a>.<span class="ident">range</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="self" href="../../src/git2/status.rs.html#286">self</a>.<span class="ident">statuses</span>.<a class="ident" href="../../src/git2/status.rs.html#234">get</a>(<a class="ident" href="../../src/git2/status.rs.html#287">i</a>))
+        <a class="self" href="../../src/git2/status.rs.html#294">self</a>.<span class="ident">range</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="self" href="../../src/git2/status.rs.html#294">self</a>.<span class="ident">statuses</span>.<a class="ident" href="../../src/git2/status.rs.html#242">get</a>(<a class="ident" href="../../src/git2/status.rs.html#295">i</a>))
     }
     <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/git2/status.rs.html#289">self</a>.<span class="ident">range</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+        <a class="self" href="../../src/git2/status.rs.html#297">self</a>.<span class="ident">range</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
     }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for</span> <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/git2/status.rs.html#294">self</a>.<span class="ident">range</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="self" href="../../src/git2/status.rs.html#294">self</a>.<span class="ident">statuses</span>.<a class="ident" href="../../src/git2/status.rs.html#234">get</a>(<a class="ident" href="../../src/git2/status.rs.html#295">i</a>))
+        <a class="self" href="../../src/git2/status.rs.html#302">self</a>.<span class="ident">range</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="self" href="../../src/git2/status.rs.html#302">self</a>.<span class="ident">statuses</span>.<a class="ident" href="../../src/git2/status.rs.html#242">get</a>(<a class="ident" href="../../src/git2/status.rs.html#303">i</a>))
     }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for</span> <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
@@ -725,10 +741,10 @@
     <span class="doccomment">/// Access the bytes for this entry&#39;s corresponding pathname</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <span class="kw">unsafe</span> {
-            <span class="kw">if</span> (<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#302">self</a>.<span class="ident">raw</span>).<span class="ident">head_to_index</span>.<span class="ident">is_null</span>() {
-                <a class="ident" href="../../src/git2/lib.rs.html#845"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/status.rs.html#302">self</a>, (<span class="kw-2">*</span>(<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#302">self</a>.<span class="ident">raw</span>).<span class="ident">index_to_workdir</span>).<span class="ident">old_file</span>.<span class="ident">path</span>)
+            <span class="kw">if</span> (<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#310">self</a>.<span class="ident">raw</span>).<span class="ident">head_to_index</span>.<span class="ident">is_null</span>() {
+                <a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/status.rs.html#310">self</a>, (<span class="kw-2">*</span>(<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#310">self</a>.<span class="ident">raw</span>).<span class="ident">index_to_workdir</span>).<span class="ident">old_file</span>.<span class="ident">path</span>)
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/git2/lib.rs.html#845"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/status.rs.html#302">self</a>, (<span class="kw-2">*</span>(<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#302">self</a>.<span class="ident">raw</span>).<span class="ident">head_to_index</span>).<span class="ident">old_file</span>.<span class="ident">path</span>)
+                <a class="ident" href="../../src/git2/lib.rs.html#856"><span class="kw">crate</span>::opt_bytes</a>(<a class="self" href="../../src/git2/status.rs.html#310">self</a>, (<span class="kw-2">*</span>(<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#310">self</a>.<span class="ident">raw</span>).<span class="ident">head_to_index</span>).<span class="ident">old_file</span>.<span class="ident">path</span>)
             }
             .<span class="ident">unwrap</span>()
         }
@@ -738,24 +754,24 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` if the path is not valid utf-8.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/status.rs.html#316">self</a>.<a class="ident" href="../../src/git2/status.rs.html#302">path_bytes</a>()).<span class="ident">ok</span>()
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="self" href="../../src/git2/status.rs.html#324">self</a>.<a class="ident" href="../../src/git2/status.rs.html#310">path_bytes</a>()).<span class="ident">ok</span>()
     }
 
     <span class="doccomment">/// Access the status flags for this file</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/git2/lib.rs.html#974-1014">Status</a> {
-        <span class="ident">Status::from_bits_truncate</span>(<span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#321">self</a>.<span class="ident">raw</span>).<span class="ident">status</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> })
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/git2/lib.rs.html#985-1025">Status</a> {
+        <span class="ident">Status::from_bits_truncate</span>(<span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#329">self</a>.<span class="ident">raw</span>).<span class="ident">status</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> })
     }
 
     <span class="doccomment">/// Access detailed information about the differences between the file in</span>
     <span class="doccomment">/// HEAD and the file in the index.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">head_to_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DiffDelta</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>((<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#327">self</a>.<span class="ident">raw</span>).<span class="ident">head_to_index</span>) }
+        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>((<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#335">self</a>.<span class="ident">raw</span>).<span class="ident">head_to_index</span>) }
     }
 
     <span class="doccomment">/// Access detailed information about the differences between the file in</span>
     <span class="doccomment">/// the index and the file in the working directory.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index_to_workdir</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DiffDelta</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>((<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#333">self</a>.<span class="ident">raw</span>).<span class="ident">index_to_workdir</span>) }
+        <span class="kw">unsafe</span> { <a class="ident" href="../../src/git2/util.rs.html#31-34">Binding::from_raw_opt</a>((<span class="kw-2">*</span><a class="self" href="../../src/git2/status.rs.html#341">self</a>.<span class="ident">raw</span>).<span class="ident">index_to_workdir</span>) }
     }
 }
 
@@ -764,12 +780,12 @@
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_status_entry.html">raw::git_status_entry</a>) -&gt; <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> {
         <a class="ident" href="../../src/git2/status.rs.html#56-59">StatusEntry</a> {
-            <a class="ident" href="../../src/git2/status.rs.html#341">raw</a>,
+            <a class="ident" href="../../src/git2/status.rs.html#349">raw</a>,
             <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
         }
     }
     <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../libgit2_sys/struct.git_status_entry.html">raw::git_status_entry</a> {
-        <a class="self" href="../../src/git2/status.rs.html#347">self</a>.<span class="ident">raw</span>
+        <a class="self" href="../../src/git2/status.rs.html#355">self</a>.<span class="ident">raw</span>
     }
 }
 
@@ -840,5 +856,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (42e1761c7 2022-05-15)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

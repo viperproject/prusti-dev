@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ron-0.7.0/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ron-0.7.1/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../ron/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -169,20 +169,40 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">serde</span>::{<a class="ident" href="../../serde/de/index.html">de</a>, <a class="ident" href="../../serde/ser/index.html">ser</a>};
 <span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">str::Utf8Error</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">string::FromUtf8Error</a>};
-
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/ron/parse.rs.html#926-929"><span class="kw">crate</span>::parse::Position</a>;
 
 <span class="doccomment">/// This type represents all possible errors that can occur when</span>
 <span class="doccomment">/// serializing or deserializing RON data.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Error</span> {
-    <span class="kw">pub</span> <span class="ident">code</span>: <a class="ident" href="../../src/ron/error.rs.html#17-60">ErrorCode</a>,
-    <span class="kw">pub</span> <span class="ident">position</span>: <a class="ident" href="../../src/ron/parse.rs.html#926-929">Position</a>,
+    <span class="kw">pub</span> <span class="ident">code</span>: <a class="ident" href="../../src/ron/error.rs.html#15-62">ErrorCode</a>,
+    <span class="kw">pub</span> <span class="ident">position</span>: <a class="ident" href="../../src/ron/error.rs.html#127-130">Position</a>,
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a><span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ErrorCode</span> {
@@ -196,19 +216,23 @@
     <span class="ident">ExpectedAttributeEnd</span>,
     <span class="ident">ExpectedBoolean</span>,
     <span class="ident">ExpectedComma</span>,
-    <span class="comment">// ExpectedEnum,</span>
     <span class="ident">ExpectedChar</span>,
     <span class="ident">ExpectedFloat</span>,
+    <span class="ident">FloatUnderscore</span>,
     <span class="ident">ExpectedInteger</span>,
     <span class="ident">ExpectedOption</span>,
     <span class="ident">ExpectedOptionEnd</span>,
     <span class="ident">ExpectedMap</span>,
     <span class="ident">ExpectedMapColon</span>,
     <span class="ident">ExpectedMapEnd</span>,
+    <span class="ident">ExpectedStructName</span> {
+        <span class="ident">expected</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        <span class="ident">found</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    },
     <span class="ident">ExpectedStruct</span>,
+    <span class="ident">ExpectedNamedStruct</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>),
     <span class="ident">ExpectedStructEnd</span>,
     <span class="ident">ExpectedUnit</span>,
-    <span class="comment">// ExpectedStructName,</span>
     <span class="ident">ExpectedString</span>,
     <span class="ident">ExpectedStringEnd</span>,
     <span class="ident">ExpectedIdentifier</span>,
@@ -230,109 +254,129 @@
     <span class="ident">__Nonexhaustive</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">if</span> (<a class="self" href="../../src/ron/error.rs.html#63">self</a>.<span class="ident">position</span> <span class="op">==</span> <a class="ident" href="../../src/ron/parse.rs.html#926-929">Position</a> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">col</span>: <span class="number">0</span> }) {
-            <span class="macro">write!</span>(<a class="ident" href="../../src/ron/error.rs.html#63">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/ron/error.rs.html#63">self</a>.<span class="ident">code</span>)
+        <span class="kw">if</span> (<a class="self" href="../../src/ron/error.rs.html#65">self</a>.<span class="ident">position</span> <span class="op">==</span> <a class="ident" href="../../src/ron/error.rs.html#127-130">Position</a> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">col</span>: <span class="number">0</span> }) {
+            <span class="macro">write!</span>(<a class="ident" href="../../src/ron/error.rs.html#65">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="self" href="../../src/ron/error.rs.html#65">self</a>.<span class="ident">code</span>)
         } <span class="kw">else</span> {
-            <span class="macro">write!</span>(<a class="ident" href="../../src/ron/error.rs.html#63">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <a class="self" href="../../src/ron/error.rs.html#63">self</a>.<span class="ident">position</span>, <a class="self" href="../../src/ron/error.rs.html#63">self</a>.<span class="ident">code</span>)
+            <span class="macro">write!</span>(<a class="ident" href="../../src/ron/error.rs.html#65">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <a class="self" href="../../src/ron/error.rs.html#65">self</a>.<span class="ident">position</span>, <a class="self" href="../../src/ron/error.rs.html#65">self</a>.<span class="ident">code</span>)
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#17-60">ErrorCode</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#15-62">ErrorCode</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/ron/error.rs.html#73">self</a> {
-            <a class="ident" href="../../src/ron/error.rs.html#18">ErrorCode::Io</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<a class="ident" href="../../src/ron/error.rs.html#75">s</a>),
-            <a class="ident" href="../../src/ron/error.rs.html#19">ErrorCode::Message</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<a class="ident" href="../../src/ron/error.rs.html#76">s</a>),
-            <a class="ident" href="../../src/ron/error.rs.html#20">ErrorCode::Base64Error</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="ident" href="../../src/ron/error.rs.html#77">e</a>, <a class="ident" href="../../src/ron/error.rs.html#73">f</a>),
-            <a class="ident" href="../../src/ron/error.rs.html#21">ErrorCode::Eof</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Unexpected end of file&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#22">ErrorCode::ExpectedArray</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected array&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#23">ErrorCode::ExpectedArrayEnd</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected end of array&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#24">ErrorCode::ExpectedAttribute</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected an enable attribute&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#25">ErrorCode::ExpectedAttributeEnd</a> =&gt; {
-                <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected closing `)` and `]` after the attribute&quot;</span>)
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/ron/error.rs.html#75">self</a> {
+            <a class="ident" href="../../src/ron/error.rs.html#16">ErrorCode::Io</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<a class="ident" href="../../src/ron/error.rs.html#77">s</a>),
+            <a class="ident" href="../../src/ron/error.rs.html#17">ErrorCode::Message</a>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<a class="ident" href="../../src/ron/error.rs.html#78">s</a>),
+            <a class="ident" href="../../src/ron/error.rs.html#18">ErrorCode::Base64Error</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="ident" href="../../src/ron/error.rs.html#79">e</a>, <a class="ident" href="../../src/ron/error.rs.html#75">f</a>),
+            <a class="ident" href="../../src/ron/error.rs.html#19">ErrorCode::Eof</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Unexpected end of RON&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#20">ErrorCode::ExpectedArray</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected opening `[`&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#21">ErrorCode::ExpectedArrayEnd</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected closing `]`&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#22">ErrorCode::ExpectedAttribute</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected an `#![enable(...)]` attribute&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#23">ErrorCode::ExpectedAttributeEnd</a> =&gt; {
+                <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected closing `)]` after the enable attribute&quot;</span>)
             }
-            <a class="ident" href="../../src/ron/error.rs.html#26">ErrorCode::ExpectedBoolean</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected boolean&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#27">ErrorCode::ExpectedComma</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected comma&quot;</span>),
-            <span class="comment">// ErrorCode::ExpectedEnum =&gt; f.write_str(&quot;Expected enum&quot;),</span>
-            <a class="ident" href="../../src/ron/error.rs.html#29">ErrorCode::ExpectedChar</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected char&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#30">ErrorCode::ExpectedFloat</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected float&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#31">ErrorCode::ExpectedInteger</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected integer&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#32">ErrorCode::ExpectedOption</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected option&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#33">ErrorCode::ExpectedOptionEnd</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected end of option&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#34">ErrorCode::ExpectedMap</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected map&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#35">ErrorCode::ExpectedMapColon</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected colon&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#36">ErrorCode::ExpectedMapEnd</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected end of map&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#37">ErrorCode::ExpectedStruct</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected struct&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#38">ErrorCode::ExpectedStructEnd</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected end of struct&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#39">ErrorCode::ExpectedUnit</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected unit&quot;</span>),
-            <span class="comment">// ErrorCode::ExpectedStructName =&gt; f.write_str(&quot;Expected struct name&quot;),</span>
-            <a class="ident" href="../../src/ron/error.rs.html#41">ErrorCode::ExpectedString</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected string&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#42">ErrorCode::ExpectedStringEnd</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected string end&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#43">ErrorCode::ExpectedIdentifier</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected identifier&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#45">ErrorCode::InvalidEscape</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Invalid escape sequence&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#47">ErrorCode::IntegerOutOfBounds</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Integer is out of bounds&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#49">ErrorCode::NoSuchExtension</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;No such RON extension&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#55">ErrorCode::Utf8Error</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="ident" href="../../src/ron/error.rs.html#106">e</a>, <a class="ident" href="../../src/ron/error.rs.html#73">f</a>),
-            <a class="ident" href="../../src/ron/error.rs.html#51">ErrorCode::UnclosedBlockComment</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Unclosed block comment&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#52">ErrorCode::UnderscoreAtBeginning</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Found underscore at the beginning&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#53">ErrorCode::UnexpectedByte</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Unexpected byte&quot;</span>),
-            <a class="ident" href="../../src/ron/error.rs.html#56">ErrorCode::TrailingCharacters</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Non-whitespace trailing characters&quot;</span>),
-            <span class="kw">_</span> =&gt; <a class="ident" href="../../src/ron/error.rs.html#73">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Unknown ErrorCode&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#24">ErrorCode::ExpectedBoolean</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected boolean&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#25">ErrorCode::ExpectedComma</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected comma&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#26">ErrorCode::ExpectedChar</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected char&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#27">ErrorCode::ExpectedFloat</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected float&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#28">ErrorCode::FloatUnderscore</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Unexpected underscore in float&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#29">ErrorCode::ExpectedInteger</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected integer&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#30">ErrorCode::ExpectedOption</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected option&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#31">ErrorCode::ExpectedOptionEnd</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected closing `)`&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#32">ErrorCode::ExpectedMap</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected opening `{`&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#33">ErrorCode::ExpectedMapColon</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected colon&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#34">ErrorCode::ExpectedMapEnd</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected closing `}`&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#35-38">ErrorCode::ExpectedStructName</a> {
+                <span class="ident">expected</span>,
+                <span class="kw-2">ref</span> <span class="ident">found</span>,
+            } =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/ron/error.rs.html#75">f</a>, <span class="string">&quot;Expected struct &#39;{}&#39; but found &#39;{}&#39;&quot;</span>, <a class="ident" href="../../src/ron/error.rs.html#99">expected</a>, <a class="ident" href="../../src/ron/error.rs.html#100">found</a>),
+            <a class="ident" href="../../src/ron/error.rs.html#39">ErrorCode::ExpectedStruct</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected opening `(`&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#40">ErrorCode::ExpectedNamedStruct</a>(<span class="ident">name</span>) =&gt; {
+                <span class="macro">write!</span>(<a class="ident" href="../../src/ron/error.rs.html#75">f</a>, <span class="string">&quot;Expected opening `(` for struct &#39;{}&#39;&quot;</span>, <a class="ident" href="../../src/ron/error.rs.html#103">name</a>)
+            }
+            <a class="ident" href="../../src/ron/error.rs.html#41">ErrorCode::ExpectedStructEnd</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected closing `)`&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#42">ErrorCode::ExpectedUnit</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected unit&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#43">ErrorCode::ExpectedString</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected string&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#44">ErrorCode::ExpectedStringEnd</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected end of string&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#45">ErrorCode::ExpectedIdentifier</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Expected identifier&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#47">ErrorCode::InvalidEscape</a>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/ron/error.rs.html#75">f</a>, <span class="string">&quot;Invalid escape sequence &#39;{}&#39;&quot;</span>, <a class="ident" href="../../src/ron/error.rs.html#111">e</a>),
+            <a class="ident" href="../../src/ron/error.rs.html#49">ErrorCode::IntegerOutOfBounds</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Integer is out of bounds&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#51">ErrorCode::NoSuchExtension</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/ron/error.rs.html#75">f</a>, <span class="string">&quot;No RON extension &#39;{}&#39;&quot;</span>, <a class="ident" href="../../src/ron/error.rs.html#113">name</a>),
+            <a class="ident" href="../../src/ron/error.rs.html#57">ErrorCode::Utf8Error</a>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display::fmt</a>(<a class="ident" href="../../src/ron/error.rs.html#114">e</a>, <a class="ident" href="../../src/ron/error.rs.html#75">f</a>),
+            <a class="ident" href="../../src/ron/error.rs.html#53">ErrorCode::UnclosedBlockComment</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Unclosed block comment&quot;</span>),
+            <a class="ident" href="../../src/ron/error.rs.html#54">ErrorCode::UnderscoreAtBeginning</a> =&gt; {
+                <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Unexpected leading underscore in an integer&quot;</span>)
+            }
+            <a class="ident" href="../../src/ron/error.rs.html#55">ErrorCode::UnexpectedByte</a>(<span class="kw-2">ref</span> <span class="ident">byte</span>) =&gt; <span class="macro">write!</span>(<a class="ident" href="../../src/ron/error.rs.html#75">f</a>, <span class="string">&quot;Unexpected byte {:?}&quot;</span>, <a class="ident" href="../../src/ron/error.rs.html#119">byte</a>),
+            <a class="ident" href="../../src/ron/error.rs.html#58">ErrorCode::TrailingCharacters</a> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Non-whitespace trailing characters&quot;</span>),
+            <span class="kw">_</span> =&gt; <a class="ident" href="../../src/ron/error.rs.html#75">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;Unknown ErrorCode&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../serde/de/trait.Error.html">de::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Position</span> {
+    <span class="kw">pub</span> <span class="ident">line</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="kw">pub</span> <span class="ident">col</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#127-130">Position</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="macro">write!</span>(<a class="ident" href="../../src/ron/error.rs.html#133">f</a>, <span class="string">&quot;{}:{}&quot;</span>, <a class="self" href="../../src/ron/error.rs.html#133">self</a>.<span class="ident">line</span>, <a class="self" href="../../src/ron/error.rs.html#133">self</a>.<span class="ident">col</span>)
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../serde/de/trait.Error.html">de::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a> {
     <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a> {
-            <span class="ident">code</span>: <a class="ident" href="../../src/ron/error.rs.html#19">ErrorCode::Message</a>(<a class="ident" href="../../src/ron/error.rs.html#117">msg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
-            <span class="ident">position</span>: <a class="ident" href="../../src/ron/parse.rs.html#926-929">Position</a> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">col</span>: <span class="number">0</span> },
+        <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a> {
+            <span class="ident">code</span>: <a class="ident" href="../../src/ron/error.rs.html#17">ErrorCode::Message</a>(<a class="ident" href="../../src/ron/error.rs.html#139">msg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            <span class="ident">position</span>: <a class="ident" href="../../src/ron/error.rs.html#127-130">Position</a> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">col</span>: <span class="number">0</span> },
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../serde/ser/trait.Error.html">ser::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a> {
+<span class="kw">impl</span> <a class="ident" href="../../serde/ser/trait.Error.html">ser::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a> {
     <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a> {
-            <span class="ident">code</span>: <a class="ident" href="../../src/ron/error.rs.html#19">ErrorCode::Message</a>(<a class="ident" href="../../src/ron/error.rs.html#126">msg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
-            <span class="ident">position</span>: <a class="ident" href="../../src/ron/parse.rs.html#926-929">Position</a> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">col</span>: <span class="number">0</span> },
+        <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a> {
+            <span class="ident">code</span>: <a class="ident" href="../../src/ron/error.rs.html#17">ErrorCode::Message</a>(<a class="ident" href="../../src/ron/error.rs.html#148">msg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            <span class="ident">position</span>: <a class="ident" href="../../src/ron/error.rs.html#127-130">Position</a> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">col</span>: <span class="number">0</span> },
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a> {}
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a> {}
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#17-60">ErrorCode</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#15-62">ErrorCode</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/ron/error.rs.html#55">ErrorCode::Utf8Error</a>(<a class="ident" href="../../src/ron/error.rs.html#137">e</a>)
+        <a class="ident" href="../../src/ron/error.rs.html#57">ErrorCode::Utf8Error</a>(<a class="ident" href="../../src/ron/error.rs.html#159">e</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#17-60">ErrorCode</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#15-62">ErrorCode</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.FromUtf8Error.html">FromUtf8Error</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/ron/error.rs.html#55">ErrorCode::Utf8Error</a>(<a class="ident" href="../../src/ron/error.rs.html#143">e</a>.<span class="ident">utf8_error</span>())
+        <a class="ident" href="../../src/ron/error.rs.html#57">ErrorCode::Utf8Error</a>(<a class="ident" href="../../src/ron/error.rs.html#165">e</a>.<span class="ident">utf8_error</span>())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a> {
-            <span class="ident">code</span>: <a class="ident" href="../../src/ron/error.rs.html#55">ErrorCode::Utf8Error</a>(<a class="ident" href="../../src/ron/error.rs.html#149">e</a>),
-            <span class="ident">position</span>: <a class="ident" href="../../src/ron/parse.rs.html#926-929">Position</a> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">col</span>: <span class="number">0</span> },
+        <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a> {
+            <span class="ident">code</span>: <a class="ident" href="../../src/ron/error.rs.html#57">ErrorCode::Utf8Error</a>(<a class="ident" href="../../src/ron/error.rs.html#171">e</a>),
+            <span class="ident">position</span>: <a class="ident" href="../../src/ron/error.rs.html#127-130">Position</a> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">col</span>: <span class="number">0</span> },
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/ron/error.rs.html#9-12">Error</a> {
-            <span class="ident">code</span>: <a class="ident" href="../../src/ron/error.rs.html#18">ErrorCode::Io</a>(<a class="ident" href="../../src/ron/error.rs.html#158">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
-            <span class="ident">position</span>: <a class="ident" href="../../src/ron/parse.rs.html#926-929">Position</a> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">col</span>: <span class="number">0</span> },
+        <a class="ident" href="../../src/ron/error.rs.html#7-10">Error</a> {
+            <span class="ident">code</span>: <a class="ident" href="../../src/ron/error.rs.html#16">ErrorCode::Io</a>(<a class="ident" href="../../src/ron/error.rs.html#180">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            <span class="ident">position</span>: <a class="ident" href="../../src/ron/error.rs.html#127-130">Position</a> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">col</span>: <span class="number">0</span> },
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ron" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (42e1761c7 2022-05-15)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ron" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>
