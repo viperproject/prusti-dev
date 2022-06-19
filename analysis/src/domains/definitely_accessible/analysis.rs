@@ -89,7 +89,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
                 .lookup_after_block(block)
                 .unwrap_or_else(|| panic!("No 'borrowed' state after block {:?}", block));
             let available_after_block = analysis_state.lookup_mut_after_block(block);
-            for &successor in block_data.terminator().successors() {
+            for successor in block_data.terminator().successors() {
                 let def_init_after = def_init_after_block.get(&successor).unwrap_or_else(|| {
                     panic!("No 'def_init' state from {:?} to {:?}", block, successor)
                 });

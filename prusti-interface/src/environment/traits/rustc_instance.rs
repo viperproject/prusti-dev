@@ -14,7 +14,7 @@
 use rustc_hir::def_id::DefId;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::ty::subst::SubstsRef;
-use rustc_middle::ty::{self, Binder, Instance, Ty, TyCtxt, TypeFoldable, TypeVisitor};
+use rustc_middle::ty::{self, Binder, Instance, Ty, TyCtxt, TypeFoldable, TypeVisitor, TypeSuperFoldable};
 use rustc_span::{sym, DUMMY_SP};
 use rustc_target::spec::abi::Abi;
 use rustc_trait_selection::traits;
@@ -336,7 +336,7 @@ fn resolve_associated_item<'tcx>(
         traits::ImplSource::Object(ref data) => {
             let index = traits::get_vtable_index_of_object_method(tcx, data, trait_item_id);
             Some(Instance {
-                def: ty::InstanceDef::Virtual(trait_item_id, index),
+                def: ty::InstanceDef::Virtual(trait_item_id, index.unwrap()),
                 substs: rcvr_substs,
             })
         }
