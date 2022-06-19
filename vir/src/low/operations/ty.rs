@@ -186,7 +186,7 @@ impl Typed for ContainerOp {
             ContainerOpKind::SeqLen => &Type::Int,
             ContainerOpKind::SeqIndex => match self.left.get_type() {
                 Type::Seq(ty::Seq { element_type, .. }) => element_type,
-                _ => unreachable!(),
+                _ => unreachable!("Expected Seq type, got {:?}", self.left.get_type()),
             },
         }
     }
@@ -208,6 +208,7 @@ impl Typed for MapOp {
                 _ => unreachable!(),
             },
             MapOpKind::Len => &Type::Int,
+            MapOpKind::Contains => &Type::Bool,
         }
     }
     fn set_type(&mut self, new_type: Type) {

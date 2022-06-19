@@ -609,6 +609,27 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
+            ("assert.failed:seq.index.length", ErrorCtxt::Panic(PanicCause::Assert)) => {
+                PrustiError::verification(
+                    "the sequence index may be out of bounds".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:seq.index.negative", ErrorCtxt::Panic(PanicCause::Assert)) => {
+                PrustiError::verification(
+                    "the sequence index may be negative".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:map.key.contains", _) => {
+                PrustiError::verification(
+                    "the key might not be in the map".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
             (full_err_id, ErrorCtxt::Unexpected) => {
                 PrustiError::internal(
                     format!(
