@@ -195,7 +195,10 @@ When enabled, debug files dumped by `rustc` will not contain lifetime regions.
 
 ## `INTERNAL_ERRORS_AS_WARNINGS`
 
-When enabled, internal errors are presented as warnings.
+When enabled, internal errors are presented as warnings. 
+
+**Note**: This should only be used for debugging, as enabling this setting could
+hide actual verification errors.
 
 ## `INTERN_NAMES`
 
