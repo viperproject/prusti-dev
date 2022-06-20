@@ -22,26 +22,26 @@ impl<'tcx> PlaceSet<'tcx> {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn contains(&self, place: &mir::Place) -> bool {
-        self.places.contains(place)
+    pub fn contains(&self, place: mir::Place<'tcx>) -> bool {
+        self.places.contains(&place)
     }
-    pub fn contains_prefix_of(&self, place: mir::Place) -> bool {
+    pub fn contains_prefix_of(&self, place: mir::Place<'tcx>) -> bool {
         self.places
             .iter()
-            .any(|potential_prefix| is_prefix(&place, potential_prefix))
+            .any(|potential_prefix| is_prefix(place, *potential_prefix))
     }
     pub fn check_invariant(&self) {
         for place1 in self.places.iter() {
             for place2 in self.places.iter() {
                 if place1 != place2 {
                     assert!(
-                        !is_prefix(place1, place2),
+                        !is_prefix(*place1, *place2),
                         "The place {:?} is a prefix of the place {:?}",
                         place2,
                         place1
                     );
                     assert!(
-                        !is_prefix(place2, place1),
+                        !is_prefix(*place2, *place1),
                         "The place {:?} is a prefix of the place {:?}",
                         place1,
                         place2
@@ -58,16 +58,16 @@ impl<'tcx> PlaceSet<'tcx> {
         self.places.into_iter()
     }
     /// Insert `place`.
-    pub fn insert(&mut self, place: &mir::Place<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
+    pub fn insert(&mut self, place: mir::Place<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
         self.check_invariant();
         // First, check that the place is not already marked as
         // definitely initialized.
-        if !self.places.iter().any(|other| is_prefix(place, other)) {
+        if !self.places.iter().any(|other| is_prefix(place, *other)) {
             // To maintain the invariant that we do not have a place and its
             // prefix in the set, we remove all places for which the given
             // one is a prefix.
-            self.places.retain(|other| !is_prefix(other, place));
-            self.places.insert(*place);
+            self.places.retain(|other| !is_prefix(*other, place));
+            self.places.insert(place);
             // If all fields of a struct are definitely initialized,
             // just keep info that the struct is definitely initialized.
             utils::collapse(mir, tcx, &mut self.places, place);
@@ -75,17 +75,17 @@ impl<'tcx> PlaceSet<'tcx> {
         self.check_invariant();
     }
     /// Remove `place`.
-    pub fn remove(&mut self, place: &mir::Place<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
+    pub fn remove(&mut self, place: mir::Place<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
         self.check_invariant();
         let mut places = Vec::new();
         let old_places = std::mem::take(&mut self.places);
         // If needed, split the place whose part got uninitialized into
         // multiple places.
         for other in old_places.into_iter() {
-            if is_prefix(place, &other) {
+            if is_prefix(place, other) {
                 // We are uninitializing a field of the place `other`.
-                places.extend(utils::expand(mir, tcx, &other, place));
-            } else if is_prefix(&other, place) {
+                places.extend(utils::expand(mir, tcx, other, place));
+            } else if is_prefix(other, place) {
                 // We are uninitializing a place of which only some
                 // fields are initialized. Just remove all initialized
                 // fields.
@@ -98,7 +98,7 @@ impl<'tcx> PlaceSet<'tcx> {
         // Check the invariant.
         for place1 in places.iter() {
             assert!(
-                !is_prefix(place1, place) && !is_prefix(place, place1),
+                !is_prefix(*place1, place) && !is_prefix(place, *place1),
                 "Bug: failed to ensure that there are no prefixes: place={:?} place1={:?}",
                 place,
                 place1
@@ -106,13 +106,13 @@ impl<'tcx> PlaceSet<'tcx> {
             for place2 in places.iter() {
                 if place1 != place2 {
                     assert!(
-                        !is_prefix(place1, place2),
+                        !is_prefix(*place1, *place2),
                         "The place {:?} is a prefix of the place {:?}",
                         place2,
                         place1
                     );
                     assert!(
-                        !is_prefix(place2, place1),
+                        !is_prefix(*place2, *place1),
                         "The place {:?} is a prefix of the place {:?}",
                         place1,
                         place2
@@ -132,7 +132,7 @@ impl<'tcx> PlaceSet<'tcx> {
         let mut propage_places = |place_set1: &PlaceSet<'tcx>, place_set2: &PlaceSet<'tcx>| {
             for place in place_set1.iter() {
                 for potential_prefix in place_set2.iter() {
-                    if is_prefix(place, potential_prefix) {
+                    if is_prefix(*place, *potential_prefix) {
                         places.insert(*place);
                         break;
                     }
@@ -157,9 +157,9 @@ impl<'tcx> PlaceSet<'tcx> {
                 }
                 if place == other {
                     to_remove.insert(j);
-                } else if is_prefix(place, other) {
+                } else if is_prefix(*place, *other) {
                     to_remove.insert(i);
-                } else if is_prefix(other, place) {
+                } else if is_prefix(*other, *place) {
                     to_remove.insert(j);
                 }
             }

@@ -460,7 +460,7 @@ impl ProcedureLoops {
         &self,
         loop_head: BasicBlockIndex,
         mir: &'a mir::Body<'tcx>,
-        definitely_initalised_paths: Option<&PlaceSet>,
+        definitely_initalised_paths: Option<&PlaceSet<'tcx>>,
     ) -> (
         Vec<mir::Place<'tcx>>,
         Vec<mir::Place<'tcx>>,
@@ -491,7 +491,7 @@ impl ProcedureLoops {
         debug!("accesses = {:?}", accesses);
         let mut accesses_pairs: Vec<_> = accesses
             .iter()
-            .map(|PlaceAccess { place, kind, .. }| (place, *kind))
+            .map(|PlaceAccess { place, kind, .. }| (*place, *kind))
             .collect();
         debug!("accesses_pairs = {:?}", accesses_pairs);
         if let Some(paths) = definitely_initalised_paths {
@@ -502,7 +502,7 @@ impl ProcedureLoops {
                     paths.iter().any(|initialised_place|
                         // If the prefix is definitely initialised, then this place is a potential
                         // loop invariant.
-                        utils::is_prefix(place, initialised_place) ||
+                        utils::is_prefix(*place, *initialised_place) ||
                         // If the access is store, then we only need the path to exist, which is
                         // guaranteed if we have at least some of the leaves still initialised.
                         //
@@ -510,7 +510,7 @@ impl ProcedureLoops {
                         // issue: https://github.com/rust-lang/rust/issues/21232.
                         (
                             *kind == PlaceAccessKind::Store &&
-                            utils::is_prefix(initialised_place, place)
+                            utils::is_prefix(*initialised_place, *place)
                         ))
                 })
                 .collect();
@@ -523,10 +523,10 @@ impl ProcedureLoops {
                 let has_prefix = accesses_pairs.iter().any(|(potential_prefix, kind)| {
                     kind.is_write_access()
                         && place != potential_prefix
-                        && utils::is_prefix(place, potential_prefix)
+                        && utils::is_prefix(*place, *potential_prefix)
                 });
                 if !has_prefix && !write_leaves.contains(place) {
-                    write_leaves.push(*(*place));
+                    write_leaves.push(*place);
                 }
             }
         }
@@ -539,13 +539,13 @@ impl ProcedureLoops {
                 let has_prefix = accesses_pairs.iter().any(|(potential_prefix, kind)| {
                     (kind.is_write_access() || *kind == PlaceAccessKind::MutableBorrow)
                         && place != potential_prefix
-                        && utils::is_prefix(place, potential_prefix)
+                        && utils::is_prefix(*place, *potential_prefix)
                 });
                 if !has_prefix
                     && !write_leaves.contains(place)
                     && !mut_borrow_leaves.contains(place)
                 {
-                    mut_borrow_leaves.push(*(*place));
+                    mut_borrow_leaves.push(*place);
                 }
             }
         }
@@ -556,14 +556,14 @@ impl ProcedureLoops {
         for (place, kind) in accesses_pairs.iter() {
             if !kind.is_write_access() {
                 let has_prefix = accesses_pairs.iter().any(|(potential_prefix, _kind)| {
-                    place != potential_prefix && utils::is_prefix(place, potential_prefix)
+                    place != potential_prefix && utils::is_prefix(*place, *potential_prefix)
                 });
                 if !has_prefix
                     && !read_leaves.contains(place)
                     && !write_leaves.contains(place)
                     && !mut_borrow_leaves.contains(place)
                 {
-                    read_leaves.push(*(*place));
+                    read_leaves.push(*place);
                 }
             }
         }

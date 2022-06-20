@@ -160,7 +160,7 @@ impl<'mir, 'tcx: 'mir, S: Serialize + Default> PointwiseState<'mir, 'tcx, S> {
                 let successors: FxHashMap<_, _> = bb_data
                     .terminator()
                     .successors()
-                    .map(|successor| (*successor, S::default()))
+                    .map(|successor| (successor, S::default()))
                     .collect();
                 (block, successors)
             })

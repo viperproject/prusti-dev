@@ -193,11 +193,9 @@ fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Te
             }
         }
         TerminatorKind::Call {
-            ref destination,
-            cleanup,
-            ..
+            target, cleanup, ..
         } => {
-            if let Some((_, target)) = destination {
+            if let Some(target) = target {
                 graph.add_regular_edge(bb.to_text(), target.to_text());
             }
             if let Some(target) = cleanup {

@@ -189,18 +189,18 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
                     .any(|(_, mutability)| matches!(mutability, Mutability::Mut))
         })
         .collect();
-    let is_not_blocked = |place: &mir::Place<'tcx>| {
+    let is_not_blocked = |place: mir::Place<'tcx>| {
         !borrow_infos.iter().any(|info| {
             info.blocked_paths
                 .iter()
-                .any(|(blocked_place, _)| blocked_place == place)
+                .any(|(blocked_place, _)| *blocked_place == place)
         })
     };
 
     let returned_refs: Vec<_> = visitor
         .references_in
         .into_iter()
-        .filter(|(place, _)| is_not_blocked(place))
+        .filter(|(place, _)| is_not_blocked(*place))
         .collect();
     let contract = ProcedureContractGeneric {
         def_id: proc_def_id,

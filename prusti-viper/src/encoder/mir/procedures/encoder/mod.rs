@@ -1067,6 +1067,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 args,
                 destination,
+                target,
                 cleanup,
                 fn_span,
                 from_hir_call: _,
@@ -1077,7 +1078,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     span,
                     literal.ty(),
                     args,
-                    destination,
+                    *destination,
+                    target,
                     cleanup,
                     *fn_span,
                 )?;
@@ -1285,7 +1287,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         span: Span,
         ty: ty::Ty<'tcx>,
         args: &[mir::Operand<'tcx>],
-        destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
+        destination: mir::Place<'tcx>,
+        target: &Option<mir::BasicBlock>,
         cleanup: &Option<mir::BasicBlock>,
         _fn_span: Span,
     ) -> SpannedEncodingResult<()> {
@@ -1298,6 +1301,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 call_substs,
                 args,
                 destination,
+                target,
                 cleanup,
             )? {
                 self.encode_function_call(
@@ -1308,6 +1312,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     call_substs,
                     args,
                     destination,
+                    target,
                     cleanup,
                 )?;
             }
@@ -1327,7 +1332,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         called_def_id: DefId,
         call_substs: SubstsRef<'tcx>,
         args: &[mir::Operand<'tcx>],
-        destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
+        destination: mir::Place<'tcx>,
+        target: &Option<mir::BasicBlock>,
         cleanup: &Option<mir::BasicBlock>,
     ) -> SpannedEncodingResult<()> {
         // The called method might be a trait method.
@@ -1360,8 +1366,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if subst_lifetimes.is_empty() {
             // If subst_lifetimes is empty, check args for a lifetime
             for arg in args {
-                if let mir::Operand::Move(place) = arg {
-                    let place_high = self.encoder.encode_place_high(self.mir, *place, None)?;
+                if let &mir::Operand::Move(place) = arg {
+                    let place_high = self.encoder.encode_place_high(self.mir, place, None)?;
                     let lifetime_name = self.lifetime_name(place_high);
                     if let Some(lifetime_name) = lifetime_name {
                         subst_lifetimes.push(lifetime_name);
@@ -1467,11 +1473,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             unimplemented!();
         }
 
-        if let Some((target_place, target_block)) = destination {
+        if let Some(target_block) = target {
             let position = self.register_error(location, ErrorCtxt::ProcedureCall);
             let encoded_target_place = self
                 .encoder
-                .encode_place_high(self.mir, *target_place, None)?
+                .encode_place_high(self.mir, destination, None)?
                 .set_default_position(position);
             let postcondition_expressions = self.encode_postcondition_expressions(
                 &procedure_contract,
@@ -1480,7 +1486,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &encoded_target_place,
                 &old_label,
             )?;
-            if let Some(target_place_local) = target_place.as_local() {
+            if let Some(target_place_local) = destination.as_local() {
                 let size = self.encoder.encode_type_size_expression(
                     self.encoder.get_local_type(self.mir, target_place_local)?,
                 )?;
@@ -1838,6 +1844,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 args,
                 destination: _,
+                target: _,
                 cleanup: _,
                 fn_span: _,
                 from_hir_call: _,
