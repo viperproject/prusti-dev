@@ -22,11 +22,10 @@ use std::mem;
 /// A wrapper for `mir::Place` that implements `Ord`.
 pub struct Place<'tcx>(mir::Place<'tcx>);
 
-/// A trait enabling `Place` and `&mir::Place` to be treated in the same way
+/// A trait enabling `Place` and `mir::Place` to be treated in the same way
 pub trait PlaceImpl<'tcx> {
-    /// The non-reference version of this type (i.e. to express the result type of a computation)
-    type BaseType;
-    fn from_place(_: mir::Place<'tcx>) -> Self::BaseType;
+    fn from_mir_place(_: mir::Place<'tcx>) -> Self;
+    fn to_mir_place(self) -> mir::Place<'tcx>;
 }
 
 impl<'tcx> From<mir::Local> for Place<'tcx> {
@@ -64,16 +63,20 @@ impl<'tcx> std::ops::Deref for Place<'tcx> {
 }
 
 impl<'tcx> PlaceImpl<'tcx> for Place<'tcx> {
-    type BaseType = Place<'tcx>;
-    fn from_place(place: mir::Place<'tcx>) -> Place<'tcx> {
+    fn from_mir_place(place: mir::Place<'tcx>) -> Place<'tcx> {
         Place(place)
+    }
+    fn to_mir_place(self) -> mir::Place<'tcx> {
+        self.0
     }
 }
 
-impl<'tcx> PlaceImpl<'tcx> for &mir::Place<'tcx> {
-    type BaseType = mir::Place<'tcx>;
-    fn from_place(place: mir::Place<'tcx>) -> mir::Place<'tcx> {
+impl<'tcx> PlaceImpl<'tcx> for mir::Place<'tcx> {
+    fn from_mir_place(place: mir::Place<'tcx>) -> mir::Place<'tcx> {
         place
+    }
+    fn to_mir_place(self) -> mir::Place<'tcx> {
+        self
     }
 }
 
@@ -113,17 +116,14 @@ pub(crate) fn is_prefix<'tcx>(place: Place<'tcx>, potential_prefix: Place<'tcx>)
 /// each of the struct's fields `{x.f.g.f, x.f.g.g, x.f.g.h}`. If
 /// `without_field` is not `None`, then omits that field from the final
 /// vector.
-pub fn expand_struct_place<
-    'tcx,
-    P: PlaceImpl<'tcx> + std::ops::Deref<Target = mir::Place<'tcx>>,
->(
+pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::marker::Copy>(
     place: P,
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     without_field: Option<usize>,
-) -> Vec<P::BaseType> {
-    let mut places: Vec<P::BaseType> = Vec::new();
-    let typ = place.ty(mir, tcx);
+) -> Vec<P> {
+    let mut places: Vec<P> = Vec::new();
+    let typ = place.to_mir_place().ty(mir, tcx);
     if typ.variant_index.is_some() {
         // Downcast is a no-op.
     } else {
@@ -138,9 +138,12 @@ pub fn expand_struct_place<
                 for (index, field_def) in variant.fields.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place =
-                            tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
-                        places.push(P::from_place(field_place));
+                        let field_place = tcx.mk_place_field(
+                            place.to_mir_place(),
+                            field,
+                            field_def.ty(tcx, substs),
+                        );
+                        places.push(P::from_mir_place(field_place));
                     }
                 }
             }
@@ -148,8 +151,8 @@ pub fn expand_struct_place<
                 for (index, arg) in slice.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, arg);
-                        places.push(P::from_place(field_place));
+                        let field_place = tcx.mk_place_field(place.to_mir_place(), field, arg);
+                        places.push(P::from_mir_place(field_place));
                     }
                 }
             }
@@ -158,15 +161,15 @@ pub fn expand_struct_place<
                     assert_eq!(without_field, 0, "References have only a single “field”.");
                 }
                 None => {
-                    places.push(P::from_place(tcx.mk_place_deref(*place)));
+                    places.push(P::from_mir_place(tcx.mk_place_deref(place.to_mir_place())));
                 }
             },
             ty::Closure(_, substs) => {
                 for (index, subst_ty) in substs.as_closure().upvar_tys().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, subst_ty);
-                        places.push(P::from_place(field_place));
+                        let field_place = tcx.mk_place_field(place.to_mir_place(), field, subst_ty);
+                        places.push(P::from_mir_place(field_place));
                     }
                 }
             }
@@ -174,8 +177,8 @@ pub fn expand_struct_place<
                 for (index, subst_ty) in substs.as_generator().upvar_tys().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, subst_ty);
-                        places.push(P::from_place(field_place));
+                        let field_place = tcx.mk_place_field(place.to_mir_place(), field, subst_ty);
+                        places.push(P::from_mir_place(field_place));
                     }
                 }
             }
