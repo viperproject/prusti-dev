@@ -407,7 +407,8 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             root_address: Address
         }
         let mut field_predicates = Vec::new();
-        for field in fields {
+        let mut lifetimes = Vec::new();
+        for (i, field) in fields.enumerate() {
             let field_place = self.lowerer.encode_field_place(
                 ty,
                 &field,
@@ -421,12 +422,24 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 Default::default(),
             )?;
             let field_ty = &field.ty;
-            let acc = expr! {
-                acc(OwnedNonAliased<field_ty>(
-                    [field_place], root_address, [field_value]
-                ))
-            };
-            field_predicates.push(acc);
+            if let vir_mid::Type::Reference(_) = field_ty {
+                let lifetime =
+                    vir_low::VariableDecl::new(format!("lft_field_{}", i), ty!(Lifetime));
+                lifetimes.push(lifetime.clone());
+                let acc = expr! {
+                    acc(OwnedNonAliased<field_ty>(
+                        [field_place], root_address, [field_value], [lifetime.into()]
+                    ))
+                };
+                field_predicates.push(acc);
+            } else {
+                let acc = expr! {
+                    acc(OwnedNonAliased<field_ty>(
+                        [field_place], root_address, [field_value]
+                    ))
+                };
+                field_predicates.push(acc);
+            }
         }
         if field_predicates.is_empty() {
             // TODO: Extract this into a separate method and deduplicate with
@@ -449,7 +462,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             });
         }
         let predicate_decl = predicate! {
-            OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
+            OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type}, *lifetimes)
             {(
                 ([validity]) &&
                 ([field_predicates.into_iter().conjoin()])
