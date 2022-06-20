@@ -353,6 +353,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             let mut posts = Vec::new();
             let mut pre_write_statements = Vec::new();
             let mut post_write_statements = Vec::new();
+            let mut encode_body = true;
             match value {
                 vir_mid::Rvalue::CheckedBinaryOp(value) => {
                     self.encode_assign_method_rvalue_checked_binary_op(
@@ -394,10 +395,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 }
                 _ => {
                     let args = self.extract_non_type_parameters_from_type_as_exprs(ty)?;
-                    let args2 = args.clone();
+                    let mut args2 = args.clone();
                     post_write_statements.push(stmtp! {
                         position => call write_place<ty>(target_place, target_address, result_value; args)
                     });
+                    let lifetimes = self.extract_lifetime_arguments_from_rvalue(value)?;
+                    // FIXME: body is not encoded if we have additional lifetime parameters from structs
+                    encode_body = lifetimes.is_empty();
+                    args2.extend(lifetimes);
                     posts.push(
                         expr! { acc(OwnedNonAliased<ty>(target_place, target_address, result_value; args2)) },
                     );
@@ -421,13 +426,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             }
             let mut statements = pre_write_statements;
             statements.extend(post_write_statements);
+            let body = if encode_body { Some(statements) } else { None };
             let method = vir_low::MethodDecl::new(
                 method_name,
                 parameters,
                 vec![result_value],
                 pres,
                 posts,
-                Some(statements),
+                body,
             );
             self.declare_method(method)?;
             self.builtin_methods_state
@@ -1623,7 +1629,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let address = expr! { ComputeAddress::compute_address(place, root_address) };
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             self.mark_owned_non_aliased_as_unfolded(ty)?;
-            match type_decl {
+            let mut lifetime_args: Vec<vir_low::VariableDecl> = vec![];
+            match &type_decl {
                 vir_mid::TypeDecl::Bool
                 | vir_mid::TypeDecl::Int(_)
                 | vir_mid::TypeDecl::Float(_)
@@ -1701,6 +1708,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                 value.clone().into(),
                                 position,
                             )?;
+                            if let vir_mid::Type::Reference(reference) = &field.ty {
+                                let lifetime = self.encode_lifetime_const_into_variable(
+                                    reference.lifetime.clone(),
+                                )?;
+                                lifetime_args.push(lifetime)
+                            }
                             let field_type = &field.ty;
                             self.encode_write_place_method(field_type)?;
                             statements.push(stmtp! { position =>
@@ -1835,12 +1848,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 // because we would need builtin methods to support loops if we
                 // wanted to implement the body.
                 None
+            } else if let vir_mid::TypeDecl::Struct(decl) = &type_decl {
+                // TODO: We currently make write_place bodyless for structs with fields
+                let mut body = Some(statements);
+                for field in decl.iter_fields() {
+                    if field.ty.is_reference() {
+                        body = None;
+                    }
+                }
+                body
             } else {
                 Some(statements)
             };
             let mut parameters = vec![place.clone(), root_address.clone(), value.clone()];
             parameters.extend(self.extract_non_type_parameters_from_type(ty)?);
-            let args = self.extract_non_type_parameters_from_type_as_exprs(ty)?;
+            let mut args = self.extract_non_type_parameters_from_type_as_exprs(ty)?;
+            parameters.extend(lifetime_args.clone());
+            args.extend(
+                lifetime_args
+                    .iter()
+                    .map(|x| x.clone().into())
+                    .collect::<Vec<vir_low::Expression>>(),
+            );
             let mut pres = self.extract_non_type_parameters_from_type_validity(ty)?;
             pres.push(expr! { (acc(MemoryBlock([address], [size_of]))) });
             pres.push(validity);
@@ -2336,12 +2365,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             );
             let mut statements = Vec::new();
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
-            let parameters = self.extract_non_type_parameters_from_type(ty)?;
+            let mut parameters = self.extract_non_type_parameters_from_type(ty)?;
             let parameters_validity: vir_low::Expression = self
                 .extract_non_type_parameters_from_type_validity(ty)?
                 .into_iter()
                 .conjoin();
-            let arguments = self.extract_non_type_parameters_from_type_as_exprs(ty)?;
+            let mut arguments: Vec<vir_low::Expression> =
+                self.extract_non_type_parameters_from_type_as_exprs(ty)?;
+            let lifetimes = self.extract_lifetime_arguments_from_type(ty)?;
+            parameters.extend(lifetimes.clone());
+            arguments.extend(
+                lifetimes
+                    .iter()
+                    .map(|x| x.clone().into())
+                    .collect::<Vec<vir_low::Expression>>(),
+            );
+
             let arguments2 = arguments.clone();
             let mut method = method! {
                 into_memory_block<ty>(
@@ -2523,9 +2562,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     ensures (acc(MemoryBlock([address], [size_of])));
                     ensures (([bytes]) == (Snap<to_bytes_type>::to_bytes([memory_block_value])));
             };
-            if !ty.is_trusted() && !ty.is_array() {
+            if !ty.is_trusted() && !ty.is_array() && !lifetimes.is_empty() {
                 // FIXME: Encode the body for array. (Would require a loop to achieve this.)
-                method.body = Some(statements);
+                // FIXME: Encode the body for structs with lifetimes.
+                method.body = None;
             }
             self.declare_method(method)?;
         }
@@ -2547,6 +2587,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         arguments.extend(
             self.extract_non_type_arguments_from_type_excluding_lifetimes(target.get_type())?,
         );
+        let lifetimes = self.extract_lifetime_arguments_from_rvalue(&value)?;
+        arguments.extend(lifetimes);
         let target_value_type = target.get_type().to_snapshot(self)?;
         let result_value = self.create_new_temporary_variable(target_value_type)?;
         statements.push(vir_low::Statement::method_call(
