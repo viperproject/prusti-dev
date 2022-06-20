@@ -72,7 +72,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     /// - `Option<usize>`: optionally, the variant of the enum.
     fn encode_place(
         &self,
-        place: &mir::Place<'tcx>,
+        place: mir::Place<'tcx>,
     ) -> EncodingResult<(PlaceEncoding<'tcx>, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode place {:?}", place);
         self.encode_projection(place.local, place.projection)
@@ -370,15 +370,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> FakeMirEncoder<'p, 'v, 'tcx> {
     pub fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         arg_tys: Vec<ty::Ty<'tcx>>,
-        return_ty: Option<ty::Ty<'tcx>>,
+        return_ty: ty::Ty<'tcx>,
     ) -> Self {
         trace!("FakeMirEncoder constructor");
         let mut tys: IndexVec<mir::Local, ty::Ty<'tcx>> = IndexVec::new();
-        if let Some(return_ty) = return_ty {
-            tys.push(return_ty);
-        } else {
-            tys.push(encoder.env().tcx().mk_unit());
-        }
+        tys.push(return_ty);
         for arg_ty in arg_tys {
             tys.push(arg_ty);
         }
@@ -448,15 +444,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     ) -> EncodingResult<vir::Expr> {
         trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
-            mir::Operand::Constant(box mir::Constant {
-                literal: mir::ConstantKind::Ty(ty::Const(ty_val)),
-                ..
-            }) => self.encoder.encode_const_expr(ty_val.ty, ty_val.val)?,
-            mir::Operand::Constant(box mir::Constant {
-                literal: mir::ConstantKind::Val(val, ty),
-                ..
-            }) => self.encoder.encode_const_expr(*ty, ty::ConstKind::Value(*val))?,
-            mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
+            mir::Operand::Constant(expr) => self.encoder.encode_const_expr(expr.ty(), expr.literal)?,
+            &mir::Operand::Copy(place) | &mir::Operand::Move(place) => {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
                 let (encoded_place, place_ty, _) = self.encode_place(place)?;
@@ -820,7 +809,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     ) -> EncodingResult<Option<vir::Expr>> {
         debug!("Encode operand place {:?}", operand);
         Ok(match operand {
-            &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
+            &mir::Operand::Move(place) | &mir::Operand::Copy(place) => {
                 let (src, _, _) = self.encode_place(place)?;
                 Some(src.try_into_expr()?)
             }

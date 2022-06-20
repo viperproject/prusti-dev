@@ -129,7 +129,7 @@ impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<L, 
     }
 }
 
-fn get_place_root(place: &mir::Place) -> mir::Local {
+fn get_place_root(place: mir::Place) -> mir::Local {
     // match place {
     //     &mir::Place::Local(local) => local,
     //     &mir::Place::Projection(ref projection) => get_place_root(&projection.base),
@@ -185,9 +185,9 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             substitutions.insert(*from, *to);
         }
         let substitute = |(place, mutability): &(_, Mutability)| {
-            let root = &get_place_root(place);
+            let root = get_place_root(*place);
             let substitute_place = places::Place::SubstitutedPlace {
-                substituted_root: *substitutions.get(root).unwrap(),
+                substituted_root: *substitutions.get(&root).unwrap(),
                 place: *place,
             };
             (substitute_place, *mutability)

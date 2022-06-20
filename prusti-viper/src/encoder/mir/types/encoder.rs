@@ -472,7 +472,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //         ty::TyKind::Array(elem_ty, size) => {
     //             let array_len = self
     //                 .encoder
-    //                 .const_eval_intlike(&size.val)
+    //                 .const_eval_intlike(&size.kind)
     //                 .unwrap()
     //                 .to_u64()
     //                 .unwrap();

@@ -95,7 +95,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyAllocatedState<'mir, 'tcx> {
     ) -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
         let mut res_vec = Vec::new();
         let terminator = self.mir[location.block].terminator();
-        for &bb in terminator.successors() {
+        for bb in terminator.successors() {
             res_vec.push((bb, self.clone()));
         }
         Ok(res_vec)

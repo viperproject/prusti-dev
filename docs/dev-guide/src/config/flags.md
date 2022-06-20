@@ -9,6 +9,7 @@
 | [`CHECK_FOLDUNFOLD_STATE`](#check_foldunfold_state) | `bool` | `false` |
 | [`CHECK_OVERFLOWS`](#check_overflows) | `bool` | `true` |
 | [`CHECK_PANICS`](#check_panics) | `bool` | `true` |
+| [`CHECK_TIMEOUT`](#check_timeout) | `Option<u32>` | `None` |
 | [`CONTRACTS_LIB`](#contracts_lib) | `String` | `""` |
 | [`COUNTEREXAMPLE`](#counterexample) | `bool` | `false` |
 | [`DELETE_BASIC_BLOCKS`](#delete_basic_blocks) | `Vec<String>` | `vec![]` |
@@ -32,6 +33,7 @@
 | [`FULL_COMPILATION`](#full_compilation) | `bool` | `false` |
 | [`HIDE_UUIDS`](#hide_uuids) | `bool` | `false` |
 | [`IGNORE_REGIONS`](#ignore_regions) | `bool` | `false` |
+| [`INTERNAL_ERRORS_AS_WARNINGS`](#internal_errors_as_warnings) | `bool` | `false` |
 | [`INTERN_NAMES`](#intern_names) | `bool` | `true` |
 | [`JSON_COMMUNICATION`](#json_communication) | `bool` | `false` |
 | [`LOG`](#log) | `Option<String>` | `None` |
@@ -86,6 +88,14 @@ When enabled, binary operations and numeric casts will be checked for overflows.
 ## `CHECK_PANICS`
 
 When enabled, Prusti will check for an absence of `panic!`s.
+
+## `CHECK_TIMEOUT`
+
+Maximum time (in milliseconds) for the verifier to spend on checks.
+Set to None uses the verifier's default value. Maps to the verifier command-line
+argument `--checkTimeout`.
+For more information see [here]( https://github.com/viperproject/silicon/blob/4c70514379f89e7ec6f96588290ade32518f0527/src/main/scala/Config.scala#L203).
+
 
 ## `CONTRACTS_LIB`
 
@@ -191,6 +201,13 @@ When enabled, UUIDs of expressions and specifications printed with [`PRINT_TYPEC
 ## `IGNORE_REGIONS`
 
 When enabled, debug files dumped by `rustc` will not contain lifetime regions.
+
+## `INTERNAL_ERRORS_AS_WARNINGS`
+
+When enabled, internal errors are presented as warnings. 
+
+**Note**: This should only be used for debugging, as enabling this setting could
+hide actual verification errors.
 
 ## `INTERN_NAMES`
 

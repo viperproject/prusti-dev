@@ -67,6 +67,7 @@ lazy_static! {
         // 1. Default values
         settings.set_default("be_rustc", false).unwrap();
         settings.set_default("viper_backend", "Silicon").unwrap();
+        settings.set_default::<Option<u32>>("check_timeout", None).unwrap();
         settings.set_default("check_foldunfold_state", false).unwrap();
         settings.set_default("check_overflows", true).unwrap();
         settings.set_default("check_panics", true).unwrap();
@@ -362,6 +363,15 @@ pub fn quiet() -> bool {
 /// argument `--assertTimeout`.
 pub fn assert_timeout() -> u64 {
     read_setting("assert_timeout")
+}
+
+/// Maximum time (in milliseconds) for the verifier to spend on checks.
+/// Set to None uses the verifier's default value. Maps to the verifier command-line
+/// argument `--checkTimeout`.
+///
+/// For more information see https://github.com/viperproject/silicon/blob/4c70514379f89e7ec6f96588290ade32518f0527/src/main/scala/Config.scala#L203
+pub fn check_timeout() -> Option<u32> {
+    read_setting("check_timeout")
 }
 
 /// When enabled, a more complete `exhale` version is used in the verifier.

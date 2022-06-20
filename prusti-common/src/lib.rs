@@ -6,7 +6,6 @@
 
 #![feature(box_patterns)]
 #![feature(box_syntax)]
-#![feature(nll)]
 
 #![deny(unused_must_use)]
 

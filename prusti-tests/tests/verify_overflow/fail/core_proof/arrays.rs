@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Passert_timeout=300000
+// compile-flags: -Punsafe_core_proof=true -Pcheck_timeout=50
 
 use prusti_contracts::*;
 

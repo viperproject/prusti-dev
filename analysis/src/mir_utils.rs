@@ -95,7 +95,7 @@ pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String 
 /// +   `is_prefix(x.f, x.f) == true`
 /// +   `is_prefix(x.f.g, x.f) == true`
 /// +   `is_prefix(x.f, x.f.g) == false`
-pub(crate) fn is_prefix(place: Place, potential_prefix: Place) -> bool {
+pub(crate) fn is_prefix<'tcx>(place: Place<'tcx>, potential_prefix: Place<'tcx>) -> bool {
     if place.local != potential_prefix.local
         || place.projection.len() < potential_prefix.projection.len()
     {
