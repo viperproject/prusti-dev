@@ -18,7 +18,7 @@ use super::{
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
 
 use vir_crate::{
-    common::{graphviz::ToGraphviz, cfg::Cfg},
+    common::{cfg::Cfg, graphviz::ToGraphviz},
     low::{self as vir_low, operations::ty::Typed},
     middle as vir_mid,
 };
@@ -132,7 +132,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             for statement in basic_block.statements {
                 statements.extend(statement.into_low(&mut self)?);
             }
-
             let successor = basic_block.successor.into_low(&mut self)?;
             basic_blocks_map.insert(label.clone(), (statements, successor));
             self.unset_current_block_for_snapshots(label.clone())?;

@@ -67,11 +67,11 @@ fn concurrent_verifier_initialization() {
 
                     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-                    let verifier = verification_context.new_verifier_with_args(
-                        viper::VerificationBackend::Silicon,
-                        vec!["--numberOfParallelVerifiers=1".to_string()],
-                        None,
-                    );
+                    let mut verifier = verification_context
+                        .new_verifier_with_default_smt_and_extra_args(
+                            viper::VerificationBackend::Silicon,
+                            vec!["--numberOfParallelVerifiers=1".to_string()],
+                        );
 
                     let verification_result = verifier.verify(program);
 

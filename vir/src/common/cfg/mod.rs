@@ -1,7 +1,5 @@
 use std::collections::BTreeMap;
 
-mod high;
-
 pub trait Cfg: Sized {
     type BasicBlockId: Ord + Clone;
     type BasicBlock: Clone;
@@ -36,9 +34,12 @@ pub trait Cfg: Sized {
     }
 
     fn predecessors_owned(&self) -> BTreeMap<Self::BasicBlockId, Vec<Self::BasicBlockId>> {
-        self.predecessors().into_iter().map(|(label, predecessors)| {
-            (label.clone(), predecessors.into_iter().cloned().collect())
-        }).collect()
+        self.predecessors()
+            .into_iter()
+            .map(|(label, predecessors)| {
+                (label.clone(), predecessors.into_iter().cloned().collect())
+            })
+            .collect()
     }
 
     fn iter_basic_blocks(&self) -> CfgBasicBlockIterator<'_, Self> {

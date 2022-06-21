@@ -269,12 +269,6 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 let index_validity = self
                     .lowerer
                     .encode_snapshot_valid_call_for_type(index.clone().into(), &size_type_mid)?;
-                // let index_usize =
-                // self.lowerer.construct_constant_snapshot(
-                //     &size_type,
-                //     index.clone().into(),
-                //     Default::default(),
-                // )?;
                 let element_place = self.lowerer.encode_index_place(
                     ty,
                     place.into(),
@@ -289,15 +283,12 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
 
                 let element_predicate_acc = expr! {
                     (acc(OwnedNonAliased<element_type>(
-                        [element_place], root_address, [element_snapshot.clone()]
+                        [element_place], root_address, [element_snapshot]
                     )))
                 };
                 let elements = vir_low::Expression::forall(
-                    vec![index.clone()],
-                    vec![vir_low::Trigger::new(vec![
-                        // element_snapshot
-                        element_predicate_acc.clone(),
-                    ])],
+                    vec![index],
+                    vec![vir_low::Trigger::new(vec![element_predicate_acc.clone()])],
                     expr! {
                         ([index_validity] && ([index_int] < [array_length_int.clone()])) ==>
                         [element_predicate_acc]

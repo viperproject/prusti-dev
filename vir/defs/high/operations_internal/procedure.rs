@@ -5,7 +5,7 @@ use super::super::{
     },
     cfg::procedure::{BasicBlock, BasicBlockId, ProcedureDecl, Successor},
     visitors::ExpressionWalker,
-    Predicate, Quantifier, Type, VariableDecl, Statement,
+    Predicate, Quantifier, Statement, Type, VariableDecl,
 };
 use crate::common::cfg::Cfg;
 use std::collections::{BTreeMap, BTreeSet};
@@ -91,34 +91,6 @@ impl ProcedureDecl {
             .map(|(name, ty)| VariableDecl { name, ty })
             .collect()
     }
-    // pub fn get_predecessors(&self) -> BTreeMap<BasicBlockId, Vec<BasicBlockId>> {
-    //     let mut predecessors = BTreeMap::<_, Vec<_>>::new();
-    //     for (label, block) in &self.basic_blocks {
-    //         let mut add_target = |target: &BasicBlockId| {
-    //             let entry = predecessors.entry(target.clone()).or_default();
-    //             entry.push(label.clone());
-    //         };
-    //         match &block.successor {
-    //             Successor::Exit => {}
-    //             Successor::Goto(target) => {
-    //                 add_target(target);
-    //             }
-    //             Successor::GotoSwitch(targets) => {
-    //                 for (_, target) in targets {
-    //                     add_target(target);
-    //                 }
-    //             }
-    //             Successor::NonDetChoice(first, second) => {
-    //                 add_target(first);
-    //                 add_target(second);
-    //             }
-    //         }
-    //     }
-    //     assert!(predecessors
-    //         .insert(self.entry.clone(), Vec::new())
-    //         .is_none());
-    //     predecessors
-    // }
     pub fn get_topological_sort(&self) -> Vec<BasicBlockId> {
         if self.basic_blocks.is_empty() {
             Vec::new()

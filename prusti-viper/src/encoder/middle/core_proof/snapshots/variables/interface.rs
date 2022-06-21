@@ -191,7 +191,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     let i_int =
                         self.obtain_constant_value(&size_type_mid, i.clone().into(), position)?;
                     let i_validity =
-                        self.encode_snapshot_valid_call_for_type(i.clone().into(), &size_type_mid)?;
+                        self.encode_snapshot_valid_call_for_type(i.into(), &size_type_mid)?;
                     let new_element_snapshot = self.obtain_array_element_snapshot(
                         new_snapshot.clone(),
                         i_int.clone(),
@@ -206,7 +206,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     statements.push(stmtp! { position =>
                         assume (
                             forall(
-                                i: {size_type.clone()} :: [ {[new_element_snapshot.clone()]} ]
+                                i: {size_type} :: [ {[new_element_snapshot.clone()]} ]
                                 ([i_validity] && ([i_int] < [new_len]) && (i != [index])) ==>
                                 ([new_element_snapshot] == [old_element_snapshot])
                             )

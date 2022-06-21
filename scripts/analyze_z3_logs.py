@@ -3,6 +3,12 @@
 """
 The Z3 log format is documented here:
 https://github.com/viperproject/axiom-profiler/blob/master/LogDocumentation.pdf
+
+This script is a predecessor of `smt-log-analyzer`. Since the later is
+orders of magnitude faster, you most likely want to use it instead of
+this one. The only reason why I decided not to delete this script yet is
+`show_quantifier` and `show_term` functions that can be interactively
+called from a debugger to see the definitions of a quantifier or term.
 """
 
 import sys
@@ -370,11 +376,6 @@ class MessageAnalyzer:
         if DETAILED_ANALYSIS:
             parser = Parser(value)
             term_id = parser.parse_id()
-            # try:
-                # self.state.register(term_id, parser.remaining())
-            # except:
-                # print(message)
-                # raise
             if parser.consume('pattern'):
                 expr_ids = parser.parse_id_sequence()
                 parser.skip_whitespace()
@@ -462,49 +463,11 @@ class MessageAnalyzer:
                     self.state.register_matched_trigger_term(quantifier_id, matched)
                     assert quantifier_id != '#3634'
                 except ValueError:
-                    # if quantifier_id == '#3634':
-                        # self.unique_terms.add(term)
-                        # self.unique_terms.add(self.render_term(term))
-                        # try:
-                            # self.state.register(term, None)
-                        # except:
-                            # print(message)
-                            # raise
-                        # self.state.register_matched_trigger_term(quantifier_id, term)
-
                     self.state.register_matched_trigger_term(quantifier_id, term)
                     self.add_row([
                         quantifier_id,
                         self.render_term(term),
                     ])
-
-            # if self.quantifier_match_count[quantifier_id] > 300:
-                # if quantifier_id == '#3634':
-                    # print(value)
-                    # print()
-
-                    # self.show_quantifier(quantifier_id)
-
-                    # print()
-                    # print()
-
-                    # print('matched-trigger:')
-                    # self.show_trigger(trigger_id, variables=variable_instantiations)
-
-                    # self.show_term('#3808')
-                    # self.show_term('#971')
-
-                    # print('matched terms:')
-                    # for term in matched_terms:
-                        # try:
-                            # (original, matched) = term
-                            # print('original:')
-                            # self.show_term(original)
-                            # print('replacing matched:')
-                            # self.show_term(matched)
-                        # except:
-                            # print('matched:')
-                            # self.show_term(term)
 
     def analyze_pop(self, value, message):
         assert len(message) == 1
@@ -590,8 +553,6 @@ class MessageAnalyzer:
         print('  triggers:')
         for trigger_id in quantifier.patterns:
             self.show_trigger(trigger_id, step=1, variables=variables)
-            # trigger_expr_id = self.triggers[pattern_id]
-            # self.show_term(trigger_expr_id, step=1, variables=variables)
 
     def show_trigger(self, trigger_id, step=0, variables=None):
         for trigger_expr_id in self.triggers[trigger_id]:
@@ -673,32 +634,14 @@ def main(log_file_path, csv_file_path):
     print()
     print()
 
+    # This function can be used show more information about a specific
+    # quantifier.
     analyzer.show_quantifier('#2884')
     import pdb; pdb.set_trace()
 
+    # analyzer.show_term(trigger_expr_id)
+
     assert len(analyzer.state.stack) == 1, analyzer.state.stack
-
-    # This function can be used show more information about a specific
-    # quantifier.
-    # analyzer.show_quantifier('#3634')
-
-
-
-    # id = '#1058'
-    # print(analyzer.quantifiers[id])
-    # print(analyzer.quantifiers[id].variable_decls)
-    # print(analyzer.quantifiers[id].expr)
-    # analyzer.show_term(analyzer.quantifiers[id].expr)
-
-    # for pattern in analyzer.quantifiers[id].patterns:
-        # print(pattern)
-        # trigger_expr_id = analyzer.triggers[pattern]
-        # print(trigger_expr_id)
-        # analyzer.show_term(trigger_expr_id)
-
-    # print('\n\nunique triggering terms for #3634:')
-    # for term in sorted(analyzer.unique_terms):
-        # print(term)
 
 
 if __name__ == '__main__':

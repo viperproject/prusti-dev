@@ -8,8 +8,19 @@ pub(crate) enum EventKind {
     Pop,
     Push,
     MkQuant,
+    MkApp,
     NewMatch,
+    InstDiscovered,
+    Instance,
     Unrecognized,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+pub(crate) enum TheoryKind {
+    Arith,
+    Basic,
+    Datatype,
+    UserSort,
 }
 
 pub(crate) enum QuantTerm {
@@ -37,7 +48,6 @@ impl<'a> Parser<'a> {
             kind,
             line: self
                 .next
-                .clone()
                 .into_iter()
                 .chain(self.cursor.clone())
                 .map(|(_, c)| c)
@@ -88,13 +98,6 @@ impl<'a> Parser<'a> {
 
     pub(crate) fn try_consume(&mut self, arg: char) -> bool {
         self.try_consume_predicate(|c| c == arg)
-        // if let Some(c) = self.peek() {
-        //     if c == arg {
-        //         self.advance_cursor();
-        //         return true;
-        //     }
-        // }
-        // false
     }
 
     pub(crate) fn consume(&mut self, arg: char) -> Result<(), Error> {
@@ -118,27 +121,42 @@ impl<'a> Parser<'a> {
     pub(crate) fn parse_event_kind(&mut self) -> Result<EventKind, Error> {
         if self.try_consume('[') {
             let kind = self.consume_while_predicate(|c| c.is_alphabetic() || c == '-');
-            // let start = self.position();
-            // while self.try_consume_predicate(|c| c.is_alphabetic() || c == '-') {}
-            // let end = self.position();
-            // let kind = match &self.line[start..end] {
             let kind = match kind {
                 "pop" => EventKind::Pop,
                 "push" => EventKind::Push,
                 "mk-quant" => EventKind::MkQuant,
+                "mk-app" => EventKind::MkApp,
                 "new-match" => EventKind::NewMatch,
-                "tool-version" | "mk-app" | "attach-var-names" | "attach-meaning" | "mk-var"
-                | "mk-proof" | "attach-enode" | "inst-discovered" | "instance"
-                | "end-of-instance" | "mk-lambda" | "begin-check" | "assign" | "eq-expl"
-                | "decide-and-or" | "resolve-lit" | "resolve-process" | "conflict" | "eof" => {
-                    EventKind::Unrecognized
-                }
+                "inst-discovered" => EventKind::InstDiscovered,
+                "instance" => EventKind::Instance,
+                "tool-version" | "attach-var-names" | "attach-meaning" | "mk-var" | "mk-proof"
+                | "attach-enode" | "end-of-instance" | "mk-lambda" | "begin-check" | "assign"
+                | "eq-expl" | "decide-and-or" | "resolve-lit" | "resolve-process" | "conflict"
+                | "eof" => EventKind::Unrecognized,
                 x => unimplemented!("got: {:?}", x),
             };
             self.consume(']')?;
             return Ok(kind);
         }
         Ok(EventKind::Unrecognized)
+    }
+
+    pub(crate) fn parse_theory(&mut self) -> Result<TheoryKind, Error> {
+        self.skip_whitespace();
+        let kind = self.consume_while_predicate(|c| c.is_alphabetic() || c == '-');
+        let kind = match kind {
+            "basic" => TheoryKind::Basic,
+            "arith" => TheoryKind::Arith,
+            "datatype" => TheoryKind::Datatype,
+            "user-sort" => TheoryKind::UserSort,
+            _ => {
+                eprintln!("kind: {:?}", kind);
+                eprintln!("self; {:?}", self.error(ErrorKind::ConsumeFailed));
+                unimplemented!("got line: {:?}", self.line)
+            }
+        };
+        self.consume('#')?;
+        Ok(kind)
     }
 
     pub(crate) fn try_parse_id(&mut self) -> Result<Option<Id>, Error> {
@@ -176,16 +194,12 @@ impl<'a> Parser<'a> {
         Ok(quant_term)
     }
 
-    pub(crate) fn parse_name(&mut self) -> Result<String, Error> {
+    pub(crate) fn parse_name(&mut self) -> Result<&str, Error> {
         self.skip_whitespace();
         fn is_valid_name(c: char) -> bool {
             c.is_alphanumeric() || "$.<>=!%@-[]_".contains(c)
         }
-        // let start = self.position();
-        // while self.try_consume_predicate(is_valid_name) {}
-        // let end = self.position();
-        Ok(self.consume_while_predicate(is_valid_name).to_string())
-        // Ok(self.line[start..end].to_string())
+        Ok(self.consume_while_predicate(is_valid_name))
     }
 
     pub(crate) fn check_eof(&mut self) -> Result<(), Error> {
@@ -202,53 +216,19 @@ impl<'a> Parser<'a> {
         self.consume('0')?;
         let mut number = 0;
         if self.try_consume('x') {
-            // let start = self.position();
-            // while self.try_consume_predicate(|c| c.is_ascii_hexdigit()) {}
-            // let end = self.position();
-
             number =
                 u64::from_str_radix(self.consume_while_predicate(|c| c.is_ascii_hexdigit()), 16)
                     .unwrap();
-            // while let Some(c) = self.peek() {
-            //     if c.is_ascii_hexdigit() {
-            //         number *= 16;
-            //         let value = u64::from_char_radix(c, 16).unwrap();
-            //         // let value: u64 = match c {
-            //         //     'a' => 10,
-            //         //     'b' => 11,
-            //         //     'c' => 12,
-            //         //     'd' => 13,
-            //         //     'e' => 14,
-            //         //     'f' => 15,
-            //         //     _ => c.try_into().unwrap(),
-            //         // };
-            //         number += value;
-            //         eprintln!("hex: {} → {}", c, value);
-            //         self.advance_cursor();
-            //     } else {
-            //         break;
-            //     }
-            // }
         }
         Ok(number)
     }
 
     pub(crate) fn parse_number(&mut self) -> Result<u32, Error> {
         self.skip_whitespace();
-        let number =
-            u32::from_str_radix(self.consume_while_predicate(|c| c.is_ascii_hexdigit()), 10)
-                .unwrap();
-        // let mut number = 0;
-        // while let Some(c) = self.peek() {
-        //     if c.is_numeric() {
-        //         number *= 10;
-        //         let value: u32 = c.try_into().unwrap();
-        //         number += value;
-        //         self.advance_cursor();
-        //     } else {
-        //         break;
-        //     }
-        // }
+        let number = self
+            .consume_while_predicate(|c| c.is_ascii_hexdigit())
+            .parse()
+            .unwrap();
         Ok(number)
     }
 }

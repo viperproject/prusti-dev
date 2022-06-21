@@ -53,6 +53,11 @@ impl Default for ViperBackendConfig {
                 verifier_args.extend(vec![
                     "--assertTimeout".to_string(),
                     config::assert_timeout().to_string(),
+                    "--z3ConfigArgs".to_string(),
+                    format!(
+                        "smt.qi.eager_threshold={}",
+                        config::smt_qi_eager_threshold()
+                    ),
                     "--logLevel".to_string(),
                     "ERROR".to_string(),
                 ]);

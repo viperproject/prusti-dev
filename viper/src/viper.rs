@@ -4,10 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::{jni_utils::JniUtils, verification_context::*};
 use jni::*;
-use jni_utils::JniUtils;
 use std::{env, fs, path::Path};
-use verification_context::*;
 use viper_sys::wrappers::*;
 
 pub struct Viper {

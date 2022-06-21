@@ -26,19 +26,15 @@ pub mod utils;
 mod cache;
 mod java_exception;
 pub mod silicon_counterexample;
+pub mod smt_manager;
 mod verification_backend;
 mod verification_context;
 mod verification_result;
 mod verifier;
 mod viper;
 
-pub use ast_factory::*;
-pub use ast_utils::*;
-pub use cache::*;
-pub use java_exception::*;
-pub use silicon_counterexample::*;
-pub use verification_backend::*;
-pub use verification_context::*;
-pub use verification_result::*;
-pub use verifier::*;
-pub use viper::*;
+pub use crate::{
+    ast_factory::*, ast_utils::*, cache::*, java_exception::*, silicon_counterexample::*,
+    verification_backend::*, verification_context::*, verification_result::*, verifier::*,
+    viper::*,
+};
