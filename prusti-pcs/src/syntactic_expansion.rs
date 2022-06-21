@@ -22,14 +22,12 @@ pub enum MicroMirEncodingError {
 
 pub struct MicroMirEncoder<'mir, 'tcx: 'mir> {
     pub body: &'mir Body<'mir>,
-    pub tmp: &'tcx Vec<MicroMirStatement<'tcx>>,
+    pub encoding: &'tcx Vec<Vec<MicroMirStatement<'tcx>>>,
 }
 
+/// TODO: For now I only have temporaries with exclusive permissions. Is this always the case?
+
 impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
-    /// Appends the encoding which performs (our operational interpretation of) a MIR statement
-    /// to a current MicroMir block.
-    ///
-    /// TODO: For now I only have temporaries with exclusive permissions. Is this always the case?
     fn encode_individual_statement(
         &self,
         current: &mut Vec<MicroMirStatement<'tcx>>,
@@ -37,30 +35,11 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
     ) -> Result<(), MicroMirEncodingError> {
         match &s.kind {
             Assign(box (p_dest, Use(op))) => {
-                // 1. Kill p_dest
-                // 2. Encode operand
-                // 3. Set pl with temp1's mutability
-                current.push(MicroMirStatement::Kill((*p_dest).into()));
-                let temp_1 = TemporaryPlace { id: 1 };
-
-                // TODO: monad
-                match self.encode_operand(current, op, temp_1) {
-                    Ok(temp1_mut) => {
-                        current.push(MicroMirStatement::Set(temp_1, *p_dest, temp1_mut));
-                    }
-                    Err(e) => return Err(e),
-                }
+                return self.encode_assign_use(current, p_dest, op);
             }
 
             Assign(box (p_dest, Len(p0))) => {
-                // 1. Kill p_dest
-                // 2. Compute len into temp
-                // 3. Assign p_dest, with owning permission
-                current.push(MicroMirStatement::Kill((*p_dest).into()));
-                let p0_mut = self.lookup_place_mutability(&p0, self.body)?;
-                let temp_1 = TemporaryPlace { id: 1 };
-                current.push(MicroMirStatement::Len(*p0, temp_1, p0_mut));
-                current.push(MicroMirStatement::Set(temp_1, *p_dest, Mut));
+                return self.encode_assign_len(current, p_dest, p0);
             }
 
             Assign(box (p_dest, BinaryOp(binop, box (op1, op2)))) => {
@@ -87,6 +66,44 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
                 )))
             }
         }
+    }
+
+    fn encode_assign_use(
+        &self,
+        current: &mut Vec<MicroMirStatement<'tcx>>,
+        p_dest: &Place<'tcx>,
+        op: &Operand<'tcx>,
+    ) -> Result<(), MicroMirEncodingError> {
+        // 1. Kill p_dest
+        // 2. Encode operand
+        // 3. Set pl with temp1's mutability
+        current.push(MicroMirStatement::Kill((*p_dest).into()));
+        let temp_1 = TemporaryPlace { id: 1 };
+
+        // TODO: monad
+        match self.encode_operand(current, op, temp_1) {
+            Ok(temp1_mut) => {
+                current.push(MicroMirStatement::Set(temp_1, *p_dest, temp1_mut));
+                return Ok(());
+            }
+            Err(e) => return Err(e),
+        }
+    }
+
+    fn encode_assign_len(
+        &self,
+        current: &mut Vec<MicroMirStatement<'tcx>>,
+        p_dest: &Place<'tcx>,
+        p0: &Place<'tcx>,
+    ) -> Result<(), MicroMirEncodingError> {
+        // 1. Kill p_dest
+        // 2. Compute len into temp
+        // 3. Assign p_dest, with owning permission
+        current.push(MicroMirStatement::Kill((*p_dest).into()));
+        let p0_mut = self.lookup_place_mutability(&p0, self.body)?;
+        let temp_1 = TemporaryPlace { id: 1 };
+        current.push(MicroMirStatement::Len(*p0, temp_1, p0_mut));
+        current.push(MicroMirStatement::Set(temp_1, *p_dest, Mut));
         return Ok(());
     }
 
@@ -206,8 +223,8 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         p: &Place<'tcx>,
         body: &Body,
     ) -> Result<Mutability, MicroMirEncodingError> {
-        if let Some(james) = body.local_decls.get(p.local) {
-            match james.ty.kind() {
+        if let Some(localdecl) = body.local_decls.get(p.local) {
+            match localdecl.ty.kind() {
                 ty::TyKind::Ref(_, _, m) => return Ok(*m),
                 err_t => {
                     return Err(MicroMirEncodingError::LocalError(format!(
