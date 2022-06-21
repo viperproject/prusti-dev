@@ -10,15 +10,21 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
+use types::BUILTIN_QUANTIFIER_ID;
 
 mod error;
 mod parser;
 mod state;
 mod types;
 
-#[derive(Default)]
-struct Settings {
-    pop_by_one: bool,
+pub struct Settings {
+    pub write_statistics: bool,
+    pub quantifier_instantiations_ignore_builtin: bool,
+    pub quantifier_instantiations_bound_global_kind: Option<u64>,
+    pub quantifier_instantiations_bound_trace: Option<u64>,
+    pub quantifier_instantiations_bound_trace_kind: Option<u64>,
+    pub check_active_scopes_count: Option<u32>,
+    pub pop_scopes_by_one: bool,
 }
 
 fn process_line(settings: &Settings, state: &mut State, line: &str) -> Result<(), Error> {
@@ -29,7 +35,7 @@ fn process_line(settings: &Settings, state: &mut State, line: &str) -> Result<()
             let active_scopes_count = parser.parse_number()?;
             parser.check_eof()?;
             assert_eq!(state.active_scopes_count(), active_scopes_count);
-            if settings.pop_by_one {
+            if settings.pop_scopes_by_one {
                 let mut scopes_to_pop = scopes_to_pop;
                 while scopes_to_pop > 0 {
                     state.pop_scopes(1);
@@ -45,12 +51,20 @@ fn process_line(settings: &Settings, state: &mut State, line: &str) -> Result<()
             assert_eq!(state.active_scopes_count(), active_scopes_count);
             state.push_scope();
         }
+        EventKind::MkApp => {
+            if let Some(_term_id) = parser.try_parse_id()? {
+                let ident = parser.parse_name()?;
+                if ident.starts_with("basic_block_marker") {
+                    state.register_label(ident.to_string());
+                }
+            }
+        }
         EventKind::MkQuant => {
             if let Ok(id) = parser.parse_id() {
                 // We are ignoring the builtin quantifiers that have non-numeric
                 // ids such as datatype#6
                 let name = parser.parse_name()?;
-                state.register_quantifier(id, name);
+                state.register_quantifier(id, name.to_string());
             }
         }
         EventKind::NewMatch => {
@@ -74,34 +88,72 @@ fn process_line(settings: &Settings, state: &mut State, line: &str) -> Result<()
                     }
                 }
                 parser.check_eof()?;
+            } else {
+                state.register_matched_quantifier(BUILTIN_QUANTIFIER_ID)?;
             }
+        }
+        EventKind::InstDiscovered => {
+            let name = parser.parse_name()?;
+            assert_eq!(name, "theory-solving");
+            let fingerprint = parser.parse_hex_number()?;
+            assert_eq!(fingerprint, 0);
+            let theory = parser.parse_theory()?;
+            state.register_inst_discovered(theory)?;
+        }
+        EventKind::Instance => {
+            state.register_instance()?;
         }
         EventKind::Unrecognized => {}
     }
     Ok(())
 }
 
-fn main() -> Result<(), std::io::Error> {
+pub fn analyze(
+    z3_trace_path: &std::path::PathBuf,
+    settings: Settings,
+) -> Result<(), std::io::Error> {
     // TODO: Collect the quantifier definitions from the smt file.
-    let mut args = std::env::args();
-    assert!(args.next().is_some());
-    let input_file = args.next().expect("Z3 log file expected");
-    assert!(args.next().is_none(), "Only one argument was expected");
-    let file = File::open(&input_file)?;
+
+    let file = File::open(&z3_trace_path)?;
     let mut reader = BufReader::new(file);
 
-    let settings = Settings { pop_by_one: true };
     let mut state = State::default();
 
+    // Builtin quantifiers have fingerprint 0.
+    state.register_quantifier(BUILTIN_QUANTIFIER_ID, "builtin quantifier".to_string());
+
+    // Theories.
+    state.register_theory(parser::TheoryKind::Arith);
+    state.register_theory(parser::TheoryKind::Basic);
+    state.register_theory(parser::TheoryKind::Datatype);
+    state.register_theory(parser::TheoryKind::UserSort);
+
     let mut line = String::new();
+    let mut prev_line = String::new();
     let mut line_number = 0;
+    assert!(reader.read_line(&mut prev_line)? > 0);
     while reader.read_line(&mut line)? > 0 {
+        // We use this `prev_line` to avoid processing the last line, which is
+        // very likely to be invalid because Silicon kills Z3.
+        std::mem::swap(&mut line, &mut prev_line);
         line_number += 1;
         process_line(&settings, &mut state, &line)
             .unwrap_or_else(|error| panic!("Error {} on line {}", error, line_number));
         line.clear();
     }
-    state.write_statistics(&input_file);
-    assert_eq!(state.active_scopes_count(), 0);
+    let input_file = z3_trace_path.to_str().unwrap();
+    if settings.write_statistics {
+        state.write_statistics(input_file);
+    }
+    if let Some(expected_scopes_count) = settings.check_active_scopes_count {
+        assert_eq!(state.active_scopes_count(), expected_scopes_count);
+    }
+    state.check_bounds(
+        input_file,
+        settings.quantifier_instantiations_ignore_builtin,
+        settings.quantifier_instantiations_bound_global_kind,
+        settings.quantifier_instantiations_bound_trace,
+        settings.quantifier_instantiations_bound_trace_kind,
+    );
     Ok(())
 }

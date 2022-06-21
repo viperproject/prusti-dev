@@ -4,15 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::*;
-use ast_utils::*;
+use crate::{
+    ast_factory::*, ast_utils::*, verification_backend::VerificationBackend, verifier::Verifier,
+};
 use jni::AttachGuard;
 use std::{
     env,
     path::{Path, PathBuf},
 };
-use verification_backend::VerificationBackend;
-use verifier::Verifier;
+
+use crate::smt_manager::SmtManager;
 
 pub struct VerificationContext<'a> {
     env: AttachGuard<'a>,
@@ -31,25 +32,42 @@ impl<'a> VerificationContext<'a> {
         AstUtils::new(&self.env)
     }
 
-    pub fn new_verifier(
-        &self,
-        backend: VerificationBackend,
-        report_path: Option<PathBuf>,
-    ) -> Verifier {
-        self.new_verifier_with_args(backend, vec![], report_path)
+    /// Should be used only by tests.
+    pub fn new_verifier_with_default_smt(&self, backend: VerificationBackend) -> Verifier {
+        self.new_verifier_with_default_smt_and_extra_args(backend, vec![])
     }
 
-    pub fn new_verifier_with_args(
+    /// Should be used only by tests.
+    pub fn new_verifier_with_default_smt_and_extra_args(
+        &self,
+        backend: VerificationBackend,
+        extra_args: Vec<String>,
+    ) -> Verifier {
+        let z3_exe =
+            env::var("Z3_EXE").expect("the Z3_EXE environment variable should not be empty");
+        let boogie_exe = env::var("BOOGIE_EXE").ok();
+        self.new_verifier(
+            backend,
+            extra_args,
+            None,
+            z3_exe,
+            boogie_exe,
+            SmtManager::default(),
+        )
+    }
+
+    pub fn new_verifier(
         &self,
         backend: VerificationBackend,
         extra_args: Vec<String>,
         report_path: Option<PathBuf>,
+        z3_exe: String,
+        boogie_exe: Option<String>,
+        smt_manager: SmtManager,
     ) -> Verifier {
         let mut verifier_args: Vec<String> = vec![];
 
         // Set Z3 binary
-        let z3_exe =
-            env::var("Z3_EXE").expect("the Z3_EXE environment variable should not be empty");
         info!("Using Z3 exe: '{}'", &z3_exe);
         assert!(
             Path::new(&z3_exe).is_file(),
@@ -60,8 +78,8 @@ impl<'a> VerificationContext<'a> {
 
         // Set Boogie binary
         if let VerificationBackend::Carbon = backend {
-            let boogie_exe = env::var("BOOGIE_EXE")
-                .expect("the BOOGIE_EXE environment variable should not be empty");
+            let boogie_exe =
+                boogie_exe.expect("the BOOGIE_EXE environment variable should not be empty");
             info!("Using BOOGIE exe: '{}'", &boogie_exe);
             assert!(
                 Path::new(&boogie_exe).is_file(),
@@ -77,7 +95,7 @@ impl<'a> VerificationContext<'a> {
 
         debug!("Verifier arguments: '{}'", verifier_args.to_vec().join(" "));
 
-        Verifier::new(&self.env, backend, report_path)
+        Verifier::new(&self.env, backend, report_path, smt_manager)
             .parse_command_line(&verifier_args)
             .start()
     }

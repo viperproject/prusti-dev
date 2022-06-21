@@ -24,6 +24,15 @@ fn operations_equivalent(x: i64, y: i64) {
     prusti_assert!(Int::new(-x) == -Int::new(x));
     prusti_assert!(Int::new(x + y) == Int::new(x) + Int::new(y));
     prusti_assert!(Int::new(x - y) == Int::new(x) - Int::new(y));
+}
+
+// We need to assume y == 5 to avoid non-linear arithmetic when doing
+// the bounds checks that choke Z3.
+#[requires(x > -10000 && x < 10000 && y == 5)]
+fn operations_equivalent2(x: i64, y: i64) {
+    prusti_assert!(Int::new(-x) == -Int::new(x));
+    prusti_assert!(Int::new(x + y) == Int::new(x) + Int::new(y));
+    prusti_assert!(Int::new(x - y) == Int::new(x) - Int::new(y));
     prusti_assert!(Int::new(x * y) == Int::new(x) * Int::new(y));
     prusti_assert!(Int::new(x / y) == Int::new(x) / Int::new(y));
     prusti_assert!(Int::new(x % y) == Int::new(x) % Int::new(y));

@@ -1,22 +1,14 @@
-use crate::encoder::{
-    errors::{ErrorCtxt, SpannedEncodingResult},
-    mir::errors::ErrorInterface,
-    Encoder,
-};
-use rustc_hash::{FxHashMap, FxHashSet};
-use std::collections::{BTreeMap, BTreeSet};
+use crate::encoder::{errors::SpannedEncodingResult, Encoder};
+use rustc_hash::FxHashMap;
 use vir_crate::{
     common::{cfg::Cfg, expression::SyntacticEvaluation},
-    high::{
-        self as vir_high,
-        ast::{expression::visitors::ExpressionFolder, statement::visitors::StatementFolder},
-    },
+    high::{self as vir_high},
 };
 
 /// Propagate `assert false` backward until it becomes some more specific
 /// assertion.
 pub(in super::super) fn propagate_assertions_back<'v, 'tcx: 'v>(
-    encoder: &mut Encoder<'v, 'tcx>,
+    _encoder: &mut Encoder<'v, 'tcx>,
     mut procedure: vir_high::ProcedureDecl,
 ) -> SpannedEncodingResult<vir_high::ProcedureDecl> {
     // Find all basic blocks containing `assert false` and if `assert false` can

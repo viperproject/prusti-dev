@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Pcheck_timeout=50
+// compile-flags: -Punsafe_core_proof=true -Puse_smt_wrapper=true -Psmt_quantifier_instantiations_bound_global=10000 -Psmt_quantifier_instantiations_bound_trace=2000 -Psmt_quantifier_instantiations_bound_trace_kind=150 -Psmt_quantifier_instantiations_bound_global_kind=150
 
 use prusti_contracts::*;
 
@@ -41,24 +41,6 @@ fn test7() {
     let c = a[2];
     assert!(b == 1);
     assert!(c == 2);     //~ ERROR: the asserted expression might not hold
-}
-
-// FIXME: test8 sometimes fail nondeterministically
-fn test8() {
-    let mut a = [1; 100];
-    a[1] = 2;
-    assert!(a[1] == 2);
-    assert!(a[0] == 1);
-    assert!(a[2] == 1);
-}
-
-// FIXME: test9 sometimes fail nondeterministically
-fn test9() {
-    let mut a = [1; 100];
-    a[1] = 2;
-    assert!(a[1] == 2);
-    assert!(a[0] == 1);
-    assert!(a[0] == 2);     //~ ERROR: the asserted expression might not hold
 }
 
 fn test10() {

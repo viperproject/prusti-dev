@@ -1,3 +1,4 @@
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug)]
 pub(crate) enum ErrorKind {
     ConsumeFailed,
@@ -5,6 +6,7 @@ pub(crate) enum ErrorKind {
     EofCheckFailed,
 }
 
+#[derive(Debug)]
 pub(crate) struct Error {
     pub(crate) kind: ErrorKind,
     pub(crate) line: String,

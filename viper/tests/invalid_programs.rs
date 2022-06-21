@@ -32,7 +32,8 @@ fn runtime_error() {
     let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
     let verification_result = verifier.verify(program);
 
     assert!(matches!(
@@ -99,7 +100,8 @@ where
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
     let verification_result = verifier.verify(program);
     match verification_result {

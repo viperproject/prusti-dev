@@ -379,7 +379,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
 
         let size_type = self.size_type()?;
         let size_type_mid = self.size_type_mid()?;
-        var_decls! { index: { size_type.clone() } };
+        var_decls! { index: { size_type } };
         let index_int =
             self.obtain_constant_value(&size_type_mid, index.clone().into(), Default::default())?;
         let index_validity =
@@ -396,7 +396,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         );
         let valid_element = self.encode_snapshot_valid_call(element_domain_name, element)?;
         let valid_elements = vir_low::Expression::forall(
-            vec![index.clone()],
+            vec![index],
             vec![vir_low::Trigger::new(vec![
                 valid_sequence.clone(),
                 valid_element.clone(),
