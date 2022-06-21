@@ -215,5 +215,9 @@ fn test22() -> u32 {
     result
 }
 
+fn test23() {
+    loop {}
+}
+
 fn main() {}
 
