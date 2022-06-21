@@ -10,7 +10,8 @@ use crate::syntactic_expansion;
 use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
 use rustc_index::vec::IndexVec;
 use rustc_middle::mir::{
-    BasicBlock, BinOp, Constant, Local, Location, NullOp, Place, PlaceElem, Statement, UnOp,
+    BasicBlock, BinOp, Constant, Local, Location, Mutability, Mutability::*, NullOp, Place,
+    PlaceElem, Statement, UnOp,
 };
 pub struct MicroMirBody<'tcx> {
     pub body: IndexVec<BasicBlock, MicroMirData<'tcx>>,
@@ -98,11 +99,6 @@ pub enum MicroMirStatement<'tcx> {
     Len(Place<'tcx>, TemporaryPlace, Mutability),
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
-pub enum Mutability {
-    Mut,
-    Not,
-}
 pub enum MicroMirTerminatorKind {
     // WIP
     Goto,
