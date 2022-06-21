@@ -11,6 +11,11 @@ use rustc_middle::mir::{
     BinOp, NullOp, Operand, Operand::*, Place, Rvalue::*, Statement, StatementKind::*, UnOp,
 };
 
+pub enum MicroMirEncodingError {
+    UnsupportedStatementError(String),
+    ExpectedMutableError(String),
+}
+
 /// Appends the encoding which performs (our operational interpretation of) a MIR statement
 /// to a current MicroMir block.
 ///
@@ -18,7 +23,7 @@ use rustc_middle::mir::{
 fn encode_individual_statement<'tcx>(
     current: &mut Vec<MicroMirStatement<'tcx>>,
     s: &Statement<'tcx>,
-) -> Result<(), ()> {
+) -> Result<(), MicroMirEncodingError> {
     match &s.kind {
         Assign(box (p_dest, Use(op))) => {
             // 1. Kill p_dest
@@ -26,10 +31,13 @@ fn encode_individual_statement<'tcx>(
             // 3. Set pl with temp1's mutability
             current.push(MicroMirStatement::Kill((*p_dest).into()));
             let temp_1 = TemporaryPlace { id: 1 };
-            if let Ok(temp1_mut) = encode_operand(current, op, temp_1) {
-                current.push(MicroMirStatement::Set(temp_1, *p_dest, temp1_mut));
-            } else {
-                return Err(());
+
+            // TODO: monad
+            match encode_operand(current, op, temp_1) {
+                Ok(temp1_mut) => {
+                    current.push(MicroMirStatement::Set(temp_1, *p_dest, temp1_mut));
+                }
+                Err(e) => return Err(e),
             }
         }
 
@@ -61,7 +69,12 @@ fn encode_individual_statement<'tcx>(
             return encode_nullop(current, *nullop, p_dest);
         }
 
-        _ => return Err(()),
+        us => {
+            return Err(MicroMirEncodingError::UnsupportedStatementError(format!(
+                "Unsupported Statement: {:#?}",
+                us
+            )))
+        }
     }
     return Ok(());
 }
@@ -70,7 +83,7 @@ fn encode_nullop<'tcx>(
     current: &mut Vec<MicroMirStatement<'tcx>>,
     nullop: NullOp,
     p_dest: &Place<'tcx>,
-) -> Result<(), ()> {
+) -> Result<(), MicroMirEncodingError> {
     // 1. Kill p_dest
     // 2. Encode UnOp statement
     current.push(MicroMirStatement::Kill((*p_dest).into()));
@@ -85,7 +98,7 @@ fn encode_unop<'tcx>(
     unop: UnOp,
     op1: &Operand<'tcx>,
     p_dest: &Place<'tcx>,
-) -> Result<(), ()> {
+) -> Result<(), MicroMirEncodingError> {
     // 1. Kill p_dest
     // 2. Encode first operand into temporary
     // 3. Encode UnOp statement
@@ -96,7 +109,10 @@ fn encode_unop<'tcx>(
     if let Ok(Mutability::Mut) = encode_operand(current, op1, temp_1) {
         // This has no effect for now, it's assumed temp_1 is mutable.
     } else {
-        return Err(());
+        return Err(MicroMirEncodingError::ExpectedMutableError(format!(
+            "Expected operand {:#?} to be mutable",
+            op1
+        )));
     }
 
     current.push(MicroMirStatement::UnOp(unop, temp_1, temp_2));
@@ -111,7 +127,7 @@ fn encode_binop<'tcx>(
     op2: &Operand<'tcx>,
     p_dest: &Place<'tcx>,
     is_checked: bool,
-) -> Result<(), ()> {
+) -> Result<(), MicroMirEncodingError> {
     // 1. Kill p_dest
     // 2. Encode first operand into temporary
     // 3. Encode next operand into temporary
@@ -124,12 +140,18 @@ fn encode_binop<'tcx>(
     if let Ok(Mutability::Mut) = encode_operand(current, op1, temp_1) {
         // This has no effect for now, it's assumed temp_1 is mutable.
     } else {
-        return Err(());
+        return Err(MicroMirEncodingError::ExpectedMutableError(format!(
+            "Expected operand {:#?} to be mutable",
+            op1
+        )));
     }
     if let Ok(Mutability::Mut) = encode_operand(current, op2, temp_2) {
         // This has no effect for now, it's assumed temp_2 is mutable.
     } else {
-        return Err(());
+        return Err(MicroMirEncodingError::ExpectedMutableError(format!(
+            "Expected operand {:#?} to be mutable",
+            op2
+        )));
     }
     current.push(MicroMirStatement::BinaryOp(
         binop, is_checked, temp_1, temp_2, temp_3,
@@ -146,7 +168,7 @@ fn encode_operand<'tcx>(
     current: &mut Vec<MicroMirStatement<'tcx>>,
     op: &Operand<'tcx>,
     into: TemporaryPlace,
-) -> Result<Mutability, ()> {
+) -> Result<Mutability, MicroMirEncodingError> {
     match op {
         Copy(p) => {
             let p_mut = lookup_place_mutability(&p);

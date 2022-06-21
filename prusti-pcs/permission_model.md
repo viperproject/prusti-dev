@@ -12,6 +12,7 @@ TODO: I'm not convinced we should use this as a standalone language yet,
 however it at the very least gives us a way to compute pre- and post-
 conditions for MIR statements.
 
+{ ? }                   Kill(p)                     { u p }
 { }                     Nop                         { }
 { e t, u q }            Set(t, q, Mut)              { e q }
 { s t, u q }            Set(t, q, Not)              { s q }
@@ -19,7 +20,6 @@ conditions for MIR statements.
 { e p }                 Duplicate(p, t, Mut)        { e p, e t }
 { s p }                 Duplicate(p, t, Not)        { s p, e t }
 { }                     Constant (t, k)             { e t }
-{ ? }                   Kill(p)                     { u p }
 { }                     NullOp(op, t1)              { e t1 }
 { e t1 }                UnOp(op, t1, t2)            { e t2 }
 { e t1, e t2 }          BinOp(op, flag, t1, t2, t3) { e t3 }
@@ -28,7 +28,8 @@ conditions for MIR statements.
 
 encoding MIR Terminators
 { }                     Goto(bb)                    { }
-{ e/s t }               SwitchInt(t, SwitchTargets) { e/s t }
+{ e t }                 SwitchInt(t, Targets, Mut)  { e t }
+{ s t }                 SwitchInt(t, Targets, Mut)  { s t }
 
 
 
@@ -172,7 +173,7 @@ Open questions:
         - FakeRead
         - SetDiscriminant (how is this "used for drop elaboration", again?)
         - Retag (it's for stacked borrows)
-        - AscribeUserType
+        - AscribeUserType (should the type checker have already used this? Is there any dynamic typing?)
         - Coverage
     Where might wands be applied?
         Owned vs borrowed values?
