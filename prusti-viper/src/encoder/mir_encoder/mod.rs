@@ -87,7 +87,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         local: mir::Local,
         projection: &[mir::PlaceElem<'tcx>],
     ) -> EncodingResult<(PlaceEncoding<'tcx>, ty::Ty<'tcx>, Option<usize>)> {
-        trace!("Encode projection {:?}, {:?}", local, projection);
+        debug!("Encode projection {:?}, {:?}", local, projection);
 
         if projection.is_empty() {
             return Ok((
@@ -101,11 +101,15 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             local,
             &projection[..projection.len() - 1]
         )?;
-        trace!("base_ty: {:?}", base_ty);
+        debug!("Recurse projection done {:?}, {:?}",
+               local,
+               &projection[..projection.len() - 1]
+        );
+        debug!("base_ty: {:?}", base_ty);
 
         let elem = projection.last().unwrap();
         Ok(match elem {
-            mir::ProjectionElem::Field(ref field, _) => {
+            mir::ProjectionElem::Field(ref field, thing) => {
                 match base_ty.kind() {
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
@@ -117,7 +121,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     }
 
                     ty::TyKind::Adt(adt_def, ref subst) if !adt_def.is_box() => {
-                        debug!("subst {:?}", subst);
+                        debug!("subst {:?}, adt: {:?}", subst, adt_def);
                         let num_variants = adt_def.variants().len();
                         // FIXME: why this can be None?
                         let variant_index = if let Some(num) = opt_variant_index {
@@ -143,6 +147,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         } else {
                             encoded_base
                         };
+                        debug!("Field index: {}", field.index());
                         let field = &variant_def.fields[field.index()];
                         let field_ty = field.ty(tcx, subst);
                         if utils::is_reference(field_ty) {
@@ -164,7 +169,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         debug!("def_id={:?} closure_subst {:?}", def_id, closure_subst);
 
                         let closure_subst = closure_subst.as_closure();
-                        debug!("Closure subst: {:?}", closure_subst);
+                        debug!("Field index: {:?}, thing: {:?}", field.index(), thing);
 
                         // let tcx = self.encoder().env().tcx();
                         // let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
@@ -172,12 +177,13 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         //     .upvar_tys(def_id, tcx)
                         //     .nth(field.index())
                         //     .unwrap();
-                        let field_ty = closure_subst.upvar_tys().nth(field.index())
-                            .ok_or_else(|| EncodingError::internal(format!(
-                                "failed to obtain the type of the captured path #{} of closure {:?}",
-                                field.index(),
-                                base_ty,
-                            )))?;
+                        // let field_ty = closure_subst.upvar_tys().nth(field.index())
+                        //     .ok_or_else(|| EncodingError::internal(format!(
+                        //         "failed to obtain the type of the captured path #{} of closure {:?}",
+                        //         field.index(),
+                        //         base_ty,
+                        //     )))?;
+                        let field_ty = *thing;
 
                         let field_name = format!("closure_{}", field.index());
                         let encoded_field = self.encoder()
