@@ -15,6 +15,7 @@ use crate::vir::polymorphic_vir::{ast, cfg, Const};
 pub fn remove_trivial_assertions(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     method.retain_stmts(|stmt| {
         // Remove those statements marked with `false`
+        println!("Statement: {:?}", stmt);
         !matches!(
             stmt,
             ast::Stmt::Assert(ast::Assert {
