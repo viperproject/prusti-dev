@@ -129,12 +129,7 @@ macro_rules! __binary_op__ {
         impl Expr {$(
             #[allow(clippy::should_implement_trait)]
             pub fn $fn_name(left: Expr, right: Expr) -> Self {
-                Expr::BinOp(BinOp {
-                    op_kind: BinaryOpKind:: $kind_name,
-                    left: Box::new(left),
-                    right: Box::new(right),
-                    position: Position::default(),
-                })
+                Expr::bin_op(BinaryOpKind:: $kind_name, left, right)
             }
         )*}
     }
@@ -300,7 +295,33 @@ impl Expr {
         })
     }
 
+    fn is(e: &Expr, b : bool) -> bool {
+        match e {
+            Expr::Const(c) => c.value == Const::Bool(b),
+            _ => false
+        }
+    }
+
     pub fn bin_op(op_kind: BinaryOpKind, left: Expr, right: Expr) -> Self {
+        println!("{:?} {:?} {:?}", op_kind, left, right);
+        match op_kind {
+            BinaryOpKind::Implies =>
+                if Self::is(&right, false) {
+                    println!("Optimized");
+                    return Expr::not(left)
+                }
+            BinaryOpKind::And =>
+                if Self::is(&left, true) {
+                    println!("Optimized");
+                    return right
+                } else if Self::is(&right, true) {
+                    println!("Optimized");
+                    return left
+                }
+            _ => {}
+
+        }
+        println!("Not optimized");
         Expr::BinOp(BinOp {
             op_kind,
             left: Box::new(left),
