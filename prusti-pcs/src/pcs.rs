@@ -6,13 +6,15 @@
 
 #![allow(dead_code)]
 #![allow(unused_imports)]
+
 use crate::syntactic_expansion;
 use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
 use rustc_index::vec::IndexVec;
 use rustc_middle::mir::{
-    BasicBlock, BinOp, Constant, Local, Location, Mutability, Mutability::*, NullOp, Place,
-    PlaceElem, Statement, UnOp,
+    terminator::SwitchTargets, BasicBlock, BinOp, Constant, Local, Location, Mutability,
+    Mutability::*, NullOp, Place, PlaceElem, Statement, UnOp,
 };
+
 pub struct MicroMirBody<'tcx> {
     pub body: IndexVec<BasicBlock, MicroMirData<'tcx>>,
     pub kill_elaborations: FxHashMap<Location, PCS<'tcx>>,
@@ -29,15 +31,17 @@ impl<'tcx> PCS<'tcx> {
             set: FxHashSet::from_iter(vec),
         }
     }
+
+    pub fn empty() -> Self {
+        PCS {
+            set: FxHashSet::default(),
+        }
+    }
 }
 
 pub struct MicroMirData<'tcx> {
     pub statements: Vec<MicroMirStatement<'tcx>>,
-    pub terminator: MicroMirTerminator,
-}
-
-pub struct MicroMirTerminator {
-    kind: MicroMirTerminatorKind,
+    pub terminator: MicroMirTerminator<'tcx>,
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
@@ -99,29 +103,25 @@ pub enum MicroMirStatement<'tcx> {
     Len(Place<'tcx>, TemporaryPlace, Mutability),
 }
 
-pub enum MicroMirTerminatorKind {
-    // WIP
-    Goto,
-    // ...
+pub enum MicroMirTerminator<'tcx> {
+    Jump(BasicBlock),
+    JumpInt(LinearResource<'tcx>, Vec<(u128, BasicBlock)>, Mutability),
+    Return(Mutability),
+    EndVerif,
 }
 
-impl MicroMirTerminatorKind {
-    // WIP
-    pub fn core_precondition(&self) {
-        todo!();
-    }
+trait HoareSemantics {
+    type PRE;
+    type POST;
+    fn precondition(&self) -> Option<Self::PRE>;
+    fn postcondition(&self) -> Option<Self::POST>;
 }
 
-impl<'tcx> MicroMirBody<'tcx> {
-    pub fn statement_at(&self, location: Location) -> &MicroMirStatement {
-        return &self.body[location.block].statements[location.statement_index];
-    }
+impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
+    type PRE = PCS<'tcx>;
 
-    /// Read off the precondition for the core memory safety proof
-    /// INVARIANT: This is never incorrect at any step in the elaboration (but can be NONE)
-    /// INVARIANT: The final MicroMir has no preconditions that are NONE
-    pub fn core_precondition(&self, location: Location) -> Option<PCS> {
-        match self.statement_at(location) {
+    fn precondition(&self) -> Option<Self::PRE> {
+        match self {
             MicroMirStatement::Nop => Some(PCS::from_vec(vec![])),
             MicroMirStatement::Set(t, p, m) => Some(PCS::from_vec(vec![
                 PCSPermission::new_initialized(*m, (*t).into()),
@@ -139,9 +139,9 @@ impl<'tcx> MicroMirBody<'tcx> {
                     (*p).into(),
                 )]))
             }
-            MicroMirStatement::Constant(_, _) => Some(PCS::from_vec(vec![])),
+            MicroMirStatement::Constant(_, _) => Some(PCS::empty()),
             MicroMirStatement::Kill(_) => None,
-            MicroMirStatement::NullOp(_, _) => Some(PCS::from_vec(vec![])),
+            MicroMirStatement::NullOp(_, _) => Some(PCS::empty()),
             MicroMirStatement::UnOp(_, t1, _) => {
                 Some(PCS::from_vec(vec![PCSPermission::new_initialized(
                     Mutability::Mut,
@@ -161,11 +161,10 @@ impl<'tcx> MicroMirBody<'tcx> {
         }
     }
 
-    /// Read off the precondition for the core memory safety proof
-    /// INVARIANT: This is never incorrect at any step in the elaboration (but can be NONE)
-    /// INVARIANT: The final MicroMir has no postconditions that are NONE
-    pub fn core_postcondition(&self, location: Location) -> Option<PCS> {
-        match self.statement_at(location) {
+    type POST = PCS<'tcx>;
+
+    fn postcondition(&self) -> Option<Self::POST> {
+        match self {
             MicroMirStatement::Nop => Some(PCS::from_vec(vec![])),
             MicroMirStatement::Set(_, p, m) => {
                 Some(PCS::from_vec(vec![PCSPermission::new_initialized(
@@ -214,6 +213,79 @@ impl<'tcx> MicroMirBody<'tcx> {
     }
 }
 
+impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
+    type PRE = PCS<'tcx>;
+
+    fn precondition(&self) -> Option<Self::PRE> {
+        match self {
+            MicroMirTerminator::Jump(_) => Some(PCS::empty()),
+            MicroMirTerminator::JumpInt(t, _, m) => {
+                Some(PCS::from_vec(vec![PCSPermission::new_initialized(
+                    *m,
+                    (*t).into(),
+                )]))
+            }
+            MicroMirTerminator::Return(m) => {
+                Some(PCS::from_vec(vec![PCSPermission::new_initialized(
+                    *m,
+                    LinearResource::new_from_local_id(0),
+                )]))
+            }
+            MicroMirTerminator::EndVerif => None,
+        }
+    }
+
+    type POST = Vec<(BasicBlock, PCS<'tcx>)>;
+
+    fn postcondition(&self) -> Option<Self::POST> {
+        match self {
+            MicroMirTerminator::Jump(bb) => Some(vec![(*bb, PCS::empty())]),
+            MicroMirTerminator::JumpInt(t, mir_targets, m) => {
+                let target_permissions: Vec<(BasicBlock, PCS<'tcx>)> = mir_targets
+                    .iter()
+                    .map(|(_, bb)| {
+                        (
+                            *bb,
+                            PCS::from_vec(vec![PCSPermission::new_initialized(*m, *t)]),
+                        )
+                    })
+                    .collect();
+                Some(target_permissions)
+            }
+            MicroMirTerminator::Return(_) => None,
+            MicroMirTerminator::EndVerif => None,
+        }
+    }
+}
+
+impl<'tcx> MicroMirBody<'tcx> {
+    pub fn statement_at(&self, location: Location) -> &MicroMirStatement {
+        return &self.body[location.block].statements[location.statement_index];
+    }
+
+    pub fn terminator_of(&self, location: Location) -> &MicroMirTerminator {
+        return &self.body[location.block].terminator;
+    }
+
+    pub fn terminator_of_bb(&self, bb: BasicBlock) -> &MicroMirTerminator {
+        return &self.body[bb].terminator;
+    }
+
+    /// Read off the precondition for the core memory safety proof
+    /// INVARIANT: This is never incorrect at any step in the elaboration (but can be NONE)
+    /// INVARIANT: The final MicroMir has no preconditions that are NONE
+    pub fn core_precondition(&self, location: Location) -> Option<PCS> {
+        self.statement_at(location).precondition()
+    }
+
+    /// Read off the precondition for the core memory safety proof
+    /// INVARIANT: This is never incorrect at any step in the elaboration (but can be NONE)
+    /// INVARIANT: The final MicroMir has no postconditions that are NONE
+    pub fn core_postcondition(&self, location: Location) -> Option<PCS> {
+        self.statement_at(location).postcondition()
+    }
+}
+
 #[derive(PartialEq, Eq, Hash, Clone)]
 pub enum PCSPermissionKind {
     Shared,
@@ -225,6 +297,12 @@ pub enum PCSPermissionKind {
 pub enum LinearResource<'tcx> {
     Mir(Place<'tcx>),
     Tmp(TemporaryPlace),
+}
+
+impl<'tcx> LinearResource<'tcx> {
+    pub fn new_from_local_id(id: usize) -> Self {
+        LinearResource::Mir(Local::from_usize(id).into())
+    }
 }
 
 impl<'tcx> From<Place<'tcx>> for LinearResource<'tcx> {

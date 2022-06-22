@@ -27,11 +27,13 @@ conditions for MIR statements.
 { s p }                 Len(p, t, Not)              { s p, e t}
 
 encoding MIR Terminators
-{ }                     Goto(bb)                    { }
-{ e t }                 SwitchInt(t, Targets, Mut)  { e t }
-{ s t }                 SwitchInt(t, Targets, Mut)  { s t }
+{ }                     Jump(bb)                    [ (bb, { }) ]
+{ e t }                 JumpInt(t, Targets, Mut)    [ (bbx, { e t }), ... ]
+{ s t }                 JumpInt(t, Targets, Not)    [ (bbx, { s t }), ... ]
 
-
+{ e _0 }                Return(Mut)                 [ ]
+{ s _0 }                Return(Not)                 [ ]
+{ }                     EndVerif                    [ ] & assert False
 
 
 
