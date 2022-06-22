@@ -303,5 +303,3 @@ impl<'tcx> PCSPermission<'tcx> {
         }
     }
 }
-
-pub fn init_analysis() {}

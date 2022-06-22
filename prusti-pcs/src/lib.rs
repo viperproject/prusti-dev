@@ -21,4 +21,4 @@ extern crate rustc_trait_selection;
 extern crate serde;
 
 pub mod pcs;
-mod syntactic_expansion;
+pub mod syntactic_expansion;

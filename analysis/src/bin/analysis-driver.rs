@@ -13,6 +13,8 @@ extern crate rustc_interface;
 extern crate rustc_middle;
 extern crate rustc_session;
 
+use prusti_pcs::syntactic_expansion::MicroMirEncoder;
+
 use analysis::{
     abstract_interpretation::{CondInitializedAnalysis, FixpointEngine},
     domains::{
@@ -271,7 +273,7 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
                         }
                     }
-                    "PCSAnalysis" => {
+                    "CondInitAnalysis" => {
                         let analyzer =
                             CondInitializedAnalysis::new(tcx, local_def_id.to_def_id(), &body);
                         match analyzer.run_fwd_analysis() {
@@ -282,6 +284,12 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
                         }
                     }
+                    "PCSAnalysis" => match MicroMirEncoder::expand_syntax(&body) {
+                        Ok(enc) => {
+                            enc.pprint();
+                        }
+                        Err(e) => eprintln!("{:#?}", e),
+                    },
                     _ => panic!("Unknown domain argument: {}", abstract_domain),
                 }
             }
