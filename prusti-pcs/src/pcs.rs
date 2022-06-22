@@ -107,7 +107,7 @@ pub enum MicroMirTerminator<'tcx> {
     Jump(BasicBlock),
     JumpInt(LinearResource<'tcx>, Vec<(u128, BasicBlock)>, Mutability),
     Return(Mutability),
-    EndVerif,
+    FailVerif,
 }
 
 trait HoareSemantics {
@@ -231,7 +231,7 @@ impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
                     LinearResource::new_from_local_id(0),
                 )]))
             }
-            MicroMirTerminator::EndVerif => None,
+            MicroMirTerminator::FailVerif => None,
         }
     }
 
@@ -253,7 +253,7 @@ impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
                 Some(target_permissions)
             }
             MicroMirTerminator::Return(_) => None,
-            MicroMirTerminator::EndVerif => None,
+            MicroMirTerminator::FailVerif => None,
         }
     }
 }

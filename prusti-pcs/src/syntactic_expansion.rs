@@ -6,10 +6,18 @@
 
 #![allow(dead_code)]
 
-use crate::pcs::{MicroMirStatement, TemporaryPlace};
+use crate::pcs::{MicroMirStatement, MicroMirTerminator, TemporaryPlace};
 use rustc_middle::mir::{
-    BinOp, Body, Mutability, Mutability::*, NullOp, Operand, Operand::*, Place, Rvalue::*,
-    Statement, StatementKind::*, UnOp,
+    terminator::{Terminator, TerminatorKind::*},
+    BasicBlock, BinOp, Body, Local, Mutability,
+    Mutability::*,
+    NullOp, Operand,
+    Operand::*,
+    Place,
+    Rvalue::*,
+    Statement,
+    StatementKind::*,
+    UnOp,
 };
 
 use rustc_middle::ty;
@@ -65,6 +73,58 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
                     us
                 )))
             }
+        }
+    }
+
+    /// Returns the terminator for a basic block, potentially appending micro-steps to current
+    pub fn encode_terminator(
+        &self,
+        current: &mut Vec<MicroMirStatement<'tcx>>,
+        t: &'tcx Terminator,
+    ) -> Result<MicroMirTerminator<'tcx>, MicroMirEncodingError> {
+        match &t.kind {
+            Goto { target } => Ok(MicroMirTerminator::Jump(*target)),
+            SwitchInt {
+                discr,
+                switch_ty: _,
+                targets,
+            } => {
+                let temp_1 = TemporaryPlace { id: 1 };
+                let temp_1_mut = self.encode_operand(current, discr, temp_1)?;
+                Ok(MicroMirTerminator::JumpInt(
+                    temp_1.into(),
+                    targets.iter().collect(),
+                    temp_1_mut,
+                ))
+            }
+            Abort => Ok(MicroMirTerminator::FailVerif),
+            Unreachable => Ok(MicroMirTerminator::FailVerif),
+            Return => {
+                let return_mutability =
+                    self.lookup_place_mutability(&Local::from_usize(0).into(), &self.body)?;
+                Ok(MicroMirTerminator::Return(return_mutability))
+            }
+            Drop {
+                place,
+                target,
+                unwind: _,
+            } => {
+                current.push(MicroMirStatement::Kill((*place).into()));
+                Ok(MicroMirTerminator::Jump(*target))
+            }
+            DropAndReplace {
+                place,
+                value,
+                target,
+                unwind: _,
+            } => {
+                self.encode_assign_use(current, place, value)?;
+                Ok(MicroMirTerminator::Jump(*target))
+            }
+            us => Err(MicroMirEncodingError::UnsupportedStatementError(format!(
+                "Unimplemented statement {:#?}",
+                us
+            ))),
         }
     }
 
