@@ -144,7 +144,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             encoded_base
                         };
                         let field = &variant_def.fields[field.index()];
-                        let field_ty = field.ty(tcx, subst);
+                        let field_ty = *proj_field_ty;
                         if utils::is_reference(field_ty) {
                             return Err(EncodingError::unsupported(
                                 "access to reference-typed fields is not supported",
