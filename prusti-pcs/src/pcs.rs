@@ -15,79 +15,15 @@ use rustc_middle::mir::{
     Mutability::*, NullOp, Place, PlaceElem, Statement, UnOp,
 };
 
-pub struct MicroMirBody<'tcx> {
-    pub body: IndexVec<BasicBlock, MicroMirData<'tcx>>,
-    pub kill_elaborations: FxHashMap<Location, PCS<'tcx>>,
-    pub required_prestates: FxHashMap<Location, PCS<'tcx>>,
-}
-
-pub struct PCS<'tcx> {
-    set: FxHashSet<PCSPermission<'tcx>>,
-}
-
-impl<'tcx> PCS<'tcx> {
-    pub fn from_vec(vec: Vec<PCSPermission<'tcx>>) -> Self {
-        PCS {
-            set: FxHashSet::from_iter(vec),
-        }
-    }
-
-    pub fn empty() -> Self {
-        PCS {
-            set: FxHashSet::default(),
-        }
-    }
-}
-
-pub struct MicroMirData<'tcx> {
-    pub statements: Vec<MicroMirStatement<'tcx>>,
-    pub terminator: MicroMirTerminator<'tcx>,
-}
-
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct TemporaryPlace {
     pub id: usize,
 }
 
-/// Unlike the real MIR, we will not represent conditional flags as stack places.
-/// This makes the implementation simpler, gives us more freedom for the backend
-/// encoding, and we're modelleing drops ourselves anyways.
-///
-/// TODO: Encode this and analyze it
-#[derive(PartialEq, Eq, Hash, Clone)]
-pub struct ConditionalFlag {
-    id: usize,
-    kind: ConditionalFlagKind,
-}
-
-// Approximations we need to compute the MicroMir (Permissions, approximate)
-//
-//      DefinitelyInitialized
-//
-//
-// Annotations we need to compute the MicroMir (Non-permission factors, non-approximate)
-//
-//      Flags for real initilizations / Reassignments (tags)
-//
-//      Real lifetime endings
-//
-//
-
-// Control flow === lifetime flow dependendent ops
-
-// Special edge === wand \
-// fields of owned,
-// field of a borrowed place,
-// regular borrows
-//      ==> derivable from type info @ asssignments with RHS borrow
-
-// move/copy might have DAG effect, undecided if uninit is meaningful to DAG
-// Tag at every reassignment, not just at loop
-//      => know statically reassignment places, syntactic rule.
-
-#[derive(PartialEq, Eq, Hash, Clone)]
-pub enum ConditionalFlagKind {
-    Init,
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+pub enum LinearResource<'tcx> {
+    Mir(Place<'tcx>),
+    Tmp(TemporaryPlace),
 }
 
 pub enum MicroMirStatement<'tcx> {
@@ -110,7 +46,49 @@ pub enum MicroMirTerminator<'tcx> {
     FailVerif,
 }
 
-trait HoareSemantics {
+pub struct MicroMirData<'tcx> {
+    pub statements: Vec<MicroMirStatement<'tcx>>,
+    pub terminator: MicroMirTerminator<'tcx>,
+}
+
+pub struct MicroMirBody<'tcx> {
+    pub body: IndexVec<BasicBlock, MicroMirData<'tcx>>,
+    pub kill_elaborations: FxHashMap<Location, PCS<'tcx>>,
+    pub required_prestates: FxHashMap<Location, PCS<'tcx>>,
+}
+
+#[derive(PartialEq, Eq, Hash, Clone)]
+pub enum PCSPermissionKind {
+    Shared,
+    Exclusive,
+    Uninit,
+}
+
+#[derive(PartialEq, Eq, Hash, Clone)]
+pub struct PCSPermission<'tcx> {
+    target: LinearResource<'tcx>,
+    kind: PCSPermissionKind,
+}
+
+pub struct PCS<'tcx> {
+    set: FxHashSet<PCSPermission<'tcx>>,
+}
+
+impl<'tcx> PCS<'tcx> {
+    pub fn from_vec(vec: Vec<PCSPermission<'tcx>>) -> Self {
+        PCS {
+            set: FxHashSet::from_iter(vec),
+        }
+    }
+
+    pub fn empty() -> Self {
+        PCS {
+            set: FxHashSet::default(),
+        }
+    }
+}
+
+pub trait HoareSemantics {
     type PRE;
     type POST;
     fn precondition(&self) -> Option<Self::PRE>;
@@ -286,19 +264,6 @@ impl<'tcx> MicroMirBody<'tcx> {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Clone)]
-pub enum PCSPermissionKind {
-    Shared,
-    Exclusive,
-    Uninit,
-}
-
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
-pub enum LinearResource<'tcx> {
-    Mir(Place<'tcx>),
-    Tmp(TemporaryPlace),
-}
-
 impl<'tcx> LinearResource<'tcx> {
     pub fn new_from_local_id(id: usize) -> Self {
         LinearResource::Mir(Local::from_usize(id).into())
@@ -315,12 +280,6 @@ impl<'tcx> From<TemporaryPlace> for LinearResource<'tcx> {
     fn from(t: TemporaryPlace) -> Self {
         LinearResource::Tmp(t)
     }
-}
-
-#[derive(PartialEq, Eq, Hash, Clone)]
-pub struct PCSPermission<'tcx> {
-    target: LinearResource<'tcx>,
-    kind: PCSPermissionKind,
 }
 
 impl<'tcx> PCSPermission<'tcx> {
@@ -346,9 +305,3 @@ impl<'tcx> PCSPermission<'tcx> {
 }
 
 pub fn init_analysis() {}
-
-// TODO ITEMS:
-//   Prefix invariant in init semantics
-//   Operational translation
-//   Calling the conditional analysis (refactored for operational MIR)
-//   Kill elaboration into MicroMir
