@@ -35,11 +35,25 @@ impl Lifetimes {
             .collect()
     }
 
+    pub fn get_origin_contains_loan_at_start(
+        &self,
+        location: mir::Location,
+    ) -> BTreeMap<String, BTreeSet<String>> {
+        self.get_origin_contains_loan_at_location(RichLocation::Start(location))
+    }
+
     pub fn get_origin_contains_loan_at_mid(
         &self,
         location: mir::Location,
     ) -> BTreeMap<String, BTreeSet<String>> {
-        let info = self.get_origin_contains_loan_at(RichLocation::Mid(location));
+        self.get_origin_contains_loan_at_location(RichLocation::Mid(location))
+    }
+
+    pub fn get_origin_contains_loan_at_location(
+        &self,
+        location: RichLocation,
+    ) -> BTreeMap<String, BTreeSet<String>> {
+        let info = self.get_origin_contains_loan_at(location);
         info.iter()
             .map(|(k, v)| {
                 (
