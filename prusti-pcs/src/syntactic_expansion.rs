@@ -5,11 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![allow(dead_code)]
-use crate::pcs::{MicroMirData, MicroMirStatement, MicroMirTerminator, TemporaryPlace};
+use crate::pcs::{
+    HoareSemantics, MicroMirData, MicroMirStatement, MicroMirTerminator, TemporaryPlace, PCS,
+};
 use rustc_data_structures::stable_map::FxHashMap;
 use rustc_middle::{
     mir::{
         terminator::{Terminator, TerminatorKind::*},
+        AggregateKind::Adt,
         BasicBlock, BinOp, Body, Local, Mutability,
         Mutability::*,
         NullOp, Operand,
@@ -90,8 +93,21 @@ impl<'mir> MicroMirEncoder<'mir> {
                 Self::encode_nullop(current, *nullop, p_dest)
             }
 
+            // TODO: These need to be discussed
+            StorageDead(local) => Self::encode_storagedead(current, *local, mir),
+
+            // TODO: These need to be discussed
+            StorageLive(local) => Self::encode_storagelive(current, *local, mir),
+
+            // TODO: These need to be discussed
+            Assign(box (p_dest, Aggregate(box (Adt(_, _, _, _, _)), vec))) => Ok(()),
+
+            FakeRead(box (_, _)) => Ok(()),
+
+            AscribeUserType(box (_p, _proj), _variance) => Ok(()),
+
             us => Err(UnsupportedStatementError(format!(
-                "Unsupported Statement: {:#?}",
+                "Unsupported Statement: {:?}",
                 us
             ))),
         }
@@ -300,6 +316,28 @@ impl<'mir> MicroMirEncoder<'mir> {
         }
     }
 
+    // Appends the encoding for a StorageLive
+    // TODO: StorageLive/StorageDead right now are no-ops. Discuss this.
+    fn encode_storagelive(
+        current: &mut Vec<MicroMirStatement<'mir>>,
+        _l: Local,
+        _mir: &Body,
+    ) -> Result<(), MicroMirEncodingError> {
+        current.push(MicroMirStatement::Nop);
+        Ok(())
+    }
+
+    // Appends the encoding for a StorageDead
+    // TODO: StorageLive/StorageDead right now are no-ops. Discuss this.
+    fn encode_storagedead(
+        current: &mut Vec<MicroMirStatement<'mir>>,
+        _l: Local,
+        _mir: &Body,
+    ) -> Result<(), MicroMirEncodingError> {
+        current.push(MicroMirStatement::Nop);
+        Ok(())
+    }
+
     /// Accesses a place's mutability from the current MIR body.
     fn lookup_place_mutability(
         p: &Place<'mir>,
@@ -308,11 +346,13 @@ impl<'mir> MicroMirEncoder<'mir> {
         if let Some(localdecl) = mir.local_decls.get(p.local) {
             match localdecl.ty.kind() {
                 ty::TyKind::Ref(_, _, m) => return Ok(*m),
-                err_t => {
-                    return Err(MicroMirEncodingError::LocalError(format!(
-                        "Expected refrerence {:#?} has type {:#?}",
-                        p.local, err_t
-                    )));
+                _ => {
+                    // If it's not a reference, it's definitely owned
+                    Ok(Mut)
+                    // return Err(MicroMirEncodingError::LocalError(format!(
+                    //     "Expected refrerence {:#?} has type {:#?}",
+                    //     p.local, err_t
+                    // )));
                 }
             }
         } else {
@@ -324,6 +364,46 @@ impl<'mir> MicroMirEncoder<'mir> {
     }
 
     pub fn pprint(&self) {
-        todo!("Not ready to pretty print statements yet!");
+        let mut current_bb: usize = 0;
+        for (bb, dat) in self.encoding.iter() {
+            println!(
+                " ===================== {} ===================== ",
+                current_bb
+            );
+            for stmt in dat.statements.iter() {
+                print!("\t,----------------------------- ");
+                Self::pprint_pcs(&stmt.precondition());
+                println!("\t| {:?}", stmt);
+                print!("\t'----------------------------- ");
+                Self::pprint_pcs(&stmt.postcondition());
+            }
+
+            print!("\t,----------------------------- ");
+            Self::pprint_pcs(&dat.terminator.precondition());
+            println!("\t| {:?}", dat.terminator);
+            Self::pprint_term(&dat.terminator.postcondition());
+
+            current_bb += 1;
+        }
+        println!();
+        println!();
+    }
+
+    fn pprint_pcs<'tcx>(pcs: &Option<PCS<'tcx>>) {
+        match pcs {
+            Some(pcs1) => println!("{:?}", pcs1.set),
+            None => println!("None"),
+        }
+    }
+
+    fn pprint_term<'tcx>(jumps: &Option<Vec<(BasicBlock, PCS<'tcx>)>>) {
+        match jumps {
+            None => println!("\t\t\tNone"),
+            Some(jumps1) => {
+                for (bb, pcs) in jumps1 {
+                    println!("\t\t\t{:?} -> {:?}", bb, pcs.set)
+                }
+            }
+        }
     }
 }

@@ -7,6 +7,8 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use std::fmt::{Debug, Display};
+
 use crate::syntactic_expansion;
 use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
 use rustc_index::vec::IndexVec;
@@ -70,8 +72,9 @@ pub struct PCSPermission<'tcx> {
     kind: PCSPermissionKind,
 }
 
+#[derive(Debug)]
 pub struct PCS<'tcx> {
-    set: FxHashSet<PCSPermission<'tcx>>,
+    pub set: FxHashSet<PCSPermission<'tcx>>,
 }
 
 impl<'tcx> PCS<'tcx> {
@@ -300,6 +303,71 @@ impl<'tcx> PCSPermission<'tcx> {
         PCSPermission {
             target,
             kind: PCSPermissionKind::Uninit,
+        }
+    }
+}
+
+impl Debug for TemporaryPlace {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "_tmp{}", self.id)
+    }
+}
+
+impl<'tcx> Debug for LinearResource<'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Mir(p) => write!(f, "{:?}", p),
+            Self::Tmp(t) => write!(f, "{:?}", t),
+        }
+    }
+}
+
+impl Debug for PCSPermissionKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PCSPermissionKind::Shared => write!(f, "s"),
+            PCSPermissionKind::Exclusive => write!(f, "e"),
+            PCSPermissionKind::Uninit => write!(f, "u"),
+        }
+    }
+}
+
+impl<'tcx> Debug for PCSPermission<'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?} {:?}", self.kind, self.target)
+    }
+}
+
+impl<'tcx> Debug for MicroMirStatement<'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MicroMirStatement::Nop => write!(f, "nop"),
+            MicroMirStatement::Set(t, p, m) => write!(f, "set {:?} -> {:?} ({:?})", t, p, m),
+            MicroMirStatement::Move(p, t) => write!(f, "move {:?} -> {:?}", p, t),
+            MicroMirStatement::Duplicate(p, t, m) => write!(f, "dup {:?} -> {:?} ({:?})", p, t, m),
+            MicroMirStatement::Constant(k, t) => write!(f, "constant {:?} -> {:?}", k, t),
+            MicroMirStatement::Kill(LinearResource::Tmp(t)) => write!(f, "kill {:?}", t),
+            MicroMirStatement::Kill(LinearResource::Mir(p)) => write!(f, "kill {:?}", p),
+            MicroMirStatement::NullOp(op, t) => write!(f, "op0 {:?} -> {:?}", op, t),
+            MicroMirStatement::UnOp(op, t1, t2) => write!(f, "op1 {:?} {:?} -> {:?}", op, t1, t2),
+            MicroMirStatement::BinaryOp(op, false, t1, t2, t3) => {
+                write!(f, "op2 {:?} {:?} {:?} -> {:?}", t1, op, t2, t3)
+            }
+            MicroMirStatement::BinaryOp(op, true, t1, t2, t3) => {
+                write!(f, "op2 checked {:?} {:?} {:?} -> {:?}", t1, op, t2, t3)
+            }
+            MicroMirStatement::Len(p, t, m) => write!(f, "len {:?} -> {:?} ({:?})", p, t, m),
+        }
+    }
+}
+
+impl<'tcx> Debug for MicroMirTerminator<'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Jump(bb) => write!(f, "jump {:?}", bb),
+            Self::JumpInt(t, cond, m) => write!(f, "jumpInt {:?}:{:?} ({:?})", t, cond, m),
+            Self::Return(m) => write!(f, "return ({:?})", m),
+            Self::FailVerif => write!(f, "fail"),
         }
     }
 }
