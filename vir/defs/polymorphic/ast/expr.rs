@@ -303,25 +303,25 @@ impl Expr {
     }
 
     pub fn bin_op(op_kind: BinaryOpKind, left: Expr, right: Expr) -> Self {
-        println!("{:?} {:?} {:?}", op_kind, left, right);
+        // println!("{:?} {:?} {:?}", op_kind, left, right);
         match op_kind {
             BinaryOpKind::Implies =>
                 if Self::is(&right, false) {
-                    println!("Optimized");
+                    // println!("Optimized");
                     return Expr::not(left)
                 }
             BinaryOpKind::And =>
                 if Self::is(&left, true) {
-                    println!("Optimized");
+                    // println!("Optimized");
                     return right
                 } else if Self::is(&right, true) {
-                    println!("Optimized");
+                    // println!("Optimized");
                     return left
                 }
             _ => {}
 
         }
-        println!("Not optimized");
+        // println!("Not optimized");
         Expr::BinOp(BinOp {
             op_kind,
             left: Box::new(left),
