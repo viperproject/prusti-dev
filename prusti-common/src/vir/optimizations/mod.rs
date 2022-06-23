@@ -124,6 +124,13 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
             program.viper_predicates,
         );
     }
+    let (new_predicates, new_methods) = predicates::delete_useless_predicates(
+        program.methods,
+        &program.functions,
+        program.viper_predicates,
+    );
+    program.methods = new_methods;
+    program.viper_predicates = new_predicates;
 
     if config::enable_purification_optimization() {
         log_methods(source_file_name, &program.methods, "purify_methods", false);
