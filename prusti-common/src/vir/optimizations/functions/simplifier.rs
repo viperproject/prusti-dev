@@ -14,6 +14,16 @@ pub trait Simplifier {
     fn simplify(self) -> Self;
 }
 
+fn not_true(c: &ast::Expr) -> bool {
+    !matches!(
+        c,
+        ast::Expr::Const(ast::ConstExpr {
+            value: Const::Bool(true),
+            ..
+        }
+    ))
+}
+
 impl Simplifier for ast::Function {
     /// Simplify functions in a way that tries to work-around regressions caused by
     /// <https://github.com/viperproject/silicon/issues/387>
@@ -21,13 +31,8 @@ impl Simplifier for ast::Function {
         trace!("[enter] simplify = {}", self);
         let new_body = self.body.map(|b| b.simplify());
         self.body = new_body;
-        self.pres.retain(|pre| !matches!(
-            pre,
-            ast::Expr::Const(ast::ConstExpr {
-                value: Const::Bool(true),
-                ..
-            }
-        )));
+        self.pres.retain(|c| not_true(c));
+        self.posts.retain(|c| not_true(c));
         trace!("[exit] simplify = {}", self);
         self
     }
