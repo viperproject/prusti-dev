@@ -308,15 +308,15 @@ impl Expr {
             BinaryOpKind::Implies =>
                 if Self::is(&right, false) {
                     // println!("Optimized");
-                    return Expr::not(left)
+                    return Expr::not(left).set_pos(Position::default())
                 }
             BinaryOpKind::And =>
                 if Self::is(&left, true) {
                     // println!("Optimized");
-                    return right
+                    return right.set_pos(Position::default())
                 } else if Self::is(&right, true) {
                     // println!("Optimized");
-                    return left
+                    return left.set_pos(Position::default())
                 }
             _ => {}
 
