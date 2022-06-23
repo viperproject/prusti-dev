@@ -6,7 +6,7 @@
 
 //! Function simplifier that simplifies expressions.
 
-use crate::vir::polymorphic_vir::ast::{self, ExprFolder};
+use crate::vir::polymorphic_vir::ast::{self, ExprFolder, Const};
 
 pub trait Simplifier {
     /// Simplify by doing constant evaluation.
@@ -21,6 +21,13 @@ impl Simplifier for ast::Function {
         trace!("[enter] simplify = {}", self);
         let new_body = self.body.map(|b| b.simplify());
         self.body = new_body;
+        self.pres.retain(|pre| !matches!(
+            pre,
+            ast::Expr::Const(ast::ConstExpr {
+                value: Const::Bool(true),
+                ..
+            }
+        )));
         trace!("[exit] simplify = {}", self);
         self
     }

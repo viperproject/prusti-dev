@@ -5,5 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 mod delete_unused_predicates;
+mod delete_useless_predicates;
 
 pub use self::delete_unused_predicates::delete_unused_predicates;
+pub use self::delete_useless_predicates::delete_useless_predicates;
