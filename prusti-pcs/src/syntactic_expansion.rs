@@ -347,12 +347,9 @@ impl<'mir> MicroMirEncoder<'mir> {
             match localdecl.ty.kind() {
                 ty::TyKind::Ref(_, _, m) => return Ok(*m),
                 _ => {
-                    // If it's not a reference, it's definitely owned
+                    // If it's not a reference, it has to be owned
+                    // TODO: Should owned data be differentiated from &mut data?
                     Ok(Mut)
-                    // return Err(MicroMirEncodingError::LocalError(format!(
-                    //     "Expected refrerence {:#?} has type {:#?}",
-                    //     p.local, err_t
-                    // )));
                 }
             }
         } else {
@@ -384,9 +381,9 @@ impl<'mir> MicroMirEncoder<'mir> {
             Self::pprint_term(&dat.terminator.postcondition());
 
             current_bb += 1;
+            println!();
+            println!();
         }
-        println!();
-        println!();
     }
 
     fn pprint_pcs<'tcx>(pcs: &Option<PCS<'tcx>>) {
@@ -398,10 +395,10 @@ impl<'mir> MicroMirEncoder<'mir> {
 
     fn pprint_term<'tcx>(jumps: &Option<Vec<(BasicBlock, PCS<'tcx>)>>) {
         match jumps {
-            None => println!("\t\t\tNone"),
+            None => println!("\t|\tNone"),
             Some(jumps1) => {
                 for (bb, pcs) in jumps1 {
-                    println!("\t\t\t{:?} -> {:?}", bb, pcs.set)
+                    println!("\t|\t{:?} -> {:?}", bb, pcs.set)
                 }
             }
         }

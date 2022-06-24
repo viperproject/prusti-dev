@@ -41,6 +41,11 @@ Question: What do binary operators do to permissions? Can all my Temporary resou
 
 
 
+Semi-operational semantics in rustc current implementation, and an interpreter?
+compiler/rustc_const_eval/src/interpret/step.rs::76
+compiler/rustc_const_eval/src/interpret/machine.rs
+
+Current translation: prusti-viper/src/encoder/procedure_encoder.rs::1346
 
 
 
@@ -155,7 +160,12 @@ WIP statements (not completely convinced about anything below here yet)
     Q: Exiting the PCS also happens with wands... same underlying mechanic?
 
 
+StorageDead: I think technically this does nothing to the PCS. However, for efficiency
+purposes, it might matter? Taking a look through the encoders I can't find any meaning
+attached to a storagedead whatsoever. 
 
+Same with StorageLive: no encoding, no use in the interpreter, just marking off a block
+for efficiency. 
 
 
 
@@ -163,26 +173,41 @@ Open questions:
     Untranslated MIR statements and RHS cases:
         - (RHS) Repeat
         - (RHS) Ref
-        - (RHS) ThreadLocalRef
-        - (RHS) AddressOf
         - (RHS) Cast
-        - (RHS) Discriminant
+        - (RHS) Discriminant: How are we handling enums? 
         - (RHS) Aggregate
-        - (RHS) ShallowInitBox
         - Deinit (Just kill? should it retain the permission u p? Is it always followed by a StorageDead? )
-        - CopyNonOverlapping
-    AFAIK The following MIR statements do not change the PCS. Do we need them, or can they be special no-ops?
-        - FakeRead
         - SetDiscriminant (how is this "used for drop elaboration", again?)
-        - Retag (it's for stacked borrows)
-        - AscribeUserType (should the type checker have already used this? Is there any dynamic typing?)
-        - Coverage
-    Where might wands be applied?
-        Owned vs borrowed values?
-    Can we do our MaybeInit analysis on this?
-    Terminators:
-        Do we verify unwind paths?
+        - CopyNonOverlapping
+    The following ops: Probably not used?
+        - FakeRead (Docs say nop, but V. says they're used for... something? Make sure fields are init'd? )
+        - AscribeUserType (should the type checker have already used this and put it into the user_ty field of rustc_middle::mir::LocalDecl for each Local)
+        - Coverage (Pretty sure this is not used for us, and that it can't give us any information. )
+        - (RHS) AddressOf
+            From the compiler
+                >       // Exact set of permissions granted by AddressOf is undecided. Conservatively assume that
+                        // it might allow mutation until resolution of #56604.
+                Issue #56604: https://github.com/rust-lang/rust/issues/56604
+                MIR docs suggest this is limited to raw pointers, which can be created in safe code but are useless
+                (so nobody will write raw pointer code and care if this isn't implemented yet)
+                Adding in a distinction between regular places and unsafe places would confuse the safe abstractions, 
+                so for now this will be IGNORED.
+        - (RHS) ThreadLocalRef aand (RHS) ShallowInitBox
+                Current encoder says that these are unsupported
+        - Retag (it's for stacked borrows, but the docs say
+                > For code that is not specific to stacked borrows, you should consider retags to read and modify the place in an opaque way.
+                so is this a { } nop { } situation or a { e p } retag p { e p } situation?)
+                - Rust says Retag is "irrelevant to borrow check", I believe is not used in codegen
+                - I do think it's allowed, at least it's not disallowed (disallowed after drop elaboration iirc)
+                - emit-retag is behind a flag anyways?
 
+
+
+Is it important wands might be applied?
+Should we distinguish beteen Owned vs borrowed values?
+Can we do our MaybeInit analysis on this?
+Do we verify unwind paths?
+    - No!
 
 
 
@@ -197,11 +222,11 @@ WIP MIR Translations:
         and treat these statements as no-ops.
     StorageDead(p)      ->      { ? }       Kill(p)         { u p }
                                 { u p }     Exit(p)         { }
-
     StorageLive(p)      ->      { }         Enter(p)        { u p }
         
         The "enter" microcode op seems a lot like we could just specialize "kill"
         Also, exiting the PCS can have wand-effects.
+    It seems like these should have no impact on the permissions, except efficiency?
 
 
     The permissions for Repeat:
