@@ -81,6 +81,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let function_call_ctr: usize = 0;
     let derived_lifetimes_yet_to_kill: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let reborrow_lifetimes_to_remove: BTreeSet<String> = BTreeSet::new();
+    let points_to_reborrow: BTreeSet<vir_high::Local> = BTreeSet::new();
     let mut procedure_encoder = ProcedureEncoder {
         encoder,
         def_id,
@@ -103,6 +104,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         function_call_ctr,
         derived_lifetimes_yet_to_kill,
         reborrow_lifetimes_to_remove,
+        points_to_reborrow,
     };
     procedure_encoder.encode()
 }
@@ -136,6 +138,7 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     function_call_ctr: usize,
     derived_lifetimes_yet_to_kill: BTreeMap<String, BTreeSet<String>>,
     reborrow_lifetimes_to_remove: BTreeSet<String>,
+    points_to_reborrow: BTreeSet<vir_high::Local>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -444,12 +447,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let terminator_index = statements.len();
         let mut original_lifetimes: BTreeSet<String> =
             self.lifetimes.get_loan_live_at_start(location);
-        // FIXME: This misses the lifetimes that need to be generated at the
-        // beginning of the block.
         let mut derived_lifetimes: BTreeMap<String, BTreeSet<String>> =
-            self.lifetimes.get_origin_contains_loan_at_mid(location);
+            self.lifetimes.get_origin_contains_loan_at_start(location);
         while location.statement_index < terminator_index {
-            self.encode_lft_for_statement(
+            self.encode_lft_for_statement_mid(
                 &mut block_builder,
                 location,
                 &mut original_lifetimes,
@@ -462,9 +463,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &statements[location.statement_index],
             )?;
             location.statement_index += 1;
+            if location.statement_index < terminator_index {
+                self.encode_lft_for_statement_start(
+                    &mut block_builder,
+                    location,
+                    &mut original_lifetimes,
+                    &mut derived_lifetimes,
+                    Some(&statements[location.statement_index]),
+                )?;
+            }
         }
         if let Some(terminator) = terminator {
-            self.encode_lft_for_statement(
+            self.encode_lft_for_statement_mid(
                 &mut block_builder,
                 location,
                 &mut original_lifetimes,
@@ -587,6 +597,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let root = self.encoder.encode_local_high(self.mir, place.local)?;
                     let place_lifetime_name = self.lifetime_name(root.into());
                     if let Some(place_lifetime_name) = place_lifetime_name {
+                        if let vir_high::Expression::Local(local) = &encoded_target {
+                            self.points_to_reborrow.insert(local.clone());
+                        }
                         let place_lifetime = vir_high::ty::LifetimeConst {
                             name: place_lifetime_name,
                         };
@@ -873,6 +886,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let encoded_source =
                     self.encoder
                         .encode_place_high(self.mir, *source, Some(span))?;
+                if let vir_high::Expression::Local(local_source) = &encoded_source {
+                    if self.points_to_reborrow.contains(local_source) {
+                        if let vir_high::Expression::Local(local_target) = &encoded_target {
+                            self.points_to_reborrow.insert(local_target.clone());
+                        }
+                    }
+                }
                 block_builder.add_statement(self.set_statement_error(
                     location,
                     ErrorCtxt::MovePlace,
