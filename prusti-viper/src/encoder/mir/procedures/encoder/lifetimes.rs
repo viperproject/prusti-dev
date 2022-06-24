@@ -11,7 +11,15 @@ use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::high::{self as vir_high, builders::procedure::BasicBlockBuilder};
 
 pub(super) trait LifetimesEncoder<'tcx> {
-    fn encode_lft_for_statement(
+    fn encode_lft_for_statement_start(
+        &mut self,
+        block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
+        original_lifetimes: &mut BTreeSet<String>,
+        derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
+        statement: Option<&mir::Statement<'tcx>>,
+    ) -> SpannedEncodingResult<()>;
+    fn encode_lft_for_statement_mid(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
@@ -175,7 +183,33 @@ pub(super) trait LifetimesEncoder<'tcx> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, 'tcx> {
-    fn encode_lft_for_statement(
+    fn encode_lft_for_statement_start(
+        &mut self,
+        block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
+        original_lifetimes: &mut BTreeSet<String>,
+        derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
+        statement: Option<&mir::Statement<'tcx>>,
+    ) -> SpannedEncodingResult<()> {
+        let mut new_derived_lifetimes = self.lifetimes.get_origin_contains_loan_at_start(location);
+        block_builder.add_comment(format!(
+            "Prepare lifetimes for statement start {:?}",
+            location
+        ));
+        let new_reborrow_lifetime_to_ignore: Option<String> = self.reborrow_lifetime(statement);
+        self.encode_lft(
+            block_builder,
+            location,
+            original_lifetimes,
+            derived_lifetimes,
+            &mut new_derived_lifetimes,
+            false,
+            new_reborrow_lifetime_to_ignore,
+        )?;
+        Ok(())
+    }
+
+    fn encode_lft_for_statement_mid(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
@@ -184,7 +218,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         statement: Option<&mir::Statement<'tcx>>,
     ) -> SpannedEncodingResult<()> {
         let mut new_derived_lifetimes = self.lifetimes.get_origin_contains_loan_at_mid(location);
-        block_builder.add_comment(format!("Prepare lifetimes for statement {:?}", location));
+        block_builder.add_comment(format!(
+            "Prepare lifetimes for statement mid {:?}",
+            location
+        ));
         let new_reborrow_lifetime_to_ignore: Option<String> = self.reborrow_lifetime(statement);
         self.encode_lft(
             block_builder,
@@ -555,7 +592,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                     )?);
                     if let Some(mir_local) = self.procedure.get_var_of_lifetime(&lifetime[..]) {
                         let local = self.encode_local(mir_local)?;
-                        self.encode_dead_variable(block_builder, location, local)?;
+                        // FIXME: A workaround until Dead is fixed.
+                        if !self.points_to_reborrow.contains(&local) {
+                            self.encode_dead_variable(block_builder, location, local)?;
+                        }
                     }
                     self.derived_lifetimes_yet_to_kill.remove(&lifetime);
                     break;

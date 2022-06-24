@@ -200,7 +200,18 @@ impl PredicateState {
         &self,
         place: &vir_high::Expression,
     ) -> SpannedEncodingResult<Option<(&vir_high::Expression, &vir_high::ty::LifetimeConst)>> {
-        Ok(self.mut_borrowed.iter().find(|(p, _)| place.has_prefix(p)))
+        Ok(self.mut_borrowed.iter().find(|(p, _)| {
+            let prefix_expr = match p {
+                vir_high::Expression::BuiltinFuncApp(vir_high::BuiltinFuncApp {
+                    function: vir_high::BuiltinFunc::Index,
+                    type_arguments: _,
+                    arguments,
+                    ..
+                }) => &arguments[0],
+                _ => *p,
+            };
+            place.has_prefix(prefix_expr)
+        }))
     }
 
     pub(super) fn clear(&mut self) -> SpannedEncodingResult<()> {

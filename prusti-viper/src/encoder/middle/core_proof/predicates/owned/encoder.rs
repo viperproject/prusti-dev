@@ -237,6 +237,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             }
             vir_mid::TypeDecl::Array(decl) => {
                 let element_type = &decl.element_type;
+                self.lowerer.encode_place_array_index_axioms(ty)?;
                 self.lowerer.ensure_type_definition(element_type)?;
                 let parameters = self.lowerer.extract_non_type_parameters_from_type(ty)?;
                 let parameters_validity: vir_low::Expression = self
