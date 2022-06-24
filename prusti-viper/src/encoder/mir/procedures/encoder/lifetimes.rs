@@ -592,6 +592,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                     )?);
                     if let Some(mir_local) = self.procedure.get_var_of_lifetime(&lifetime[..]) {
                         let local = self.encode_local(mir_local)?;
+                        // FIXME: A workaround until Dead is fixed.
                         if !self.points_to_reborrow.contains(&local) {
                             self.encode_dead_variable(block_builder, location, local)?;
                         }
