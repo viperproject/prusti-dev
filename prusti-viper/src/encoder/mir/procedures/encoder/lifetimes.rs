@@ -592,7 +592,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                     )?);
                     if let Some(mir_local) = self.procedure.get_var_of_lifetime(&lifetime[..]) {
                         let local = self.encode_local(mir_local)?;
-                        self.encode_dead_variable(block_builder, location, local)?;
+                        if !self.points_to_reborrow.contains(&local) {
+                            self.encode_dead_variable(block_builder, location, local)?;
+                        }
                     }
                     self.derived_lifetimes_yet_to_kill.remove(&lifetime);
                     break;
@@ -604,16 +606,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
 
     fn encode_dead_variable(
         &mut self,
-        _block_builder: &mut BasicBlockBuilder,
-        _location: mir::Location,
-        _variable: vir_high::Local,
+        block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
+        variable: vir_high::Local,
     ) -> SpannedEncodingResult<()> {
-        // FIXME: Use Dead statement correctly
-        // block_builder.add_statement(self.set_statement_error(
-        //     location,
-        //     ErrorCtxt::LifetimeEncoding,
-        //     vir_high::Statement::dead_no_pos(variable.into()),
-        // )?);
+        block_builder.add_statement(self.set_statement_error(
+            location,
+            ErrorCtxt::LifetimeEncoding,
+            vir_high::Statement::dead_no_pos(variable.into()),
+        )?);
         Ok(())
     }
 
