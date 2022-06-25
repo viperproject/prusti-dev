@@ -1,12 +1,14 @@
 use super::borrows::BorrowInfo;
 use crate::encoder::places;
 use prusti_interface::{environment::Environment, specs::typed};
-use rustc_hash::FxHashMap;
-use rustc_hir::{
-    def_id::{DefId, LocalDefId},
-    Mutability,
+use prusti_rustc_interface::{
+    hir::{
+        def_id::{DefId, LocalDefId},
+        Mutability,
+    },
+    middle::{mir, ty::subst::SubstsRef},
 };
-use rustc_middle::{mir, ty::subst::SubstsRef};
+use rustc_hash::FxHashMap;
 use std::fmt;
 
 /// Contract of a specific procedure. It is a separate struct from a

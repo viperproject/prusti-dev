@@ -14,11 +14,11 @@ use crate::utils;
 use prusti_common::vir_expr;
 use vir_crate::{polymorphic as vir};
 use prusti_common::config;
-use rustc_target::abi;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty};
-use rustc_index::vec::IndexVec;
-use rustc_span::{Span, DUMMY_SP};
+use prusti_rustc_interface::target::abi;
+use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::middle::{mir, ty};
+use prusti_rustc_interface::index::vec::IndexVec;
+use prusti_rustc_interface::span::{Span, DUMMY_SP};
 use log::{trace, debug};
 use prusti_interface::environment::mir_utils::MirPlace;
 use crate::encoder::mir::{
@@ -26,7 +26,7 @@ use crate::encoder::mir::{
     types::MirTypeEncoderInterface,
 };
 use super::high::types::HighTypeEncoderInterface;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::errors::MultiSpan;
 
 mod downcast_detector;
 mod place_encoding;

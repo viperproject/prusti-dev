@@ -1,6 +1,6 @@
 use crate::encoder::errors::{ErrorCtxt, SpannedEncodingResult};
 use prusti_interface::data::ProcedureDefId;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::errors::MultiSpan;
 use vir_crate::high::{
     self as vir_high,
     ast::{

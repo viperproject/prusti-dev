@@ -33,11 +33,13 @@ use prusti_interface::environment::{
     mir_body::borrowck::lifetimes::Lifetimes,
     Procedure,
 };
-use rustc_data_structures::graph::WithStartNode;
+use prusti_rustc_interface::{
+    data_structures::graph::WithStartNode,
+    hir::def_id::DefId,
+    middle::{mir, ty, ty::subst::SubstsRef},
+    span::Span,
+};
 use rustc_hash::FxHashSet;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty, ty::subst::SubstsRef};
-use rustc_span::Span;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
     common::{
@@ -410,7 +412,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         procedure_builder.set_entry(entry_label);
         self.encode_specification_blocks()?;
         self.reachable_blocks.insert(self.mir.start_node());
-        for (bb, data) in rustc_middle::mir::traversal::reverse_postorder(self.mir) {
+        for (bb, data) in
+            prusti_rustc_interface::middle::mir::traversal::reverse_postorder(self.mir)
+        {
             if !self.specification_blocks.is_specification_block(bb)
                 && self.reachable_blocks.contains(&bb)
             {
@@ -1046,7 +1050,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         block_builder.add_comment(format!("{:?} {:?}", location, terminator));
         let span = self.encoder.get_span_of_location(self.mir, location);
-        use rustc_middle::mir::TerminatorKind;
+        use prusti_rustc_interface::middle::mir::TerminatorKind;
         let successor = match &terminator {
             TerminatorKind::Goto { target } => {
                 self.encode_lft_for_block(*target, location, block_builder)?;

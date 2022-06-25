@@ -6,10 +6,10 @@
 
 
 use crate::environment::Environment;
-use rustc_hir as hir;
-use rustc_hir::def_id::DefId;
-use rustc_hir::intravisit::Visitor;
-use rustc_middle::ty::TyCtxt;
+use prusti_rustc_interface::hir;
+use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::hir::intravisit::Visitor;
+use prusti_rustc_interface::middle::ty::TyCtxt;
 
 
 use log::{trace};

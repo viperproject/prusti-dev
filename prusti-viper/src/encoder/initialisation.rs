@@ -10,8 +10,8 @@ use vir_crate::polymorphic as vir;
 use prusti_interface::environment::mir_analyses::initialization::compute_definitely_initialized;
 use prusti_interface::environment::mir_sets::PlaceSet;
 use prusti_interface::utils::expand_one_level;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty::{self, TyCtxt}};
+use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::middle::{mir, ty::{self, TyCtxt}};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::hash::Hash;
 

@@ -4,12 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_hir::Mutability;
-use rustc_middle::ty::{
+use prusti_rustc_interface::hir::Mutability;
+use prusti_rustc_interface::middle::ty::{
     AdtDef, FieldDef, List, ParamTy, ProjectionTy, Region, Ty, TyCtxt,
     TypeFlags, TyKind, IntTy, UintTy, FloatTy, VariantDef, subst::SubstsRef, Const
 };
-use rustc_hir::def_id::DefId;
+use prusti_rustc_interface::hir::def_id::DefId;
 use log::trace;
 
 pub trait TypeVisitor<'tcx>: Sized {

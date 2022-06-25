@@ -4,9 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_middle::mir::{self, TerminatorKind};
+use prusti_rustc_interface::middle::mir::{self, TerminatorKind};
 
-use rustc_index::vec::IndexVec;
+use prusti_rustc_interface::index::vec::IndexVec;
 
 
 

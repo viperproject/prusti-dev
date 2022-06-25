@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashSet;
-use std::hash::Hash;
+use std::{collections::HashSet, hash::Hash};
 
 #[derive(Debug, Copy, Clone)]
 pub struct UnorderedSetEq<'a, T: 'a>(pub &'a [T]);

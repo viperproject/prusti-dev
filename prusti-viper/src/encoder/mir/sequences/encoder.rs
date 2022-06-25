@@ -4,7 +4,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     Encoder,
 };
-use rustc_middle::ty;
+use prusti_rustc_interface::middle::ty;
 
 pub(super) fn encode_sequence_types<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
@@ -13,7 +13,9 @@ pub(super) fn encode_sequence_types<'p, 'v: 'p, 'tcx: 'v>(
     let (elem_ty_rs, sequence_len) = match sequence_ty_rs.kind() {
         ty::TyKind::Array(elem_ty, array_len) => {
             let len = encoder
-                .const_eval_intlike(rustc_middle::mir::ConstantKind::Ty(*array_len))?
+                .const_eval_intlike(prusti_rustc_interface::middle::mir::ConstantKind::Ty(
+                    *array_len,
+                ))?
                 .to_u64()
                 .unwrap()
                 .try_into()

@@ -17,6 +17,7 @@
 //! See: <https://github.com/viperproject/silicon/issues/387>
 
 use crate::vir::polymorphic_vir::{ast, cfg, FallibleExprFolder};
+use log::{debug, trace};
 use std::{
     cmp::Ordering,
     collections::{HashMap, HashSet},

@@ -9,12 +9,14 @@ use crate::encoder::{
 };
 use log::trace;
 use prusti_interface::specs::typed;
-use rustc_hash::FxHashMap;
-use rustc_hir::{def_id::DefId, Mutability};
-use rustc_middle::{
-    mir, ty,
-    ty::{subst::SubstsRef, FnSig},
+use prusti_rustc_interface::{
+    hir::{def_id::DefId, Mutability},
+    middle::{
+        mir, ty,
+        ty::{subst::SubstsRef, FnSig},
+    },
 };
+use rustc_hash::FxHashMap;
 use std::cell::RefCell;
 
 pub(crate) trait ContractsEncoderInterface<'tcx> {
@@ -120,7 +122,7 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-    use crate::rustc_middle::ty::subst::Subst;
+    use prusti_rustc_interface::middle::ty::subst::Subst;
 
     let env = encoder.env();
     let tcx = env.tcx();

@@ -6,6 +6,7 @@
 
 use crate::{jni_utils::JniUtils, verification_context::*};
 use jni::*;
+use log::{debug, info};
 use std::{env, fs, path::Path};
 use viper_sys::wrappers::*;
 

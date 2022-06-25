@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use vir_crate::polymorphic as vir;
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 use rustc_hash::{FxHashMap};
 use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;

@@ -27,6 +27,7 @@ If Java is already installed, you can fix this by setting the JAVA_HOME environm
 
 RUSTFMT_CRATES = [
     'analysis',
+    'jni-gen',
     'prusti',
     #'prusti-common',
     #'prusti-contracts',
@@ -35,13 +36,15 @@ RUSTFMT_CRATES = [
     'prusti-contracts-test',
     #'prusti-interface',
     'prusti-launch',
+    'prusti-rustc-interface',
     'prusti-server',
+    'prusti-smt-solver',
     #'prusti-specs',
     'prusti-tests',
     'prusti-utils',
     #'prusti-viper',
-    'prusti-smt-solver',
     'smt-log-analyzer',
+    #'test-crates',
     'viper',
     'viper-sys',
     'vir',
@@ -653,6 +656,28 @@ def fmt_check_all():
         for file in glob.glob(path, recursive=True):
             run_command(['rustfmt', '--check', file])
 
+def check_smir():
+    """Check that `extern crate` is used only in `prusti_rustc_interface`."""
+    for folder in os.listdir('.'):
+        if folder == 'prusti-rustc-interface':
+            continue
+        if os.path.exists(os.path.join(folder, 'Cargo.toml')):
+            completed = subprocess.run(
+                ['grep', 'extern crate', '-nr', folder],
+                capture_output=True
+            )
+            lines = [
+                line
+                for line in completed.stdout.decode().splitlines()
+                if '.rs:' in line and not line.startswith('prusti-tests/tests')
+            ]
+            assert not lines, (
+                'found `extern crate` outside '
+                'prusti_rustc_interface:\n{}'.format(
+                    '\n'.join(lines)
+                )
+            )
+
 def main(argv):
     global verbose
     analyze_quantifiers = False
@@ -695,6 +720,9 @@ def main(argv):
             break
         elif arg == 'fmt-all':
             fmt_all(*argv[i+1:])
+            break
+        elif arg == 'check-smir':
+            check_smir(*argv[i+1:])
             break
         else:
             cargo(argv[i:])

@@ -2,10 +2,8 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     mir::{procedures::passes, spans::SpanInterface},
 };
+use prusti_rustc_interface::{hir::def_id::DefId, middle::mir, span::Span};
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
-use rustc_span::Span;
 use vir_crate::high::cfg;
 
 #[derive(Default)]
