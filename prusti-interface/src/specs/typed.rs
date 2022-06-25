@@ -3,8 +3,8 @@ pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
 use prusti_specs::specifications::common;
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_span::Span;
+use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
+use prusti_rustc_interface::span::Span;
 use std::{
     collections::HashMap,
     fmt::{Debug, Display, Formatter},

@@ -6,17 +6,6 @@
 
 #![deny(unused_must_use)]
 
-#[macro_use]
-extern crate error_chain;
-extern crate jni;
-#[macro_use]
-extern crate log;
-extern crate uuid;
-extern crate viper_sys;
-#[macro_use]
-extern crate serde;
-extern crate rustc_hash;
-
 mod ast_factory;
 mod ast_utils;
 pub mod errors;

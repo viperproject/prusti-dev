@@ -8,13 +8,15 @@
 //! copied from prusti-interface/utils
 
 use log::trace;
-use rustc_data_structures::fx::FxHashSet;
-use rustc_infer::infer::TyCtxtInferExt;
-use rustc_middle::{
-    mir,
-    ty::{self, TyCtxt},
+use prusti_rustc_interface::{
+    data_structures::fx::FxHashSet,
+    infer::infer::TyCtxtInferExt,
+    middle::{
+        mir,
+        ty::{self, TyCtxt},
+    },
+    trait_selection::infer::InferCtxtExt,
 };
-use rustc_trait_selection::infer::InferCtxtExt;
 use std::mem;
 
 #[repr(transparent)]

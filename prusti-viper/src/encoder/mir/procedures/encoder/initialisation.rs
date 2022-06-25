@@ -1,9 +1,11 @@
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty::TyCtxt};
-use rustc_mir_dataflow::{
-    impls::{MaybeInitializedPlaces, MaybeUninitializedPlaces},
-    move_paths::MoveData,
-    Analysis, MoveDataParamEnv, ResultsCursor,
+use prusti_rustc_interface::{
+    dataflow::{
+        impls::{MaybeInitializedPlaces, MaybeUninitializedPlaces},
+        move_paths::MoveData,
+        Analysis, MoveDataParamEnv, ResultsCursor,
+    },
+    hir::def_id::DefId,
+    middle::{mir, ty::TyCtxt},
 };
 
 pub(super) struct InitializationData<'mir, 'tcx> {

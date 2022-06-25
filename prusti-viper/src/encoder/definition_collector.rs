@@ -5,8 +5,8 @@ use super::{
 };
 use crate::encoder::high::types::HighTypeEncoderInterface;
 use prusti_common::vir_local;
+use prusti_rustc_interface::span::Span;
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_span::Span;
 
 use vir_crate::{
     common::identifier::WithIdentifier,

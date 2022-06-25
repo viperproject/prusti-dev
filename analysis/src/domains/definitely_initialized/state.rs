@@ -5,9 +5,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{abstract_interpretation::AbstractState, mir_utils::*, AnalysisError};
-use rustc_data_structures::fx::FxHashSet;
-use rustc_middle::{mir, ty::TyCtxt};
-use rustc_span::def_id::DefId;
+use prusti_rustc_interface::{
+    data_structures::fx::FxHashSet,
+    middle::{mir, ty::TyCtxt},
+    span::def_id::DefId,
+};
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use std::{collections::BTreeSet, fmt, mem};
 

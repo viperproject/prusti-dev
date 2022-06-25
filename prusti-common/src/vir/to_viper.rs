@@ -14,6 +14,7 @@ use crate::{
         Program,
     },
 };
+use log::info;
 use prusti_utils::force_matches;
 use std::collections::HashMap;
 use viper::{self, AstFactory};

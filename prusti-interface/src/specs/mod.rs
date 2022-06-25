@@ -1,8 +1,8 @@
-use rustc_ast::ast;
-use rustc_errors::MultiSpan;
-use rustc_hir::intravisit;
-use rustc_middle::{hir::map::Map, ty::TyCtxt};
-use rustc_span::Span;
+use prusti_rustc_interface::ast::ast;
+use prusti_rustc_interface::errors::MultiSpan;
+use prusti_rustc_interface::hir::intravisit;
+use prusti_rustc_interface::middle::{hir::map::Map, ty::TyCtxt};
+use prusti_rustc_interface::span::Span;
 
 use crate::{
     environment::Environment,
@@ -13,7 +13,7 @@ use crate::{
     PrustiError,
 };
 use log::debug;
-use rustc_hir::def_id::{DefId, LocalDefId};
+use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
 use std::{collections::HashMap, convert::TryInto, fmt::Debug};
 
 pub mod checker;
@@ -306,13 +306,13 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
 
 impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
     type Map = Map<'tcx>;
-    type NestedFilter = rustc_middle::hir::nested_filter::All;
+    type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.tcx.hir()
     }
 
-    fn visit_trait_item(&mut self, ti: &'tcx rustc_hir::TraitItem) {
+    fn visit_trait_item(&mut self, ti: &'tcx prusti_rustc_interface::hir::TraitItem) {
         intravisit::walk_trait_item(self, ti);
 
         let id = ti.hir_id();
@@ -329,10 +329,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
     fn visit_fn(
         &mut self,
         fn_kind: intravisit::FnKind<'tcx>,
-        fn_decl: &'tcx rustc_hir::FnDecl,
-        body_id: rustc_hir::BodyId,
+        fn_decl: &'tcx prusti_rustc_interface::hir::FnDecl,
+        body_id: prusti_rustc_interface::hir::BodyId,
         span: Span,
-        id: rustc_hir::hir_id::HirId,
+        id: prusti_rustc_interface::hir::hir_id::HirId,
     ) {
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
 
@@ -403,11 +403,11 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         }
     }
 
-    fn visit_stmt(&mut self, stmt: &'tcx rustc_hir::Stmt) {
+    fn visit_stmt(&mut self, stmt: &'tcx prusti_rustc_interface::hir::Stmt) {
         intravisit::walk_stmt(self, stmt);
 
         // Collect closure specifications
-        if let rustc_hir::StmtKind::Local(local) = stmt.kind {
+        if let prusti_rustc_interface::hir::StmtKind::Local(local) = stmt.kind {
             let attrs = self.tcx.hir().attrs(local.hir_id);
             if has_prusti_attr(attrs, "closure") {
                 let init_expr = local.init.expect("closure on Local without assignment");
@@ -422,13 +422,13 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
     }
 }
 
-fn get_type_id_from_impl_node(node: rustc_hir::Node) -> Option<DefId> {
-    if let rustc_hir::Node::Item(item) = node {
-        if let rustc_hir::ItemKind::Impl(item_impl) = &item.kind {
-            if let rustc_hir::TyKind::Path(rustc_hir::QPath::Resolved(_, path)) =
+fn get_type_id_from_impl_node(node: prusti_rustc_interface::hir::Node) -> Option<DefId> {
+    if let prusti_rustc_interface::hir::Node::Item(item) = node {
+        if let prusti_rustc_interface::hir::ItemKind::Impl(item_impl) = &item.kind {
+            if let prusti_rustc_interface::hir::TyKind::Path(prusti_rustc_interface::hir::QPath::Resolved(_, path)) =
                 item_impl.self_ty.kind
             {
-                if let rustc_hir::def::Res::Def(_, def_id) = path.res {
+                if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = path.res {
                     return Some(def_id);
                 }
             }

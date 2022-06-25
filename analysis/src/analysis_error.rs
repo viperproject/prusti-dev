@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::mir_utils::location_to_stmt_str;
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 
 #[derive(Debug)]
 pub enum AnalysisError {

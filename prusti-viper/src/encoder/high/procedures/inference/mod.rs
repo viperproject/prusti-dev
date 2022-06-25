@@ -1,7 +1,7 @@
 use self::{state::FoldUnfoldState, visitor::Visitor};
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
 use prusti_common::config;
-use rustc_hir::def_id::DefId;
+use prusti_rustc_interface::hir::def_id::DefId;
 use vir_crate::{
     common::graphviz::ToGraphviz,
     high::{self as vir_high},

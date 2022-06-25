@@ -4,12 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use class_name::*;
-use errors::*;
-use jni::objects::JValue;
-use jni::JNIEnv;
+use crate::{class_name::*, errors::*, utils::*};
+use jni::{objects::JValue, JNIEnv};
 use std::collections::HashMap;
-use utils::*;
 
 pub fn generate_constructor(
     env: &JNIEnv,
@@ -35,8 +32,8 @@ pub fn generate_constructor(
         let constructor =
             env.get_object_array_element(constructors.into_inner(), constructor_index)?;
 
-        let constructor_signature = java_str_to_string(
-            &env.get_string(
+        let constructor_signature =
+            java_str_to_string(&env.get_string(
                 env.call_static_method(
                     "org/objectweb/asm/Type",
                     "getConstructorDescriptor",
@@ -45,8 +42,7 @@ pub fn generate_constructor(
                 )?
                 .l()?
                 .into(),
-            )?,
-        )?;
+            )?)?;
 
         indexed_constructors.insert(constructor_signature, constructor);
     }
@@ -174,19 +170,21 @@ fn generate(
             let par_name = &parameter_names[i];
             let par_sign = &parameter_signatures[i];
             if par_sign.starts_with('L') {
-                let par_class = &par_sign[1..(par_sign.len()-1)];
+                let par_class = &par_sign[1..(par_sign.len() - 1)];
                 code.push("    debug_assert!(".to_string());
                 code.push(format!(
                     "        self.env.is_instance_of({}, self.env.find_class(\"{}\")?)?",
-                    par_name,
-                    par_class
+                    par_name, par_class
                 ));
                 code.push("    );".to_string());
             }
         }
     }
 
-    code.push(format!("    let class = self.env.find_class(\"{}\")?;", class.path()));
+    code.push(format!(
+        "    let class = self.env.find_class(\"{}\")?;",
+        class.path()
+    ));
 
     code.push(format!(
         "    let method_signature = \"{}\";",

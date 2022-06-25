@@ -6,6 +6,7 @@ use super::{
 };
 use crate::encoder::errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult};
 use log::debug;
+use prusti_rustc_interface::errors::MultiSpan;
 use vir_crate::{
     common::position::Positioned,
     high::{self as vir_high, operations::ty::Typed},
@@ -27,7 +28,7 @@ pub(in super::super) trait Context {
         place: &vir_high::Expression,
         guiding_place: &vir_high::Expression,
     ) -> SpannedEncodingResult<Vec<(ExpandedPermissionKind, vir_high::Expression)>>;
-    fn get_span(&mut self, position: vir_high::Position) -> Option<rustc_errors::MultiSpan>;
+    fn get_span(&mut self, position: vir_high::Position) -> Option<MultiSpan>;
     fn change_error_context(
         &mut self,
         position: vir_high::Position,

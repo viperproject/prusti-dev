@@ -1,6 +1,6 @@
 use super::encoder::SnapshotEncoder;
 use crate::encoder::errors::EncodingResult;
-use rustc_middle::{mir, ty};
+use prusti_rustc_interface::middle::{mir, ty};
 use std::{cell::RefCell, rc::Rc};
 use vir_crate::polymorphic as vir_poly;
 

@@ -1,7 +1,7 @@
 use crate::encoder::{
     errors::SpannedEncodingResult, mir::type_layouts::MirTypeLayoutsEncoderInterface,
 };
-use rustc_middle::ty;
+use prusti_rustc_interface::middle::ty;
 use vir_crate::{
     high as vir_high,
     middle::{self as vir_mid, operations::ToMiddleExpression},

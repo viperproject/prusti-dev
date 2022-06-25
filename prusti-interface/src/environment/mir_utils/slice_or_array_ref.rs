@@ -1,5 +1,5 @@
-use rustc_middle::ty::Ty;
-use rustc_middle::ty::TyKind;
+use prusti_rustc_interface::middle::ty::Ty;
+use prusti_rustc_interface::middle::ty::TyKind;
 
 pub trait SliceOrArrayRef<'tcx> {
     fn is_slice_ref(&self) -> bool;

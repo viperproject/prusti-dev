@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::io;
 use log::debug;
 use log::trace;
-use rustc_middle::{mir, ty};
+use prusti_rustc_interface::middle::{mir, ty};
 use crate::environment::borrowck::facts;
 
 #[derive(Debug)]

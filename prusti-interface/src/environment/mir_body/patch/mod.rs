@@ -1,5 +1,5 @@
 use super::borrowck::facts::{patch::apply_patch_to_borrowck, AllInputFacts, LocationTable};
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 
 mod compiler;
 mod fixer;

@@ -4,9 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_middle::mir;
-use rustc_middle::ty::Ty;
-use rustc_index::vec::{Idx, IndexVec};
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::middle::ty::Ty;
+use prusti_rustc_interface::index::vec::{Idx, IndexVec};
 use std::{iter};
 
 /// A local variable used as an abstraction over both real Rust MIR local

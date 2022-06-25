@@ -2,7 +2,7 @@ use crate::encoder::{
     errors::SpannedEncodingResult, mir::procedures::MirProcedureEncoderInterface,
 };
 use log::debug;
-use rustc_hir::def_id::DefId;
+use prusti_rustc_interface::hir::def_id::DefId;
 
 use vir_crate::middle as vir_mid;
 

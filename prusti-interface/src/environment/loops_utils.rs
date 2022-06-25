@@ -7,7 +7,7 @@
 
 use super::mir_sets::PlaceSet;
 use crate::utils;
-use rustc_middle::{mir, ty::TyCtxt};
+use prusti_rustc_interface::middle::{mir, ty::TyCtxt};
 use std::fmt;
 use log::{debug, trace};
 

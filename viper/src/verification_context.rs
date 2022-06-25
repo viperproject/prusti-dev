@@ -8,6 +8,7 @@ use crate::{
     ast_factory::*, ast_utils::*, verification_backend::VerificationBackend, verifier::Verifier,
 };
 use jni::AttachGuard;
+use log::{debug, info};
 use std::{
     env,
     path::{Path, PathBuf},

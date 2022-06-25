@@ -25,10 +25,12 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::vir_high_local;
 use prusti_interface::environment::mir_utils::SliceOrArrayRef;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{mir, ty, ty::subst::SubstsRef},
+    span::Span,
+};
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty, ty::subst::SubstsRef};
-use rustc_span::Span;
 use vir_crate::{
     common::{
         expression::{BinaryOperationHelpers, UnaryOperationHelpers},
@@ -426,7 +428,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             // compose substitutions
             // TODO(tymap): do we need this?
-            use crate::rustc_middle::ty::subst::Subst;
+            use prusti_rustc_interface::middle::ty::subst::Subst;
             let substs = ty::EarlyBinder(*call_substs).subst(self.encoder.env().tcx(), self.substs);
 
             let state = if let Some(target_block) = target {
@@ -514,7 +516,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         target_block: &mir::BasicBlock,
         states: &FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         encoded_lhs: vir_high::Expression,
-        args: &[rustc_middle::mir::Operand<'tcx>],
+        args: &[prusti_rustc_interface::middle::mir::Operand<'tcx>],
         encoded_args: &[vir_high::Expression],
         span: Span,
         substs: SubstsRef<'tcx>,
@@ -846,7 +848,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         terminator: &mir::Terminator<'tcx>,
         states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
-        use rustc_middle::mir::TerminatorKind;
+        use prusti_rustc_interface::middle::mir::TerminatorKind;
         let span = terminator.source_info.span;
         let state = match &terminator.kind {
             TerminatorKind::Unreachable => {

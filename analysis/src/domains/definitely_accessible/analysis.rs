@@ -13,10 +13,12 @@ use crate::{
     mir_utils::remove_place_from_set,
     PointwiseState,
 };
-use rustc_borrowck::BodyWithBorrowckFacts;
-use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
-use rustc_middle::{mir, ty::TyCtxt};
-use rustc_span::def_id::DefId;
+use prusti_rustc_interface::{
+    borrowck::BodyWithBorrowckFacts,
+    data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
+    middle::{mir, ty::TyCtxt},
+    span::def_id::DefId,
+};
 
 pub struct DefinitelyAccessibleAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,

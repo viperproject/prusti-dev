@@ -12,6 +12,7 @@ use jni::{
     sys::jsize,
     JNIEnv,
 };
+use log::error;
 use std::collections::HashMap;
 use viper_sys::wrappers::*;
 

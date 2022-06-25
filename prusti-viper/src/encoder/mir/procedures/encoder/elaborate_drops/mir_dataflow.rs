@@ -13,16 +13,18 @@
 
 use log::debug;
 use prusti_interface::environment::mir_body::patch::MirPatch;
-use rustc_hir as hir;
-use rustc_hir::lang_items::LangItem;
-use rustc_index::vec::Idx;
-use rustc_middle::{
-    mir::*,
-    traits::Reveal,
-    ty::{self, subst::SubstsRef, util::IntTypeExt, Ty, TyCtxt},
+use prusti_rustc_interface::{
+    dataflow::elaborate_drops::{DropFlagMode, DropStyle, Unwind},
+    hir,
+    hir::lang_items::LangItem,
+    index::vec::Idx,
+    middle::{
+        mir::*,
+        traits::Reveal,
+        ty::{self, subst::SubstsRef, util::IntTypeExt, Ty, TyCtxt},
+    },
+    target::abi::VariantIdx,
 };
-use rustc_mir_dataflow::elaborate_drops::{DropFlagMode, DropStyle, Unwind};
-use rustc_target::abi::VariantIdx;
 use std::{fmt, iter};
 
 trait UnwindPublic {

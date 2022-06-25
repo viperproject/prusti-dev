@@ -10,6 +10,7 @@ use crate::polymorphic::{
     self, ast::*, cfg, CfgMethod, ExprFolder, ExprWalker, FallibleStmtFolder, Function, StmtFolder,
     StmtWalker,
 };
+use log::{debug, trace};
 
 /// Substitute (map) expressions in a statement
 impl Stmt {

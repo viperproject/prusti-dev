@@ -1,3 +1,5 @@
+use log::debug;
+
 use crate::high as vir_high;
 use std::collections::BTreeMap;
 

@@ -1,18 +1,12 @@
-#[macro_use]
-extern crate bencher;
-#[macro_use]
-extern crate lazy_static;
-extern crate viper;
-
 use bencher::Bencher;
 use viper::*;
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref VIPER: Viper = Viper::new();
 }
 
-benchmark_main!(ast_factory);
-benchmark_group!(ast_factory, bench_build_program, bench_verify_program);
+bencher::benchmark_main!(ast_factory);
+bencher::benchmark_group!(ast_factory, bench_build_program, bench_verify_program);
 
 fn bench_build_program(bench: &mut Bencher) {
     let verification_context: VerificationContext = VIPER.attach_current_thread();

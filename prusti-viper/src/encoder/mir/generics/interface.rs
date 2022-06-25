@@ -1,8 +1,10 @@
 use crate::encoder::{errors::EncodingResult, mir::types::MirTypeEncoderInterface};
 
-use rustc_hir::def_id::DefId;
-use rustc_middle::ty::{self, subst::SubstsRef};
-use rustc_span::symbol::Symbol;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::ty::{self, subst::SubstsRef},
+    span::symbol::Symbol,
+};
 use vir_crate::high::{self as vir_high};
 
 pub(crate) trait MirGenericsEncoderInterface<'tcx> {
