@@ -7,9 +7,11 @@ use prusti_interface::{
     },
     utils::has_spec_only_attr,
 };
-use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::ty::subst::SubstsRef;
-use rustc_span::Span;
+use prusti_rustc_interface::{
+    hir::def_id::{DefId, LocalDefId},
+    middle::ty::subst::SubstsRef,
+    span::Span,
+};
 use std::{cell::RefCell, hash::Hash};
 
 pub(crate) struct SpecificationsState<'tcx> {

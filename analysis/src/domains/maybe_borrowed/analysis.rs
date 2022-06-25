@@ -9,9 +9,11 @@ use crate::{
     mir_utils::get_blocked_place, AnalysisError, PointwiseState,
 };
 use log::{error, trace};
-use rustc_borrowck::{consumers::RichLocation, BodyWithBorrowckFacts};
-use rustc_data_structures::fx::FxHashMap;
-use rustc_middle::{mir, ty::TyCtxt};
+use prusti_rustc_interface::{
+    borrowck::{consumers::RichLocation, BodyWithBorrowckFacts},
+    data_structures::fx::FxHashMap,
+    middle::{mir, ty::TyCtxt},
+};
 
 pub struct MaybeBorrowedAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,

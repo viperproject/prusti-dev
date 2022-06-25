@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use class_name::*;
-use errors::Result;
+use crate::{class_name::*, errors::Result};
 use jni::JNIEnv;
 
 pub fn generate_scala_object_getter(env: &JNIEnv, class_name: &ClassName) -> Result<String> {
@@ -27,7 +26,10 @@ pub fn generate_scala_object_getter(env: &JNIEnv, class_name: &ClassName) -> Res
             class_name.path()
         ),
         "pub fn singleton(&self) -> JNIResult<JObject<'a>> {".to_string(),
-        format!( "    let class = self.env.find_class(\"{}\")?;", class_name.path()),
+        format!(
+            "    let class = self.env.find_class(\"{}\")?;",
+            class_name.path()
+        ),
         "    let result = self.env.get_static_field(".to_string(),
         "        class,".to_string(),
         "        \"MODULE$\",".to_string(),

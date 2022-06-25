@@ -14,6 +14,7 @@ use crate::{
     verification_result::{VerificationError, VerificationResult},
 };
 use jni::{objects::JObject, JNIEnv};
+use log::{debug, error, info};
 use std::path::PathBuf;
 use viper_sys::wrappers::{scala, viper::*};
 

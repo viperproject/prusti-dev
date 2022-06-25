@@ -1,15 +1,9 @@
-extern crate env_logger;
-extern crate error_chain;
-#[macro_use]
-extern crate lazy_static;
-extern crate viper;
-
 use std::sync::Once;
 use viper::*;
 
 static INIT: Once = Once::new();
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref VIPER: Viper = Viper::new();
 }
 

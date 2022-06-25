@@ -10,7 +10,7 @@ use prusti_interface::environment::mir_analyses::initialization::{
 use prusti_interface::environment::mir_sets::PlaceSet;
 use prusti_interface::environment::{BasicBlockIndex, PermissionForest, ProcedureLoops, Procedure};
 use prusti_interface::utils;
-use rustc_middle::{mir, ty};
+use prusti_rustc_interface::middle::{mir, ty};
 use log::{trace, debug};
 
 pub enum LoopEncoderError {

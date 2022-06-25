@@ -9,10 +9,12 @@ use crate::{
     PointwiseState,
 };
 use log::info;
-use rustc_data_structures::{fx::FxHashSet, stable_map::FxHashMap};
-use rustc_middle::{mir, ty, ty::TyCtxt};
-use rustc_span::source_map::SourceMap;
-use rustc_target::abi::VariantIdx;
+use prusti_rustc_interface::{
+    data_structures::{fx::FxHashSet, stable_map::FxHashMap},
+    middle::{mir, ty, ty::TyCtxt},
+    span::source_map::SourceMap,
+    target::abi::VariantIdx,
+};
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::fmt;
 

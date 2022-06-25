@@ -19,7 +19,9 @@ use std::{
 /// The identifier of a statement. Used in error reporting.
 /// TODO: This should probably have custom `PartialEq, Eq, Hash, PartialOrd, Ord` impls,
 /// to ensure that it is not included in these calculations.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub struct Position {
     pub(crate) line: i32,
     pub(crate) column: i32,
@@ -44,7 +46,7 @@ pub enum PermAmountError {
 }
 
 /// The permission amount.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum PermAmount {
     Read,
     Write,
@@ -114,13 +116,17 @@ impl Ord for PermAmount {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum Float {
     F32,
     F64,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum BitVectorSize {
     BV8,
     BV16,
@@ -141,7 +147,9 @@ impl fmt::Display for BitVectorSize {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum BitVector {
     Signed(BitVectorSize),
     Unsigned(BitVectorSize),
@@ -156,7 +164,9 @@ impl fmt::Display for BitVector {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum Type {
     Int,
     Bool,
@@ -476,7 +486,9 @@ impl Type {
 
 use crate::common::display;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash,
+)]
 pub struct SeqType {
     pub typ: Box<Type>,
 }
@@ -487,7 +499,9 @@ impl fmt::Display for SeqType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash,
+)]
 pub struct MapType {
     pub key_type: Box<Type>,
     pub val_type: Box<Type>,
@@ -499,7 +513,7 @@ impl fmt::Display for MapType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct TypedRef {
     pub label: String,
     pub arguments: Vec<Type>,
@@ -541,7 +555,7 @@ impl From<SnapshotType> for TypedRef {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct DomainType {
     pub label: String,
     pub arguments: Vec<Type>,
@@ -582,7 +596,7 @@ impl From<TypeVar> for DomainType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct SnapshotType {
     pub label: String,
     pub arguments: Vec<Type>,
@@ -623,7 +637,9 @@ impl From<TypeVar> for SnapshotType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub struct TypeVar {
     pub label: String,
 }
@@ -653,7 +669,7 @@ pub enum TypeId {
     Snapshot,
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct LocalVar {
     pub name: String,
     pub typ: Type,
@@ -680,7 +696,7 @@ impl LocalVar {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Clone, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct Field {
     pub name: String,
     pub typ: Type,

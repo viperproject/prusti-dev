@@ -1,4 +1,4 @@
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 
 pub trait StatementAsAssign<'tcx> {
     /// If this statement is an assignment, returns the LHS and RHS. If not, returns `None`.

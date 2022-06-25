@@ -2,7 +2,7 @@ use super::facts::{
     AllInputFacts, BorrowckFacts, Loan, LocationTable, Point, Region, RichLocation,
 };
 use crate::environment::debug_utils::to_text::{opaque_lifetime_string, ToText};
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 use std::collections::{BTreeMap, BTreeSet};
 
 mod graphviz;
@@ -21,8 +21,11 @@ pub struct LifetimeWithInclusions {
 
 impl Lifetimes {
     pub fn new(input_facts: AllInputFacts, location_table: LocationTable) -> Self {
-        let output_facts =
-            polonius_engine::Output::compute(&input_facts, polonius_engine::Algorithm::Naive, true);
+        let output_facts = prusti_rustc_interface::polonius_engine::Output::compute(
+            &input_facts,
+            prusti_rustc_interface::polonius_engine::Algorithm::Naive,
+            true,
+        );
         Self {
             facts: BorrowckFacts::new(input_facts, output_facts, location_table),
         }
