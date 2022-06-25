@@ -4,14 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::*;
-use ast_utils::AstUtils;
+use crate::{
+    ast_factory::*,
+    ast_utils::AstUtils,
+    jni_utils::JniUtils,
+    silicon_counterexample::SiliconCounterexample,
+    smt_manager::SmtManager,
+    verification_backend::VerificationBackend,
+    verification_result::{VerificationError, VerificationResult},
+};
 use jni::{objects::JObject, JNIEnv};
-use jni_utils::JniUtils;
-use silicon_counterexample::SiliconCounterexample;
 use std::path::PathBuf;
-use verification_backend::VerificationBackend;
-use verification_result::{VerificationError, VerificationResult};
 use viper_sys::wrappers::{scala, viper::*};
 
 pub struct Verifier<'a> {
@@ -20,6 +23,7 @@ pub struct Verifier<'a> {
     verifier_instance: JObject<'a>,
     jni: JniUtils<'a>,
     ast_utils: AstUtils<'a>,
+    smt_manager: SmtManager,
 }
 
 impl<'a> Verifier<'a> {
@@ -27,6 +31,7 @@ impl<'a> Verifier<'a> {
         env: &'a JNIEnv,
         backend: VerificationBackend,
         report_path: Option<PathBuf>,
+        smt_manager: SmtManager,
     ) -> Self {
         let jni = JniUtils::new(env);
         let ast_utils = AstUtils::new(env);
@@ -67,6 +72,7 @@ impl<'a> Verifier<'a> {
             verifier_instance,
             jni,
             ast_utils,
+            smt_manager,
         }
     }
 
@@ -96,7 +102,7 @@ impl<'a> Verifier<'a> {
         self
     }
 
-    pub fn verify(&self, program: Program) -> VerificationResult {
+    pub fn verify(&mut self, program: Program) -> VerificationResult {
         self.ast_utils.with_local_frame(16, || {
             debug!(
                 "Program to be verified:\n{}",
@@ -139,6 +145,8 @@ impl<'a> Verifier<'a> {
             let is_failure = self
                 .jni
                 .is_instance_of(viper_result, "viper/silver/verifier/Failure");
+
+            self.smt_manager.stop_and_check();
 
             if is_failure {
                 let mut errors: Vec<VerificationError> = vec![];

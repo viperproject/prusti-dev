@@ -244,6 +244,7 @@ pub enum BuiltinFunc {
     SeqLen,
     NewInt,
     Index,
+    Len,
 }
 
 #[display(fmt = "__builtin__{}({})", function, "display::cjoin(arguments)")]

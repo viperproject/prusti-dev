@@ -1,7 +1,7 @@
 use rustc_hash::FxHashMap;
 
+use crate::jni_utils::JniUtils;
 use jni::{objects::JObject, JNIEnv};
-use jni_utils::JniUtils;
 use viper_sys::wrappers::{scala, viper::silicon};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
