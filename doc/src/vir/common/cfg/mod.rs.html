@@ -105,14 +105,19 @@
 <span id="98">98</span>
 <span id="99">99</span>
 <span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">std::collections::BTreeMap</a>;
 
-<span class="kw">mod</span> <a class="ident" href="../../../../src/vir/common/cfg/high.rs.html#1-29">high</a>;
-
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Cfg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="kw">type</span> <span class="ident">BasicBlockId</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a>;
-    <span class="kw">type</span> <span class="ident">BasicBlock</span>;
-    <span class="kw">type</span> <span class="ident">Statement</span>;
+    <span class="kw">type</span> <span class="ident">BasicBlockId</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>;
+    <span class="kw">type</span> <span class="ident">BasicBlock</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>;
+    <span class="kw">type</span> <span class="ident">Statement</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>;
     <span class="kw">type</span> <span class="ident">BasicBlockIdIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident"><span class="self">Self</span>::BasicBlockId</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
@@ -130,76 +135,85 @@
     <span class="kw">fn</span> <span class="ident">successors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bb</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::BasicBlockId</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::BasicBlockId</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">predecessors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::BasicBlockId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::BasicBlockId</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">predecessors</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#25">self</a>
-            .<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#21">iter_basic_block_ids</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> (<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#28">bb</a>, <span class="ident">Vec::new</span>()))
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">predecessors</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#23">self</a>
+            .<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#19">iter_basic_block_ids</a>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> (<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#26">bb</a>, <span class="ident">Vec::new</span>()))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">for</span> <span class="ident">bb</span> <span class="kw">in</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#25">self</a>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#21">iter_basic_block_ids</a>() {
-            <span class="kw">for</span> <span class="ident">successor</span> <span class="kw">in</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#25">self</a>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#23">successors</a>(<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#30">bb</a>) {
-                <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#26">predecessors</a>.<span class="ident">get_mut</span>(<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#31">successor</a>).<span class="ident">unwrap</span>().<span class="ident">push</span>(<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#30">bb</a>);
+        <span class="kw">for</span> <span class="ident">bb</span> <span class="kw">in</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#23">self</a>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#19">iter_basic_block_ids</a>() {
+            <span class="kw">for</span> <span class="ident">successor</span> <span class="kw">in</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#23">self</a>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#21">successors</a>(<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#28">bb</a>) {
+                <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#24">predecessors</a>.<span class="ident">get_mut</span>(<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#29">successor</a>).<span class="ident">unwrap</span>().<span class="ident">push</span>(<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#28">bb</a>);
             }
         }
-        <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#26">predecessors</a>
+        <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#24">predecessors</a>
+    }
+
+    <span class="kw">fn</span> <span class="ident">predecessors_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BasicBlockId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BasicBlockId</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#36">self</a>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#23">predecessors</a>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">label</span>, <span class="ident">predecessors</span>)<span class="op">|</span> {
+                (<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#39">label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#39">predecessors</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+            })
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 
     <span class="kw">fn</span> <span class="ident">iter_basic_blocks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">CfgBasicBlockIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">basic_block_id_iterator</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#38">self</a>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#21">iter_basic_block_ids</a>();
-        <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#58-61">CfgBasicBlockIterator</a> {
-            <span class="ident">cfg</span>: <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#38">self</a>,
-            <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#39">basic_block_id_iterator</a>,
+        <span class="kw">let</span> <span class="ident">basic_block_id_iterator</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#45">self</a>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#19">iter_basic_block_ids</a>();
+        <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#65-68">CfgBasicBlockIterator</a> {
+            <span class="ident">cfg</span>: <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#45">self</a>,
+            <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#46">basic_block_id_iterator</a>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">iter_statements</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">CfgStatementIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">basic_block_iterator</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#46">self</a>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#38">iter_basic_blocks</a>();
-        <span class="kw">let</span> <span class="ident">current_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#47">basic_block_iterator</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-        <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#73-78">CfgStatementIterator</a> {
-            <span class="ident">cfg</span>: <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#46">self</a>,
-            <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#47">basic_block_iterator</a>,
-            <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#48">current_block</a>,
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">basic_block_iterator</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#53">self</a>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#45">iter_basic_blocks</a>();
+        <span class="kw">let</span> <span class="ident">current_block</span> <span class="op">=</span> <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#54">basic_block_iterator</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+        <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#80-85">CfgStatementIterator</a> {
+            <span class="ident">cfg</span>: <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#53">self</a>,
+            <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#54">basic_block_iterator</a>,
+            <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#55">current_block</a>,
             <span class="ident">current_statement</span>: <span class="number">0</span>,
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CfgBasicBlockIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#5-56">Cfg</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CfgBasicBlockIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#3-63">Cfg</a><span class="op">&gt;</span> {
     <span class="ident">cfg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">C</span>,
     <span class="ident">basic_block_id_iterator</span>: <span class="op">&lt;</span><span class="ident">C</span> <span class="kw">as</span> <span class="ident">Cfg</span><span class="op">&gt;</span><span class="ident">::BasicBlockIdIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#5-56">Cfg</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">CfgBasicBlockIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#3-63">Cfg</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">CfgBasicBlockIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">C::BasicBlockId</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">C::BasicBlock</span>);
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#66">self</a>.<span class="ident">basic_block_id_iterator</span>
+        <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#73">self</a>.<span class="ident">basic_block_id_iterator</span>
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> (<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#69">bb</a>, <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#66">self</a>.<span class="ident">cfg</span>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#13">get_basic_block</a>(<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#69">bb</a>).<span class="ident">unwrap</span>()))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> (<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#76">bb</a>, <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#73">self</a>.<span class="ident">cfg</span>.<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#11">get_basic_block</a>(<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#76">bb</a>).<span class="ident">unwrap</span>()))
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CfgStatementIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#5-56">Cfg</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CfgStatementIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#3-63">Cfg</a><span class="op">&gt;</span> {
     <span class="ident">cfg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">C</span>,
     <span class="ident">basic_block_iterator</span>: <span class="ident">CfgBasicBlockIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span><span class="op">&gt;</span>,
     <span class="ident">current_block</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">C::BasicBlockId</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">C::BasicBlock</span>)<span class="op">&gt;</span>,
     <span class="ident">current_statement</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#5-56">Cfg</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">CfgStatementIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#3-63">Cfg</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">CfgStatementIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">C::BasicBlockId</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">C::Statement</span>);
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">bb</span>, <span class="ident">block</span>)) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#83">self</a>.<span class="ident">current_block</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">current_statement</span>) <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#83">self</a>
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">bb</span>, <span class="ident">block</span>)) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#90">self</a>.<span class="ident">current_block</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">current_statement</span>) <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#90">self</a>
                 .<span class="ident">cfg</span>
-                .<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#15-19">get_basic_block_statement</a>(<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#84">block</a>, <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#83">self</a>.<span class="ident">current_statement</span>)
+                .<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#13-17">get_basic_block_statement</a>(<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#91">block</a>, <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#90">self</a>.<span class="ident">current_statement</span>)
             {
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#83">self</a>.<span class="ident">current_statement</span>;
-                <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#83">self</a>.<span class="ident">current_statement</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#84">bb</a>, <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#89">index</a>, <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#85">current_statement</a>));
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#90">self</a>.<span class="ident">current_statement</span>;
+                <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#90">self</a>.<span class="ident">current_statement</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#91">bb</a>, <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#96">index</a>, <a class="ident" href="../../../../src/vir/common/cfg/mod.rs.html#92">current_statement</a>));
             } <span class="kw">else</span> {
                 <span class="comment">// Reached the last statement of the basic block.</span>
-                <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#83">self</a>.<span class="ident">current_block</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#83">self</a>.<span class="ident">basic_block_iterator</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
-                <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#83">self</a>.<span class="ident">current_statement</span> <span class="op">=</span> <span class="number">0</span>;
+                <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#90">self</a>.<span class="ident">current_block</span> <span class="op">=</span> <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#90">self</a>.<span class="ident">basic_block_iterator</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+                <a class="self" href="../../../../src/vir/common/cfg/mod.rs.html#90">self</a>.<span class="ident">current_statement</span> <span class="op">=</span> <span class="number">0</span>;
             }
         }
         <span class="prelude-val">None</span>

@@ -228,6 +228,66 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -450,6 +510,66 @@
         .<span class="ident">stderr</span>(<span class="ident">Stdio::null</span>())
         .<span class="ident">spawn</span>()
         .<span class="ident">expect</span>(<span class="string">&quot;Error killing process tree.&quot;</span>);
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_environment_settings</span>(
+    <span class="ident">cmd</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">Command</a>,
+    <span class="ident">current_executable_dir</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+    <span class="ident">java_home</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>,
+) {
+    <a class="ident" href="../../src/prusti_launch/lib.rs.html#237">set_smt_solver_path_setting</a>(<a class="ident" href="../../src/prusti_launch/lib.rs.html#226">cmd</a>, <a class="ident" href="../../src/prusti_launch/lib.rs.html#227">current_executable_dir</a>);
+    <a class="ident" href="../../src/prusti_launch/lib.rs.html#252">set_smt_solver_wrapper_path_setting</a>(<a class="ident" href="../../src/prusti_launch/lib.rs.html#226">cmd</a>, <a class="ident" href="../../src/prusti_launch/lib.rs.html#227">current_executable_dir</a>);
+    <a class="ident" href="../../src/prusti_launch/lib.rs.html#260">set_boogie_path_setting</a>(<a class="ident" href="../../src/prusti_launch/lib.rs.html#226">cmd</a>);
+    <a class="ident" href="../../src/prusti_launch/lib.rs.html#266">set_viper_home_setting</a>(<a class="ident" href="../../src/prusti_launch/lib.rs.html#226">cmd</a>, <a class="ident" href="../../src/prusti_launch/lib.rs.html#227">current_executable_dir</a>);
+    <a class="ident" href="../../src/prusti_launch/lib.rs.html#281">set_java_home_setting</a>(<a class="ident" href="../../src/prusti_launch/lib.rs.html#226">cmd</a>, <a class="ident" href="../../src/prusti_launch/lib.rs.html#228">java_home</a>)
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_smt_solver_path_setting</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">Command</a>, <span class="ident">current_executable_dir</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) {
+    <span class="kw">let</span> <span class="ident">z3_exe</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;Z3_EXE&quot;</span>) {
+        <a class="ident" href="../../src/prusti_launch/lib.rs.html#238">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_launch/lib.rs.html#173">find_z3_exe</a>(<a class="ident" href="../../src/prusti_launch/lib.rs.html#237">current_executable_dir</a>) {
+        <a class="ident" href="../../src/prusti_launch/lib.rs.html#240">path</a>
+    } <span class="kw">else</span> {
+        <span class="macro">panic!</span>(
+            <span class="string">&quot;Could not find the Z3 executable. \
+            Please set the Z3_EXE environment variable, which should contain the path of a \
+            Z3 executable.&quot;</span>
+        );
+    };
+    <a class="ident" href="../../src/prusti_launch/lib.rs.html#237">cmd</a>.<span class="ident">env</span>(<span class="string">&quot;PRUSTI_SMT_SOLVER_PATH&quot;</span>, <a class="ident" href="../../src/prusti_launch/lib.rs.html#238">z3_exe</a>);
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_smt_solver_wrapper_path_setting</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">Command</a>, <span class="ident">current_executable_dir</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prusti_smt_wrapper_path</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_launch/lib.rs.html#252">current_executable_dir</a>.<span class="ident">join</span>(<span class="string">&quot;prusti-smt-solver&quot;</span>);
+    <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
+        <a class="ident" href="../../src/prusti_launch/lib.rs.html#253">prusti_smt_wrapper_path</a>.<span class="ident">set_extension</span>(<span class="string">&quot;exe&quot;</span>);
+    }
+    <a class="ident" href="../../src/prusti_launch/lib.rs.html#252">cmd</a>.<span class="ident">env</span>(<span class="string">&quot;PRUSTI_SMT_SOLVER_WRAPPER_PATH&quot;</span>, <a class="ident" href="../../src/prusti_launch/lib.rs.html#253">prusti_smt_wrapper_path</a>);
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_boogie_path_setting</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">Command</a>) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;BOOGIE_EXE&quot;</span>) {
+        <a class="ident" href="../../src/prusti_launch/lib.rs.html#260">cmd</a>.<span class="ident">env</span>(<span class="string">&quot;PRUSTI_BOOGIE_PATH&quot;</span>, <a class="ident" href="../../src/prusti_launch/lib.rs.html#261">path</a>);
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_viper_home_setting</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">Command</a>, <span class="ident">current_executable_dir</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) {
+    <span class="kw">let</span> <span class="ident">viper_home</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;VIPER_HOME&quot;</span>) {
+        <a class="ident" href="../../src/prusti_launch/lib.rs.html#267">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">viper_home</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_launch/lib.rs.html#147">find_viper_home</a>(<a class="ident" href="../../src/prusti_launch/lib.rs.html#266">current_executable_dir</a>) {
+        <a class="ident" href="../../src/prusti_launch/lib.rs.html#269">viper_home</a>
+    } <span class="kw">else</span> {
+        <span class="macro">panic!</span>(
+            <span class="string">&quot;Could not find the Viper home. \
+            Please set the VIPER_HOME environment variable, which should contain the path of \
+            the folder that contains all Viper JAR files.&quot;</span>
+        );
+    };
+    <a class="ident" href="../../src/prusti_launch/lib.rs.html#266">cmd</a>.<span class="ident">env</span>(<span class="string">&quot;PRUSTI_VIPER_HOME&quot;</span>, <a class="ident" href="../../src/prusti_launch/lib.rs.html#267">viper_home</a>);
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_java_home_setting</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">Command</a>, <span class="ident">java_home</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) {
+    <a class="ident" href="../../src/prusti_launch/lib.rs.html#281">cmd</a>.<span class="ident">env</span>(<span class="string">&quot;PRUSTI_JAVA_HOME&quot;</span>, <a class="ident" href="../../src/prusti_launch/lib.rs.html#281">java_home</a>);
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_launch" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>

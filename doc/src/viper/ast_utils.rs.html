@@ -66,19 +66,15 @@
 <span id="59">59</span>
 <span id="60">60</span>
 <span id="61">61</span>
-<span id="62">62</span>
-<span id="63">63</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../src/viper/ast_factory/structs.rs.html#7">ast_factory::Program</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/viper/ast_factory/structs.rs.html#7">ast_factory::Program</a>, <a class="ident" href="../../src/viper/jni_utils.rs.html#19-21">jni_utils::JniUtils</a>, <a class="ident" href="../../src/viper/java_exception.rs.html#9-12">JavaException</a>};
 <span class="kw">use</span> <span class="ident">jni</span>::{<a class="ident" href="../../jni/wrapper/objects/jobject/struct.JObject.html">objects::JObject</a>, <a class="ident" href="../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/viper/jni_utils.rs.html#19-21">jni_utils::JniUtils</a>;
 <span class="kw">use</span> <a class="ident" href="../../viper_sys/wrappers/viper/index.html">viper_sys::wrappers::viper</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="../../src/viper/java_exception.rs.html#9-12">JavaException</a>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AstUtils</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -88,8 +84,8 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AstUtils</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">jni</span> <span class="op">=</span> <span class="ident">JniUtils::new</span>(<a class="ident" href="../../src/viper/ast_utils.rs.html#20">env</a>);
-        <a class="ident" href="../../src/viper/ast_utils.rs.html#14-17">AstUtils</a> { <a class="ident" href="../../src/viper/ast_utils.rs.html#20">env</a>, <a class="ident" href="../../src/viper/ast_utils.rs.html#21">jni</a> }
+        <span class="kw">let</span> <span class="ident">jni</span> <span class="op">=</span> <span class="ident">JniUtils::new</span>(<a class="ident" href="../../src/viper/ast_utils.rs.html#18">env</a>);
+        <a class="ident" href="../../src/viper/ast_utils.rs.html#12-15">AstUtils</a> { <a class="ident" href="../../src/viper/ast_utils.rs.html#18">env</a>, <a class="ident" href="../../src/viper/ast_utils.rs.html#19">jni</a> }
     }
 
     <span class="doccomment">/// Returns a vector of consistency errors, or a Java exception</span>
@@ -97,38 +93,38 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">program</span>: <span class="ident">Program</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <a class="ident" href="../../src/viper/java_exception.rs.html#9-12">JavaException</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/viper/ast_utils.rs.html#27">self</a>.<span class="ident">jni</span>
+        <a class="self" href="../../src/viper/ast_utils.rs.html#25">self</a>.<span class="ident">jni</span>
             .<a class="ident" href="../../src/viper/jni_utils.rs.html#37">unwrap_or_exception</a>(
-                <span class="ident">silver::ast::Node::with</span>(<a class="self" href="../../src/viper/ast_utils.rs.html#27">self</a>.<span class="ident">env</span>).<span class="ident">call_checkTransitively</span>(<a class="ident" href="../../src/viper/ast_utils.rs.html#28">program</a>.<a class="ident" href="../../src/viper/ast_factory/structs.rs.html#7">to_jobject</a>()),
+                <span class="ident">silver::ast::Node::with</span>(<a class="self" href="../../src/viper/ast_utils.rs.html#25">self</a>.<span class="ident">env</span>).<span class="ident">call_checkTransitively</span>(<a class="ident" href="../../src/viper/ast_utils.rs.html#26">program</a>.<a class="ident" href="../../src/viper/ast_factory/structs.rs.html#7">to_jobject</a>()),
             )
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">java_vec</span><span class="op">|</span> <a class="self" href="../../src/viper/ast_utils.rs.html#27">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#132">seq_to_vec</a>(<a class="ident" href="../../src/viper/ast_utils.rs.html#34">java_vec</a>))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">java_vec</span><span class="op">|</span> <a class="self" href="../../src/viper/ast_utils.rs.html#25">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#132">seq_to_vec</a>(<a class="ident" href="../../src/viper/ast_utils.rs.html#32">java_vec</a>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pretty_print</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">program</span>: <span class="ident">Program</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
         <span class="kw">let</span> <span class="ident">fast_pretty_printer_wrapper</span> <span class="op">=</span>
-            <span class="ident">silver::ast::pretty::FastPrettyPrinter_object::with</span>(<a class="self" href="../../src/viper/ast_utils.rs.html#37">self</a>.<span class="ident">env</span>);
-        <a class="self" href="../../src/viper/ast_utils.rs.html#37">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#111">get_string</a>(
-            <a class="self" href="../../src/viper/ast_utils.rs.html#37">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(
-                <a class="ident" href="../../src/viper/ast_utils.rs.html#38">fast_pretty_printer_wrapper</a>.<span class="ident">call_pretty</span>(
-                    <a class="self" href="../../src/viper/ast_utils.rs.html#37">self</a>.<span class="ident">jni</span>
-                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/ast_utils.rs.html#38">fast_pretty_printer_wrapper</a>.<span class="ident">singleton</span>()),
-                    <a class="ident" href="../../src/viper/ast_utils.rs.html#37">program</a>.<a class="ident" href="../../src/viper/ast_factory/structs.rs.html#7">to_jobject</a>(),
+            <span class="ident">silver::ast::pretty::FastPrettyPrinter_object::with</span>(<a class="self" href="../../src/viper/ast_utils.rs.html#35">self</a>.<span class="ident">env</span>);
+        <a class="self" href="../../src/viper/ast_utils.rs.html#35">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#111">get_string</a>(
+            <a class="self" href="../../src/viper/ast_utils.rs.html#35">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(
+                <a class="ident" href="../../src/viper/ast_utils.rs.html#36">fast_pretty_printer_wrapper</a>.<span class="ident">call_pretty</span>(
+                    <a class="self" href="../../src/viper/ast_utils.rs.html#35">self</a>.<span class="ident">jni</span>
+                        .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="ident" href="../../src/viper/ast_utils.rs.html#36">fast_pretty_printer_wrapper</a>.<span class="ident">singleton</span>()),
+                    <a class="ident" href="../../src/viper/ast_utils.rs.html#35">program</a>.<a class="ident" href="../../src/viper/ast_factory/structs.rs.html#7">to_jobject</a>(),
                 ),
             ),
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">program</span>: <span class="ident">Program</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="../../src/viper/ast_utils.rs.html#51">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/ast_utils.rs.html#51">program</a>.<a class="ident" href="../../src/viper/ast_factory/structs.rs.html#7">to_jobject</a>())
+        <a class="self" href="../../src/viper/ast_utils.rs.html#49">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#117">to_string</a>(<a class="ident" href="../../src/viper/ast_utils.rs.html#49">program</a>.<a class="ident" href="../../src/viper/ast_factory/structs.rs.html#7">to_jobject</a>())
     }
 
     <span class="doccomment">/// Important: the result of the `f` call must not contain Java objects. Use carefully.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_local_frame</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
-        <a class="self" href="../../src/viper/ast_utils.rs.html#56">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/ast_utils.rs.html#56">self</a>.<span class="ident">env</span>.<span class="ident">push_local_frame</span>(<a class="ident" href="../../src/viper/ast_utils.rs.html#56">capacity</a>));
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/viper/ast_utils.rs.html#56">f</a>();
-        <a class="self" href="../../src/viper/ast_utils.rs.html#56">self</a>.<span class="ident">jni</span>
-            .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/ast_utils.rs.html#56">self</a>.<span class="ident">env</span>.<span class="ident">pop_local_frame</span>(<span class="ident">JObject::null</span>()));
-        <a class="ident" href="../../src/viper/ast_utils.rs.html#58">result</a>
+        <a class="self" href="../../src/viper/ast_utils.rs.html#54">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/ast_utils.rs.html#54">self</a>.<span class="ident">env</span>.<span class="ident">push_local_frame</span>(<a class="ident" href="../../src/viper/ast_utils.rs.html#54">capacity</a>));
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/viper/ast_utils.rs.html#54">f</a>();
+        <a class="self" href="../../src/viper/ast_utils.rs.html#54">self</a>.<span class="ident">jni</span>
+            .<a class="ident" href="../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<a class="self" href="../../src/viper/ast_utils.rs.html#54">self</a>.<span class="ident">env</span>.<span class="ident">pop_local_frame</span>(<span class="ident">JObject::null</span>()));
+        <a class="ident" href="../../src/viper/ast_utils.rs.html#56">result</a>
     }
 }
 </code></pre></div>

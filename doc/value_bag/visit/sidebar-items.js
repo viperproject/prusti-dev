@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["Visit","A visitor for a `ValueBag`."]]});

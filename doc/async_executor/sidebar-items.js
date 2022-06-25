@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Executor","An async executor."],["LocalExecutor","A thread-local executor."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["symlink","Creates a new symbolic link on the filesystem."]],"trait":[["DirBuilderExt","Unix-specific extensions to [`fs::DirBuilder`]."],["DirEntryExt","Unix-specific extension methods for [`fs::DirEntry`]."],["OpenOptionsExt","Unix-specific extensions to [`fs::OpenOptions`]."]]});

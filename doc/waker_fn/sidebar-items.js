@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["waker_fn","Converts a closure into a [`Waker`]."]]});

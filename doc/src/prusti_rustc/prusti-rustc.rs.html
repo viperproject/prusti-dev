@@ -161,29 +161,6 @@
 <span id="154">154</span>
 <span id="155">155</span>
 <span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -192,7 +169,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_family</span> <span class="op">=</span> <span class="string">&quot;unix&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">nix::unistd</span>::{<a class="ident" href="../../nix/unistd/fn.setpgid.html">setpgid</a>, <a class="ident" href="../../nix/unistd/struct.Pid.html">Pid</a>};
-<span class="kw">use</span> <span class="ident">prusti_launch</span>::{<a class="ident" href="../../prusti_launch/fn.add_to_loader_path.html">add_to_loader_path</a>, <a class="ident" href="../../prusti_launch/fn.find_viper_home.html">find_viper_home</a>, <a class="ident" href="../../prusti_launch/fn.find_z3_exe.html">find_z3_exe</a>, <a class="ident" href="../../prusti_launch/fn.sigint_handler.html">sigint_handler</a>};
+<span class="kw">use</span> <span class="ident">prusti_launch</span>::{<a class="ident" href="../../prusti_launch/fn.add_to_loader_path.html">add_to_loader_path</a>, <a class="ident" href="../../prusti_launch/fn.sigint_handler.html">sigint_handler</a>};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <a class="ident" href="https://doc.rust-lang.org/nightly/std/env/index.html">env</a>,
     <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
@@ -240,29 +217,7 @@
 
     <a class="ident" href="../../prusti_launch/fn.add_to_loader_path.html">add_to_loader_path</a>(<span class="macro">vec!</span>[<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#47">compiler_lib</a>, <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#46">compiler_bin</a>, <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#41">libjvm_path</a>], <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>);
 
-    <span class="kw">if</span> <span class="ident">env::var</span>(<span class="string">&quot;VIPER_HOME&quot;</span>).<span class="ident">ok</span>().<span class="ident">is_none</span>() {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">viper_home</span>) <span class="op">=</span> <a class="ident" href="../../prusti_launch/fn.find_viper_home.html">find_viper_home</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#24">current_executable_dir</a>) {
-            <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>.<span class="ident">env</span>(<span class="string">&quot;VIPER_HOME&quot;</span>, <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#58">viper_home</a>);
-        } <span class="kw">else</span> {
-            <span class="macro">panic!</span>(
-                <span class="string">&quot;Could not find the Viper home. \
-                Please set the VIPER_HOME environment variable, which should contain the path of \
-                the folder that contains all Viper JAR files.&quot;</span>
-            );
-        }
-    };
-
-    <span class="kw">if</span> <span class="ident">env::var</span>(<span class="string">&quot;Z3_EXE&quot;</span>).<span class="ident">ok</span>().<span class="ident">is_none</span>() {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">z3_exe</span>) <span class="op">=</span> <a class="ident" href="../../prusti_launch/fn.find_z3_exe.html">find_z3_exe</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#24">current_executable_dir</a>) {
-            <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>.<span class="ident">env</span>(<span class="string">&quot;Z3_EXE&quot;</span>, <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#70">z3_exe</a>);
-        } <span class="kw">else</span> {
-            <span class="macro">panic!</span>(
-                <span class="string">&quot;Could not find the Z3 executable. \
-                Please set the Z3_EXE environment variable, which should contain the path of a \
-                Z3 executable.&quot;</span>
-            );
-        }
-    };
+    <span class="ident">prusti_launch::set_environment_settings</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#24">current_executable_dir</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#35">java_home</a>);
 
     <span class="comment">// Setting RUSTC_WRAPPER causes Cargo to pass &#39;rustc&#39; as the first argument.</span>
     <span class="comment">// We&#39;re invoking the compiler programmatically, so we ignore this</span>
@@ -276,17 +231,16 @@
         <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#23">args</a>.<span class="ident">windows</span>(<span class="number">2</span>)
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="kw">_</span>; <span class="number">2</span>]<span class="op">&gt;</span><span class="ident">::try_from</span>)
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span>[<span class="ident">extern_flag</span>, <span class="ident">dependency</span>]<span class="op">|</span> {
-                <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#92">extern_flag</a> <span class="op">==</span> <span class="string">&quot;--extern&quot;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#92">dependency</a>.<span class="ident">starts_with</span>(<span class="string">&quot;prusti_contracts=&quot;</span>)
+                <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#70">extern_flag</a> <span class="op">==</span> <span class="string">&quot;--extern&quot;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#70">dependency</a>.<span class="ident">starts_with</span>(<span class="string">&quot;prusti_contracts=&quot;</span>)
             })
     {
-        <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#23">args</a>.<span class="ident">remove</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#89">remove_index</a>);
-        <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#23">args</a>.<span class="ident">remove</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#89">remove_index</a>);
+        <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#23">args</a>.<span class="ident">remove</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#67">remove_index</a>);
+        <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#23">args</a>.<span class="ident">remove</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#67">remove_index</a>);
     }
-
     <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>.<span class="ident">args</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#23">args</a>);
 
-    <span class="kw">let</span> <span class="ident">has_no_sysroot_arg</span> <span class="op">=</span> <span class="op">!</span><a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#23">args</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#102">s</a> <span class="op">==</span> <span class="string">&quot;--sysroot&quot;</span>);
-    <span class="kw">if</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#102">has_no_sysroot_arg</a> {
+    <span class="kw">let</span> <span class="ident">has_no_sysroot_arg</span> <span class="op">=</span> <span class="op">!</span><a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#23">args</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#79">s</a> <span class="op">==</span> <span class="string">&quot;--sysroot&quot;</span>);
+    <span class="kw">if</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#79">has_no_sysroot_arg</a> {
         <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>.<span class="ident">arg</span>(<span class="string">&quot;--sysroot&quot;</span>);
         <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>.<span class="ident">arg</span>(
             <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#44">prusti_sysroot</a>
@@ -299,7 +253,7 @@
     <span class="comment">// only do the following if we&#39;re not compiling the `prusti-contracts` dependency:</span>
     <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#23">args</a>
         .<span class="ident">windows</span>(<span class="number">2</span>)
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#116">p</a> <span class="op">==</span> [<span class="string">&quot;--crate-name&quot;</span>, <span class="string">&quot;prusti_contracts&quot;</span>])
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#93">p</a> <span class="op">==</span> [<span class="string">&quot;--crate-name&quot;</span>, <span class="string">&quot;prusti_contracts&quot;</span>])
     {
         <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>.<span class="ident">arg</span>(<span class="string">&quot;-L&quot;</span>);
         <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>.<span class="ident">arg</span>(<span class="macro">format!</span>(
@@ -315,7 +269,7 @@
         <span class="kw">let</span> <span class="ident">prusti_contracts_path</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#49">prusti_home</a>.<span class="ident">join</span>(<span class="string">&quot;libprusti_contracts.rlib&quot;</span>);
         <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>.<span class="ident">arg</span>(<span class="macro">format!</span>(
             <span class="string">&quot;prusti_contracts={}&quot;</span>,
-            <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#129">prusti_contracts_path</a>
+            <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#106">prusti_contracts_path</a>
                 .<span class="ident">as_os_str</span>()
                 .<span class="ident">to_str</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;the Prusti contracts path contains invalid UTF-8&quot;</span>)
@@ -335,19 +289,19 @@
     <span class="ident">ctrlc::set_handler</span>(<a class="ident" href="../../prusti_launch/fn.sigint_handler.html">sigint_handler</a>).<span class="ident">expect</span>(<span class="string">&quot;Error setting Ctrl-C handler&quot;</span>);
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;PRUSTI_RUSTC_LOG_ARGS&quot;</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">std::fs::File::create</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#151">path</a>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">std::fs::File::create</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#128">path</a>).<span class="ident">unwrap</span>();
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>.<span class="ident">get_args</span>() {
-            <span class="macro">writeln!</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#152">file</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#153">arg</a>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+            <span class="macro">writeln!</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#129">file</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#130">arg</a>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
         }
     }
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;PRUSTI_RUSTC_LOG_ENV&quot;</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">std::fs::File::create</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#157">path</a>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">std::fs::File::create</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#134">path</a>).<span class="ident">unwrap</span>();
         <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#53">cmd</a>.<span class="ident">get_envs</span>() {
             <span class="macro">writeln!</span>(
-                <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#158">file</a>,
+                <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#135">file</a>,
                 <span class="string">&quot;{}={}&quot;</span>,
-                <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#159">key</a>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>(),
-                <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#159">value</a>.<span class="ident">unwrap</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>()
+                <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#136">key</a>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>(),
+                <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#136">value</a>.<span class="ident">unwrap</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>()
             )
             .<span class="ident">unwrap</span>();
         }
@@ -357,10 +311,10 @@
         .<span class="ident">status</span>()
         .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;failed to execute prusti-driver ({:?})&quot;</span>, <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#30">prusti_driver_path</a>));
 
-    <span class="kw">if</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#170">exit_status</a>.<span class="ident">success</span>() {
+    <span class="kw">if</span> <a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#147">exit_status</a>.<span class="ident">success</span>() {
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#170">exit_status</a>.<span class="ident">code</span>().<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>))
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/prusti_rustc/prusti-rustc.rs.html#147">exit_status</a>.<span class="ident">code</span>().<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>))
     }
 }
 </code></pre></div>
