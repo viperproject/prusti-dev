@@ -40,6 +40,8 @@ RUSTFMT_CRATES = [
     'prusti-tests',
     'prusti-utils',
     #'prusti-viper',
+    'prusti-smt-solver',
+    'smt-log-analyzer',
     'viper',
     'viper-sys',
     'vir',
@@ -605,6 +607,7 @@ def analyze_quantifier_logs(test_path):
             command = [
                 z3_exe,
                 'trace=true',
+                'proof=true',
                 'trace_file_name=' + log_file,
                 'smt.qi.profile=true',
                 'smt.qi.profile_freq=10000',
@@ -619,7 +622,7 @@ def analyze_quantifier_logs(test_path):
                 fp.write(result.stdout)
             subprocess.run([
                 'python3', qi_explorer, '--input', log_file,
-                '--csv', csv_file, '--svg', svg_file,
+                '--csv', csv_file,
             ])
 
 def clippy_in(cwd):

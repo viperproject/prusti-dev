@@ -4,7 +4,10 @@ use crate::encoder::{
     middle::core_proof::{
         lowerer::{Lowerer, VariablesLowererInterface},
         references::ReferencesInterface,
-        snapshots::{IntoProcedureSnapshot, IntoSnapshot, SnapshotValuesInterface},
+        snapshots::{
+            IntoProcedureSnapshot, IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
+        },
+        type_layouts::TypeLayoutsInterface,
         types::TypesInterface,
     },
     mir::errors::ErrorInterface,
@@ -175,34 +178,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     let call = place.clone().unwrap_builtin_func_app(); // FIXME: Implement a macro that takes a reference to avoid clonning.
                     assert_eq!(call.function, vir_mid::BuiltinFunc::Index);
                     let index = call.arguments[1].to_procedure_snapshot(self)?;
-                    let index =
-                        self.obtain_constant_value(call.arguments[1].get_type(), index, position)?;
+                    let index_int = self.obtain_constant_value(
+                        call.arguments[1].get_type(),
+                        index.clone(),
+                        position,
+                    )?;
                     let old_len = self.obtain_array_len_snapshot(old_snapshot.clone(), position)?;
                     let new_len = self.obtain_array_len_snapshot(new_snapshot.clone(), position)?;
-                    var_decls! { i: Int };
+                    let size_type = self.size_type()?;
+                    let size_type_mid = self.size_type_mid()?;
+                    var_decls! { i: {size_type.clone()} };
+                    let i_int =
+                        self.obtain_constant_value(&size_type_mid, i.clone().into(), position)?;
+                    let i_validity =
+                        self.encode_snapshot_valid_call_for_type(i.into(), &size_type_mid)?;
                     let new_element_snapshot = self.obtain_array_element_snapshot(
                         new_snapshot.clone(),
-                        i.clone().into(),
+                        i_int.clone(),
                         position,
                     )?;
                     let old_element_snapshot = self.obtain_array_element_snapshot(
                         old_snapshot.clone(),
-                        i.into(),
+                        i_int.clone(),
                         position,
                     )?;
                     statements.push(stmtp! { position => assume ([new_len.clone()] == [old_len])});
                     statements.push(stmtp! { position =>
                         assume (
                             forall(
-                                i: Int :: [ {[new_element_snapshot.clone()]} ]
-                                (([0.into()] <= i) && (i < [new_len]) && (i != [index.clone()])) ==>
+                                i: {size_type} :: [ {[new_element_snapshot.clone()]} ]
+                                ([i_validity] && ([i_int] < [new_len]) && (i != [index])) ==>
                                 ([new_element_snapshot] == [old_element_snapshot])
                             )
                         )
                     });
                     Ok((
-                        self.obtain_array_element_snapshot(old_snapshot, index.clone(), position)?,
-                        self.obtain_array_element_snapshot(new_snapshot, index, position)?,
+                        self.obtain_array_element_snapshot(
+                            old_snapshot,
+                            index_int.clone(),
+                            position,
+                        )?,
+                        self.obtain_array_element_snapshot(new_snapshot, index_int, position)?,
                     ))
                 }
                 vir_mid::TypeDecl::Reference(_) => {
