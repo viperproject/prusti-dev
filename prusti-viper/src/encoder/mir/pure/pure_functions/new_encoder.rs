@@ -16,9 +16,11 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_common::vir_high_local;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty, ty::subst::SubstsRef};
-use rustc_span::Span;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{mir, ty, ty::subst::SubstsRef},
+    span::Span,
+};
 use vir_crate::{
     common::{expression::ExpressionIterator, position::Positioned},
     high::{self as vir_high},
@@ -171,7 +173,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let span = encoder.get_spec_span(proc_def_id);
 
         // TODO: move this to a signatures module
-        use crate::rustc_middle::ty::subst::Subst;
+        use prusti_rustc_interface::middle::ty::subst::Subst;
         let sig = ty::EarlyBinder(encoder.env().tcx().fn_sig(proc_def_id))
             .subst(encoder.env().tcx(), substs);
         let sig = encoder

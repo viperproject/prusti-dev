@@ -8,7 +8,9 @@ use crate::polymorphic::ast::*;
 use rustc_hash::FxHashMap;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub struct Trigger(pub(crate) Vec<Expr>);
 
 impl fmt::Display for Trigger {

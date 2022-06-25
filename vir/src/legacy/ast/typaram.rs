@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use log::trace;
 use regex::Regex;
 use std::collections::HashMap;
 
@@ -29,7 +30,7 @@ impl Substs {
     /// concrete one.
     /// This function will compute what is the type substitution needed to go from `from` to `to`.
     pub fn learn(from: &str, to: &str) -> Self {
-        lazy_static! {
+        lazy_static::lazy_static! {
             static ref TYPARAM_RE: Regex = Regex::new("(__TYPARAM__\\$(.*?)\\$__)").unwrap();
         }
 

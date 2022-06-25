@@ -6,7 +6,7 @@ use crate::encoder::{
     },
 };
 use prusti_interface::environment::debug_utils::to_text::ToText;
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::high::{self as vir_high, builders::procedure::BasicBlockBuilder};
 
@@ -749,10 +749,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
     fn encode_lifetime_specifications(
         &mut self,
     ) -> SpannedEncodingResult<(Vec<vir_high::Statement>, Vec<vir_high::Statement>)> {
-        let (first_bb, _) = rustc_middle::mir::traversal::reverse_postorder(self.mir)
-            .into_iter()
-            .next()
-            .unwrap();
+        let (first_bb, _) =
+            prusti_rustc_interface::middle::mir::traversal::reverse_postorder(self.mir)
+                .into_iter()
+                .next()
+                .unwrap();
         let first_location = mir::Location {
             block: first_bb,
             statement_index: 0,

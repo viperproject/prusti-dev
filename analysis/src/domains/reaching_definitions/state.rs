@@ -7,12 +7,14 @@
 use crate::{
     abstract_interpretation::AbstractState, mir_utils::location_to_stmt_str, AnalysisError,
 };
-use rustc_data_structures::{
-    fingerprint::Fingerprint,
-    fx::{FxHashMap, FxHashSet},
-    stable_hasher::{HashStable, StableHasher},
+use prusti_rustc_interface::{
+    data_structures::{
+        fingerprint::Fingerprint,
+        fx::{FxHashMap, FxHashSet},
+        stable_hasher::{HashStable, StableHasher},
+    },
+    middle::{mir, ty::TyCtxt},
 };
-use rustc_middle::{mir, ty::TyCtxt};
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::{
     collections::{BTreeMap, BTreeSet},

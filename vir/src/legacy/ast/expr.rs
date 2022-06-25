@@ -6,6 +6,7 @@
 
 use super::super::borrows::Borrow;
 use crate::legacy::ast::*;
+use log::debug;
 use std::{
     collections::{HashMap, HashSet},
     fmt,
@@ -14,7 +15,7 @@ use std::{
     mem::discriminant,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 pub enum Expr {
     /// A local var
     Local(LocalVar, Position),
@@ -83,14 +84,14 @@ pub enum PlaceComponent {
     Variant(Field, Position),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum UnaryOpKind {
     Not,
     Minus,
     IsNaN,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum BinaryOpKind {
     EqCmp,
     NeCmp,
@@ -116,7 +117,7 @@ pub enum BinaryOpKind {
     Max,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum ContainerOpKind {
     SeqIndex,
     SeqConcat,
@@ -124,25 +125,25 @@ pub enum ContainerOpKind {
     // more to follow if required
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum CastKind {
     BVIntoInt(BitVector),
     IntIntoBV(BitVector),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum FloatConst {
     F32(u32),
     F64(u64),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct BitVectorConst {
     pub value: String,
     pub typ: BitVector,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum Const {
     Bool(bool),
     Int(i64),
@@ -1146,7 +1147,7 @@ impl Expr {
     }
 
     pub fn get_maybe_type(&self) -> Option<&Type> {
-        lazy_static! {
+        lazy_static::lazy_static! {
             static ref FN_PTR_TYPE: Type = Type::TypedRef("FnPtr".to_string());
         }
         let result = match self {

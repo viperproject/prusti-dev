@@ -7,10 +7,10 @@
 //! Various helper functions for working with `mir::Place`.
 
 use log::trace;
-use rustc_ast::ast;
-use rustc_data_structures::fx::FxHashSet;
-use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::{
+use prusti_rustc_interface::ast::ast;
+use prusti_rustc_interface::data_structures::fx::FxHashSet;
+use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
+use prusti_rustc_interface::middle::{
     mir,
     ty::{self, TyCtxt},
 };
@@ -213,11 +213,11 @@ impl<'tcx> VecPlace<'tcx> {
     }
 }
 
-pub fn get_local_attributes(tcx: ty::TyCtxt<'_>, def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
+pub fn get_local_attributes(tcx: ty::TyCtxt<'_>, def_id: LocalDefId) -> &[prusti_rustc_interface::ast::ast::Attribute] {
     tcx.hir().attrs(tcx.hir().local_def_id_to_hir_id(def_id))
 }
 
-pub fn get_attributes(tcx: ty::TyCtxt<'_>, def_id: DefId) -> &[rustc_ast::ast::Attribute] {
+pub fn get_attributes(tcx: ty::TyCtxt<'_>, def_id: DefId) -> &[prusti_rustc_interface::ast::ast::Attribute] {
     if let Some(local_def_id) = def_id.as_local() {
         get_local_attributes(tcx, local_def_id)
     } else {
@@ -305,7 +305,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             {
                 continue;
             }
-            fn extract_string(token: &rustc_ast::token::Lit) -> String {
+            fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
                 token.symbol.as_str().replace("\\\"", "\"")
             }
             strings.push(extract_string(token));

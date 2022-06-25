@@ -8,7 +8,8 @@
 pub mod commandline;
 
 use self::commandline::CommandLine;
-use config_crate::{Config, Environment, File};
+use ::config::{Config, Environment, File};
+use log::warn;
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -59,7 +60,7 @@ impl Optimizations {
     }
 }
 
-lazy_static! {
+lazy_static::lazy_static! {
     // Is this RwLock<..> necessary?
     static ref SETTINGS: RwLock<Config> = RwLock::new({
         let mut settings = Config::default();

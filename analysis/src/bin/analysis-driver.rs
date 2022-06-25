@@ -1,16 +1,8 @@
 #![feature(rustc_private)]
 
-extern crate polonius_engine;
-/// Sources:
-/// https://github.com/rust-lang/miri/blob/master/benches/helpers/miri_helper.rs
-/// https://github.com/rust-lang/rust/blob/master/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
-extern crate rustc_ast;
-extern crate rustc_borrowck;
-extern crate rustc_driver;
-extern crate rustc_hir;
-extern crate rustc_interface;
-extern crate rustc_middle;
-extern crate rustc_session;
+// Sources:
+// https://github.com/rust-lang/miri/blob/master/benches/helpers/miri_helper.rs
+// https://github.com/rust-lang/rust/blob/master/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
 
 use analysis::{
     abstract_interpretation::FixpointEngine,
@@ -19,24 +11,29 @@ use analysis::{
         MaybeBorrowedAnalysis, ReachingDefsAnalysis,
     },
 };
-use polonius_engine::{Algorithm, Output};
-use rustc_ast::ast;
-use rustc_borrowck::BodyWithBorrowckFacts;
-use rustc_driver::Compilation;
-use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_interface::{interface, Config, Queries};
-use rustc_middle::{
-    ty,
-    ty::query::{query_values::mir_borrowck, ExternProviders, Providers},
+use prusti_rustc_interface::{
+    ast::ast,
+    borrowck::BodyWithBorrowckFacts,
+    driver::Compilation,
+    hir::def_id::{DefId, LocalDefId},
+    interface::{interface, Config, Queries},
+    middle::{
+        ty,
+        ty::query::{query_values::mir_borrowck, ExternProviders, Providers},
+    },
+    polonius_engine::{Algorithm, Output},
+    session::{Attribute, Session},
 };
-use rustc_session::{Attribute, Session};
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 struct OurCompilerCalls {
     args: Vec<String>,
 }
 
-fn get_attributes(tcx: ty::TyCtxt<'_>, def_id: DefId) -> &[rustc_ast::ast::Attribute] {
+fn get_attributes(
+    tcx: ty::TyCtxt<'_>,
+    def_id: DefId,
+) -> &[prusti_rustc_interface::ast::ast::Attribute] {
     if let Some(local_def_id) = def_id.as_local() {
         tcx.hir()
             .attrs(tcx.hir().local_def_id_to_hir_id(local_def_id))
@@ -119,7 +116,7 @@ mod mir_storage {
 
 #[allow(clippy::needless_lifetimes)]
 fn mir_borrowck<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
-    let body_with_facts = rustc_borrowck::consumers::get_body_with_borrowck_facts(
+    let body_with_facts = prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
         tcx,
         ty::WithOptConstParam::unknown(def_id),
     );
@@ -129,7 +126,7 @@ fn mir_borrowck<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck
         mir_storage::store_mir_body(tcx, def_id, body_with_facts);
     }
     let mut providers = Providers::default();
-    rustc_borrowck::provide(&mut providers);
+    prusti_rustc_interface::borrowck::provide(&mut providers);
     let original_mir_borrowck = providers.mir_borrowck;
     original_mir_borrowck(tcx, def_id)
 }
@@ -138,7 +135,7 @@ fn override_queries(_session: &Session, local: &mut Providers, _external: &mut E
     local.mir_borrowck = mir_borrowck;
 }
 
-impl rustc_driver::Callbacks for OurCompilerCalls {
+impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
     // In this callback we override the mir_borrowck query.
     fn config(&mut self, config: &mut Config) {
         assert!(config.override_queries.is_none());
@@ -284,7 +281,7 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
 /// --analysis=ReachingDefsState or --analysis=DefinitelyInitializedAnalysis
 fn main() {
     env_logger::init();
-    rustc_driver::init_rustc_env_logger();
+    prusti_rustc_interface::driver::init_rustc_env_logger();
     let mut compiler_args = Vec::new();
     let mut callback_args = Vec::new();
     for arg in std::env::args() {
@@ -304,8 +301,8 @@ fn main() {
         args: callback_args,
     };
     // Invoke compiler, and handle return code.
-    let exit_code = rustc_driver::catch_with_exit_code(move || {
-        rustc_driver::RunCompiler::new(&compiler_args, &mut callbacks).run()
+    let exit_code = prusti_rustc_interface::driver::catch_with_exit_code(move || {
+        prusti_rustc_interface::driver::RunCompiler::new(&compiler_args, &mut callbacks).run()
     });
     std::process::exit(exit_code)
 }

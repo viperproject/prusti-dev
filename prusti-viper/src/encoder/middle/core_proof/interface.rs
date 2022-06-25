@@ -3,7 +3,7 @@ use crate::encoder::{
     mir::specifications::SpecificationsInterface,
 };
 use log::debug;
-use rustc_hir::def_id::DefId;
+use prusti_rustc_interface::hir::def_id::DefId;
 use vir_crate::low::{self as vir_low};
 
 #[derive(Default)]

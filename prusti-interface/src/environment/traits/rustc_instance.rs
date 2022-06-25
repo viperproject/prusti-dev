@@ -11,21 +11,19 @@
 //   span bugs, which is the main motivation for duplication.
 // + `ErrorGuaranteed` changed to `()` (private constructor).
 
-use rustc_hir::def_id::DefId;
-use rustc_infer::infer::TyCtxtInferExt;
-use rustc_middle::ty::subst::SubstsRef;
-use rustc_middle::ty::{self, Binder, Instance, Ty, TyCtxt, TypeFoldable, TypeVisitor, TypeSuperFoldable};
-use rustc_span::{sym, DUMMY_SP};
-use rustc_target::spec::abi::Abi;
-use rustc_trait_selection::traits;
+use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::infer::infer::TyCtxtInferExt;
+use prusti_rustc_interface::middle::ty::subst::SubstsRef;
+use prusti_rustc_interface::middle::ty::{self, Binder, Instance, Ty, TyCtxt, TypeFoldable, TypeVisitor, TypeSuperFoldable};
+use prusti_rustc_interface::span::{sym, DUMMY_SP};
+use prusti_rustc_interface::target::spec::abi::Abi;
+use prusti_rustc_interface::trait_selection::traits;
 use traits::{translate_substs, Reveal};
-
-use rustc_data_structures::sso::SsoHashSet;
+use prusti_rustc_interface::data_structures::sso::SsoHashSet;
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::ops::ControlFlow;
-
-use tracing::debug;
+use log::debug;
 
 // FIXME(#86795): `BoundVarsCollector` here should **NOT** be used
 // outside of `resolve_associated_item`. It's just to address #64494,
@@ -201,8 +199,6 @@ fn resolve_associated_item<'tcx>(
     trait_id: DefId,
     rcvr_substs: SubstsRef<'tcx>,
 ) -> Result<Option<Instance<'tcx>>, ()> {
-    debug!(?trait_item_id, ?param_env, ?trait_id, ?rcvr_substs, "resolve_associated_item");
-
     let trait_ref = ty::TraitRef::from_method(tcx, trait_id, rcvr_substs);
 
     // See FIXME on `BoundVarsCollector`.

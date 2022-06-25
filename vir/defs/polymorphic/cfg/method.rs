@@ -8,13 +8,14 @@ use crate::{
     common::identifier::WithIdentifier,
     polymorphic::{ast::*, gather_labels::gather_labels},
 };
+use log::{debug, trace};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::{collections::VecDeque, fmt, iter::FromIterator};
 use uuid::Uuid;
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct CfgMethod {
     // TODO: extract logic using (most) skipped fields to CfgMethodBuilder
     #[serde(skip)]
@@ -36,13 +37,13 @@ pub struct CfgMethod {
     pub(crate) fresh_label_index: i32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
     pub successor: Successor,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum Successor {
     Undefined,
     Return,
@@ -50,7 +51,7 @@ pub enum Successor {
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
 }
 
-#[derive(PartialEq, Eq, Clone, Copy, Hash, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Copy, Hash, serde::Serialize, serde::Deserialize)]
 pub struct CfgBlockIndex {
     #[serde(skip)]
     pub(crate) method_uuid: Uuid,

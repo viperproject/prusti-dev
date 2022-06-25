@@ -8,9 +8,11 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_common::config;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty};
-use rustc_span::Span;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{mir, ty},
+    span::Span,
+};
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
     high::{self as vir_high, operations::ty::Typed},

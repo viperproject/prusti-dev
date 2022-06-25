@@ -3,7 +3,6 @@
 //! Please see the `parser.rs` file for more information about
 //! specifications.
 
-use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use std::fmt::{Display, Debug};
 use uuid::Uuid;
@@ -46,7 +45,7 @@ impl<'a> TryFrom<&'a str> for SpecType {
 }
 
 #[derive(
-    Debug, Default, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord,
+    Debug, Default, PartialEq, Eq, Hash, Clone, Copy, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
 )]
 /// A unique ID of the specification element such as entire precondition
 /// or postcondition.

@@ -13,6 +13,7 @@ use crate::{
         ToGraphViz,
     },
 };
+use log::debug;
 
 pub mod bitvectors;
 pub mod folding;

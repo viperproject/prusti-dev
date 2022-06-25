@@ -2,8 +2,8 @@
     Debug,
     derive_more::Display,
     Clone,
-    Serialize,
-    Deserialize,
+    serde::Serialize,
+    serde::Deserialize,
     PartialEq,
     Eq,
     Hash

@@ -5,7 +5,7 @@ use super::borrowck::{
 use crate::environment::debug_utils::to_text::{
     loan_containment_to_text, loans_to_text, point_to_text, points_to_text, ToText,
 };
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 use vir::common::graphviz::{Graph, NodeBuilder};
 
 pub fn to_graphviz<'tcx>(
@@ -162,7 +162,7 @@ fn visit_statement(
 }
 
 fn visit_terminator(graph: &mut Graph, bb: mir::BasicBlock, terminator: &mir::Terminator<'_>) {
-    use rustc_middle::mir::TerminatorKind;
+    use prusti_rustc_interface::middle::mir::TerminatorKind;
     let bb = &bb;
     match &terminator.kind {
         TerminatorKind::Goto { target } => {

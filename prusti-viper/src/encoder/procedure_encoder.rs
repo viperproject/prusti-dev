@@ -46,15 +46,15 @@ use prusti_interface::{
     PrustiError,
 };
 use prusti_interface::utils;
-use rustc_middle::mir::Mutability;
-use rustc_middle::mir;
-use rustc_middle::mir::{TerminatorKind};
-use rustc_middle::ty::{self, layout::IntegerExt, ParamEnv, subst::SubstsRef};
-use rustc_target::abi::Integer;
+use prusti_rustc_interface::middle::mir::Mutability;
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::middle::mir::{TerminatorKind};
+use prusti_rustc_interface::middle::ty::{self, layout::IntegerExt, ParamEnv, subst::SubstsRef};
+use prusti_rustc_interface::target::abi::Integer;
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_attr::IntType::SignedInt;
-use rustc_span::Span;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::attr::IntType::SignedInt;
+use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::errors::MultiSpan;
 use prusti_interface::specs::typed;
 use ::log::{trace, debug};
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
@@ -553,7 +553,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.fold(expr.clone());
             }
         }
-        impl<'a, 'b, 'c> ExprFolder for FindFnApps<'a, 'b, 'c> { 
+        impl<'a, 'b, 'c> ExprFolder for FindFnApps<'a, 'b, 'c> {
             fn fold_func_app(&mut self, expr: vir::FuncApp) -> vir::Expr {
                 let vir::FuncApp { function_name, type_arguments, arguments, formal_arguments, return_type, .. } = expr;
                 if self.recurse {
@@ -870,7 +870,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let span_lg = loop_guard_evaluation.last().map(|bb| self.mir_encoder.get_span_of_basic_block(*bb));
             // Span of entire loop body before inv; the last elem (if any) will be the `body_invariant!(...)` bb
             let span_lb = loop_body_before_inv.iter().rev().skip(1).map(|bb| self.mir_encoder.get_span_of_basic_block(*bb))
-                .fold(None, |acc: Option<Span>, span| Some(acc.map(|other| 
+                .fold(None, |acc: Option<Span>, span| Some(acc.map(|other|
                     if span.ctxt() == other.ctxt() { span.to(other) } else { other }
                 ).unwrap_or(span)) );
             // Multispan to highlight both
@@ -2980,7 +2980,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_impure_function_call(
         &mut self,
         location: mir::Location,
-        call_site_span: rustc_span::Span,
+        call_site_span: prusti_rustc_interface::span::Span,
         mir_args: &[mir::Operand<'tcx>],
         destination: mir::Place<'tcx>,
         target: Option<BasicBlockIndex>,
@@ -3364,7 +3364,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_pure_function_call(
         &mut self,
         location: mir::Location,
-        call_site_span: rustc_span::Span,
+        call_site_span: prusti_rustc_interface::span::Span,
         args: &[mir::Operand<'tcx>],
         destination: mir::Place<'tcx>,
         target: Option<BasicBlockIndex>,
@@ -5296,7 +5296,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// then we assume that `containing_def_id` is local.
     fn encode_generic_place(
         &self,
-        containing_def_id: rustc_hir::def_id::DefId,
+        containing_def_id: prusti_rustc_interface::hir::def_id::DefId,
         location: Option<mir::Location>,
         place: Place<'tcx>,
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {

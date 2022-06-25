@@ -17,13 +17,13 @@
 // general routines.
 
 use log::debug;
-use rustc_trait_selection::infer::{InferCtxt, TyCtxtInferExt};
-use rustc_trait_selection::traits::{
+use prusti_rustc_interface::trait_selection::infer::{InferCtxt, TyCtxtInferExt};
+use prusti_rustc_interface::trait_selection::traits::{
     FulfillmentContext, ImplSource, Obligation, ObligationCause, SelectionContext, TraitEngine,
     Unimplemented,
 };
-use rustc_middle::ty::fold::TypeFoldable;
-use rustc_middle::ty::{self, TyCtxt};
+use prusti_rustc_interface::middle::ty::fold::TypeFoldable;
+use prusti_rustc_interface::middle::ty::{self, TyCtxt};
 
 /// Attempts to resolve an obligation to an `ImplSource`. The result is
 /// a shallow `ImplSource` resolution, meaning that we do not
@@ -65,7 +65,7 @@ pub fn codegen_fulfill_obligation<'tcx>(
                 // // overflow bug, since I believe this is the only case
                 // // where ambiguity can result.
                 // let reported = infcx.tcx.sess.delay_span_bug(
-                //     rustc_span::DUMMY_SP,
+                //     prusti_rustc_interface::span::DUMMY_SP,
                 //     &format!(
                 //         "encountered ambiguity selecting `{:?}` during codegen, presuming due to \
                 //          overflow or prior type error",
@@ -80,7 +80,7 @@ pub fn codegen_fulfill_obligation<'tcx>(
                 // // This can also trigger when we have a global bound that is not actually satisfied,
                 // // but was included during typeck due to the trivial_bounds feature.
                 // let guar = infcx.tcx.sess.delay_span_bug(
-                //     rustc_span::DUMMY_SP,
+                //     prusti_rustc_interface::span::DUMMY_SP,
                 //     &format!(
                 //         "Encountered error `Unimplemented` selecting `{:?}` during codegen",
                 //         trait_ref
@@ -141,7 +141,7 @@ fn drain_fulfillment_cx_or_panic<'tcx, T>(
     let errors = fulfill_cx.select_all_or_error(infcx);
     if !errors.is_empty() {
         // infcx.tcx.sess.delay_span_bug(
-        //     rustc_span::DUMMY_SP,
+        //     prusti_rustc_interface::span::DUMMY_SP,
         //     &format!(
         //         "Encountered errors `{:?}` resolving bounds outside of type inference",
         //         errors

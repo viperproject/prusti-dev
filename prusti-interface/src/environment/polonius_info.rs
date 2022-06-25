@@ -11,13 +11,13 @@ use std::fmt;
 use datafrog;
 use log::debug;
 use log::trace;
-use polonius_engine::Algorithm;
-use polonius_engine::Output;
-use rustc_index::vec::Idx;
-use rustc_middle::mir;
-use rustc_middle::ty;
-use rustc_span::def_id::{DefId};
-use rustc_span::Span;
+use prusti_rustc_interface::polonius_engine::Algorithm;
+use prusti_rustc_interface::polonius_engine::Output;
+use prusti_rustc_interface::index::vec::Idx;
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::middle::ty;
+use prusti_rustc_interface::span::def_id::{DefId};
+use prusti_rustc_interface::span::Span;
 use crate::environment::borrowck::facts::PointType;
 use crate::environment::borrowck::regions::{PlaceRegions, PlaceRegionsError};
 use crate::environment::mir_utils::AllPlaces;
@@ -264,7 +264,7 @@ pub enum PoloniusInfoError {
 
 pub fn graphviz<'tcx>(
     env: &Environment<'tcx>,
-    def_path: &rustc_hir::definitions::DefPath,
+    def_path: &prusti_rustc_interface::hir::definitions::DefPath,
     def_id: DefId,
 ) -> std::io::Result<()> {
     macro_rules! to_html {
@@ -879,7 +879,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         &self,
         point: facts::PointIndex,
         region: facts::Region,
-        restricts_map: &rustc_data_structures::fx::FxHashMap<
+        restricts_map: &prusti_rustc_interface::data_structures::fx::FxHashMap<
             facts::PointIndex,
             BTreeMap<facts::Region, BTreeSet<facts::Loan>>,
         >,
@@ -902,7 +902,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         (loans, zombie_loans)
     }
 
-    fn get_borrow_live_at(&self, zombie: bool) -> &rustc_data_structures::fx::FxHashMap<facts::PointIndex, Vec<facts::Loan>> {
+    fn get_borrow_live_at(&self, zombie: bool) -> &prusti_rustc_interface::data_structures::fx::FxHashMap<facts::PointIndex, Vec<facts::Loan>> {
         if zombie {
             &self.additional_facts.zombie_borrow_live_at
         } else {
@@ -1983,7 +1983,7 @@ pub struct AdditionalFacts {
     ///     origin_live_on_entry(R, Q).
     /// ```
     pub zombie_requires:
-        rustc_data_structures::fx::FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
+        prusti_rustc_interface::data_structures::fx::FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
     /// The ``zombie_borrow_live_at`` facts are ``loan_live_at`` facts
     /// for the loans that were loan_killed_at.
     ///
@@ -1992,9 +1992,9 @@ pub struct AdditionalFacts {
     ///     zombie_requires(R, L, P),
     ///     origin_live_on_entry(R, P).
     /// ```
-    pub zombie_borrow_live_at: rustc_data_structures::fx::FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
+    pub zombie_borrow_live_at: prusti_rustc_interface::data_structures::fx::FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
     /// Which loans were loan_killed_at (become zombies) at a given point.
-    pub borrow_become_zombie_at: rustc_data_structures::fx::FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
+    pub borrow_become_zombie_at: prusti_rustc_interface::data_structures::fx::FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
 }
 
 impl AdditionalFacts {
@@ -2004,9 +2004,9 @@ impl AdditionalFacts {
         all_facts: &facts::AllInputFacts,
         output: &facts::AllOutputFacts,
     ) -> (
-        rustc_data_structures::fx::FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
-        rustc_data_structures::fx::FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
-        rustc_data_structures::fx::FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
+        prusti_rustc_interface::data_structures::fx::FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
+        prusti_rustc_interface::data_structures::fx::FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
+        prusti_rustc_interface::data_structures::fx::FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
     ) {
         use self::facts::{Loan, PointIndex as Point, Region};
         use datafrog::{Iteration, Relation};
@@ -2138,7 +2138,7 @@ impl AdditionalFacts {
         }
 
         let zombie_requires = zombie_requires.complete();
-        let mut zombie_requires_map = rustc_data_structures::fx::FxHashMap::default();
+        let mut zombie_requires_map = prusti_rustc_interface::data_structures::fx::FxHashMap::default();
         for (region, loan, point) in &zombie_requires.elements {
             zombie_requires_map
                 .entry(*point)
@@ -2149,7 +2149,7 @@ impl AdditionalFacts {
         }
 
         let zombie_borrow_live_at = zombie_borrow_live_at.complete();
-        let mut zombie_borrow_live_at_map = rustc_data_structures::fx::FxHashMap::default();
+        let mut zombie_borrow_live_at_map = prusti_rustc_interface::data_structures::fx::FxHashMap::default();
         for (loan, point) in &zombie_borrow_live_at.elements {
             zombie_borrow_live_at_map
                 .entry(*point)
@@ -2158,7 +2158,7 @@ impl AdditionalFacts {
         }
 
         let borrow_become_zombie_at = borrow_become_zombie_at.complete();
-        let mut borrow_become_zombie_at_map = rustc_data_structures::fx::FxHashMap::default();
+        let mut borrow_become_zombie_at_map = prusti_rustc_interface::data_structures::fx::FxHashMap::default();
         for (loan, point) in &borrow_become_zombie_at.elements {
             borrow_become_zombie_at_map
                 .entry(*point)

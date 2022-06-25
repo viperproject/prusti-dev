@@ -9,9 +9,7 @@ use crate::{
     PointwiseState,
 };
 pub use crate::{domains::*, AnalysisError};
-use rustc_data_structures::fx::FxHashMap;
-use rustc_middle::mir;
-use rustc_span::def_id::DefId;
+use prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::mir, span::def_id::DefId};
 use std::{collections::BTreeSet, iter::FromIterator};
 
 pub type AnalysisResult<T> = std::result::Result<T, AnalysisError>;

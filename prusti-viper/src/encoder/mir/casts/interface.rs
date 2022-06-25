@@ -1,5 +1,5 @@
 use log::{debug, trace};
-use rustc_middle::ty;
+use prusti_rustc_interface::middle::ty;
 use vir_crate::high::{self as vir_high};
 
 use crate::encoder::errors::{EncodingError, EncodingResult};

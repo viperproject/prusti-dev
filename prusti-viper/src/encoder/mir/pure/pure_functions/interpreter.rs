@@ -20,9 +20,11 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::vir_local;
 use prusti_interface::environment::mir_utils::SliceOrArrayRef;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{mir, span_bug, ty},
+};
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, span_bug, ty};
 use std::{convert::TryInto, mem};
 use vir_crate::polymorphic::{self as vir};
 
@@ -193,7 +195,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
         trace!("apply_terminator {:?}, states: {:?}", term, states);
-        use rustc_middle::mir::TerminatorKind;
+        use prusti_rustc_interface::middle::mir::TerminatorKind;
         let span = term.source_info.span;
         let location = self.mir.terminator_loc(bb);
 

@@ -5,8 +5,8 @@ use crate::encoder::{
         types::MirTypeEncoderInterface,
     },
 };
+use prusti_rustc_interface::middle::ty;
 use rustc_hash::FxHashSet;
-use rustc_middle::ty;
 use std::cell::RefCell;
 use vir_crate::{common::identifier::WithIdentifier, high as vir_high};
 

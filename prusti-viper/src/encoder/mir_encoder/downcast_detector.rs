@@ -1,6 +1,6 @@
-use rustc_middle::mir;
-use rustc_target::abi;
-use rustc_middle::mir::visit::Visitor;
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::target::abi;
+use prusti_rustc_interface::middle::mir::visit::Visitor;
 use prusti_interface::environment::mir_utils::MirPlace;
 use rustc_hash::{FxHashSet};
 

@@ -7,11 +7,11 @@
 use crate::utils;
 use crate::environment::mir_sets::PlaceSet;
 use crate::environment::procedure::BasicBlockIndex;
-use rustc_middle::mir;
-use rustc_middle::mir::visit::Visitor;
-use rustc_data_structures::graph::dominators::Dominators;
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::middle::mir::visit::Visitor;
+use prusti_rustc_interface::data_structures::graph::dominators::Dominators;
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_index::vec::{Idx, IndexVec};
+use prusti_rustc_interface::index::vec::{Idx, IndexVec};
 use log::{debug, trace};
 use crate::environment::mir_utils::RealEdges;
 
@@ -102,7 +102,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                 context,
                 location
             );
-            use rustc_middle::mir::visit::PlaceContext::*;
+            use prusti_rustc_interface::middle::mir::visit::PlaceContext::*;
             let access_kind = match context {
                 MutatingUse(mir::visit::MutatingUseContext::Store) => PlaceAccessKind::Store,
                 MutatingUse(mir::visit::MutatingUseContext::Call) => PlaceAccessKind::Store,

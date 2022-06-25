@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_common::{config, vir::program::Program};
-use serde::{Deserialize, Serialize};
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
@@ -13,7 +12,7 @@ use std::{
 };
 use viper::{self, VerificationBackend};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Hash)]
 pub struct VerificationRequest {
     pub program: Program,
     pub backend_config: ViperBackendConfig,
@@ -30,7 +29,7 @@ impl VerificationRequest {
 /// The configuration for the viper backend, (i.e. verifier).
 /// Expresses which backend (silicon or carbon) should be used, and provides command-line arguments
 /// to the viper verifier.
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Eq, PartialEq, Hash)]
 pub struct ViperBackendConfig {
     pub backend: VerificationBackend,
     pub verifier_args: Vec<String>,

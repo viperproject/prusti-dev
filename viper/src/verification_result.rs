@@ -5,10 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{silicon_counterexample::SiliconCounterexample, JavaException};
-use serde::{Deserialize, Serialize};
 
 /// The result of a verification request on a Viper program.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum VerificationResult {
     /// The program verified.
     Success,
@@ -26,7 +25,7 @@ impl VerificationResult {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct VerificationError {
     pub full_id: String,
     // Unused since we get pos from the offending_node instead.
@@ -60,7 +59,7 @@ impl VerificationError {
 }
 
 /// The consistency error reported by the verifier.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ConsistencyError {
     /// To which method corresponds the program that triggered the error.
     pub method: String,
@@ -69,7 +68,7 @@ pub struct ConsistencyError {
 }
 
 /// The Java exception reported by the verifier.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct JavaExceptionWithOrigin {
     /// To which method corresponds the program that triggered the exception.
     pub method: String,
