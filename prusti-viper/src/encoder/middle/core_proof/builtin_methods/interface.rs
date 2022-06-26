@@ -836,8 +836,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 )
             }
         };
+        let valid_result =
+            self.encode_snapshot_valid_call_for_type(result_value.clone().into(), result_type)?;
         let reference_predicate = expr! {
-            acc(OwnedNonAliased<result_type>(target_place, target_address, result_value, operand_lifetime))
+            (acc(OwnedNonAliased<result_type>(target_place, target_address, result_value, operand_lifetime))) &&
+            [valid_result]
         };
         let lifetime_token =
             self.encode_lifetime_token(operand_lifetime.clone(), lifetime_perm.clone().into())?;

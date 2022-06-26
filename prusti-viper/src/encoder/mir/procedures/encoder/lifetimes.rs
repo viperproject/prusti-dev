@@ -47,6 +47,7 @@ pub(super) trait LifetimesEncoder<'tcx> {
     ) -> SpannedEncodingResult<()>;
     fn update_lifetimes_to_remove(
         &mut self,
+        old_original_lifetimes: &BTreeSet<String>,
         new_derived_lifetimes: &BTreeMap<String, BTreeSet<String>>,
         new_reborrow_lifetime_to_remove: String,
         lifetimes_to_create: &BTreeSet<String>,
@@ -273,6 +274,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             true,
             None,
         )?;
+        self.reborrow_lifetimes_to_remove_for_block
+            .entry(target)
+            .or_insert_with(BTreeSet::new);
+        let mut values = self
+            .reborrow_lifetimes_to_remove_for_block
+            .get(&self.current_basic_block.unwrap())
+            .unwrap()
+            .clone();
+        self.reborrow_lifetimes_to_remove_for_block
+            .get_mut(&target)
+            .unwrap()
+            .append(&mut values);
         Ok(())
     }
 
@@ -297,6 +310,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         let mut lifetime_backups: BTreeMap<String, (String, vir_high::Local)> = BTreeMap::new();
         if let Some(new_reborrow_lifetime_to_remove) = new_reborrow_lifetime_to_remove {
             self.update_lifetimes_to_remove(
+                old_original_lifetimes,
                 new_derived_lifetimes,
                 new_reborrow_lifetime_to_remove,
                 &lifetimes_to_create,
@@ -345,13 +359,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
 
     fn update_lifetimes_to_remove(
         &mut self,
+        old_original_lifetimes: &BTreeSet<String>,
         new_derived_lifetimes: &BTreeMap<String, BTreeSet<String>>,
         lifetime_to_ignore: String,
         lifetimes_to_create: &BTreeSet<String>,
     ) {
         let mut new_lifetimes_to_ignore: BTreeSet<String> = BTreeSet::new();
         for (lifetime, derived_from) in new_derived_lifetimes.clone() {
-            if lifetime == lifetime_to_ignore {
+            // NOTE: if the lifetime is not derived from at least one already existing
+            //   original lifetime, we can not delete the lifetimes it is derived from.
+            let can_remove_lifetimes = !derived_from
+                .iter()
+                .filter(|&x| old_original_lifetimes.contains(x))
+                .cloned()
+                .collect::<BTreeSet<String>>()
+                .is_empty();
+            if lifetime == lifetime_to_ignore && can_remove_lifetimes {
                 new_lifetimes_to_ignore = derived_from
                     .clone()
                     .iter()
@@ -360,7 +383,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                     .collect();
             }
         }
-        self.reborrow_lifetimes_to_remove
+        self.reborrow_lifetimes_to_remove_for_block
+            .get_mut(&self.current_basic_block.unwrap())
+            .unwrap()
             .append(&mut new_lifetimes_to_ignore);
     }
 
@@ -368,7 +393,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         *set = set
             .clone()
             .iter()
-            .filter(|&lft| !self.reborrow_lifetimes_to_remove.contains(lft))
+            .filter(|&lft| {
+                !self
+                    .reborrow_lifetimes_to_remove_for_block
+                    .get(&self.current_basic_block.unwrap())
+                    .unwrap()
+                    .contains(lft)
+            })
             .cloned()
             .collect();
     }
@@ -381,7 +412,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                 let updated_derived_from: BTreeSet<String> = derived_from
                     .clone()
                     .iter()
-                    .filter(|&lft| !self.reborrow_lifetimes_to_remove.contains(lft))
+                    .filter(|&lft| {
+                        !self
+                            .reborrow_lifetimes_to_remove_for_block
+                            .get(&self.current_basic_block.unwrap())
+                            .unwrap()
+                            .contains(lft)
+                    })
                     .cloned()
                     .collect();
                 (lifetime.clone(), updated_derived_from)
@@ -557,6 +594,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         for (lifetime, derived_from) in lifetimes_to_take {
             let encoded_target = self.encode_lft_variable(lifetime.clone())?;
             let mut lifetimes: Vec<vir_high::VariableDecl> = Vec::new();
+            assert!(!derived_from.is_empty());
             for lifetime_name in derived_from {
                 lifetimes.push(self.encode_lft_variable(lifetime_name)?);
             }

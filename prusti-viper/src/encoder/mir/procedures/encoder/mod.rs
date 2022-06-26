@@ -82,8 +82,10 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let old_lifetime_ctr: usize = 0;
     let function_call_ctr: usize = 0;
     let derived_lifetimes_yet_to_kill: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let reborrow_lifetimes_to_remove: BTreeSet<String> = BTreeSet::new();
+    let reborrow_lifetimes_to_remove_for_block: BTreeMap<mir::BasicBlock, BTreeSet<String>> =
+        BTreeMap::new();
     let points_to_reborrow: BTreeSet<vir_high::Local> = BTreeSet::new();
+    let current_basic_block = None;
     let mut procedure_encoder = ProcedureEncoder {
         encoder,
         def_id,
@@ -105,8 +107,9 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         old_lifetime_ctr,
         function_call_ctr,
         derived_lifetimes_yet_to_kill,
-        reborrow_lifetimes_to_remove,
         points_to_reborrow,
+        reborrow_lifetimes_to_remove_for_block,
+        current_basic_block,
     };
     procedure_encoder.encode()
 }
@@ -139,8 +142,9 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     old_lifetime_ctr: usize,
     function_call_ctr: usize,
     derived_lifetimes_yet_to_kill: BTreeMap<String, BTreeSet<String>>,
-    reborrow_lifetimes_to_remove: BTreeSet<String>,
     points_to_reborrow: BTreeSet<vir_high::Local>,
+    reborrow_lifetimes_to_remove_for_block: BTreeMap<mir::BasicBlock, BTreeSet<String>>,
+    current_basic_block: Option<mir::BasicBlock>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
@@ -436,7 +440,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         data: &mir::BasicBlockData<'tcx>,
     ) -> SpannedEncodingResult<()> {
         self.derived_lifetimes_yet_to_kill.clear();
-        self.reborrow_lifetimes_to_remove.clear();
+        self.reborrow_lifetimes_to_remove_for_block
+            .entry(bb)
+            .or_insert_with(BTreeSet::new);
+        self.current_basic_block = Some(bb);
         let label = self.encode_basic_block_label(bb);
         let mut block_builder = procedure_builder.create_basic_block_builder(label);
         let mir::BasicBlockData {
