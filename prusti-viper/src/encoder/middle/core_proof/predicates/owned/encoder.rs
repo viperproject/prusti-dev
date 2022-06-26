@@ -502,12 +502,12 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             | vir_mid::TypeDecl::Float(_)
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
-            | vir_mid::TypeDecl::Map(_) => vir_low::PredicateDecl::new(
+            | vir_mid::TypeDecl::Map(_)
+            | vir_mid::TypeDecl::TypeVar(_) => vir_low::PredicateDecl::new(
                 predicate_name! {FracRef<ty>},
                 vec![lifetime, place, root_address, snapshot],
                 None,
             ),
-            // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
             vir_mid::TypeDecl::Tuple(_decl) => unimplemented!(),
             vir_mid::TypeDecl::Struct(decl) => {
                 // TODO: test or add unimplemented!
@@ -586,26 +586,20 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             current_snapshot: {snapshot_type.clone()},
             final_snapshot: {snapshot_type}
         }
-        // let compute_address = ty!(Address);
-        // let to_bytes = ty! { Bytes };
         let current_validity = self
             .lowerer
             .encode_snapshot_valid_call_for_type(current_snapshot.clone().into(), ty)?;
         let final_validity = self
             .lowerer
             .encode_snapshot_valid_call_for_type(final_snapshot.clone().into(), ty)?;
-        // let size_of = self.lowerer.encode_type_size_expression(ty)?;
-        // let compute_address = expr! { ComputeAddress::compute_address(place, root_address) };
-        // let bytes = self
-        //     .lowerer
-        //     .encode_memory_block_bytes_expression(compute_address.clone(), size_of.clone())?;
         let predicate = match &type_decl {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
-            | vir_mid::TypeDecl::Map(_) => vir_low::PredicateDecl::new(
+            | vir_mid::TypeDecl::Map(_)
+            | vir_mid::TypeDecl::TypeVar(_) => vir_low::PredicateDecl::new(
                 predicate_name! {UniqueRef<ty>},
                 vec![
                     lifetime,
@@ -616,7 +610,6 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 ],
                 None,
             ),
-            // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
             vir_mid::TypeDecl::Tuple(_decl) => unimplemented!(),
             vir_mid::TypeDecl::Struct(decl) => {
                 let mut field_predicates = Vec::new();
