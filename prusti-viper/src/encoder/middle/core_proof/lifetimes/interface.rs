@@ -70,6 +70,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         expressions: &mut VecDeque<vir_low::Expression>,
     ) -> vir_low::Expression {
+        assert!(!expressions.is_empty());
         if expressions.len() == 1 {
             return expressions.pop_front().unwrap();
         }
