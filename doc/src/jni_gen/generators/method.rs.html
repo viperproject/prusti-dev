@@ -442,25 +442,18 @@
 <span id="435">435</span>
 <span id="436">436</span>
 <span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../../src/jni_gen/lib.rs.html#15">class_name</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="../../../src/jni_gen/lib.rs.html#16">errors</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="../../../jni/wrapper/objects/jobject/struct.JObject.html">jni::objects::JObject</a>;
-<span class="kw">use</span> <a class="ident" href="../../../jni/wrapper/objects/jvalue/enum.JValue.html">jni::objects::JValue</a>;
-<span class="kw">use</span> <a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">jni::JNIEnv</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/jni_gen/lib.rs.html#7">class_name</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/jni_gen/lib.rs.html#8">errors</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/jni_gen/lib.rs.html#12">utils</a>::<span class="kw-2">*</span>};
+<span class="kw">use</span> <span class="ident">jni</span>::{
+    <span class="ident">objects</span>::{<a class="ident" href="../../../jni/wrapper/objects/jobject/struct.JObject.html">JObject</a>, <a class="ident" href="../../../jni/wrapper/objects/jvalue/enum.JValue.html">JValue</a>},
+    <a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>,
+};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/jni_gen/lib.rs.html#20">utils</a>::<span class="kw-2">*</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_method</span>(
     <span class="ident">env</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>,
@@ -469,161 +462,154 @@
     <span class="ident">target_signature</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
     <span class="ident">suffix</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">clazz</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">find_class</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>())<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">clazz</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">find_class</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>())<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">methods</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>
-        .<span class="ident">call_method</span>(
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#22">clazz</a>,
-            <span class="string">&quot;getMethods&quot;</span>,
-            <span class="string">&quot;()[Ljava/lang/reflect/Method;&quot;</span>,
-            <span class="kw-2">&amp;</span>[],
-        )<span class="question-mark">?</span>
+    <span class="kw">let</span> <span class="ident">methods</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>
+        .<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#21">clazz</a>, <span class="string">&quot;getMethods&quot;</span>, <span class="string">&quot;()[Ljava/lang/reflect/Method;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
         .<span class="ident">l</span>()<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">num_methods</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">get_array_length</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#24">methods</a>.<span class="ident">into_inner</span>())<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">num_methods</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">get_array_length</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#23">methods</a>.<span class="ident">into_inner</span>())<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indexed_methods</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
 
-    <span class="kw">for</span> <span class="ident">method_index</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#32">num_methods</a> {
-        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">get_object_array_element</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#24">methods</a>.<span class="ident">into_inner</span>(), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#36">method_index</a>)<span class="question-mark">?</span>;
+    <span class="kw">for</span> <span class="ident">method_index</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#26">num_methods</a> {
+        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">get_object_array_element</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#23">methods</a>.<span class="ident">into_inner</span>(), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#30">method_index</a>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#70">java_str_to_string</a>(
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">get_string</span>(
-                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#37">method</a>, <span class="string">&quot;getName&quot;</span>, <span class="string">&quot;()Ljava/lang/String;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
+        <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span>
+            <a class="ident" href="../../../src/jni_gen/utils.rs.html#70">java_str_to_string</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">get_string</span>(
+                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#31">method</a>, <span class="string">&quot;getName&quot;</span>, <span class="string">&quot;()Ljava/lang/String;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
                     .<span class="ident">l</span>()<span class="question-mark">?</span>
                     .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            )<span class="question-mark">?</span>,
-        )<span class="question-mark">?</span>;
+            )<span class="question-mark">?</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">method_signature</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#70">java_str_to_string</a>(
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">get_string</span>(
-                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">call_static_method</span>(
+        <span class="kw">let</span> <span class="ident">method_signature</span> <span class="op">=</span>
+            <a class="ident" href="../../../src/jni_gen/utils.rs.html#70">java_str_to_string</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">get_string</span>(
+                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">call_static_method</span>(
                     <span class="string">&quot;org/objectweb/asm/Type&quot;</span>,
                     <span class="string">&quot;getMethodDescriptor&quot;</span>,
                     <span class="string">&quot;(Ljava/lang/reflect/Method;)Ljava/lang/String;&quot;</span>,
-                    <span class="kw-2">&amp;</span>[<span class="ident">JValue::Object</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#37">method</a>)],
+                    <span class="kw-2">&amp;</span>[<span class="ident">JValue::Object</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#31">method</a>)],
                 )<span class="question-mark">?</span>
                 .<span class="ident">l</span>()<span class="question-mark">?</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            )<span class="question-mark">?</span>,
-        )<span class="question-mark">?</span>;
+            )<span class="question-mark">?</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#34">indexed_methods</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#39">method_name</a>) {
+        <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#28">indexed_methods</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#33">method_name</a>) {
             <span class="prelude-val">None</span> =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signature_map</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#62">signature_map</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#47">method_signature</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#37">method</a>);
-                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#34">indexed_methods</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#39">method_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#62">signature_map</a>);
+                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#54">signature_map</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#40">method_signature</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#31">method</a>);
+                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#28">indexed_methods</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#33">method_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#54">signature_map</a>);
             }
             <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">signature_map</span>) =&gt; {
-                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#66">signature_map</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#47">method_signature</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#37">method</a>);
-                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#34">indexed_methods</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#39">method_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#66">signature_map</a>);
+                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#58">signature_map</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#40">method_signature</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#31">method</a>);
+                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#28">indexed_methods</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#33">method_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#58">signature_map</a>);
             }
         }
     }
 
-    <span class="kw">let</span> <span class="ident">matching_methods</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#34">indexed_methods</a>.<span class="ident">get_mut</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#18">method_name</a>) {
-        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">ErrorKind::NoMethod</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>(), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#18">method_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-        <span class="prelude-val">Some</span>(<span class="ident">mm</span>) =&gt; <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#75">mm</a>,
+    <span class="kw">let</span> <span class="ident">matching_methods</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#28">indexed_methods</a>.<span class="ident">get_mut</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">method_name</a>) {
+        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">ErrorKind::NoMethod</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>(), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">method_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="prelude-val">Some</span>(<span class="ident">mm</span>) =&gt; <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#67">mm</a>,
     };
 
-    <span class="kw">let</span> (<span class="ident">method_signature</span>, <span class="ident">method</span>): (<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../jni/wrapper/objects/jobject/struct.JObject.html">JObject</a>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#19">target_signature</a> {
+    <span class="kw">let</span> (<span class="ident">method_signature</span>, <span class="ident">method</span>): (<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../jni/wrapper/objects/jobject/struct.JObject.html">JObject</a>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#18">target_signature</a> {
         <span class="prelude-val">None</span> =&gt; {
-            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#73">matching_methods</a>.<span class="ident">is_empty</span>() {
+            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#65">matching_methods</a>.<span class="ident">is_empty</span>() {
                 <span class="macro">unreachable!</span>();
             }
-            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#73">matching_methods</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#65">matching_methods</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">ErrorKind::AmbiguousMethod</a>(
-                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>(),
-                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#18">method_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#73">matching_methods</a>.<span class="ident">keys</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">k</span><span class="op">|</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#87">k</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>(),
+                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">method_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#65">matching_methods</a>.<span class="ident">keys</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">k</span><span class="op">|</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#79">k</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
                 )
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
             }
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#73">matching_methods</a>.<span class="ident">drain</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">1</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>()
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#65">matching_methods</a>.<span class="ident">drain</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">1</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>()
         }
-        <span class="prelude-val">Some</span>(<span class="ident">sign</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#73">matching_methods</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#93">sign</a>) {
-            <span class="prelude-val">Some</span>(<span class="ident">constr</span>) =&gt; (<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#93">sign</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#94">constr</a>),
+        <span class="prelude-val">Some</span>(<span class="ident">sign</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#65">matching_methods</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#85">sign</a>) {
+            <span class="prelude-val">Some</span>(<span class="ident">constr</span>) =&gt; (<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#85">sign</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#86">constr</a>),
             <span class="prelude-val">None</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">ErrorKind::NoMatchingMethod</a>(
-                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>(),
-                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#18">method_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#93">sign</a>,
+                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>(),
+                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">method_name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#85">sign</a>,
                 )
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
         },
     };
 
-    <span class="kw">let</span> <span class="ident">method_modifier</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#78">method</a>, <span class="string">&quot;getModifiers&quot;</span>, <span class="string">&quot;()I&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>.<span class="ident">i</span>()<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">method_modifier</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#70">method</a>, <span class="string">&quot;getModifiers&quot;</span>, <span class="string">&quot;()I&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>.<span class="ident">i</span>()<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">is_static</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>
+    <span class="kw">let</span> <span class="ident">is_static</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>
         .<span class="ident">call_static_method</span>(
             <span class="string">&quot;java/lang/reflect/Modifier&quot;</span>,
             <span class="string">&quot;isStatic&quot;</span>,
             <span class="string">&quot;(I)Z&quot;</span>,
-            <span class="kw-2">&amp;</span>[<span class="ident">JValue::Int</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#106">method_modifier</a>)],
+            <span class="kw-2">&amp;</span>[<span class="ident">JValue::Int</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#98">method_modifier</a>)],
         )<span class="question-mark">?</span>
         .<span class="ident">z</span>()<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameter_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameter_signatures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-    <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>
+    <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>
         .<span class="ident">call_method</span>(
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#78">method</a>,
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#70">method</a>,
             <span class="string">&quot;getParameters&quot;</span>,
             <span class="string">&quot;()[Ljava/lang/reflect/Parameter;&quot;</span>,
             <span class="kw-2">&amp;</span>[],
         )<span class="question-mark">?</span>
         .<span class="ident">l</span>()<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">num_parameters</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">get_array_length</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#120">parameters</a>.<span class="ident">into_inner</span>())<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">num_parameters</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">get_array_length</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#112">parameters</a>.<span class="ident">into_inner</span>())<span class="question-mark">?</span>;
 
-    <span class="kw">for</span> <span class="ident">parameter_index</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#128">num_parameters</a> {
-        <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">get_object_array_element</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#120">parameters</a>.<span class="ident">into_inner</span>(), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#130">parameter_index</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">parameter_name</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">get_string</span>(
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#131">parameter</a>, <span class="string">&quot;getName&quot;</span>, <span class="string">&quot;()Ljava/lang/String;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
+    <span class="kw">for</span> <span class="ident">parameter_index</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#120">num_parameters</a> {
+        <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">get_object_array_element</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#112">parameters</a>.<span class="ident">into_inner</span>(), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#122">parameter_index</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">parameter_name</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">get_string</span>(
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#123">parameter</a>, <span class="string">&quot;getName&quot;</span>, <span class="string">&quot;()Ljava/lang/String;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
                 .<span class="ident">l</span>()<span class="question-mark">?</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         )<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>
-            .<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#131">parameter</a>, <span class="string">&quot;getType&quot;</span>, <span class="string">&quot;()Ljava/lang/Class;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
+        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>
+            .<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#123">parameter</a>, <span class="string">&quot;getType&quot;</span>, <span class="string">&quot;()Ljava/lang/Class;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
             .<span class="ident">l</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">parameter_signature</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">get_string</span>(
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">env</a>.<span class="ident">call_static_method</span>(
+        <span class="kw">let</span> <span class="ident">parameter_signature</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">get_string</span>(
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#15">env</a>.<span class="ident">call_static_method</span>(
                 <span class="string">&quot;org/objectweb/asm/Type&quot;</span>,
                 <span class="string">&quot;getDescriptor&quot;</span>,
                 <span class="string">&quot;(Ljava/lang/Class;)Ljava/lang/String;&quot;</span>,
-                <span class="kw-2">&amp;</span>[<span class="ident">JValue::Object</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#137">parameter_type</a>)],
+                <span class="kw-2">&amp;</span>[<span class="ident">JValue::Object</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#129">parameter_type</a>)],
             )<span class="question-mark">?</span>
             .<span class="ident">l</span>()<span class="question-mark">?</span>
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         )<span class="question-mark">?</span>;
 
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#117">parameter_names</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/jni_gen/utils.rs.html#74">java_str_to_valid_rust_argument_name</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#132">parameter_name</a>)<span class="question-mark">?</span>);
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#118">parameter_signatures</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/jni_gen/utils.rs.html#70">java_str_to_string</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#140">parameter_signature</a>)<span class="question-mark">?</span>);
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#109">parameter_names</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/jni_gen/utils.rs.html#74">java_str_to_valid_rust_argument_name</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#124">parameter_name</a>)<span class="question-mark">?</span>);
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#110">parameter_signatures</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/jni_gen/utils.rs.html#70">java_str_to_string</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#132">parameter_signature</a>)<span class="question-mark">?</span>);
     }
 
-    <span class="kw">let</span> <span class="ident">rust_method_name</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#20">suffix</a> {
-        <span class="prelude-val">None</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;call_{}&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#440">java_method_to_rust</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#18">method_name</a>)),
-        <span class="prelude-val">Some</span>(<span class="ident">s</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;call_{}_{}&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#440">java_method_to_rust</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#18">method_name</a>), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#157">s</a>),
+    <span class="kw">let</span> <span class="ident">rust_method_name</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#19">suffix</a> {
+        <span class="prelude-val">None</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;call_{}&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#434">java_method_to_rust</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">method_name</a>)),
+        <span class="prelude-val">Some</span>(<span class="ident">s</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;call_{}_{}&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#434">java_method_to_rust</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">method_name</a>), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#149">s</a>),
     };
 
-    <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#108">is_static</a> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#315-322">generate_static</a>(
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">class</a>,
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#18">method_name</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#155">rust_method_name</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#78">method_signature</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#117">parameter_names</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#118">parameter_signatures</a>,
+    <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#100">is_static</a> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#309-316">generate_static</a>(
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">class</a>,
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">method_name</a>,
+            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#147">rust_method_name</a>,
+            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#70">method_signature</a>,
+            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#109">parameter_names</a>,
+            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#110">parameter_signatures</a>,
         ))
     } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#181-188">generate</a>(
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">class</a>,
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#18">method_name</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#155">rust_method_name</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#78">method_signature</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#117">parameter_names</a>,
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#118">parameter_signatures</a>,
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#173-180">generate</a>(
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#16">class</a>,
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#17">method_name</a>,
+            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#147">rust_method_name</a>,
+            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#70">method_signature</a>,
+            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#109">parameter_names</a>,
+            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#110">parameter_signatures</a>,
         ))
     }
 }
@@ -636,130 +622,132 @@
     <span class="ident">parameter_names</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>],
     <span class="ident">parameter_signatures</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>],
 ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#186">parameter_names</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#187">parameter_signatures</a>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="ident">return_signature</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#11">get_return_signature</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">method_signature</a>);
-    <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#32">generate_return_jni_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#190">return_signature</a>);
+    <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#178">parameter_names</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#179">parameter_signatures</a>.<span class="ident">len</span>());
+    <span class="kw">let</span> <span class="ident">return_signature</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#11">get_return_signature</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#177">method_signature</a>);
+    <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#32">generate_return_jni_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#182">return_signature</a>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;/// Calls method `{}` of Java class `{}`.&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#183">method_name</a>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#182">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>()
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#175">method_name</a>,
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#174">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>()
     ));
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;/// Type and Java signature of parameters:&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;/// Type and Java signature of parameters:&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#186">parameter_names</a>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#186">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#203">i</a>];
-        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#187">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#203">i</a>];
-        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#205">par_sign</a>);
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#178">parameter_names</a>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#178">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#195">i</a>];
+        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#179">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#195">i</a>];
+        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#197">par_sign</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
             <span class="string">&quot;/// - `{}`: `{}` (`{}`)&quot;</span>,
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#204">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#206">par_type</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#205">par_sign</a>
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#196">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#198">par_type</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#197">par_sign</a>
         ));
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;/// Return type and Java signature: `{}` (`{}`)&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#191">return_type</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#190">return_signature</a>
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#183">return_type</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#182">return_signature</a>
     ));
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;pub fn {}(&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#184">rust_method_name</a>));
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    &amp;self,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    receiver: JObject&lt;&#39;a&gt;,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;pub fn {}(&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#176">rust_method_name</a>));
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    &amp;self,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    receiver: JObject&lt;&#39;a&gt;,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#186">parameter_names</a>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#186">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#223">i</a>];
-        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#187">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#223">i</a>];
-        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#225">par_sign</a>);
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    {}: {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#224">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#226">par_type</a>));
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#178">parameter_names</a>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#178">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#215">i</a>];
+        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#179">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#215">i</a>];
+        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#217">par_sign</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    {}: {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#216">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#218">par_type</a>));
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;) -&gt; JNIResult&lt;{}&gt; {{&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#191">return_type</a>));
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;) -&gt; JNIResult&lt;{}&gt; {{&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#183">return_type</a>));
 
     <span class="comment">// Generate dynamic type check for the arguments</span>
     <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">debug_assertions</span>) {
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#186">parameter_names</a>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#186">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#234">i</a>];
-            <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#187">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#234">i</a>];
-            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#236">par_sign</a>.<span class="ident">starts_with</span>(<span class="string">&#39;L&#39;</span>) {
-                <span class="kw">let</span> <span class="ident">par_class</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#236">par_sign</a>[<span class="number">1</span>..(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#236">par_sign</a>.<span class="ident">len</span>()<span class="op">-</span><span class="number">1</span>)];
-                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    debug_assert!(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#178">parameter_names</a>.<span class="ident">len</span>() {
+            <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#178">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#226">i</a>];
+            <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#179">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#226">i</a>];
+            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#228">par_sign</a>.<span class="ident">starts_with</span>(<span class="string">&#39;L&#39;</span>) {
+                <span class="kw">let</span> <span class="ident">par_class</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#228">par_sign</a>[<span class="number">1</span>..(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#228">par_sign</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>)];
+                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    debug_assert!(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
                     <span class="string">&quot;        self.env.is_instance_of({}, self.env.find_class(\&quot;{}\&quot;)?)?&quot;</span>,
-                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#235">par_name</a>,
-                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#238">par_class</a>
+                    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#227">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#230">par_class</a>
                 ));
-                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    );&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    );&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
             }
         }
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    let class = self.env.find_class(\&quot;{}\&quot;)?;&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#182">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()));
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+        <span class="string">&quot;    let class = self.env.find_class(\&quot;{}\&quot;)?;&quot;</span>,
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#174">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()
+    ));
 
     <span class="comment">// Generate dynamic type check for `receiver`</span>
     <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">debug_assertions</span>) {
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    debug_assert!(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        self.env.is_instance_of(receiver, class)?&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    );&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    debug_assert!(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        self.env.is_instance_of(receiver, class)?&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    );&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    let method_name = \&quot;{}\&quot;;&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#183">method_name</a>));
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    let method_name = \&quot;{}\&quot;;&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#175">method_name</a>));
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;    let method_signature = \&quot;{}\&quot;;&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">method_signature</a>
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#177">method_signature</a>
     ));
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;    let return_signature = \&quot;{}\&quot;;&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#190">return_signature</a>
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#182">return_signature</a>
     ));
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let method_id = self.env.get_method_id(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_name,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_signature&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    )?;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let method_id = self.env.get_method_id(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_name,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_signature&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    )?;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let return_type = JavaType::from_str(return_signature)?;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let result = self.env.call_method_unchecked(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        receiver,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_id,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        return_type,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        &amp;[&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let return_type = JavaType::from_str(return_signature)?;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let result = self.env.call_method_unchecked(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        receiver,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_id,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        return_type,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        &amp;[&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#186">parameter_names</a>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#186">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#282">i</a>];
-        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#187">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#282">i</a>];
-        <span class="kw">let</span> <span class="ident">par_jvalue</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#55">generate_jvalue_wrapper</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#283">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#284">par_sign</a>);
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;            {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#285">par_jvalue</a>));
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#178">parameter_names</a>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#178">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#276">i</a>];
+        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#179">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#276">i</a>];
+        <span class="kw">let</span> <span class="ident">par_jvalue</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#55">generate_jvalue_wrapper</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#277">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#278">par_sign</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;            {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#279">par_jvalue</a>));
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        ]&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        ]&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;    ).and_then(|x| x.{}());&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/utils.rs.html#48">generate_jni_type_char</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#190">return_signature</a>)
+        <a class="ident" href="../../../src/jni_gen/utils.rs.html#48">generate_jni_type_char</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#182">return_signature</a>)
     ));
 
     <span class="comment">// Generate dynamic type check for the result</span>
-    <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">debug_assertions</span>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#190">return_signature</a>.<span class="ident">starts_with</span>(<span class="string">&#39;L&#39;</span>) {
-        <span class="kw">let</span> <span class="ident">return_class</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#190">return_signature</a>[<span class="number">1</span>..(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#190">return_signature</a>.<span class="ident">len</span>()<span class="op">-</span><span class="number">1</span>)];
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    if let Ok(result) = result {&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        debug_assert!(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">debug_assertions</span>) <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#182">return_signature</a>.<span class="ident">starts_with</span>(<span class="string">&#39;L&#39;</span>) {
+        <span class="kw">let</span> <span class="ident">return_class</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#182">return_signature</a>[<span class="number">1</span>..(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#182">return_signature</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>)];
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    if let Ok(result) = result {&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        debug_assert!(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
             <span class="string">&quot;            self.env.is_instance_of(result, self.env.find_class(\&quot;{}\&quot;)?)?&quot;</span>,
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#297">return_class</a>
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#291">return_class</a>
         ));
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;        );&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    }&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;        );&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    }&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    self.env.delete_local_ref(class.into()).unwrap();&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;    result&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">push</span>(<span class="string">&quot;}&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    self.env.delete_local_ref(class.into()).unwrap();&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;    result&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">push</span>(<span class="string">&quot;}&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#193">code</a>.<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>) <span class="op">+</span> <span class="string">&quot;\n&quot;</span>
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#185">code</a>.<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>) <span class="op">+</span> <span class="string">&quot;\n&quot;</span>
 }
 
 <span class="kw">fn</span> <span class="ident">generate_static</span>(
@@ -770,47 +758,47 @@
     <span class="ident">parameter_names</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>],
     <span class="ident">parameter_signatures</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>],
 ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#320">parameter_names</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">parameter_signatures</a>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="ident">return_signature</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#11">get_return_signature</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#319">method_signature</a>);
-    <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#32">generate_return_jni_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#324">return_signature</a>);
+    <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#314">parameter_names</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#315">parameter_signatures</a>.<span class="ident">len</span>());
+    <span class="kw">let</span> <span class="ident">return_signature</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#11">get_return_signature</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#313">method_signature</a>);
+    <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#32">generate_return_jni_type</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#318">return_signature</a>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;/// Calls static method `{}` of Java class `{}`.&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#317">method_name</a>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#316">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>()
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#311">method_name</a>,
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#310">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>()
     ));
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;/// Type and Java signature of parameters:&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;/// Type and Java signature of parameters:&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#320">parameter_names</a>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#320">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#337">i</a>];
-        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#337">i</a>];
-        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#339">par_sign</a>);
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#314">parameter_names</a>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#314">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#331">i</a>];
+        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#315">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#331">i</a>];
+        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#333">par_sign</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
             <span class="string">&quot;/// - `{}`: `{}` (`{}`)&quot;</span>,
-            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#338">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#340">par_type</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#339">par_sign</a>
+            <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#332">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#334">par_type</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#333">par_sign</a>
         ));
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;/// Return type and Java signature: `{}` (`{}`)&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#325">return_type</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#324">return_signature</a>
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#319">return_type</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#318">return_signature</a>
     ));
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;pub fn {}(&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#318">rust_method_name</a>));
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;    &amp;self,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;pub fn {}(&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#312">rust_method_name</a>));
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;    &amp;self,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#320">parameter_names</a>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#320">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#356">i</a>];
-        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#356">i</a>];
-        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#358">par_sign</a>);
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    {}: {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#357">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#359">par_type</a>));
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#314">parameter_names</a>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#314">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#350">i</a>];
+        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#315">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#350">i</a>];
+        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#352">par_sign</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    {}: {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#351">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#353">par_type</a>));
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;) -&gt; JNIResult&lt;{}&gt; {{&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#325">return_type</a>));
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;) -&gt; JNIResult&lt;{}&gt; {{&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#319">return_type</a>));
 
     <span class="comment">// Generate dynamic type check for the arguments</span>
     <span class="comment">/*for i in 0..parameter_names.len() {
@@ -828,45 +816,45 @@
         }
     }*/</span>
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;    let class =self.env.find_class(\&quot;{}\&quot;)?;&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#316">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#310">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()
     ));
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    let method_name = \&quot;{}\&quot;;&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#317">method_name</a>));
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    let method_name = \&quot;{}\&quot;;&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#311">method_name</a>));
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;    let method_signature = \&quot;{}\&quot;;&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#319">method_signature</a>
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#313">method_signature</a>
     ));
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;    let return_signature = \&quot;{}\&quot;;&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#324">return_signature</a>
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#318">return_signature</a>
     ));
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let method_id = self.env.get_static_method_id(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_name,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_signature&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;    )?;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let method_id = self.env.get_static_method_id(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_name,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_signature&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;    )?;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let return_type = JavaType::from_str(return_signature)?;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let result = self.env.call_static_method_unchecked(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_id,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;        return_type,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;        &amp;[&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let return_type = JavaType::from_str(return_signature)?;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let result = self.env.call_static_method_unchecked(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_id,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;        return_type,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;        &amp;[&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#320">parameter_names</a>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#320">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#409">i</a>];
-        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#409">i</a>];
-        <span class="kw">let</span> <span class="ident">par_jvalue</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#55">generate_jvalue_wrapper</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#410">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#411">par_sign</a>);
-        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;            {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#412">par_jvalue</a>));
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#314">parameter_names</a>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#314">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#403">i</a>];
+        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#315">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#403">i</a>];
+        <span class="kw">let</span> <span class="ident">par_jvalue</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#55">generate_jvalue_wrapper</a>(<a class="ident" href="../../../src/jni_gen/generators/method.rs.html#404">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#405">par_sign</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;            {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#406">par_jvalue</a>));
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;        ]&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;        ]&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;    ).and_then(|x| x.{}());&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/utils.rs.html#48">generate_jni_type_char</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#324">return_signature</a>)
+        <a class="ident" href="../../../src/jni_gen/utils.rs.html#48">generate_jni_type_char</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/method.rs.html#318">return_signature</a>)
     ));
 
     <span class="comment">// Generate dynamic type check for the result</span>
@@ -880,15 +868,15 @@
         code.push(&quot;    );&quot;.to_string());
     }*/</span>
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;    self.env.delete_local_ref(class.into()).unwrap();&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;    result&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">push</span>(<span class="string">&quot;}&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;    self.env.delete_local_ref(class.into()).unwrap();&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;    result&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">push</span>(<span class="string">&quot;}&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#327">code</a>.<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>) <span class="op">+</span> <span class="string">&quot;\n&quot;</span>
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#321">code</a>.<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>) <span class="op">+</span> <span class="string">&quot;\n&quot;</span>
 }
 
 <span class="kw">fn</span> <span class="ident">java_method_to_rust</span>(<span class="ident">method_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#440">method_name</a>.<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;__&quot;</span>).<span class="ident">replace</span>(<span class="string">&#39;$&#39;</span>, <span class="string">&quot;_dollar_&quot;</span>)
+    <a class="ident" href="../../../src/jni_gen/generators/method.rs.html#434">method_name</a>.<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;__&quot;</span>).<span class="ident">replace</span>(<span class="string">&#39;$&#39;</span>, <span class="string">&quot;_dollar_&quot;</span>)
     <span class="comment">// If needed, replace other charachters with &quot;_{something}_&quot;</span>
 }
 </code></pre></div>

@@ -225,20 +225,15 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../../src/jni_gen/lib.rs.html#15">class_name</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="../../../src/jni_gen/lib.rs.html#16">errors</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="../../../jni/wrapper/objects/jvalue/enum.JValue.html">jni::objects::JValue</a>;
-<span class="kw">use</span> <a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">jni::JNIEnv</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/jni_gen/lib.rs.html#7">class_name</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/jni_gen/lib.rs.html#8">errors</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/jni_gen/lib.rs.html#12">utils</a>::<span class="kw-2">*</span>};
+<span class="kw">use</span> <span class="ident">jni</span>::{<a class="ident" href="../../../jni/wrapper/objects/jvalue/enum.JValue.html">objects::JValue</a>, <a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/jni_gen/lib.rs.html#20">utils</a>::<span class="kw-2">*</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_constructor</span>(
     <span class="ident">env</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>,
@@ -246,109 +241,108 @@
     <span class="ident">target_signature</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
     <span class="ident">suffix</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">clazz</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">find_class</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#16">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>())<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">clazz</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">find_class</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#13">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>())<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">constructors</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>
+    <span class="kw">let</span> <span class="ident">constructors</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>
         .<span class="ident">call_method</span>(
-            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#20">clazz</a>,
+            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#17">clazz</a>,
             <span class="string">&quot;getConstructors&quot;</span>,
             <span class="string">&quot;()[Ljava/lang/reflect/Constructor;&quot;</span>,
             <span class="kw-2">&amp;</span>[],
         )<span class="question-mark">?</span>
         .<span class="ident">l</span>()<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">num_constructors</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">get_array_length</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#22">constructors</a>.<span class="ident">into_inner</span>())<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">num_constructors</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">get_array_length</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#19">constructors</a>.<span class="ident">into_inner</span>())<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indexed_constructors</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
 
-    <span class="kw">for</span> <span class="ident">constructor_index</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#30">num_constructors</a> {
+    <span class="kw">for</span> <span class="ident">constructor_index</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#27">num_constructors</a> {
         <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span>
-            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">get_object_array_element</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#22">constructors</a>.<span class="ident">into_inner</span>(), <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#34">constructor_index</a>)<span class="question-mark">?</span>;
+            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">get_object_array_element</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#19">constructors</a>.<span class="ident">into_inner</span>(), <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#31">constructor_index</a>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">constructor_signature</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#70">java_str_to_string</a>(
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">get_string</span>(
-                <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">call_static_method</span>(
+        <span class="kw">let</span> <span class="ident">constructor_signature</span> <span class="op">=</span>
+            <a class="ident" href="../../../src/jni_gen/utils.rs.html#70">java_str_to_string</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">get_string</span>(
+                <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">call_static_method</span>(
                     <span class="string">&quot;org/objectweb/asm/Type&quot;</span>,
                     <span class="string">&quot;getConstructorDescriptor&quot;</span>,
                     <span class="string">&quot;(Ljava/lang/reflect/Constructor;)Ljava/lang/String;&quot;</span>,
-                    <span class="kw-2">&amp;</span>[<span class="ident">JValue::Object</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#35">constructor</a>)],
+                    <span class="kw-2">&amp;</span>[<span class="ident">JValue::Object</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#32">constructor</a>)],
                 )<span class="question-mark">?</span>
                 .<span class="ident">l</span>()<span class="question-mark">?</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            )<span class="question-mark">?</span>,
-        )<span class="question-mark">?</span>;
+            )<span class="question-mark">?</span>)<span class="question-mark">?</span>;
 
-        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#32">indexed_constructors</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#38">constructor_signature</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#35">constructor</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#29">indexed_constructors</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#35">constructor_signature</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#32">constructor</a>);
     }
 
-    <span class="kw">let</span> (<span class="ident">constructor_signature</span>, <span class="ident">constructor</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#17">target_signature</a> {
+    <span class="kw">let</span> (<span class="ident">constructor_signature</span>, <span class="ident">constructor</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#14">target_signature</a> {
         <span class="prelude-val">None</span> =&gt; {
-            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#32">indexed_constructors</a>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">ErrorKind::NoConstructors</a>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#16">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#29">indexed_constructors</a>.<span class="ident">is_empty</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">ErrorKind::NoConstructors</a>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#13">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
             }
-            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#32">indexed_constructors</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
+            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#29">indexed_constructors</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">ErrorKind::AmbiguousConstructor</a>(
-                    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#16">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>(),
-                    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#32">indexed_constructors</a>.<span class="ident">keys</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">k</span><span class="op">|</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#62">k</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#13">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>(),
+                    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#29">indexed_constructors</a>.<span class="ident">keys</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">k</span><span class="op">|</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#58">k</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
                 )
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
             }
-            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#32">indexed_constructors</a>.<span class="ident">drain</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">1</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>()
+            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#29">indexed_constructors</a>.<span class="ident">drain</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">1</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>()
         }
-        <span class="prelude-val">Some</span>(<span class="ident">sign</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#32">indexed_constructors</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#68">sign</a>) {
-            <span class="prelude-val">Some</span>(<span class="ident">constr</span>) =&gt; (<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#68">sign</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#69">constr</a>),
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">ErrorKind::NoMatchingConstructor</a>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#16">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>(), <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#68">sign</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="prelude-val">Some</span>(<span class="ident">sign</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#29">indexed_constructors</a>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#64">sign</a>) {
+            <span class="prelude-val">Some</span>(<span class="ident">constr</span>) =&gt; (<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#64">sign</a>, <span class="kw-2">*</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#65">constr</a>),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">ErrorKind::NoMatchingConstructor</a>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#13">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>(), <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#64">sign</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         },
     };
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameter_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameter_signatures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-    <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>
+    <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>
         .<span class="ident">call_method</span>(
-            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#54">constructor</a>,
+            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#50">constructor</a>,
             <span class="string">&quot;getParameters&quot;</span>,
             <span class="string">&quot;()[Ljava/lang/reflect/Parameter;&quot;</span>,
             <span class="kw-2">&amp;</span>[],
         )<span class="question-mark">?</span>
         .<span class="ident">l</span>()<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">num_parameters</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">get_array_length</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#77">parameters</a>.<span class="ident">into_inner</span>())<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">num_parameters</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">get_array_length</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#73">parameters</a>.<span class="ident">into_inner</span>())<span class="question-mark">?</span>;
 
-    <span class="kw">for</span> <span class="ident">parameter_index</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#85">num_parameters</a> {
-        <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">get_object_array_element</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#77">parameters</a>.<span class="ident">into_inner</span>(), <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#87">parameter_index</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">parameter_name</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">get_string</span>(
-            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#88">parameter</a>, <span class="string">&quot;getName&quot;</span>, <span class="string">&quot;()Ljava/lang/String;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
+    <span class="kw">for</span> <span class="ident">parameter_index</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#81">num_parameters</a> {
+        <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">get_object_array_element</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#73">parameters</a>.<span class="ident">into_inner</span>(), <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#83">parameter_index</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">parameter_name</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">get_string</span>(
+            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#84">parameter</a>, <span class="string">&quot;getName&quot;</span>, <span class="string">&quot;()Ljava/lang/String;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
                 .<span class="ident">l</span>()<span class="question-mark">?</span>
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         )<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>
-            .<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#88">parameter</a>, <span class="string">&quot;getType&quot;</span>, <span class="string">&quot;()Ljava/lang/Class;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
+        <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>
+            .<span class="ident">call_method</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#84">parameter</a>, <span class="string">&quot;getType&quot;</span>, <span class="string">&quot;()Ljava/lang/Class;&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
             .<span class="ident">l</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">parameter_signature</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">get_string</span>(
-            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">env</a>.<span class="ident">call_static_method</span>(
+        <span class="kw">let</span> <span class="ident">parameter_signature</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">get_string</span>(
+            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#12">env</a>.<span class="ident">call_static_method</span>(
                 <span class="string">&quot;org/objectweb/asm/Type&quot;</span>,
                 <span class="string">&quot;getDescriptor&quot;</span>,
                 <span class="string">&quot;(Ljava/lang/Class;)Ljava/lang/String;&quot;</span>,
-                <span class="kw-2">&amp;</span>[<span class="ident">JValue::Object</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#94">parameter_type</a>)],
+                <span class="kw-2">&amp;</span>[<span class="ident">JValue::Object</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#90">parameter_type</a>)],
             )<span class="question-mark">?</span>
             .<span class="ident">l</span>()<span class="question-mark">?</span>
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         )<span class="question-mark">?</span>;
 
-        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#74">parameter_names</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/jni_gen/utils.rs.html#74">java_str_to_valid_rust_argument_name</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#89">parameter_name</a>)<span class="question-mark">?</span>);
-        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#75">parameter_signatures</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/jni_gen/utils.rs.html#70">java_str_to_string</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#97">parameter_signature</a>)<span class="question-mark">?</span>);
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#70">parameter_names</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/jni_gen/utils.rs.html#74">java_str_to_valid_rust_argument_name</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#85">parameter_name</a>)<span class="question-mark">?</span>);
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#71">parameter_signatures</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/jni_gen/utils.rs.html#70">java_str_to_string</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#93">parameter_signature</a>)<span class="question-mark">?</span>);
     }
 
-    <span class="kw">let</span> <span class="ident">constructor_name</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#18">suffix</a> {
+    <span class="kw">let</span> <span class="ident">constructor_name</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#15">suffix</a> {
         <span class="prelude-val">None</span> =&gt; <span class="string">&quot;new&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-        <span class="prelude-val">Some</span>(<span class="ident">s</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;new_{}&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#114">s</a>),
+        <span class="prelude-val">Some</span>(<span class="ident">s</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;new_{}&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#110">s</a>),
     };
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#126-132">generate</a>(
-        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#16">class</a>,
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#112">constructor_name</a>,
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#54">constructor_signature</a>,
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#74">parameter_names</a>,
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#75">parameter_signatures</a>,
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#122-128">generate</a>(
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#13">class</a>,
+        <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#108">constructor_name</a>,
+        <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#50">constructor_signature</a>,
+        <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#70">parameter_names</a>,
+        <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#71">parameter_signatures</a>,
     ))
 }
 
@@ -359,95 +353,97 @@
     <span class="ident">parameter_names</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>],
     <span class="ident">parameter_signatures</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>],
 ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#130">parameter_names</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">parameter_signatures</a>.<span class="ident">len</span>());
+    <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#126">parameter_names</a>.<span class="ident">len</span>(), <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#127">parameter_signatures</a>.<span class="ident">len</span>());
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;/// Calls a constructor of Java class `{}`.&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#127">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>()
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#123">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>()
     ));
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;/// Type and Java signature of parameters:&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;/// Type and Java signature of parameters:&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#130">parameter_names</a>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#130">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#143">i</a>];
-        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#143">i</a>];
-        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#145">par_sign</a>);
-        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#126">parameter_names</a>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#126">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#139">i</a>];
+        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#127">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#139">i</a>];
+        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#141">par_sign</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
             <span class="string">&quot;/// - `{}`: `{}` (`{}`)&quot;</span>,
-            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#144">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#146">par_type</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#145">par_sign</a>
+            <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#140">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#142">par_type</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#141">par_sign</a>
         ));
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
         <span class="string">&quot;/// Return type and Java signature: `JObject` (`L{};`)&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#127">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#123">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()
     ));
 
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;pub fn {}(&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#128">constructor_name</a>));
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;    &amp;self,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;pub fn {}(&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#124">constructor_name</a>));
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;    &amp;self,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#130">parameter_names</a>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#130">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#162">i</a>];
-        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#162">i</a>];
-        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#164">par_sign</a>);
-        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    {}: {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#163">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#165">par_type</a>));
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#126">parameter_names</a>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#126">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#158">i</a>];
+        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#127">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#158">i</a>];
+        <span class="kw">let</span> <span class="ident">par_type</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#16">generate_jni_type</a>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#160">par_sign</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    {}: {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#159">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#161">par_type</a>));
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;) -&gt; JNIResult&lt;JObject&lt;&#39;a&gt;&gt; {&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;) -&gt; JNIResult&lt;JObject&lt;&#39;a&gt;&gt; {&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
     <span class="comment">// Generate dynamic type check for the arguments</span>
     <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">debug_assertions</span>) {
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#130">parameter_names</a>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#130">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#173">i</a>];
-            <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#173">i</a>];
-            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#175">par_sign</a>.<span class="ident">starts_with</span>(<span class="string">&#39;L&#39;</span>) {
-                <span class="kw">let</span> <span class="ident">par_class</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#175">par_sign</a>[<span class="number">1</span>..(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#175">par_sign</a>.<span class="ident">len</span>()<span class="op">-</span><span class="number">1</span>)];
-                <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;    debug_assert!(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#126">parameter_names</a>.<span class="ident">len</span>() {
+            <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#126">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#169">i</a>];
+            <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#127">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#169">i</a>];
+            <span class="kw">if</span> <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#171">par_sign</a>.<span class="ident">starts_with</span>(<span class="string">&#39;L&#39;</span>) {
+                <span class="kw">let</span> <span class="ident">par_class</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#171">par_sign</a>[<span class="number">1</span>..(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#171">par_sign</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>)];
+                <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;    debug_assert!(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
                     <span class="string">&quot;        self.env.is_instance_of({}, self.env.find_class(\&quot;{}\&quot;)?)?&quot;</span>,
-                    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#174">par_name</a>,
-                    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#177">par_class</a>
+                    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#170">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#173">par_class</a>
                 ));
-                <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;    );&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;    );&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
             }
         }
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;    let class = self.env.find_class(\&quot;{}\&quot;)?;&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#127">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()));
-
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
-        <span class="string">&quot;    let method_signature = \&quot;{}\&quot;;&quot;</span>,
-        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#129">constructor_signature</a>
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+        <span class="string">&quot;    let class = self.env.find_class(\&quot;{}\&quot;)?;&quot;</span>,
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#123">class</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()
     ));
 
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let method_id = self.env.get_method_id(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;        \&quot;&lt;init&gt;\&quot;,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_signature&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;    )?;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+        <span class="string">&quot;    let method_signature = \&quot;{}\&quot;;&quot;</span>,
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#125">constructor_signature</a>
+    ));
 
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let result = self.env.new_object_unchecked(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_id,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;        &amp;[&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let method_id = self.env.get_method_id(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;        \&quot;&lt;init&gt;\&quot;,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_signature&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;    )?;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#130">parameter_names</a>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#130">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#207">i</a>];
-        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#207">i</a>];
-        <span class="kw">let</span> <span class="ident">par_jvalue</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#55">generate_jvalue_wrapper</a>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#208">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#209">par_sign</a>);
-        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;            {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#210">par_jvalue</a>));
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;    let result = self.env.new_object_unchecked(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;        method_id,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;        &amp;[&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#126">parameter_names</a>.<span class="ident">len</span>() {
+        <span class="kw">let</span> <span class="ident">par_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#126">parameter_names</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#205">i</a>];
+        <span class="kw">let</span> <span class="ident">par_sign</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#127">parameter_signatures</a>[<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#205">i</a>];
+        <span class="kw">let</span> <span class="ident">par_jvalue</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/utils.rs.html#55">generate_jvalue_wrapper</a>(<a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#206">par_name</a>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#207">par_sign</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;            {},&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#208">par_jvalue</a>));
     }
 
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;        ]&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;    );&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;        ]&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;    );&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;    self.env.delete_local_ref(class.into()).unwrap();&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;    result&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">push</span>(<span class="string">&quot;}&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;    self.env.delete_local_ref(class.into()).unwrap();&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;    result&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">push</span>(<span class="string">&quot;}&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#135">code</a>.<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>) <span class="op">+</span> <span class="string">&quot;\n&quot;</span>
+    <a class="ident" href="../../../src/jni_gen/generators/constructor.rs.html#131">code</a>.<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>) <span class="op">+</span> <span class="string">&quot;\n&quot;</span>
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="jni_gen" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>

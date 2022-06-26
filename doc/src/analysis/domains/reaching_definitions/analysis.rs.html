@@ -89,6 +89,8 @@
 <span id="82">82</span>
 <span id="83">83</span>
 <span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -96,12 +98,14 @@
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">abstract_interpretation</span>::{<a class="ident" href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#17">AnalysisResult</a>, <a class="ident" href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#20-176">FixpointEngine</a>},
-    <span class="ident">domains</span>::{<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#36-40">DefLocation</a>, <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#28-33">ReachingDefsState</a>},
+    <span class="ident">abstract_interpretation</span>::{<a class="ident" href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#15">AnalysisResult</a>, <a class="ident" href="../../../../src/analysis/abstract_interpretation/fixpoint_engine.rs.html#18-174">FixpointEngine</a>},
+    <span class="ident">domains</span>::{<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#38-42">DefLocation</a>, <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#30-35">ReachingDefsState</a>},
 };
-<span class="kw">use</span> <span class="ident">rustc_data_structures::fx</span>::{<a class="ident" href="../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a class="ident" href="../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
-<span class="kw">use</span> <span class="ident">rustc_middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">rustc_span::def_id::DefId</a>;
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{
+    <span class="ident">data_structures::fx</span>::{<a class="ident" href="../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a class="ident" href="../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>},
+    <span class="ident">middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
+    <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">span::def_id::DefId</a>,
+};
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReachingDefsAnalysis</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> {
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
@@ -111,7 +115,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <span class="ident">ReachingDefsAnalysis</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir</span> <span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#15-19">ReachingDefsAnalysis</a> { <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#22">tcx</a>, <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#22">def_id</a>, <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#22">mir</a> }
+        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#17-21">ReachingDefsAnalysis</a> { <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#24">tcx</a>, <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#24">def_id</a>, <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#24">mir</a> }
     }
 }
 
@@ -119,11 +123,11 @@
     <span class="kw">type</span> <span class="ident">State</span> <span class="op">=</span> <span class="ident">ReachingDefsState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">def_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a> {
-        <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#30">self</a>.<span class="ident">def_id</span>
+        <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#32">self</a>.<span class="ident">def_id</span>
     }
 
     <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir</span> <span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#34">self</a>.<span class="ident">mir</span>
+        <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#36">self</a>.<span class="ident">mir</span>
     }
 
     <span class="doccomment">/// The bottom element of the lattice contains no definitions,</span>
@@ -131,24 +135,24 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// For a completely new bottom element we do not even insert any locals with sets into the map.</span>
     <span class="kw">fn</span> <span class="ident">new_bottom</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::State</span> {
-        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#28-33">ReachingDefsState</a> {
+        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#30-35">ReachingDefsState</a> {
             <span class="ident">reaching_defs</span>: <span class="ident">FxHashMap::default</span>(),
-            <span class="ident">mir</span>: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#42">self</a>.<span class="ident">mir</span>,
-            <span class="ident">tcx</span>: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#42">self</a>.<span class="ident">tcx</span>,
+            <span class="ident">mir</span>: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#44">self</a>.<span class="ident">mir</span>,
+            <span class="ident">tcx</span>: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#44">self</a>.<span class="ident">tcx</span>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">new_initial</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::State</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reaching_defs</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#36-40">DefLocation</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reaching_defs</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#38-42">DefLocation</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
         <span class="comment">// insert parameters</span>
-        <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">local</span>) <span class="kw">in</span> <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#50">self</a>.<span class="ident">mir</span>.<span class="ident">args_iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
-            <span class="kw">let</span> <span class="ident">location_set</span> <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#51">reaching_defs</a>.<span class="ident">entry</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#53">local</a>).<span class="ident">or_default</span>();
-            <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#54">location_set</a>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#39">DefLocation::Parameter</a>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#53">idx</a>));
+        <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">local</span>) <span class="kw">in</span> <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#52">self</a>.<span class="ident">mir</span>.<span class="ident">args_iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+            <span class="kw">let</span> <span class="ident">location_set</span> <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#53">reaching_defs</a>.<span class="ident">entry</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#55">local</a>).<span class="ident">or_default</span>();
+            <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#56">location_set</a>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#41">DefLocation::Parameter</a>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#55">idx</a>));
         }
-        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#28-33">ReachingDefsState</a> {
-            <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#51">reaching_defs</a>,
-            <span class="ident">mir</span>: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#50">self</a>.<span class="ident">mir</span>,
-            <span class="ident">tcx</span>: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#50">self</a>.<span class="ident">tcx</span>,
+        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#30-35">ReachingDefsState</a> {
+            <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#53">reaching_defs</a>,
+            <span class="ident">mir</span>: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#52">self</a>.<span class="ident">mir</span>,
+            <span class="ident">tcx</span>: <a class="self" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#52">self</a>.<span class="ident">tcx</span>,
         }
     }
 
@@ -162,7 +166,7 @@
         <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::State</span>,
         <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
     ) -&gt; <span class="ident">AnalysisResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#71">state</a>.<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#102-105">apply_statement_effect</a>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#72">location</a>)
+        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#73">state</a>.<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#104-107">apply_statement_effect</a>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#74">location</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">apply_terminator_effect</span>(
@@ -170,7 +174,7 @@
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::State</span>,
         <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
     ) -&gt; <span class="ident">AnalysisResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="ident"><span class="self">Self</span>::State</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#79">state</a>.<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#121-124">apply_terminator_effect</a>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#80">location</a>)
+        <a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#81">state</a>.<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/state.rs.html#123-126">apply_terminator_effect</a>(<a class="ident" href="../../../../src/analysis/domains/reaching_definitions/analysis.rs.html#82">location</a>)
     }
 }
 </code></pre></div>

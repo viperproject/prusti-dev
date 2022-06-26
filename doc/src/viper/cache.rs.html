@@ -129,14 +129,16 @@
 <span id="122">122</span>
 <span id="123">123</span>
 <span id="124">124</span>
+<span id="125">125</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../src/viper/verification_result.rs.html#12-21"><span class="kw">crate</span>::verification_result::VerificationResult</a>;
-<span class="kw">use</span> <span class="ident">serde</span>::{<a class="ident" href="../../serde/de/trait.Deserialize.html">Deserialize</a>, <a class="ident" href="../../serde/ser/trait.Serialize.html">Serialize</a>};
+<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">error</span>, <span class="ident">info</span>};
+
+<span class="kw">use</span> <a class="ident" href="../../src/viper/verification_result.rs.html#11-20"><span class="kw">crate</span>::verification_result::VerificationResult</a>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>,
     <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/index.html">fs</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>,
@@ -146,71 +148,71 @@
 };
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Cache</span> {
-    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">result</span>: <a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">result</span>: <a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a><span class="op">&gt;</span>;
 }
 <span class="comment">// We can change the representation here (e.g. adding fields):</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PersistentCache</span> {
     <span class="ident">updated</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">load_loc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
-    <span class="ident">data</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a><span class="op">&gt;</span>,
+    <span class="ident">data</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">enum</span> <a class="ident" href="../../src/viper/cache.rs.html#30-34">ResultCache</a> {
-    <span class="ident">V1</span>(<span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a><span class="op">&gt;</span>),
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)]</span>
+<span class="kw">enum</span> <a class="ident" href="../../src/viper/cache.rs.html#31-35">ResultCache</a> {
+    <span class="ident">V1</span>(<span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a><span class="op">&gt;</span>),
     <span class="comment">// To save/load different data (e.g. updated PersistentCache) use:</span>
     <span class="comment">// V2(???),</span>
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a class="ident" href="../../src/viper/cache.rs.html#30-34">ResultCache</a>)<span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/viper/cache.rs.html#23-27">PersistentCache</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a class="ident" href="../../src/viper/cache.rs.html#31-35">ResultCache</a>)<span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/viper/cache.rs.html#24-28">PersistentCache</a> {
     <span class="doccomment">/// Used when loading cache from disk</span>
-    <span class="kw">fn</span> <span class="ident">from</span>((<span class="ident">load_loc</span>, <span class="ident">rc</span>): (<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a class="ident" href="../../src/viper/cache.rs.html#30-34">ResultCache</a>)) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <a class="ident" href="../../src/viper/cache.rs.html#31">ResultCache::V1</a>(<span class="ident">data</span>) <span class="op">=</span> <a class="ident" href="../../src/viper/cache.rs.html#38">rc</a>;
+    <span class="kw">fn</span> <span class="ident">from</span>((<span class="ident">load_loc</span>, <span class="ident">rc</span>): (<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a class="ident" href="../../src/viper/cache.rs.html#31-35">ResultCache</a>)) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <a class="ident" href="../../src/viper/cache.rs.html#32">ResultCache::V1</a>(<span class="ident">data</span>) <span class="op">=</span> <a class="ident" href="../../src/viper/cache.rs.html#39">rc</a>;
         <span class="comment">// ResultCache::V2(...)</span>
-        <a class="ident" href="../../src/viper/cache.rs.html#23-27">PersistentCache</a> {
+        <a class="ident" href="../../src/viper/cache.rs.html#24-28">PersistentCache</a> {
             <span class="ident">updated</span>: <span class="bool-val">false</span>,
-            <a class="ident" href="../../src/viper/cache.rs.html#38">load_loc</a>,
-            <a class="ident" href="../../src/viper/cache.rs.html#39">data</a>,
+            <a class="ident" href="../../src/viper/cache.rs.html#39">load_loc</a>,
+            <a class="ident" href="../../src/viper/cache.rs.html#40">data</a>,
         }
     }
 }
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/cache.rs.html#23-27">PersistentCache</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/viper/cache.rs.html#30-34">ResultCache</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/cache.rs.html#24-28">PersistentCache</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/viper/cache.rs.html#31-35">ResultCache</a> {
     <span class="doccomment">/// Used when saving cache to disk</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cache</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/cache.rs.html#23-27">PersistentCache</a>) -&gt; <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cache</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/cache.rs.html#24-28">PersistentCache</a>) -&gt; <span class="self">Self</span> {
         <span class="comment">// ResultCache::V2(...)</span>
-        <a class="ident" href="../../src/viper/cache.rs.html#31">ResultCache::V1</a>(<a class="ident" href="../../src/viper/cache.rs.html#50">cache</a>.<span class="ident">data</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <a class="ident" href="../../src/viper/cache.rs.html#32">ResultCache::V1</a>(<a class="ident" href="../../src/viper/cache.rs.html#51">cache</a>.<span class="ident">data</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/viper/cache.rs.html#23-27">PersistentCache</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/viper/cache.rs.html#24-28">PersistentCache</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_cache</span>(<span class="ident">cache_loc</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_res</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/cache.rs.html#30-34">ResultCache</a><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/viper/cache.rs.html#57">cache_loc</a>.<span class="ident">as_os_str</span>().<span class="ident">is_empty</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="ident">fs::File::open</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/cache.rs.html#57">cache_loc</a>) {
-                <span class="kw">match</span> <span class="ident">bincode::deserialize_from</span>(<span class="kw-2">&amp;mut</span> <span class="ident">io::BufReader::new</span>(<a class="ident" href="../../src/viper/cache.rs.html#60">f</a>)) {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_res</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/cache.rs.html#31-35">ResultCache</a><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/viper/cache.rs.html#58">cache_loc</a>.<span class="ident">as_os_str</span>().<span class="ident">is_empty</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="ident">fs::File::open</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/cache.rs.html#58">cache_loc</a>) {
+                <span class="kw">match</span> <span class="ident">bincode::deserialize_from</span>(<span class="kw-2">&amp;mut</span> <span class="ident">io::BufReader::new</span>(<a class="ident" href="../../src/viper/cache.rs.html#61">f</a>)) {
                     <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; {
-                        <span class="macro">info!</span>(<span class="string">&quot;Loaded cache from \&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../src/viper/cache.rs.html#57">cache_loc</a>.<span class="ident">display</span>());
-                        <a class="ident" href="../../src/viper/cache.rs.html#58">data_res</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/viper/cache.rs.html#62">data</a>);
+                        <span class="macro">info!</span>(<span class="string">&quot;Loaded cache from \&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../src/viper/cache.rs.html#58">cache_loc</a>.<span class="ident">display</span>());
+                        <a class="ident" href="../../src/viper/cache.rs.html#59">data_res</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/viper/cache.rs.html#63">data</a>);
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">error!</span>(<span class="string">&quot;Failed to read cache from \&quot;{}\&quot;: {e}&quot;</span>, <a class="ident" href="../../src/viper/cache.rs.html#57">cache_loc</a>.<span class="ident">display</span>()),
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">error!</span>(<span class="string">&quot;Failed to read cache from \&quot;{}\&quot;: {e}&quot;</span>, <a class="ident" href="../../src/viper/cache.rs.html#58">cache_loc</a>.<span class="ident">display</span>()),
                 }
             }
         }
         <span class="ident">PersistentCache::from</span>((
-            <a class="ident" href="../../src/viper/cache.rs.html#57">cache_loc</a>,
-            <a class="ident" href="../../src/viper/cache.rs.html#58">data_res</a>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <a class="ident" href="../../src/viper/cache.rs.html#58">cache_loc</a>,
+            <a class="ident" href="../../src/viper/cache.rs.html#59">data_res</a>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">info!</span>(<span class="string">&quot;Cache file doesn&#39;t exist or is invalid. Using fresh cache.&quot;</span>);
-                <a class="ident" href="../../src/viper/cache.rs.html#31">ResultCache::V1</a>(<span class="ident">HashMap::new</span>())
+                <a class="ident" href="../../src/viper/cache.rs.html#32">ResultCache::V1</a>(<span class="ident">HashMap::new</span>())
             }),
         ))
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">save_cache</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cache_loc</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) {
-        <span class="kw">match</span> <span class="ident">fs::File::create</span>(<a class="ident" href="../../src/viper/cache.rs.html#78">cache_loc</a>) {
+        <span class="kw">match</span> <span class="ident">fs::File::create</span>(<a class="ident" href="../../src/viper/cache.rs.html#79">cache_loc</a>) {
             <span class="prelude-val">Ok</span>(<span class="ident">f</span>) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Saving cache to \&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../src/viper/cache.rs.html#78">cache_loc</a>.<span class="ident">display</span>());
-                <span class="ident">bincode::serialize_into</span>(<span class="kw-2">&amp;mut</span> <span class="ident">io::BufWriter::new</span>(<a class="ident" href="../../src/viper/cache.rs.html#80">f</a>), <span class="kw-2">&amp;</span><span class="ident">ResultCache::from</span>(<a class="self" href="../../src/viper/cache.rs.html#78">self</a>))
+                <span class="macro">info!</span>(<span class="string">&quot;Saving cache to \&quot;{}\&quot;&quot;</span>, <a class="ident" href="../../src/viper/cache.rs.html#79">cache_loc</a>.<span class="ident">display</span>());
+                <span class="ident">bincode::serialize_into</span>(<span class="kw-2">&amp;mut</span> <span class="ident">io::BufWriter::new</span>(<a class="ident" href="../../src/viper/cache.rs.html#81">f</a>), <span class="kw-2">&amp;</span><span class="ident">ResultCache::from</span>(<a class="self" href="../../src/viper/cache.rs.html#79">self</a>))
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">error!</span>(<span class="string">&quot;Failed to write cache: {e}&quot;</span>));
             }
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">error!</span>(<span class="string">&quot;Failed to create cache file: {e}&quot;</span>),
@@ -218,39 +220,39 @@
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">save</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// Save cache to disk, if changed and save path is valid</span>
-        <span class="kw">if</span> <a class="self" href="../../src/viper/cache.rs.html#88">self</a>.<span class="ident">updated</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../src/viper/cache.rs.html#88">self</a>.<span class="ident">load_loc</span>.<span class="ident">as_os_str</span>().<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">save_dir</span> <span class="op">=</span> <a class="self" href="../../src/viper/cache.rs.html#88">self</a>.<span class="ident">load_loc</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <a class="ident" href="../../src/viper/cache.rs.html#91">save_dir</a>.<span class="ident">pop</span>();
-            <span class="kw">match</span> <span class="ident">fs::create_dir_all</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/cache.rs.html#91">save_dir</a>) {
-                <span class="prelude-val">Ok</span>(()) =&gt; <a class="self" href="../../src/viper/cache.rs.html#88">self</a>.<a class="ident" href="../../src/viper/cache.rs.html#78">save_cache</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/viper/cache.rs.html#88">self</a>.<span class="ident">load_loc</span>),
+        <span class="kw">if</span> <a class="self" href="../../src/viper/cache.rs.html#89">self</a>.<span class="ident">updated</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../src/viper/cache.rs.html#89">self</a>.<span class="ident">load_loc</span>.<span class="ident">as_os_str</span>().<span class="ident">is_empty</span>() {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">save_dir</span> <span class="op">=</span> <a class="self" href="../../src/viper/cache.rs.html#89">self</a>.<span class="ident">load_loc</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <a class="ident" href="../../src/viper/cache.rs.html#92">save_dir</a>.<span class="ident">pop</span>();
+            <span class="kw">match</span> <span class="ident">fs::create_dir_all</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/cache.rs.html#92">save_dir</a>) {
+                <span class="prelude-val">Ok</span>(()) =&gt; <a class="self" href="../../src/viper/cache.rs.html#89">self</a>.<a class="ident" href="../../src/viper/cache.rs.html#79">save_cache</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/viper/cache.rs.html#89">self</a>.<span class="ident">load_loc</span>),
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">error!</span>(<span class="string">&quot;Failed to create cache dir: {e}&quot;</span>),
             }
         }
     }
 }
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/viper/cache.rs.html#23-27">PersistentCache</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/viper/cache.rs.html#24-28">PersistentCache</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/viper/cache.rs.html#101">self</a>.<a class="ident" href="../../src/viper/cache.rs.html#88">save</a>();
+        <a class="self" href="../../src/viper/cache.rs.html#102">self</a>.<a class="ident" href="../../src/viper/cache.rs.html#89">save</a>();
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/viper/cache.rs.html#17-20">Cache</a> <span class="kw">for</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/viper/cache.rs.html#23-27">PersistentCache</a> {
-    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/viper/cache.rs.html#107">self</a>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/cache.rs.html#107">request</a>).<span class="ident">cloned</span>()
+<span class="kw">impl</span> <a class="ident" href="../../src/viper/cache.rs.html#18-21">Cache</a> <span class="kw">for</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/viper/cache.rs.html#24-28">PersistentCache</a> {
+    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/viper/cache.rs.html#108">self</a>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/cache.rs.html#108">request</a>).<span class="ident">cloned</span>()
     }
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">result</span>: <a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/viper/cache.rs.html#110">self</a>.<span class="ident">updated</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../src/viper/cache.rs.html#110">self</a>.<span class="ident">data</span>.<span class="ident">insert</span>(<a class="ident" href="../../src/viper/cache.rs.html#110">request</a>, <a class="ident" href="../../src/viper/cache.rs.html#110">result</a>)
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">result</span>: <a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/viper/cache.rs.html#111">self</a>.<span class="ident">updated</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <a class="self" href="../../src/viper/cache.rs.html#111">self</a>.<span class="ident">data</span>.<span class="ident">insert</span>(<a class="ident" href="../../src/viper/cache.rs.html#111">request</a>, <a class="ident" href="../../src/viper/cache.rs.html#111">result</a>)
     }
 }
-<span class="kw">impl</span> <a class="ident" href="../../src/viper/cache.rs.html#17-20">Cache</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/cache.rs.html#23-27">PersistentCache</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <a class="self" href="../../src/viper/cache.rs.html#116">self</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <a class="ident" href="../../src/viper/cache.rs.html#117">cache</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>().<a class="ident" href="../../src/viper/cache.rs.html#18">get</a>(<a class="ident" href="../../src/viper/cache.rs.html#116">request</a>)
+<span class="kw">impl</span> <a class="ident" href="../../src/viper/cache.rs.html#18-21">Cache</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/cache.rs.html#24-28">PersistentCache</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <a class="self" href="../../src/viper/cache.rs.html#117">self</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+        <a class="ident" href="../../src/viper/cache.rs.html#118">cache</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">deref_mut</a>().<a class="ident" href="../../src/viper/cache.rs.html#19">get</a>(<a class="ident" href="../../src/viper/cache.rs.html#117">request</a>)
     }
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">result</span>: <a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <a class="self" href="../../src/viper/cache.rs.html#120">self</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <a class="ident" href="../../src/viper/cache.rs.html#121">cache</a>.<a class="ident" href="../../src/viper/cache.rs.html#19">insert</a>(<a class="ident" href="../../src/viper/cache.rs.html#120">request</a>, <a class="ident" href="../../src/viper/cache.rs.html#120">result</a>)
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">request</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">result</span>: <a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <a class="self" href="../../src/viper/cache.rs.html#121">self</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+        <a class="ident" href="../../src/viper/cache.rs.html#122">cache</a>.<a class="ident" href="../../src/viper/cache.rs.html#20">insert</a>(<a class="ident" href="../../src/viper/cache.rs.html#121">request</a>, <a class="ident" href="../../src/viper/cache.rs.html#121">result</a>)
     }
 }
 </code></pre></div>

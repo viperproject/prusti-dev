@@ -47,40 +47,44 @@
 <span id="40">40</span>
 <span id="41">41</span>
 <span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../../src/jni_gen/lib.rs.html#15">class_name</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">errors::Result</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/jni_gen/lib.rs.html#7">class_name</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">errors::Result</a>};
 <span class="kw">use</span> <a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">jni::JNIEnv</a>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_scala_object_getter</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>, <span class="ident">class_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/class_name.rs.html#8-12">ClassName</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#11">env</a>.<span class="ident">get_static_field_id</span>(
-        <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#11">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>(),
+    <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#10">env</a>.<span class="ident">get_static_field_id</span>(
+        <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#10">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>(),
         <span class="string">&quot;MODULE$&quot;</span>,
-        <span class="macro">format!</span>(<span class="string">&quot;L{};&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#11">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()),
+        <span class="macro">format!</span>(<span class="string">&quot;L{};&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#10">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()),
     )
     .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[
         <span class="macro">format!</span>(
             <span class="string">&quot;/// Returns the unique instance of the Scala object `{}`.&quot;</span>,
-            <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#11">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>()
+            <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#10">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#50">full_name</a>()
         ),
         <span class="string">&quot;///&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         <span class="macro">format!</span>(
             <span class="string">&quot;/// Return type and Java signature: `JObject`, `L{};`&quot;</span>,
-            <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#11">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()
+            <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#10">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()
         ),
         <span class="string">&quot;pub fn singleton(&amp;self) -&gt; JNIResult&lt;JObject&lt;&#39;a&gt;&gt; {&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-        <span class="macro">format!</span>( <span class="string">&quot;    let class = self.env.find_class(\&quot;{}\&quot;)?;&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#11">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()),
+        <span class="macro">format!</span>(
+            <span class="string">&quot;    let class = self.env.find_class(\&quot;{}\&quot;)?;&quot;</span>,
+            <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#10">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()
+        ),
         <span class="string">&quot;    let result = self.env.get_static_field(&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         <span class="string">&quot;        class,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         <span class="string">&quot;        \&quot;MODULE$\&quot;,&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-        <span class="macro">format!</span>(<span class="string">&quot;        \&quot;L{};\&quot;,&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#11">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()),
+        <span class="macro">format!</span>(<span class="string">&quot;        \&quot;L{};\&quot;,&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/scala_object_getter.rs.html#10">class_name</a>.<a class="ident" href="../../../src/jni_gen/class_name.rs.html#31">path</a>()),
         <span class="string">&quot;    ).and_then(|x| x.l());&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         <span class="string">&quot;    self.env.delete_local_ref(class.into()).unwrap();&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         <span class="string">&quot;    result&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),

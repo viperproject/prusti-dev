@@ -46,13 +46,15 @@
 <span id="39">39</span>
 <span id="40">40</span>
 <span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/interface.rs.html#20-29"><span class="kw">super</span>::interface::EncodedSequenceTypes</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <span class="ident">errors</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15-18">EncodingError</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>},
-    <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#123-145">high::types::HighTypeEncoderInterface</a>,
+    <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#122-144">high::types::HighTypeEncoderInterface</a>,
     <a class="ident" href="../../../../../src/prusti_viper/encoder/encoder.rs.html#64-100">Encoder</a>,
 };
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">rustc_middle::ty</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">prusti_rustc_interface::middle::ty</a>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">encode_sequence_types</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span>(
     <span class="ident">encoder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
@@ -61,14 +63,16 @@
     <span class="kw">let</span> (<span class="ident">elem_ty_rs</span>, <span class="ident">sequence_len</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#11">sequence_ty_rs</a>.<span class="ident">kind</span>() {
         <span class="ident">ty::TyKind::Array</span>(<span class="ident">elem_ty</span>, <span class="ident">array_len</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#10">encoder</a>
-                .<a class="ident" href="../../../../../src/prusti_viper/encoder/encoder.rs.html#274-277">const_eval_intlike</a>(<span class="ident">rustc_middle::mir::ConstantKind::Ty</span>(<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#14">array_len</a>))<span class="question-mark">?</span>
+                .<a class="ident" href="../../../../../src/prusti_viper/encoder/encoder.rs.html#274-277">const_eval_intlike</a>(<span class="ident">prusti_rustc_interface::middle::mir::ConstantKind::Ty</span>(
+                    <span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#14">array_len</a>,
+                ))<span class="question-mark">?</span>
                 .<span class="ident">to_u64</span>()
                 .<span class="ident">unwrap</span>()
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>()
                 .<span class="ident">unwrap</span>();
             (<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#14">elem_ty</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#15">len</a>))
         }
-        <span class="ident">ty::TyKind::Slice</span>(<span class="ident">elem_ty</span>) =&gt; (<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#23">elem_ty</a>, <span class="prelude-val">None</span>),
+        <span class="ident">ty::TyKind::Slice</span>(<span class="ident">elem_ty</span>) =&gt; (<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#25">elem_ty</a>, <span class="prelude-val">None</span>),
         <span class="ident">ty::TyKind::Str</span> =&gt; {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EncodingError::unsupported</span>(
                 <span class="string">&quot;Encoding of Str slice type&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
@@ -77,12 +81,12 @@
         <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     };
 
-    <span class="kw">let</span> <span class="ident">sequence_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#10">encoder</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#133">encode_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#11">sequence_ty_rs</a>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">elem_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#10">encoder</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#133">encode_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#13">elem_ty_rs</a>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">sequence_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#10">encoder</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#132">encode_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#11">sequence_ty_rs</a>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">elem_pred_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#10">encoder</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#132">encode_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#13">elem_ty_rs</a>)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/interface.rs.html#20-29">EncodedSequenceTypes</a> {
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#32">sequence_pred_type</a>,
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#33">elem_pred_type</a>,
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#34">sequence_pred_type</a>,
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#35">elem_pred_type</a>,
         <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#13">elem_ty_rs</a>,
         <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/sequences/encoder.rs.html#13">sequence_len</a>,
     })

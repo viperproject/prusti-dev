@@ -82,7 +82,6 @@
 <span id="75">75</span>
 <span id="76">76</span>
 <span id="77">77</span>
-<span id="78">78</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -90,29 +89,28 @@
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/viper/silicon_counterexample.rs.html#8-16">silicon_counterexample::SiliconCounterexample</a>, <a class="ident" href="../../src/viper/java_exception.rs.html#9-12">JavaException</a>};
-<span class="kw">use</span> <span class="ident">serde</span>::{<a class="ident" href="../../serde/de/trait.Deserialize.html">Deserialize</a>, <a class="ident" href="../../serde/ser/trait.Serialize.html">Serialize</a>};
 
 <span class="doccomment">/// The result of a verification request on a Viper program.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a> {
     <span class="doccomment">/// The program verified.</span>
     <span class="ident">Success</span>,
     <span class="doccomment">/// The program did not verify.</span>
-    <span class="ident">Failure</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#30-40">VerificationError</a><span class="op">&gt;</span>),
+    <span class="ident">Failure</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/verification_result.rs.html#29-39">VerificationError</a><span class="op">&gt;</span>),
     <span class="doccomment">/// The program has consistency errors.</span>
     <span class="ident">ConsistencyErrors</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>),
     <span class="doccomment">/// The verification raised a Java exception.</span>
     <span class="ident">JavaException</span>(<a class="ident" href="../../src/viper/java_exception.rs.html#9-12">JavaException</a>),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/viper/verification_result.rs.html#12-21">VerificationResult</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/viper/verification_result.rs.html#11-20">VerificationResult</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_success</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">matches!</span>(<a class="self" href="../../src/viper/verification_result.rs.html#24">self</a>, <span class="ident"><span class="self">Self</span>::Success</span>)
+        <span class="macro">matches!</span>(<a class="self" href="../../src/viper/verification_result.rs.html#23">self</a>, <span class="ident"><span class="self">Self</span>::Success</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../src/viper/verification_result.rs.html#30-40">VerificationError</a> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../src/viper/verification_result.rs.html#29-39">VerificationError</a> {
     <span class="kw">pub</span> <span class="ident">full_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="comment">// Unused since we get pos from the offending_node instead.</span>
     <span class="comment">// Currently calling pos on e.g. `ExhaleFailed` of Silver returns</span>
@@ -124,7 +122,7 @@
     <span class="kw">pub</span> <span class="ident">counterexample</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/silicon_counterexample.rs.html#8-16">SiliconCounterexample</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/viper/verification_result.rs.html#30-40">VerificationError</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/viper/verification_result.rs.html#29-39">VerificationError</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">full_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
         <span class="ident">pos_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
@@ -133,20 +131,20 @@
         <span class="ident">message</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
         <span class="ident">counterexample</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/silicon_counterexample.rs.html#8-16">SiliconCounterexample</a><span class="op">&gt;</span>,
     ) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/viper/verification_result.rs.html#30-40">VerificationError</a> {
-            <a class="ident" href="../../src/viper/verification_result.rs.html#44">full_id</a>,
-            <a class="ident" href="../../src/viper/verification_result.rs.html#45">pos_id</a>,
-            <a class="ident" href="../../src/viper/verification_result.rs.html#46">offending_pos_id</a>,
-            <a class="ident" href="../../src/viper/verification_result.rs.html#47">reason_pos_id</a>,
-            <a class="ident" href="../../src/viper/verification_result.rs.html#48">message</a>,
-            <a class="ident" href="../../src/viper/verification_result.rs.html#49">counterexample</a>,
+        <a class="ident" href="../../src/viper/verification_result.rs.html#29-39">VerificationError</a> {
+            <a class="ident" href="../../src/viper/verification_result.rs.html#43">full_id</a>,
+            <a class="ident" href="../../src/viper/verification_result.rs.html#44">pos_id</a>,
+            <a class="ident" href="../../src/viper/verification_result.rs.html#45">offending_pos_id</a>,
+            <a class="ident" href="../../src/viper/verification_result.rs.html#46">reason_pos_id</a>,
+            <a class="ident" href="../../src/viper/verification_result.rs.html#47">message</a>,
+            <a class="ident" href="../../src/viper/verification_result.rs.html#48">counterexample</a>,
         }
     }
 }
 
 <span class="doccomment">/// The consistency error reported by the verifier.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../src/viper/verification_result.rs.html#64-69">ConsistencyError</a> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../src/viper/verification_result.rs.html#63-68">ConsistencyError</a> {
     <span class="doccomment">/// To which method corresponds the program that triggered the error.</span>
     <span class="kw">pub</span> <span class="ident">method</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="doccomment">/// The actual error.</span>
@@ -154,8 +152,8 @@
 }
 
 <span class="doccomment">/// The Java exception reported by the verifier.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../src/viper/verification_result.rs.html#73-78">JavaExceptionWithOrigin</a> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <a class="ident" href="../../src/viper/verification_result.rs.html#72-77">JavaExceptionWithOrigin</a> {
     <span class="doccomment">/// To which method corresponds the program that triggered the exception.</span>
     <span class="kw">pub</span> <span class="ident">method</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="doccomment">/// The actual exception.</span>

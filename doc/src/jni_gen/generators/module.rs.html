@@ -55,54 +55,52 @@
 <span id="48">48</span>
 <span id="49">49</span>
 <span id="50">50</span>
-<span id="51">51</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../../src/jni_gen/lib.rs.html#15">class_name</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <a class="ident" href="../../../src/jni_gen/lib.rs.html#18">module_tree</a>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/jni_gen/lib.rs.html#7">class_name</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/jni_gen/lib.rs.html#10">module_tree</a>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_module</span>(<span class="ident">class_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/class_name.rs.html#8-12">ClassName</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">modules</span> <span class="op">=</span> <span class="ident">ModuleTree::default</span>();
 
-    <span class="kw">for</span> <span class="ident">class_name</span> <span class="kw">in</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#11">class_names</a> {
-        <span class="kw">let</span> <span class="ident">components</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#14">class_name</a>
+    <span class="kw">for</span> <span class="ident">class_name</span> <span class="kw">in</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#10">class_names</a> {
+        <span class="kw">let</span> <span class="ident">components</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#13">class_name</a>
             .<a class="ident" href="../../../src/jni_gen/class_name.rs.html#43">full_rust_components</a>()
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#18">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#17">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#12">modules</a> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#12">modules</a>.<a class="ident" href="../../../src/jni_gen/module_tree.rs.html#23-25">insert</a>(<a class="ident" href="../../../src/jni_gen/generators/module.rs.html#15">components</a>);
+        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#11">modules</a> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#11">modules</a>.<a class="ident" href="../../../src/jni_gen/module_tree.rs.html#23-25">insert</a>(<a class="ident" href="../../../src/jni_gen/generators/module.rs.html#14">components</a>);
     }
 
-    <span class="kw">let</span> <span class="ident">modules_tree</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#12">modules</a>
+    <span class="kw">let</span> <span class="ident">modules_tree</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#11">modules</a>
         .<a class="ident" href="../../../src/jni_gen/module_tree.rs.html#86-88">visit</a>(<span class="op">|</span><span class="ident">modules</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">modules</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#24">modules</a>;
+            <span class="kw">let</span> <span class="ident">modules</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#23">modules</a>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-            <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">opt_rec_result</span>) <span class="kw">in</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#25">modules</a> {
-                <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#27">opt_rec_result</a> {
+            <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">opt_rec_result</span>) <span class="kw">in</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#24">modules</a> {
+                <span class="kw">match</span> <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">opt_rec_result</a> {
                     <span class="prelude-val">None</span> =&gt; {
-                        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">res</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;mod {}_wrapper;\n&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#27">name</a>));
-                        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">res</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;pub use self::{}_wrapper::*;\n&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#27">name</a>));
+                        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#25">res</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;mod {}_wrapper;\n&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">name</a>));
+                        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#25">res</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;pub use self::{}_wrapper::*;\n&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">name</a>));
                     }
                     <span class="prelude-val">Some</span>(<span class="ident">rec_result</span>) =&gt; {
-                        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">res</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;pub mod {} {{\n&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#27">name</a>));
-                        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">res</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/jni_gen/generators/module.rs.html#33">rec_result</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">res</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;}} // end of mod {}\n&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#27">name</a>));
+                        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#25">res</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;pub mod {} {{\n&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">name</a>));
+                        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#25">res</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/jni_gen/generators/module.rs.html#32">rec_result</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#25">res</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;}} // end of mod {}\n&quot;</span>, <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">name</a>));
                     }
                 }
             }
-            <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#26">res</a>.<span class="ident">join</span>(<span class="string">&quot;&quot;</span>)
+            <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#25">res</a>.<span class="ident">join</span>(<span class="string">&quot;&quot;</span>)
         })
         .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;// No modules&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
     <span class="macro">vec!</span>[
         <span class="string">&quot;//! Automatically generated code\n&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         <span class="string">&quot;#![allow(non_snake_case)]\n&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#23">modules_tree</a>,
+        <a class="ident" href="../../../src/jni_gen/generators/module.rs.html#22">modules_tree</a>,
     ]
     .<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>)
         <span class="op">+</span> <span class="string">&quot;\n&quot;</span>

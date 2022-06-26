@@ -123,7 +123,6 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
-<span id="119">119</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -131,8 +130,7 @@
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/analysis/abstract_interpretation/abstract_state.rs.html#45-72">abstract_interpretation::AbstractState</a>, <a class="ident" href="../../../../src/analysis/analysis_error.rs.html#11-19">AnalysisError</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../rustc_hash/type.FxHashSet.html">rustc_data_structures::fx::FxHashSet</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">rustc_middle::mir</a>;
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{<a class="ident" href="../../../../rustc_hash/type.FxHashSet.html">data_structures::fx::FxHashSet</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<a class="ident" href="../../../../serde/ser/trait.SerializeSeq.html">ser::SerializeSeq</a>, <a class="ident" href="../../../../serde/ser/trait.Serialize.html">Serialize</a>, <a class="ident" href="../../../../serde/ser/trait.Serializer.html">Serializer</a>};
 <span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">collections::BTreeSet</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
 
@@ -146,15 +144,15 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">DefinitelyAllocatedState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="comment">// ignore mir</span>
-        <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#21">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;DefinitelyAllocatedState&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;def_allocated_locals&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#21">self</a>.<span class="ident">def_allocated_locals</span>)
+        <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#20">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;DefinitelyAllocatedState&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;def_allocated_locals&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#20">self</a>.<span class="ident">def_allocated_locals</span>)
             .<span class="ident">finish</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <span class="ident">DefinitelyAllocatedState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#30">self</a>.<span class="ident">def_allocated_locals</span> <span class="op">==</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#30">other</a>.<span class="ident">def_allocated_locals</span>
+        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#29">self</a>.<span class="ident">def_allocated_locals</span> <span class="op">==</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#29">other</a>.<span class="ident">def_allocated_locals</span>
     }
 }
 
@@ -162,53 +160,53 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <a class="ident" href="../../../../serde/ser/trait.Serialize.html">Serialize</a> <span class="kw">for</span> <span class="ident">DefinitelyAllocatedState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">Se</span>: <a class="ident" href="../../../../serde/ser/trait.Serializer.html">Serializer</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">Se</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Se::Ok</span>, <span class="ident">Se::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seq</span> <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#38">serializer</a>.<a class="ident" href="../../../../serde/ser/trait.Serializer.html">serialize_seq</a>(<span class="prelude-val">Some</span>(<a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#38">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">len</span>()))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">oredered_set</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#38">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">for</span> <span class="ident">local</span> <span class="kw">in</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#40">oredered_set</a> {
-            <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#39">seq</a>.<a class="ident" href="../../../../serde/ser/trait.SerializeSeq.html">serialize_element</a>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#41">local</a>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seq</span> <span class="op">=</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#37">serializer</a>.<a class="ident" href="../../../../serde/ser/trait.Serializer.html">serialize_seq</a>(<span class="prelude-val">Some</span>(<a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#37">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">len</span>()))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">oredered_set</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#37">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">for</span> <span class="ident">local</span> <span class="kw">in</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#39">oredered_set</a> {
+            <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#38">seq</a>.<a class="ident" href="../../../../serde/ser/trait.SerializeSeq.html">serialize_element</a>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#40">local</a>))<span class="question-mark">?</span>;
         }
-        <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#39">seq</a>.<a class="ident" href="../../../../serde/ser/trait.SerializeSeq.html">end</a>()
+        <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#38">seq</a>.<a class="ident" href="../../../../serde/ser/trait.SerializeSeq.html">end</a>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <span class="ident">DefinitelyAllocatedState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_def_allocated_locals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#49">self</a>.<span class="ident">def_allocated_locals</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#48">self</a>.<span class="ident">def_allocated_locals</span>
     }
 
     <span class="doccomment">/// The top element of the lattice contains no locals</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_top</span>(<span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir</span> <span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">def_allocated_locals</span>: <span class="ident">FxHashSet::default</span>(),
-            <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#54">mir</a>,
+            <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#53">mir</a>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_top</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#61">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">is_empty</span>()
+        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#60">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">is_empty</span>()
     }
 
     <span class="doccomment">/// Sets `local` as allocated.</span>
     <span class="kw">fn</span> <span class="ident">set_local_allocated</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) {
-        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#66">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#66">local</a>);
+        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#65">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#65">local</a>);
     }
 
     <span class="doccomment">/// Sets `local` as (possibly) not allocated.</span>
     <span class="kw">fn</span> <span class="ident">set_place_unallocated</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) {
-        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#71">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#71">local</a>);
+        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#70">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#70">local</a>);
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">apply_statement_effect</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../../src/analysis/analysis_error.rs.html#11-19">AnalysisError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#76">self</a>.<span class="ident">mir</span>[<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#77">location</a>.<span class="ident">block</span>].<span class="ident">statements</span>[<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#77">location</a>.<span class="ident">statement_index</span>];
-        <span class="kw">match</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#79">statement</a>.<span class="ident">kind</span> {
+        <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#75">self</a>.<span class="ident">mir</span>[<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#76">location</a>.<span class="ident">block</span>].<span class="ident">statements</span>[<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#76">location</a>.<span class="ident">statement_index</span>];
+        <span class="kw">match</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#78">statement</a>.<span class="ident">kind</span> {
             <span class="ident">mir::StatementKind::StorageLive</span>(<span class="ident">local</span>) =&gt; {
-                <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#76">self</a>.<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#66">set_local_allocated</a>(<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#81">local</a>);
+                <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#75">self</a>.<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#65">set_local_allocated</a>(<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#80">local</a>);
             }
             <span class="ident">mir::StatementKind::StorageDead</span>(<span class="ident">local</span>) =&gt; {
-                <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#76">self</a>.<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#71">set_place_unallocated</a>(<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#84">local</a>);
+                <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#75">self</a>.<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#70">set_place_unallocated</a>(<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#83">local</a>);
             }
             <span class="kw">_</span> =&gt; {}
         }
@@ -220,23 +218,23 @@
         <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="self">Self</span>)<span class="op">&gt;</span>, <a class="ident" href="../../../../src/analysis/analysis_error.rs.html#11-19">AnalysisError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res_vec</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#93">self</a>.<span class="ident">mir</span>[<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#94">location</a>.<span class="ident">block</span>].<span class="ident">terminator</span>();
-        <span class="kw">for</span> <span class="ident">bb</span> <span class="kw">in</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#97">terminator</a>.<span class="ident">successors</span>() {
-            <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#96">res_vec</a>.<span class="ident">push</span>((<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#98">bb</a>, <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#93">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+        <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#92">self</a>.<span class="ident">mir</span>[<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#93">location</a>.<span class="ident">block</span>].<span class="ident">terminator</span>();
+        <span class="kw">for</span> <span class="ident">bb</span> <span class="kw">in</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#96">terminator</a>.<span class="ident">successors</span>() {
+            <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#95">res_vec</a>.<span class="ident">push</span>((<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#97">bb</a>, <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#92">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#96">res_vec</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#95">res_vec</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;mir</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/analysis/abstract_interpretation/abstract_state.rs.html#45-72">AbstractState</a> <span class="kw">for</span> <span class="ident">DefinitelyAllocatedState</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">is_bottom</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#106">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">len</span>() <span class="op">==</span> <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#106">self</a>.<span class="ident">mir</span>.<span class="ident">local_decls</span>.<span class="ident">len</span>()
+        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#105">self</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">len</span>() <span class="op">==</span> <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#105">self</a>.<span class="ident">mir</span>.<span class="ident">local_decls</span>.<span class="ident">len</span>()
     }
 
     <span class="doccomment">/// The lattice join intersects the two sets of locals</span>
     <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#111">self</a>.<span class="ident">def_allocated_locals</span>
-            .<span class="ident">retain</span>(<span class="op">|</span><span class="ident">local</span><span class="op">|</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#111">other</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">contains</span>(<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#113">local</a>));
+        <a class="self" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#110">self</a>.<span class="ident">def_allocated_locals</span>
+            .<span class="ident">retain</span>(<span class="op">|</span><span class="ident">local</span><span class="op">|</span> <a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#110">other</a>.<span class="ident">def_allocated_locals</span>.<span class="ident">contains</span>(<a class="ident" href="../../../../src/analysis/domains/definitely_allocated/state.rs.html#112">local</a>));
     }
 
     <span class="kw">fn</span> <span class="ident">widen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_previous</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {

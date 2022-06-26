@@ -107,6 +107,7 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -114,9 +115,10 @@
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <a class="ident" href="../../src/viper/lib.rs.html#20">ast_factory</a>::<span class="kw-2">*</span>, <a class="ident" href="../../src/viper/lib.rs.html#21">ast_utils</a>::<span class="kw-2">*</span>, <a class="ident" href="../../src/viper/verification_backend.rs.html#10-13">verification_backend::VerificationBackend</a>, <a class="ident" href="../../src/viper/verifier.rs.html#20-27">verifier::Verifier</a>,
+    <a class="ident" href="../../src/viper/lib.rs.html#9">ast_factory</a>::<span class="kw-2">*</span>, <a class="ident" href="../../src/viper/lib.rs.html#10">ast_utils</a>::<span class="kw-2">*</span>, <a class="ident" href="../../src/viper/verification_backend.rs.html#10-13">verification_backend::VerificationBackend</a>, <a class="ident" href="../../src/viper/verifier.rs.html#21-28">verifier::Verifier</a>,
 };
 <span class="kw">use</span> <a class="ident" href="../../jni/wrapper/java_vm/vm/struct.AttachGuard.html">jni::AttachGuard</a>;
+<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">info</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <a class="ident" href="https://doc.rust-lang.org/nightly/std/env/index.html">env</a>,
     <span class="ident">path</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>},
@@ -130,20 +132,20 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">VerificationContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">env_guard</span>: <span class="ident">AttachGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/viper/verification_context.rs.html#18-20">VerificationContext</a> { <span class="ident">env</span>: <a class="ident" href="../../src/viper/verification_context.rs.html#23">env_guard</a> }
+        <a class="ident" href="../../src/viper/verification_context.rs.html#19-21">VerificationContext</a> { <span class="ident">env</span>: <a class="ident" href="../../src/viper/verification_context.rs.html#24">env_guard</a> }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_ast_factory</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/viper/ast_factory/mod.rs.html#21-24">AstFactory</a> {
-        <span class="ident">AstFactory::new</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/viper/verification_context.rs.html#27">self</a>.<span class="ident">env</span>)
+        <span class="ident">AstFactory::new</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/viper/verification_context.rs.html#28">self</a>.<span class="ident">env</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_ast_utils</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/viper/ast_utils.rs.html#12-15">AstUtils</a> {
-        <span class="ident">AstUtils::new</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/viper/verification_context.rs.html#31">self</a>.<span class="ident">env</span>)
+        <span class="ident">AstUtils::new</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/viper/verification_context.rs.html#32">self</a>.<span class="ident">env</span>)
     }
 
     <span class="doccomment">/// Should be used only by tests.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_verifier_with_default_smt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">backend</span>: <a class="ident" href="../../src/viper/verification_backend.rs.html#10-13">VerificationBackend</a>) -&gt; <a class="ident" href="../../src/viper/verifier.rs.html#20-27">Verifier</a> {
-        <a class="self" href="../../src/viper/verification_context.rs.html#36">self</a>.<a class="ident" href="../../src/viper/verification_context.rs.html#41-45">new_verifier_with_default_smt_and_extra_args</a>(<a class="ident" href="../../src/viper/verification_context.rs.html#36">backend</a>, <span class="macro">vec!</span>[])
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_verifier_with_default_smt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">backend</span>: <a class="ident" href="../../src/viper/verification_backend.rs.html#10-13">VerificationBackend</a>) -&gt; <a class="ident" href="../../src/viper/verifier.rs.html#21-28">Verifier</a> {
+        <a class="self" href="../../src/viper/verification_context.rs.html#37">self</a>.<a class="ident" href="../../src/viper/verification_context.rs.html#42-46">new_verifier_with_default_smt_and_extra_args</a>(<a class="ident" href="../../src/viper/verification_context.rs.html#37">backend</a>, <span class="macro">vec!</span>[])
     }
 
     <span class="doccomment">/// Should be used only by tests.</span>
@@ -151,16 +153,16 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">backend</span>: <a class="ident" href="../../src/viper/verification_backend.rs.html#10-13">VerificationBackend</a>,
         <span class="ident">extra_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
-    ) -&gt; <a class="ident" href="../../src/viper/verifier.rs.html#20-27">Verifier</a> {
+    ) -&gt; <a class="ident" href="../../src/viper/verifier.rs.html#21-28">Verifier</a> {
         <span class="kw">let</span> <span class="ident">z3_exe</span> <span class="op">=</span>
             <span class="ident">env::var</span>(<span class="string">&quot;Z3_EXE&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;the Z3_EXE environment variable should not be empty&quot;</span>);
         <span class="kw">let</span> <span class="ident">boogie_exe</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;BOOGIE_EXE&quot;</span>).<span class="ident">ok</span>();
-        <a class="self" href="../../src/viper/verification_context.rs.html#42">self</a>.<a class="ident" href="../../src/viper/verification_context.rs.html#59-67">new_verifier</a>(
-            <a class="ident" href="../../src/viper/verification_context.rs.html#43">backend</a>,
-            <a class="ident" href="../../src/viper/verification_context.rs.html#44">extra_args</a>,
+        <a class="self" href="../../src/viper/verification_context.rs.html#43">self</a>.<a class="ident" href="../../src/viper/verification_context.rs.html#60-68">new_verifier</a>(
+            <a class="ident" href="../../src/viper/verification_context.rs.html#44">backend</a>,
+            <a class="ident" href="../../src/viper/verification_context.rs.html#45">extra_args</a>,
             <span class="prelude-val">None</span>,
-            <a class="ident" href="../../src/viper/verification_context.rs.html#46">z3_exe</a>,
-            <a class="ident" href="../../src/viper/verification_context.rs.html#48">boogie_exe</a>,
+            <a class="ident" href="../../src/viper/verification_context.rs.html#47">z3_exe</a>,
+            <a class="ident" href="../../src/viper/verification_context.rs.html#49">boogie_exe</a>,
             <span class="ident">SmtManager::default</span>(),
         )
     }
@@ -173,40 +175,40 @@
         <span class="ident">z3_exe</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
         <span class="ident">boogie_exe</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
         <span class="ident">smt_manager</span>: <a class="ident" href="../../src/viper/smt_manager.rs.html#9-17">SmtManager</a>,
-    ) -&gt; <a class="ident" href="../../src/viper/verifier.rs.html#20-27">Verifier</a> {
+    ) -&gt; <a class="ident" href="../../src/viper/verifier.rs.html#21-28">Verifier</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
         <span class="comment">// Set Z3 binary</span>
-        <span class="macro">info!</span>(<span class="string">&quot;Using Z3 exe: &#39;{}&#39;&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/verification_context.rs.html#64">z3_exe</a>);
+        <span class="macro">info!</span>(<span class="string">&quot;Using Z3 exe: &#39;{}&#39;&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/verification_context.rs.html#65">z3_exe</a>);
         <span class="macro">assert!</span>(
-            <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/verification_context.rs.html#64">z3_exe</a>).<span class="ident">is_file</span>(),
+            <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/verification_context.rs.html#65">z3_exe</a>).<span class="ident">is_file</span>(),
             <span class="string">&quot;The Z3_EXE environment variable ({:?}) does not point to a valid file.&quot;</span>,
-            <a class="ident" href="../../src/viper/verification_context.rs.html#64">z3_exe</a>
+            <a class="ident" href="../../src/viper/verification_context.rs.html#65">z3_exe</a>
         );
-        <a class="ident" href="../../src/viper/verification_context.rs.html#68">verifier_args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="macro">vec!</span>[<span class="string">&quot;--z3Exe&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../src/viper/verification_context.rs.html#64">z3_exe</a>]);
+        <a class="ident" href="../../src/viper/verification_context.rs.html#69">verifier_args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="macro">vec!</span>[<span class="string">&quot;--z3Exe&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../src/viper/verification_context.rs.html#65">z3_exe</a>]);
 
         <span class="comment">// Set Boogie binary</span>
-        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/viper/verification_backend.rs.html#12">VerificationBackend::Carbon</a> <span class="op">=</span> <a class="ident" href="../../src/viper/verification_context.rs.html#61">backend</a> {
+        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/viper/verification_backend.rs.html#12">VerificationBackend::Carbon</a> <span class="op">=</span> <a class="ident" href="../../src/viper/verification_context.rs.html#62">backend</a> {
             <span class="kw">let</span> <span class="ident">boogie_exe</span> <span class="op">=</span>
-                <a class="ident" href="../../src/viper/verification_context.rs.html#65">boogie_exe</a>.<span class="ident">expect</span>(<span class="string">&quot;the BOOGIE_EXE environment variable should not be empty&quot;</span>);
-            <span class="macro">info!</span>(<span class="string">&quot;Using BOOGIE exe: &#39;{}&#39;&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/verification_context.rs.html#81">boogie_exe</a>);
+                <a class="ident" href="../../src/viper/verification_context.rs.html#66">boogie_exe</a>.<span class="ident">expect</span>(<span class="string">&quot;the BOOGIE_EXE environment variable should not be empty&quot;</span>);
+            <span class="macro">info!</span>(<span class="string">&quot;Using BOOGIE exe: &#39;{}&#39;&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/verification_context.rs.html#82">boogie_exe</a>);
             <span class="macro">assert!</span>(
-                <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/verification_context.rs.html#81">boogie_exe</a>).<span class="ident">is_file</span>(),
+                <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/verification_context.rs.html#82">boogie_exe</a>).<span class="ident">is_file</span>(),
                 <span class="string">&quot;The BOOGIE_EXE environment variable ({:?}) does not point to a valid file.&quot;</span>,
-                <a class="ident" href="../../src/viper/verification_context.rs.html#81">boogie_exe</a>
+                <a class="ident" href="../../src/viper/verification_context.rs.html#82">boogie_exe</a>
             );
-            <a class="ident" href="../../src/viper/verification_context.rs.html#68">verifier_args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="macro">vec!</span>[<span class="string">&quot;--boogieExe&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../src/viper/verification_context.rs.html#81">boogie_exe</a>]);
+            <a class="ident" href="../../src/viper/verification_context.rs.html#69">verifier_args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="macro">vec!</span>[<span class="string">&quot;--boogieExe&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../src/viper/verification_context.rs.html#82">boogie_exe</a>]);
         }
 
-        <a class="ident" href="../../src/viper/verification_context.rs.html#68">verifier_args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/viper/verification_context.rs.html#62">extra_args</a>);
-        <a class="ident" href="../../src/viper/verification_context.rs.html#68">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;--ignoreFile&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <a class="ident" href="../../src/viper/verification_context.rs.html#68">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;dummy.vpr&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="ident" href="../../src/viper/verification_context.rs.html#69">verifier_args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/viper/verification_context.rs.html#63">extra_args</a>);
+        <a class="ident" href="../../src/viper/verification_context.rs.html#69">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;--ignoreFile&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="ident" href="../../src/viper/verification_context.rs.html#69">verifier_args</a>.<span class="ident">push</span>(<span class="string">&quot;dummy.vpr&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Verifier arguments: &#39;{}&#39;&quot;</span>, <a class="ident" href="../../src/viper/verification_context.rs.html#68">verifier_args</a>.<span class="ident">to_vec</span>().<span class="ident">join</span>(<span class="string">&quot; &quot;</span>));
+        <span class="macro">debug!</span>(<span class="string">&quot;Verifier arguments: &#39;{}&#39;&quot;</span>, <a class="ident" href="../../src/viper/verification_context.rs.html#69">verifier_args</a>.<span class="ident">to_vec</span>().<span class="ident">join</span>(<span class="string">&quot; &quot;</span>));
 
-        <span class="ident">Verifier::new</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/viper/verification_context.rs.html#60">self</a>.<span class="ident">env</span>, <a class="ident" href="../../src/viper/verification_context.rs.html#61">backend</a>, <a class="ident" href="../../src/viper/verification_context.rs.html#63">report_path</a>, <a class="ident" href="../../src/viper/verification_context.rs.html#66">smt_manager</a>)
-            .<a class="ident" href="../../src/viper/verifier.rs.html#80">parse_command_line</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/verification_context.rs.html#68">verifier_args</a>)
-            .<a class="ident" href="../../src/viper/verifier.rs.html#97">start</a>()
+        <span class="ident">Verifier::new</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/viper/verification_context.rs.html#61">self</a>.<span class="ident">env</span>, <a class="ident" href="../../src/viper/verification_context.rs.html#62">backend</a>, <a class="ident" href="../../src/viper/verification_context.rs.html#64">report_path</a>, <a class="ident" href="../../src/viper/verification_context.rs.html#67">smt_manager</a>)
+            .<a class="ident" href="../../src/viper/verifier.rs.html#81">parse_command_line</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/verification_context.rs.html#69">verifier_args</a>)
+            .<a class="ident" href="../../src/viper/verifier.rs.html#98">start</a>()
     }
 }
 </code></pre></div>

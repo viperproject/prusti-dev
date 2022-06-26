@@ -443,11 +443,11 @@
 <span id="436">436</span>
 <span id="437">437</span>
 <span id="438">438</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/index.html">rustc_ast::ast</a>;
-<span class="kw">use</span> <span class="ident">rustc_errors::MultiSpan</span>;
-<span class="kw">use</span> <span class="ident">rustc_hir::intravisit</span>;
-<span class="kw">use</span> <span class="ident">rustc_middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/map/struct.Map.html">hir::map::Map</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">rustc_span::Span</a>;
+</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/index.html">prusti_rustc_interface::ast::ast</a>;
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface::errors::MultiSpan</span>;
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface::hir::intravisit</span>;
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface::middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/map/struct.Map.html">hir::map::Map</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">prusti_rustc_interface::span::Span</a>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#68-74">environment::Environment</a>,
@@ -458,7 +458,7 @@
     <a class="ident" href="../../../src/prusti_interface/prusti_error.rs.html#23-36">PrustiError</a>,
 };
 <span class="kw">use</span> <span class="ident">log::debug</span>;
-<span class="kw">use</span> <span class="ident">rustc_hir::def_id</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>};
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface::hir::def_id</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>};
 <span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">convert::TryInto</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a>};
 
 <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../../src/prusti_interface/specs/checker/mod.rs.html#1-44">checker</a>;
@@ -751,13 +751,13 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">intravisit::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SpecCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Map</span> <span class="op">=</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">NestedFilter</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/nested_filter/struct.All.html">rustc_middle::hir::nested_filter::All</a>;
+    <span class="kw">type</span> <span class="ident">NestedFilter</span> <span class="op">=</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/nested_filter/struct.All.html">prusti_rustc_interface::middle::hir::nested_filter::All</a>;
 
     <span class="kw">fn</span> <span class="ident">nested_visit_map</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Map</span> {
         <a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#311">self</a>.<span class="ident">tcx</span>.<span class="ident">hir</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_trait_item</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ti</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">rustc_hir::TraitItem</span>) {
+    <span class="kw">fn</span> <span class="ident">visit_trait_item</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ti</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">prusti_rustc_interface::hir::TraitItem</span>) {
         <span class="ident">intravisit::walk_trait_item</span>(<a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#315">self</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#315">ti</a>);
 
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#315">ti</a>.<span class="ident">hir_id</span>();
@@ -774,10 +774,10 @@
     <span class="kw">fn</span> <span class="ident">visit_fn</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">fn_kind</span>: <span class="ident">intravisit::FnKind</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">fn_decl</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">rustc_hir::FnDecl</span>,
-        <span class="ident">body_id</span>: <span class="ident">rustc_hir::BodyId</span>,
+        <span class="ident">fn_decl</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">prusti_rustc_interface::hir::FnDecl</span>,
+        <span class="ident">body_id</span>: <span class="ident">prusti_rustc_interface::hir::BodyId</span>,
         <span class="ident">span</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
-        <span class="ident">id</span>: <span class="ident">rustc_hir::hir_id::HirId</span>,
+        <span class="ident">id</span>: <span class="ident">prusti_rustc_interface::hir::hir_id::HirId</span>,
     ) {
         <span class="ident">intravisit::walk_fn</span>(<a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#330">self</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#331">fn_kind</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#332">fn_decl</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#333">body_id</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#334">span</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#335">id</a>);
 
@@ -848,11 +848,11 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stmt</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">rustc_hir::Stmt</span>) {
+    <span class="kw">fn</span> <span class="ident">visit_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stmt</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">prusti_rustc_interface::hir::Stmt</span>) {
         <span class="ident">intravisit::walk_stmt</span>(<a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#406">self</a>, <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#406">stmt</a>);
 
         <span class="comment">// Collect closure specifications</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">rustc_hir::StmtKind::Local</span>(<span class="ident">local</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#406">stmt</a>.<span class="ident">kind</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">prusti_rustc_interface::hir::StmtKind::Local</span>(<span class="ident">local</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#406">stmt</a>.<span class="ident">kind</span> {
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/specs/mod.rs.html#406">self</a>.<span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">attrs</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#410">local</a>.<span class="ident">hir_id</span>);
             <span class="kw">if</span> <a class="ident" href="../../../src/prusti_interface/utils.rs.html#230">has_prusti_attr</a>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#411">attrs</a>, <span class="string">&quot;closure&quot;</span>) {
                 <span class="kw">let</span> <span class="ident">init_expr</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#410">local</a>.<span class="ident">init</span>.<span class="ident">expect</span>(<span class="string">&quot;closure on Local without assignment&quot;</span>);
@@ -867,13 +867,13 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">get_type_id_from_impl_node</span>(<span class="ident">node</span>: <span class="ident">rustc_hir::Node</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">rustc_hir::Node::Item</span>(<span class="ident">item</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#425">node</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">rustc_hir::ItemKind::Impl</span>(<span class="ident">item_impl</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#426">item</a>.<span class="ident">kind</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">rustc_hir::TyKind::Path</span>(<span class="ident">rustc_hir::QPath::Resolved</span>(<span class="kw">_</span>, <span class="ident">path</span>)) <span class="op">=</span>
+<span class="kw">fn</span> <span class="ident">get_type_id_from_impl_node</span>(<span class="ident">node</span>: <span class="ident">prusti_rustc_interface::hir::Node</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">prusti_rustc_interface::hir::Node::Item</span>(<span class="ident">item</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#425">node</a> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">prusti_rustc_interface::hir::ItemKind::Impl</span>(<span class="ident">item_impl</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#426">item</a>.<span class="ident">kind</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">prusti_rustc_interface::hir::TyKind::Path</span>(<span class="ident">prusti_rustc_interface::hir::QPath::Resolved</span>(<span class="kw">_</span>, <span class="ident">path</span>)) <span class="op">=</span>
                 <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#427">item_impl</a>.<span class="ident">self_ty</span>.<span class="ident">kind</span>
             {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">rustc_hir::def::Res::Def</span>(<span class="kw">_</span>, <span class="ident">def_id</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#428">path</a>.<span class="ident">res</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">prusti_rustc_interface::hir::def::Res::Def</span>(<span class="kw">_</span>, <span class="ident">def_id</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#428">path</a>.<span class="ident">res</span> {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/prusti_interface/specs/mod.rs.html#431">def_id</a>);
                 }
             }
