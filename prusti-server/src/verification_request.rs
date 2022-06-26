@@ -48,6 +48,10 @@ impl Default for ViperBackendConfig {
                     verifier_args.push("--counterexample".to_string());
                     verifier_args.push("mapped".to_string());
                 }
+                if let Some(number) = config::number_of_parallel_verifiers() {
+                    verifier_args.push("--numberOfParallelVerifiers".to_string());
+                    verifier_args.push(number.to_string());
+                }
 
                 verifier_args.extend(vec![
                     "--assertTimeout".to_string(),

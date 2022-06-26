@@ -45,6 +45,7 @@ pub(crate) async fn communicate(
     let mut command = String::new();
     while read_command(&mut command).await? {
         context.write_to_log("in ", &command).await?;
+        let now = std::time::Instant::now();
         solver_stdin.write_all(command.as_bytes()).await?;
         solver_stdin.flush().await?;
 
@@ -54,7 +55,9 @@ pub(crate) async fn communicate(
                 .unwrap(),
             "reached EOF while reading response"
         );
+        let elapsed = now.elapsed().as_millis();
         context.write_to_log("out", &response).await?;
+        context.write_number_to_log("elapsed-time", elapsed).await?;
         stdout.write_all(response.as_bytes()).await?;
         stdout.flush().await?;
 
