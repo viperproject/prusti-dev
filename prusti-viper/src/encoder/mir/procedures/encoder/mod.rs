@@ -583,12 +583,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?);
             }
             mir::Rvalue::Ref(region, borrow_kind, place) => {
-                let mut is_reborrow = false;
-                if let Some((_ref, projection)) = place.iter_projections().last() {
-                    if projection == mir::ProjectionElem::Deref {
-                        is_reborrow = true;
-                    }
-                }
+                let is_reborrow = place
+                    .iter_projections()
+                    .any(|(_ref, projection)| projection == mir::ProjectionElem::Deref);
                 let is_mut = matches!(
                     borrow_kind,
                     mir::BorrowKind::Mut {

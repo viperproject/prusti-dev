@@ -221,7 +221,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         self.obtain_array_element_snapshot(new_snapshot, index_int, position)?,
                     ))
                 }
-                vir_mid::TypeDecl::Reference(_) => {
+                vir_mid::TypeDecl::Reference(decl) => {
                     if place.is_deref() {
                         let old_address_snapshot =
                             self.reference_address(parent_type, old_snapshot.clone(), position)?;
@@ -230,19 +230,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         statements.push(stmtp! { position =>
                             assume ([new_address_snapshot] == [old_address_snapshot])
                         });
-                        let old_final_snapshot = self.reference_target_final_snapshot(
-                            parent_type,
-                            old_snapshot.clone(),
-                            position,
-                        )?;
-                        let new_final_snapshot = self.reference_target_final_snapshot(
-                            parent_type,
-                            new_snapshot.clone(),
-                            position,
-                        )?;
-                        statements.push(stmtp! { position =>
-                            assume ([new_final_snapshot] == [old_final_snapshot])
-                        });
+                        if decl.uniqueness.is_unique() {
+                            let old_final_snapshot = self.reference_target_final_snapshot(
+                                parent_type,
+                                old_snapshot.clone(),
+                                position,
+                            )?;
+                            let new_final_snapshot = self.reference_target_final_snapshot(
+                                parent_type,
+                                new_snapshot.clone(),
+                                position,
+                            )?;
+                            statements.push(stmtp! { position =>
+                                assume ([new_final_snapshot] == [old_final_snapshot])
+                            });
+                        }
                         Ok((
                             self.reference_target_current_snapshot(
                                 parent_type,
