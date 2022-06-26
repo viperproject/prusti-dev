@@ -195,7 +195,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             vir_mid::Rvalue::Reborrow(value) => {
                 let place_lifetime =
                     self.encode_lifetime_const_into_variable(value.place_lifetime.clone())?;
-                let value_final = value.place.to_procedure_final_snapshot(self)?;
                 let operand_lifetime =
                     self.encode_lifetime_const_into_variable(value.operand_lifetime.clone())?;
                 let perm_amount = value
@@ -203,7 +202,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     .to_procedure_snapshot(self)?;
                 arguments.push(place_lifetime.into());
                 self.encode_place_arguments(arguments, &value.place)?;
-                arguments.push(value_final);
+                if value.is_mut {
+                    let value_final = value.place.to_procedure_final_snapshot(self)?;
+                    arguments.push(value_final);
+                }
                 arguments.push(operand_lifetime.into());
                 arguments.push(perm_amount);
             }
@@ -400,8 +402,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         position => call write_place<ty>(target_place, target_address, result_value; args)
                     });
                     let lifetimes = self.extract_lifetime_arguments_from_rvalue(value)?;
-                    // FIXME: body is not encoded if we have additional lifetime parameters from structs
-                    encode_body = lifetimes.is_empty();
+                    // FIXME: body is not encoded if we have additional lifetime
+                    // parameters from structs.
+                    // FIXME: As a workaround for #1065, we encode bodies only
+                    // of types that do not contain generic bodies.
+                    encode_body = lifetimes.is_empty() && !ty.contains_type_variables();
                     args2.extend(lifetimes);
                     posts.push(
                         expr! { acc(OwnedNonAliased<ty>(target_place, target_address, result_value; args2)) },
@@ -612,11 +617,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             vir_mid::Rvalue::Aggregate(value) => {
                 let mut arguments = Vec::new();
                 for (i, operand) in value.operands.iter().enumerate() {
+                    // FIXME: As a workaround for #1065, we encode bodies only of
+                    // types that do not contain generic bodies.
+                    let pre_write_statements = if result_type.contains_type_variables() {
+                        None
+                    } else {
+                        Some(&mut *pre_write_statements)
+                    };
                     let operand_value = self.encode_assign_operand(
                         parameters,
                         pres,
                         posts,
-                        Some(pre_write_statements),
+                        pre_write_statements,
                         i.try_into().unwrap(),
                         operand,
                     )?;
@@ -791,6 +803,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
+        let reference_type = result_type.clone().unwrap_reference();
         let ty = value.place.get_type();
         var_decls! {
             target_place: Place,
@@ -799,18 +812,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             operand_place: Place,
             operand_address: Address,
             operand_value_current: { ty.to_snapshot(self)? },
-            operand_value_final: { ty.to_snapshot(self)? },
+            operand_value_final: { ty.to_snapshot(self)? }, // use only for unique references
             operand_lifetime: Lifetime,
             lifetime_perm: Perm
         };
-        let predicate = expr! {
-            acc(UniqueRef<ty>(
-                old_lifetime,
-                [operand_place.clone().into()],
-                [operand_address.clone().into()],
-                [operand_value_current.clone().into()],
-                [operand_value_final.clone().into()])
-            )
+        let predicate = if reference_type.uniqueness.is_unique() {
+            expr! {
+                acc(UniqueRef<ty>(
+                    old_lifetime,
+                    [operand_place.clone().into()],
+                    [operand_address.clone().into()],
+                    [operand_value_current.clone().into()],
+                    [operand_value_final.clone().into()])
+                )
+            }
+        } else {
+            expr! {
+                acc(FracRef<ty>(
+                    old_lifetime,
+                    [operand_place.clone().into()],
+                    [operand_address.clone().into()],
+                    [operand_value_current.clone().into()])
+                )
+            }
         };
         let reference_predicate = expr! {
             acc(OwnedNonAliased<result_type>(target_place, target_address, result_value, operand_lifetime))
@@ -825,21 +849,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 position,
             )?;
             let validity = self.encode_snapshot_valid_call_for_type(final_snapshot, ty)?;
-            expr! {
-                wand(
-                    (acc(DeadLifetimeToken(operand_lifetime))) --* (
-                        (acc(UniqueRef<ty_value>(
-                            old_lifetime,
-                            [operand_place.clone().into()],
-                            [operand_address.clone().into()],
-                            [operand_value_current.clone().into()],
-                            [operand_value_final.clone().into()])
-                        )) &&
-                        [validity] &&
-                        // DeadLifetimeToken is duplicable and does not get consumed.
-                        (acc(DeadLifetimeToken(operand_lifetime)))
+            if reference_type.uniqueness.is_unique() {
+                expr! {
+                    wand(
+                        (acc(DeadLifetimeToken(operand_lifetime))) --* (
+                            (acc(UniqueRef<ty_value>(
+                                old_lifetime,
+                                [operand_place.clone().into()],
+                                [operand_address.clone().into()],
+                                [operand_value_current.clone().into()],
+                                [operand_value_final.clone().into()])
+                            )) &&
+                            [validity] &&
+                            // DeadLifetimeToken is duplicable and does not get consumed.
+                            (acc(DeadLifetimeToken(operand_lifetime)))
+                        )
                     )
-                )
+                }
+            } else {
+                predicate.clone()
             }
         };
         let reference_target_address =
@@ -860,9 +888,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             result_value.clone().into(),
             position,
         )?;
-        posts.push(expr! {
-            operand_value_final == [reference_target_final_snapshot]
-        });
+        if reference_type.uniqueness.is_unique() {
+            posts.push(expr! {
+                operand_value_final == [reference_target_final_snapshot]
+            });
+        }
         pres.push(expr! {
             [vir_low::Expression::no_permission()] < lifetime_perm
         });
@@ -878,7 +908,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         parameters.push(operand_place);
         parameters.push(operand_address);
         parameters.push(operand_value_current);
-        parameters.push(operand_value_final);
+        if reference_type.uniqueness.is_unique() {
+            parameters.push(operand_value_final);
+        }
         parameters.push(operand_lifetime);
         parameters.push(lifetime_perm);
         let method = vir_low::MethodDecl::new(
@@ -1860,10 +1892,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 // wanted to implement the body.
                 None
             } else if let vir_mid::TypeDecl::Struct(decl) = &type_decl {
-                // TODO: We currently make write_place bodyless for structs with fields
+                // TODO: We currently make write_place bodyless for structs with
+                // reference-typed or generic fields
                 let mut body = Some(statements);
                 for field in decl.iter_fields() {
-                    if field.ty.is_reference() {
+                    if field.ty.is_reference() || field.ty.is_type_var() {
                         body = None;
                     }
                 }
