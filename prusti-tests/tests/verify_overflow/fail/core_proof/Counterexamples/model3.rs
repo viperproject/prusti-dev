@@ -5,11 +5,18 @@ use prusti_contracts::*;
 #[trusted]
 struct VecWrapper<T> {
     values: Vec<T>,
+    t: Tmp,
 }
 
 #[model]
 struct VecWrapper<#[concrete] i32> {
     last_pushed: i32,
+    t: Tmp
+}
+
+#[derive(Clone, Copy)]
+struct Tmp {
+    x: i32
 }
 
 #[trusted]
@@ -17,6 +24,7 @@ struct VecWrapper<#[concrete] i32> {
 fn create_vec_wrapper_i32(val: i32) -> VecWrapper<i32>{
     let mut v = VecWrapper{
         values: Vec::new(),
+        t: Tmp{x:0},
     };
     v.values.push(val);
     v
@@ -29,9 +37,21 @@ fn push_i32(v: &mut VecWrapper<i32>, val: i32) {
     v.values.push(val);
 }
 
+#[trusted]
+#[ensures(v.model().t.x == val )]
+fn change_t(v: &mut VecWrapper<i32>, val: i32) {
+    v.t.x = val;
+}
+
 
 #[ensures(v.model().last_pushed == 5)] //~ ERROR postcondition might not hold.
 fn len(v: VecWrapper<i32>){
+    let t = Tmp {x:0};
+    ()
+}
+
+#[ensures(v.model().t.x == 5)] //~ ERROR postcondition might not hold.
+fn test2(v: VecWrapper<i32>){
     ()
 }
 /*

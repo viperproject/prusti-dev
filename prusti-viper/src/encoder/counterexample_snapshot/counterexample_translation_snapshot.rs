@@ -183,6 +183,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
             let entry = self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, false);
             entries.push((entry, span.clone()));
             if config::counterexample_model(){
+                //needs to e changed
                 let entry = self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, true);
                 entries.push((entry, span.clone()));
             }

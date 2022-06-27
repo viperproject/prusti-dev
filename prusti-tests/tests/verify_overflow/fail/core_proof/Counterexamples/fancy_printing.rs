@@ -3,11 +3,12 @@
 use prusti_contracts::*;
 
 //#[print_counterexample("text",)]
-#[print_counterexample("text {} text {}", b, b)]
-struct X{
-    a: i32, 
+#[print_counterexample("text {} text {}, {}", b, b, a)]
+struct X<T>{
+    a: T, 
     b: i32,
 }
+
 
 #[print_counterexample("text {} bla bla", 0)]
 struct Y(i32);
@@ -15,7 +16,7 @@ struct Y(i32);
 
 #[print_counterexample]
 enum Z{
-    #[print_counterexample("text {}, {}", g, h)]
+    #[print_counterexample("text {}, {}, {}", g, h, h)]
     E {
         g: i32,
         h: i32,
@@ -28,7 +29,7 @@ enum Z{
 }
 
 #[ensures(!result)]
-fn test_mut(x: X, a: i32, y: Y, z:Z) -> bool{
+fn test_mut(x: X<i32>, a: i32, y: Y, z:Z) -> bool{
     prusti_assume!(a > 0);
     x.a + y.0== a
 }
