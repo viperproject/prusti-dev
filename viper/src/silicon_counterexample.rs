@@ -392,13 +392,14 @@ fn unwrap_function_entry<'a>(
     let iter_wrapper = scala::collection::Iterable::with(env);
     let options_scala = jni.unwrap_result(functions_wrapper.call_options(entry));
     let options_scala_seq = jni.unwrap_result(iter_wrapper.call_toSeq(options_scala));
-    let options = jni.seq_to_vec(options_scala_seq)
+    let mut options = jni.seq_to_vec(options_scala_seq)
             .into_iter()
             .map( | entry | {
                 unwrap_option_entry(env, jni, entry)
             }
-        ).collect::<Vec<_>>();
-    FunctionEntry { options, default }
+        ).collect::<Vec<_>>(); 
+    options.reverse();
+    FunctionEntry { options, default }//reverse is only needed for the old encoding
 }
 fn unwrap_option_entry<'a>(
     env: &'a JNIEnv<'a>,
@@ -411,10 +412,12 @@ fn unwrap_option_entry<'a>(
     //debug!("args: {:?}", jni.to_string(args_scala));
     //debug!("result: {:?}", jni.to_string(result_scala));
     let args = jni.list_to_vec(args_scala).into_iter()
-    .map(| arg | {
+    .filter_map(| arg | { //filter out any snap arg 
         let mut tmp = FxHashMap::default();
-        let arg = unwrap_model_entry(env, jni, arg, &mut tmp);
-        arg
+        match unwrap_model_entry(env, jni, arg, &mut tmp){ 
+            Some(arg) => Some(Some(arg)),
+            None => None
+        }
     }).collect::<Vec<_>>();
     //debug!("args translated: {:?}", args);
     let mut tmp = FxHashMap::default(); //We don't care about recusivley unwrapped ModelEntries

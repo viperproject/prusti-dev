@@ -22,6 +22,7 @@ fn create_vec_wrapper_i32(val: i32) -> VecWrapper<i32>{
     v
 }
 
+
 #[trusted]
 #[ensures(v.model().last_pushed == val )]
 fn push_i32(v: &mut VecWrapper<i32>, val: i32) {

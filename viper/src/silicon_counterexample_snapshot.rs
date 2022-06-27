@@ -277,10 +277,12 @@ fn unwrap_option_entry<'a>(
     let args_scala = jni.unwrap_result(product_wrapper.call_productElement(entry, 0));
     let result_scala = jni.unwrap_result(product_wrapper.call_productElement(entry, 1));
     let args = jni.list_to_vec(args_scala).into_iter()
-    .map(| arg | {
+    .filter_map(| arg | { //filter out any snap arg 
         let mut tmp = FxHashMap::default();
-        let arg = unwrap_model_entry(env, jni, arg, &mut tmp);
-        arg
+        match unwrap_model_entry(env, jni, arg, &mut tmp){ 
+            Some(arg) => Some(Some(arg)),
+            None => None
+        }
     }).collect::<Vec<_>>();
     let mut tmp = FxHashMap::default(); //We don't care about recusivley unwrapped ModelEntries
                                                                         //Since default is always a ConstantEntry, tmp will remain empty
