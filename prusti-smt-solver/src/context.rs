@@ -63,6 +63,18 @@ impl Context {
         Ok(())
     }
 
+    pub(crate) async fn write_number_to_log(
+        &self,
+        stream: &str,
+        number: u128,
+    ) -> Result<(), std::io::Error> {
+        if let Some(log_file) = &self.log_file {
+            let mut file = log_file.lock().await;
+            writeln!(file, "{}: {}", stream, number).await?;
+        }
+        Ok(())
+    }
+
     pub(crate) async fn write_config_to_log(&self) -> Result<(), std::io::Error> {
         self.write_to_log("context", "--------\n-").await?;
         self.write_to_log("context", &format!("{:?}\n", self))

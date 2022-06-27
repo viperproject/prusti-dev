@@ -115,6 +115,7 @@ lazy_static::lazy_static! {
         settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
+        settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -743,6 +744,11 @@ pub fn only_memory_safety() -> bool {
 /// then setting this flag to `false` may help.
 pub fn use_new_encoder() -> bool {
     read_setting("use_new_encoder")
+}
+
+/// How many parallel verifiers Silicon should use.
+pub fn number_of_parallel_verifiers() -> Option<u8> {
+    read_setting("number_of_parallel_verifiers")
 }
 
 /// The given basic blocks will be replaced with `assume false`.
