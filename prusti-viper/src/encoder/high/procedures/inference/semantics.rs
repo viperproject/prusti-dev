@@ -395,10 +395,14 @@ impl CollectPermissionChanges for vir_high::ast::rvalue::Reborrow {
         produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
         consumed_permissions.push(Permission::Owned(self.place.clone()));
-        produced_permissions.push(Permission::MutBorrowed(MutBorrowed {
-            lifetime: self.place_lifetime.clone(),
-            place: self.place.clone(),
-        }));
+        if self.is_mut {
+            produced_permissions.push(Permission::MutBorrowed(MutBorrowed {
+                lifetime: self.place_lifetime.clone(),
+                place: self.place.clone(),
+            }));
+        } else {
+            produced_permissions.push(Permission::Owned(self.place.clone()));
+        }
         Ok(())
     }
 }
