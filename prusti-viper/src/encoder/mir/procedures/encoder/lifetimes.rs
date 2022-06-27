@@ -27,7 +27,14 @@ pub(super) trait LifetimesEncoder<'tcx> {
         derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
         statement: Option<&mir::Statement<'tcx>>,
     ) -> SpannedEncodingResult<()>;
-    fn reborrow_lifetime(&mut self, statement: Option<&mir::Statement<'tcx>>) -> Option<String>;
+    fn reborrow_lifetimes(
+        &mut self,
+        statement: Option<&mir::Statement<'tcx>>,
+    ) -> SpannedEncodingResult<Option<(String, BTreeSet<String>)>>;
+    fn reborrow_operand_lifetime(
+        &mut self,
+        statement: Option<&mir::Statement<'tcx>>,
+    ) -> Option<String>;
     fn encode_lft_for_block(
         &mut self,
         target: mir::BasicBlock,
@@ -44,6 +51,7 @@ pub(super) trait LifetimesEncoder<'tcx> {
         new_derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
         shorten_lifetime_takes: bool,
         new_reborrow_lifetime_to_remove: Option<String>,
+        reborrow_lifetimes: Option<(String, BTreeSet<String>)>,
     ) -> SpannedEncodingResult<()>;
     fn update_lifetimes_to_remove(
         &mut self,
@@ -104,6 +112,7 @@ pub(super) trait LifetimesEncoder<'tcx> {
         location: mir::Location,
         old_derived_lifetimes: &BTreeMap<String, BTreeSet<String>>,
         new_derived_lifetimes: &BTreeMap<String, BTreeSet<String>>,
+        reborrow_lifetimes: &Option<(String, BTreeSet<String>)>,
     ) -> SpannedEncodingResult<()>;
     fn encode_dead_inclusion(
         &mut self,
@@ -197,7 +206,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             "Prepare lifetimes for statement start {:?}",
             location
         ));
-        let new_reborrow_lifetime_to_ignore: Option<String> = self.reborrow_lifetime(statement);
+        let new_reborrow_lifetime_to_ignore: Option<String> =
+            self.reborrow_operand_lifetime(statement);
         self.encode_lft(
             block_builder,
             location,
@@ -206,6 +216,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             &mut new_derived_lifetimes,
             false,
             new_reborrow_lifetime_to_ignore,
+            None,
         )?;
         Ok(())
     }
@@ -223,7 +234,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             "Prepare lifetimes for statement mid {:?}",
             location
         ));
-        let new_reborrow_lifetime_to_ignore: Option<String> = self.reborrow_lifetime(statement);
+        let new_reborrow_lifetime_to_ignore: Option<String> =
+            self.reborrow_operand_lifetime(statement);
+        // FIXME: The lifetimes read via the reborrow statement are currently not killed.
+        let reborrow_lifetimes = self.reborrow_lifetimes(statement)?;
         self.encode_lft(
             block_builder,
             location,
@@ -232,11 +246,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             &mut new_derived_lifetimes,
             false,
             new_reborrow_lifetime_to_ignore,
+            reborrow_lifetimes,
         )?;
         Ok(())
     }
 
-    fn reborrow_lifetime(&mut self, statement: Option<&mir::Statement<'tcx>>) -> Option<String> {
+    fn reborrow_lifetimes(
+        &mut self,
+        statement: Option<&mir::Statement<'tcx>>,
+    ) -> SpannedEncodingResult<Option<(String, BTreeSet<String>)>> {
+        if let Some(statement) = statement {
+            if let mir::StatementKind::Assign(box (
+                target,
+                mir::Rvalue::Ref(region, _borrow_kind, place),
+            )) = &statement.kind
+            {
+                let target_lifetime = self.procedure.get_lifetime_of_var(target.local);
+                let operand_lifetime: String = region.to_text();
+                if let Some((reference, _projection)) = place.iter_projections().last() {
+                    let value_lifetime = self.procedure.get_lifetime_of_var(reference.local);
+                    if let (Some(target_lifetime), Some(value_lifetime)) =
+                        (target_lifetime, value_lifetime)
+                    {
+                        let values = [operand_lifetime, target_lifetime]
+                            .iter()
+                            .cloned()
+                            .collect();
+                        return Ok(Some((value_lifetime, values)));
+                    }
+                }
+            }
+        }
+        Ok(None)
+    }
+
+    fn reborrow_operand_lifetime(
+        &mut self,
+        statement: Option<&mir::Statement<'tcx>>,
+    ) -> Option<String> {
         if let Some(statement) = statement {
             if let mir::StatementKind::Assign(box (
                 _target,
@@ -273,6 +320,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             &mut needed_derived_lifetimes,
             true,
             None,
+            None,
         )?;
         self.reborrow_lifetimes_to_remove_for_block
             .entry(target)
@@ -299,6 +347,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         new_derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
         shorten_lifetimes: bool,
         new_reborrow_lifetime_to_remove: Option<String>,
+        reborrow_lifetimes: Option<(String, BTreeSet<String>)>,
     ) -> SpannedEncodingResult<()> {
         let mut new_original_lifetimes: BTreeSet<String> = new_derived_lifetimes
             .clone()
@@ -348,6 +397,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             location,
             old_derived_lifetimes,
             new_derived_lifetimes,
+            &reborrow_lifetimes,
         )?;
         self.encode_dead_inclusion(block_builder, location, &new_original_lifetimes)?;
         self.encode_bor_shorten(block_builder, location, &lifetime_backups)?;
@@ -588,6 +638,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         location: mir::Location,
         old_derived_lifetimes: &BTreeMap<String, BTreeSet<String>>,
         new_derived_lifetimes: &BTreeMap<String, BTreeSet<String>>,
+        reborrow_lifetimes: &Option<(String, BTreeSet<String>)>,
     ) -> SpannedEncodingResult<()> {
         let lifetimes_to_take =
             self.lifetimes_to_take(old_derived_lifetimes, new_derived_lifetimes);
@@ -608,6 +659,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                     self.lifetime_token_fractional_permission(self.lifetime_count),
                 ),
             )?);
+        }
+        if let Some((value_lifetime, lifetimes)) = reborrow_lifetimes {
+            let existing_lifetime = [self.encode_lft_variable(value_lifetime.clone())?].to_vec();
+            for lifetime in lifetimes {
+                if !new_derived_lifetimes.contains_key(lifetime) {
+                    let encoded_target = self.encode_lft_variable(lifetime.clone())?;
+                    block_builder.add_statement(self.set_statement_error(
+                        location,
+                        ErrorCtxt::LifetimeEncoding,
+                        vir_high::Statement::lifetime_take_no_pos(
+                            encoded_target,
+                            existing_lifetime.clone(),
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
+                        ),
+                    )?);
+                }
+            }
         }
         Ok(())
     }
