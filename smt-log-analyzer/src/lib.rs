@@ -141,12 +141,14 @@ pub fn analyze(
             .unwrap_or_else(|error| panic!("Error {} on line {}", error, line_number));
         line.clear();
     }
+    let scopes_left = state.active_scopes_count();
+    state.pop_all_scopes();
     let input_file = z3_trace_path.to_str().unwrap();
     if settings.write_statistics {
         state.write_statistics(input_file);
     }
     if let Some(expected_scopes_count) = settings.check_active_scopes_count {
-        assert_eq!(state.active_scopes_count(), expected_scopes_count);
+        assert_eq!(scopes_left, expected_scopes_count);
     }
     state.check_bounds(
         input_file,
