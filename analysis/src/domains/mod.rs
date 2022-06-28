@@ -10,6 +10,7 @@ mod definitely_allocated;
 mod definitely_initialized;
 mod framing;
 mod maybe_borrowed;
+mod mir_debugging;
 mod reaching_definitions;
 
 pub use conditionally_initialized::*;
@@ -18,4 +19,5 @@ pub use definitely_allocated::*;
 pub use definitely_initialized::*;
 pub use framing::*;
 pub use maybe_borrowed::*;
+pub use mir_debugging::*;
 pub use reaching_definitions::*;

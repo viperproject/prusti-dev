@@ -40,6 +40,13 @@ pub struct MicroMirEncoder<'mir> {
     pub body: &'mir Body<'mir>,
     // The pureley syntactic encoding of the MicroMir, no elaborations yet.
     pub encoding: FxHashMap<BasicBlock, MicroMirData<'mir>>,
+    // pub lifetime_endings: FxHashmap<Location,
+    // Tranalation of Polonius's
+    //      ? origin_contains_loan_at (lifetime contains borrow at)
+    //      ? loan_invalidated_at
+    //      ? known_contains
+
+    //      loan_live_at (borrow is alive at) => wand can't be applied
 }
 
 impl<'mir> MicroMirEncoder<'mir> {
@@ -100,7 +107,7 @@ impl<'mir> MicroMirEncoder<'mir> {
             StorageLive(local) => Self::encode_storagelive(current, *local, mir),
 
             // TODO: These need to be discussed
-            Assign(box (p_dest, Aggregate(box (Adt(_, _, _, _, _)), vec))) => Ok(()),
+            Assign(box (_p_dest, Aggregate(box Adt(_, _, _, _, _), _vec))) => Ok(()),
 
             FakeRead(box (_, _)) => Ok(()),
 
@@ -362,7 +369,7 @@ impl<'mir> MicroMirEncoder<'mir> {
 
     pub fn pprint(&self) {
         let mut current_bb: usize = 0;
-        for (bb, dat) in self.encoding.iter() {
+        for (_bb, dat) in self.encoding.iter() {
             println!(
                 " ===================== {} ===================== ",
                 current_bb

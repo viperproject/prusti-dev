@@ -18,8 +18,8 @@ use prusti_pcs::syntactic_expansion::MicroMirEncoder;
 use analysis::{
     abstract_interpretation::{CondInitializedAnalysis, FixpointEngine},
     domains::{
-        DefinitelyAccessibleAnalysis, DefinitelyInitializedAnalysis, FramingAnalysis,
-        MaybeBorrowedAnalysis, ReachingDefsAnalysis,
+        pprint_loan_analysis, DefinitelyAccessibleAnalysis, DefinitelyInitializedAnalysis,
+        FramingAnalysis, MaybeBorrowedAnalysis, ReachingDefsAnalysis,
     },
 };
 
@@ -290,6 +290,14 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
                         }
                         Err(e) => eprintln!("{:#?}", e),
                     },
+
+                    "Debug" => {
+                        pprint_loan_analysis(&body_with_facts, tcx, local_def_id.to_def_id());
+                        println!();
+                        println!();
+                        println!("Complete MIR dump:");
+                        println!("{:#?}", &body_with_facts.body);
+                    }
                     _ => panic!("Unknown domain argument: {}", abstract_domain),
                 }
             }
