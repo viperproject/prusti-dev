@@ -5,7 +5,7 @@ use crate::{
     parser::TheoryKind,
     types::{Level, QuantifierId, TermId, BUILTIN_QUANTIFIER_ID},
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub(crate) struct Quantifier {
     name: String,
@@ -88,6 +88,7 @@ pub(crate) struct State {
     max_quantifier_matched_event_counters: HashMap<QuantifierId, usize>,
     /// How many instantiations we had of each theory.
     max_quantifier_inst_discovered_event_counters: HashMap<TheoryKind, usize>,
+    unique_quantifier_triggers: HashMap<QuantifierId, HashSet<TermId>>,
     term_used_in_trigger_events: HashMap<QuantifierId, Vec<TermUsedInTriggerEvent>>,
     max_term_used_in_trigger_event_counters: HashMap<QuantifierId, usize>,
     /// Quantifiers that the triggered by exactly the same term multiple times.
@@ -123,6 +124,8 @@ impl State {
             .insert(quantifier_id, 0);
         self.max_quantifier_matched_event_counters
             .insert(quantifier_id, 0);
+        self.unique_quantifier_triggers
+            .insert(quantifier_id, HashSet::new());
         self.term_used_in_trigger_events
             .insert(quantifier_id, Vec::new());
         self.max_term_used_in_trigger_event_counters
@@ -191,6 +194,10 @@ impl State {
         quantifier_id: QuantifierId,
         term_id: TermId,
     ) -> Result<(), Error> {
+        self.unique_quantifier_triggers
+            .get_mut(&quantifier_id)
+            .unwrap()
+            .insert(term_id);
         let term_used_in_trigger_events = &mut self
             .term_used_in_trigger_events
             .get_mut(&quantifier_id)
@@ -334,6 +341,10 @@ impl State {
         }
     }
 
+    pub(crate) fn pop_all_scopes(&mut self) {
+        self.pop_scopes(self.current_active_scopes_count);
+    }
+
     fn quantifier_matches_counts(&self) -> Vec<(usize, QuantifierId)> {
         let mut counts: Vec<_> = self
             .max_quantifier_matched_event_counters
@@ -373,6 +384,30 @@ impl State {
             counts.sort();
             writer
                 .write_record(&["Quantifier ID", "Quantifier Name", "Trigger Count"])
+                .unwrap();
+            for (counter, quantifier_id) in counts {
+                writer
+                    .write_record(&[
+                        &quantifier_id.to_string(),
+                        &self.quantifiers[&quantifier_id].name,
+                        &counter.to_string(),
+                    ])
+                    .unwrap();
+            }
+        }
+
+        {
+            // The number of unique triggers per quantifier.
+            let mut writer =
+                Writer::from_path(format!("{}.unique-triggers.csv", input_file)).unwrap();
+            let mut counts: Vec<_> = self
+                .unique_quantifier_triggers
+                .iter()
+                .map(|(quantifier_id, terms)| (terms.len(), *quantifier_id))
+                .collect();
+            counts.sort();
+            writer
+                .write_record(&["Quantifier ID", "Quantifier Name", "Unique trigger Count"])
                 .unwrap();
             for (counter, quantifier_id) in counts {
                 writer
