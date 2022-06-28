@@ -88,6 +88,9 @@
 <span id="81">81</span>
 <span id="82">82</span>
 <span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#10-14"><span class="kw">crate</span>::context::Context</a>;
 <span class="kw">use</span> <span class="ident">async_std</span>::{
     <span class="ident">io</span>::{<a class="ident" href="../../async_std/io/buf_read/trait.BufReadExt.html">prelude::BufReadExt</a>, <a class="ident" href="../../async_std/io/buf_reader/struct.BufReader.html">BufReader</a>, <a class="ident" href="../../async_std/io/write/trait.WriteExt.html">WriteExt</a>},
@@ -135,6 +138,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">String::new</span>();
     <span class="kw">while</span> <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#13">read_command</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#45">command</a>).<span class="kw">await</span><span class="question-mark">?</span> {
         <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#38">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;in &quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#45">command</a>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">std::time::Instant::now</span>();
         <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#39">solver_stdin</a>.<a class="ident" href="../../async_std/io/write/trait.WriteExt.html">write_all</a>(<a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#45">command</a>.<span class="ident">as_bytes</span>()).<span class="kw">await</span><span class="question-mark">?</span>;
         <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#39">solver_stdin</a>.<a class="ident" href="../../async_std/io/write/trait.WriteExt.html">flush</a>().<span class="kw">await</span><span class="question-mark">?</span>;
 
@@ -144,11 +148,13 @@
                 .<span class="ident">unwrap</span>(),
             <span class="string">&quot;reached EOF while reading response&quot;</span>
         );
+        <span class="kw">let</span> <span class="ident">elapsed</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#48">now</a>.<span class="ident">elapsed</span>().<span class="ident">as_millis</span>();
         <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#38">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;out&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#44">response</a>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#38">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#66-70">write_number_to_log</a>(<span class="string">&quot;elapsed-time&quot;</span>, <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#58">elapsed</a>).<span class="kw">await</span><span class="question-mark">?</span>;
         <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#42">stdout</a>.<a class="ident" href="../../async_std/io/write/trait.WriteExt.html">write_all</a>(<a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#44">response</a>.<span class="ident">as_bytes</span>()).<span class="kw">await</span><span class="question-mark">?</span>;
         <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#42">stdout</a>.<a class="ident" href="../../async_std/io/write/trait.WriteExt.html">flush</a>().<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#38">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#74">check</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#45">command</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#44">response</a>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#38">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#86">check</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#45">command</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#44">response</a>).<span class="kw">await</span><span class="question-mark">?</span>;
     }
 
     <span class="prelude-val">Ok</span>(())
@@ -158,17 +164,17 @@
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/context.rs.html#10-14">Context</a>,
     <span class="ident">solver_stderr</span>: <a class="ident" href="../../async_process/struct.ChildStderr.html">ChildStderr</a>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">solver_stderr</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#69">solver_stderr</a>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">solver_stderr</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#72">solver_stderr</a>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="ident">async_std::io::stderr</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">String::new</span>();
-    <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#68">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;err&quot;</span>, <span class="string">&quot;stderr started\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">while</span> <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#71">solver_stderr</a>.<a class="ident" href="../../async_std/io/buf_read/trait.BufReadExt.html">read_line</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#73">line</a>).<span class="kw">await</span><span class="question-mark">?</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#68">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;err&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#73">line</a>).<span class="kw">await</span><span class="question-mark">?</span>;
-        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#72">stderr</a>.<a class="ident" href="../../async_std/io/write/trait.WriteExt.html">write_all</a>(<a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#73">line</a>.<span class="ident">as_bytes</span>()).<span class="kw">await</span><span class="question-mark">?</span>;
-        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#72">stderr</a>.<a class="ident" href="../../async_std/io/write/trait.WriteExt.html">flush</a>().<span class="kw">await</span><span class="question-mark">?</span>;
-        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#73">line</a>.<span class="ident">clear</span>();
+    <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#71">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;err&quot;</span>, <span class="string">&quot;stderr started\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">while</span> <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#74">solver_stderr</a>.<a class="ident" href="../../async_std/io/buf_read/trait.BufReadExt.html">read_line</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#76">line</a>).<span class="kw">await</span><span class="question-mark">?</span> <span class="op">&gt;</span> <span class="number">0</span> {
+        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#71">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;err&quot;</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#76">line</a>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#75">stderr</a>.<a class="ident" href="../../async_std/io/write/trait.WriteExt.html">write_all</a>(<a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#76">line</a>.<span class="ident">as_bytes</span>()).<span class="kw">await</span><span class="question-mark">?</span>;
+        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#75">stderr</a>.<a class="ident" href="../../async_std/io/write/trait.WriteExt.html">flush</a>().<span class="kw">await</span><span class="question-mark">?</span>;
+        <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#76">line</a>.<span class="ident">clear</span>();
     }
-    <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#68">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;err&quot;</span>, <span class="string">&quot;stderr finished\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+    <a class="ident" href="../../src/prusti_smt_solver/subprocess.rs.html#71">context</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;err&quot;</span>, <span class="string">&quot;stderr finished\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>

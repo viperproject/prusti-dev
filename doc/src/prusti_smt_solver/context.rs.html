@@ -112,6 +112,18 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">async_std</span>::{
     <a class="ident" href="../../async_std/fs/file/struct.File.html">fs::File</a>,
     <span class="ident">io</span>::{<a class="ident" href="../../async_std/io/buf_read/trait.BufReadExt.html">prelude::BufReadExt</a>, <a class="ident" href="../../async_std/io/buf_reader/struct.BufReader.html">BufReader</a>, <a class="ident" href="../../async_std/io/buf_writer/struct.BufWriter.html">BufWriter</a>, <a class="ident" href="../../async_std/io/write/trait.WriteExt.html">WriteExt</a>},
@@ -130,7 +142,7 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#10-14">Context</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> (<span class="ident">log_file_path</span>, <span class="ident">z3_trace_path</span>) <span class="op">=</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">port</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#98-100">read_integer</a>(<span class="string">&quot;PRUSTI_SMT_SOLVER_MANAGER_PORT&quot;</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">port</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#110-112">read_integer</a>(<span class="string">&quot;PRUSTI_SMT_SOLVER_MANAGER_PORT&quot;</span>) {
                 <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">TcpStream::connect</span>((<span class="string">&quot;127.0.0.1&quot;</span>, <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#19">port</a>)).<span class="kw">await</span>.<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#20">stream</a>);
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">log_file_path</span> <span class="op">=</span> <span class="ident">String::new</span>();
@@ -144,7 +156,7 @@
                 (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
             };
         <span class="kw">let</span> <span class="ident">quantifier_instantiations_bound_global</span> <span class="op">=</span>
-            <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#98-100">read_integer</a>(<span class="string">&quot;PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL&quot;</span>);
+            <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#110-112">read_integer</a>(<span class="string">&quot;PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL&quot;</span>);
         <span class="kw">let</span> <span class="ident">log_file</span> <span class="op">=</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">std::env::var</span>(<span class="string">&quot;PRUSTI_LOG_SMT_INTERACTION&quot;</span>) {
                 <span class="kw">if</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#35">value</a> <span class="op">==</span> <span class="string">&quot;true&quot;</span> {
@@ -177,29 +189,41 @@
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">write_number_to_log</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">stream</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        <span class="ident">number</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">log_file</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/prusti_smt_solver/context.rs.html#67">self</a>.<span class="ident">log_file</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#71">log_file</a>.<span class="ident">lock</span>().<span class="kw">await</span>;
+            <span class="macro">writeln!</span>(<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#72">file</a>, <span class="string">&quot;{}: {}&quot;</span>, <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#68">stream</a>, <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#69">number</a>).<span class="kw">await</span><span class="question-mark">?</span>;
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">write_config_to_log</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/prusti_smt_solver/context.rs.html#66">self</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;context&quot;</span>, <span class="string">&quot;--------\n-&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-        <a class="self" href="../../src/prusti_smt_solver/context.rs.html#66">self</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;context&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}\n&quot;</span>, <a class="self" href="../../src/prusti_smt_solver/context.rs.html#66">self</a>))
+        <a class="self" href="../../src/prusti_smt_solver/context.rs.html#78">self</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;context&quot;</span>, <span class="string">&quot;--------\n-&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <a class="self" href="../../src/prusti_smt_solver/context.rs.html#78">self</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;context&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}\n&quot;</span>, <a class="self" href="../../src/prusti_smt_solver/context.rs.html#78">self</a>))
             .<span class="kw">await</span><span class="question-mark">?</span>;
-        <a class="self" href="../../src/prusti_smt_solver/context.rs.html#66">self</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;context&quot;</span>, <span class="string">&quot;---------\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <a class="self" href="../../src/prusti_smt_solver/context.rs.html#78">self</a>.<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#54-58">write_to_log</a>(<span class="string">&quot;context&quot;</span>, <span class="string">&quot;---------\n&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">check</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">command</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">response</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">quantifier_instantiations_bound_global</span>) <span class="op">=</span>
-            <a class="self" href="../../src/prusti_smt_solver/context.rs.html#74">self</a>.<span class="ident">quantifier_instantiations_bound_global</span>
+            <a class="self" href="../../src/prusti_smt_solver/context.rs.html#86">self</a>.<span class="ident">quantifier_instantiations_bound_global</span>
         {
-            <span class="kw">if</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#74">command</a> <span class="op">==</span> <span class="string">&quot;(get-info :all-statistics)\n&quot;</span> {
-                <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#74">response</a>.<span class="ident">lines</span>() {
-                    <span class="kw">if</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#79">line</a>.<span class="ident">starts_with</span>(<span class="string">&quot; :quant-instantiations&quot;</span>) {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">words</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#79">line</a>.<span class="ident">split_whitespace</span>();
-                        <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#81">words</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>();
-                        <span class="kw">let</span> <span class="ident">quant_instantiations</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#81">words</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>().<span class="ident">parse</span>().<span class="ident">unwrap</span>();
+            <span class="kw">if</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#86">command</a> <span class="op">==</span> <span class="string">&quot;(get-info :all-statistics)\n&quot;</span> {
+                <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#86">response</a>.<span class="ident">lines</span>() {
+                    <span class="kw">if</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#91">line</a>.<span class="ident">starts_with</span>(<span class="string">&quot; :quant-instantiations&quot;</span>) {
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">words</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#91">line</a>.<span class="ident">split_whitespace</span>();
+                        <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#93">words</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>();
+                        <span class="kw">let</span> <span class="ident">quant_instantiations</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#93">words</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">unwrap</span>().<span class="ident">parse</span>().<span class="ident">unwrap</span>();
                         <span class="macro">assert!</span>(
-                            <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#83">quant_instantiations</a> <span class="op">&lt;</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#75">quantifier_instantiations_bound_global</a>,
+                            <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#95">quant_instantiations</a> <span class="op">&lt;</span> <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#87">quantifier_instantiations_bound_global</a>,
                             <span class="string">&quot;Quantifier instantiation bound exceeded: {} &lt; {}&quot;</span>,
-                            <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#83">quant_instantiations</a>,
-                            <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#75">quantifier_instantiations_bound_global</a>
+                            <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#95">quant_instantiations</a>,
+                            <a class="ident" href="../../src/prusti_smt_solver/context.rs.html#87">quantifier_instantiations_bound_global</a>
                         );
                     }
                 }
@@ -213,8 +237,8 @@
 <span class="kw">where</span>
     <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a>,
 {
-    <span class="kw">match</span> <span class="ident">std::env::var</span>(<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#98">name</a>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#103">value</a>.<span class="ident">parse</span>().<span class="ident">unwrap</span>()),
+    <span class="kw">match</span> <span class="ident">std::env::var</span>(<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#110">name</a>) {
+        <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_smt_solver/context.rs.html#115">value</a>.<span class="ident">parse</span>().<span class="ident">unwrap</span>()),
         <span class="prelude-val">Err</span>(<span class="ident">VarError::NotPresent</span>) =&gt; <span class="prelude-val">None</span>,
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Invalid value of the environment variable&quot;</span>),
     }
