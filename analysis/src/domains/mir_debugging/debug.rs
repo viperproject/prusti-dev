@@ -86,7 +86,7 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
             println!("\t{:#?}", stmt);
             println!("\t\tLoc (start): {:#?}", &location_table.start_index(loc));
             println!("\t\tLoc (mid): {:#?}", &location_table.mid_index(loc));
-            print!("\t\tOrigins live at start: ");
+            print!("\t\tOrigins live at (start) ");
             if let Some(origins) = origin_live_on_entry.get(&location_table.start_index(loc)) {
                 for o in origins {
                     print!("{:#?}, ", o);
@@ -131,7 +131,7 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
             }
 
             if let Some(loans) = loan_live_at.get(&location_table.start_index(loc)) {
-                println!("\t\tStart live loans:");
+                println!("\t\tlive loans (start):");
                 for loan in loans {
                     let loan_location = loan_issued_at_location[loan];
                     let loan_stmt =
@@ -156,7 +156,7 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
                 }
             }
 
-            print!("\t\tOrigins live at mid: ");
+            print!("\t\tlive origins (mid): ");
             if let Some(origins) = origin_live_on_entry.get(&location_table.mid_index(loc)) {
                 for o in origins {
                     print!("{:#?}, ", o);
@@ -166,7 +166,7 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
                 println!("\t\t\tNone");
             }
 
-            println!("\t\tOrigin contains loan at (mid): ");
+            println!("\t\torigin contains loan at (mid): ");
             if let Some(ds) = borrowck_out_facts
                 .origin_contains_loan_at
                 .get(&location_table.mid_index(loc))
@@ -183,7 +183,7 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
                 println!("\t\t\tNone");
             }
 
-            println!("\t\tSubsets (mid): ");
+            println!("\t\tsubsets (mid): ");
             if let Some(ds) = borrowck_out_facts
                 .subset
                 .get(&location_table.mid_index(loc))
@@ -201,7 +201,7 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
             }
 
             if let Some(loans) = loan_live_at.get(&location_table.mid_index(loc)) {
-                println!("\t\tMid live loans:");
+                println!("\t\tlive loans (mid): ");
                 for loan in loans {
                     let loan_location = loan_issued_at_location[loan];
                     let loan_stmt =
