@@ -26,6 +26,8 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
     let loan_issued_at = &borrowck_in_facts.loan_issued_at;
     let loan_live_at = &borrowck_out_facts.loan_live_at;
     let origin_live_on_entry = &borrowck_out_facts.origin_live_on_entry;
+    let origin_contains_loan_at = &borrowck_out_facts.origin_contains_loan_at;
+    let known_contains = &borrowck_out_facts.known_contains;
     let loan_issued_at_location: FxHashMap<_, mir::Location> = loan_issued_at
         .iter()
         .map(|&(_, loan, point_index)| {
@@ -38,6 +40,39 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
         .collect();
     // let mut analysis_state: PointwiseState<MaybeBorrowedState> = PointwiseState::default(body);
 
+    println!("known contains ({}):", known_contains.len());
+    for (o, loans) in known_contains.iter() {
+        print!("\t{:#?}: ", o);
+        for l in loans {
+            print!("{:#?}, ", l);
+        }
+    }
+    println!();
+    println!();
+
+    println!("loan_killed_at:",);
+    for (loan, point) in &borrowck_in_facts.loan_killed_at {
+        println!("\t\t\t{:#?}: {:#?} ", loan, point);
+    }
+    println!();
+    println!();
+
+    println!("loan_invalidated_at:",);
+    for (loan, point) in &borrowck_in_facts.loan_invalidated_at {
+        println!("\t\t\t{:#?}: {:#?} ", loan, point);
+    }
+
+    println!();
+    println!();
+
+    println!("loan_issued_at:",);
+    for (origin, loan, point) in &borrowck_in_facts.loan_issued_at {
+        println!("\t\t\t{:#?} ({:#?}): {:#?} ", loan, origin, point);
+    }
+
+    println!();
+    println!();
+
     let mut loc: Location;
     for (bbno, bbdata) in (&basic_blocks).iter_enumerated() {
         println!("\n--------------- {:#?} ---------------", bbno);
@@ -49,6 +84,8 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
         /* Copied and modified from maybe_borrowed analysis */
         for stmt in bbdata.statements.iter() {
             println!("\t{:#?}", stmt);
+            println!("\t\tLoc (start): {:#?}", &location_table.start_index(loc));
+            println!("\t\tLoc (mid): {:#?}", &location_table.mid_index(loc));
             print!("\t\tOrigins live at start: ");
             if let Some(origins) = origin_live_on_entry.get(&location_table.start_index(loc)) {
                 for o in origins {
@@ -56,7 +93,41 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
                 }
                 println!();
             } else {
-                println!("None");
+                println!("\t\t\tNone");
+            }
+
+            println!("\t\tOrigin contains loan at (start): ");
+            if let Some(ds) = borrowck_out_facts
+                .origin_contains_loan_at
+                .get(&location_table.start_index(loc))
+            {
+                for (d, dd) in ds {
+                    print!("\t\t\t{:#?}: ", d);
+                    for i in dd {
+                        print!("{:#?}, ", i);
+                    }
+                    println!();
+                }
+                println!();
+            } else {
+                println!("\t\t\tNone");
+            }
+
+            println!("\t\tSubsets (start): ");
+            if let Some(ds) = borrowck_out_facts
+                .subset
+                .get(&location_table.start_index(loc))
+            {
+                for (d, dd) in ds {
+                    print!("\t\t\t{:#?}: ", d);
+                    for i in dd {
+                        print!("{:#?}, ", i);
+                    }
+                    println!();
+                }
+                println!();
+            } else {
+                println!("\t\t\tNone");
             }
 
             if let Some(loans) = loan_live_at.get(&location_table.start_index(loc)) {
@@ -68,7 +139,7 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
                     if let mir::StatementKind::Assign(box (lhs, rhs)) = &loan_stmt.kind {
                         if let mir::Rvalue::Ref(_region, borrow_kind, borrowed_place) = rhs {
                             println!(
-                                "\t\t\t\tLoan {:?}: {:?} = & {:?} {:?}",
+                                "\t\t\tLoan {:?}: {:?} = & {:?} {:?}",
                                 loan, lhs, borrow_kind, borrowed_place,
                             );
                             let blocked_place = get_blocked_place(tcx, (*borrowed_place).into());
@@ -92,7 +163,41 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
                 }
                 println!();
             } else {
-                println!("None");
+                println!("\t\t\tNone");
+            }
+
+            println!("\t\tOrigin contains loan at (mid): ");
+            if let Some(ds) = borrowck_out_facts
+                .origin_contains_loan_at
+                .get(&location_table.mid_index(loc))
+            {
+                for (d, dd) in ds {
+                    print!("\t\t\t{:#?}: ", d);
+                    for i in dd {
+                        print!("{:#?}, ", i);
+                    }
+                    println!();
+                }
+                println!();
+            } else {
+                println!("\t\t\tNone");
+            }
+
+            println!("\t\tSubsets (mid): ");
+            if let Some(ds) = borrowck_out_facts
+                .subset
+                .get(&location_table.mid_index(loc))
+            {
+                for (d, dd) in ds {
+                    print!("\t\t\t{:#?}: ", d);
+                    for i in dd {
+                        print!("{:#?}, ", i);
+                    }
+                    println!();
+                }
+                println!();
+            } else {
+                println!("\t\t\tNone");
             }
 
             if let Some(loans) = loan_live_at.get(&location_table.mid_index(loc)) {
@@ -120,6 +225,7 @@ pub fn pprint_loan_analysis<'mir, 'tcx: 'mir>(
                     }
                 }
             }
+            loc.statement_index += 1;
         }
 
         println!("TERMINATOR: {:#?}", bbdata.terminator().kind);
