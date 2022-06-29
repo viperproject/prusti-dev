@@ -48,6 +48,8 @@ impl Default for ViperBackendConfig {
                 if config::counterexample() {
                     verifier_args.push("--counterexample".to_string());
                     verifier_args.push("mapped".to_string());
+                    verifier_args.push("--z3ConfigArgs".to_string());
+                    verifier_args.push("\"model.partial=true\"".to_string());
                 }
 
                 verifier_args.extend(vec![
