@@ -113,7 +113,7 @@ lazy_static! {
         settings.set_default("print_collected_verification_items", false).unwrap();
         settings.set_default("hide_uuids", false).unwrap();
         settings.set_default("counterexample", false).unwrap();
-        settings.set_default("counterexample_model", false).unwrap();
+        settings.set_default("print_counterexample_if_model_is_present", false).unwrap();
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
         settings.set_default("enable_ghost_constraints", false).unwrap();
@@ -402,8 +402,8 @@ pub fn counterexample() -> bool {
 
 /// When enabled, Prusti will print a counterexample for a model and its original 
 /// type
-pub fn counterexample_model() -> bool {
-    read_setting("counterexample_model")
+pub fn print_counterexample_if_model_is_present() -> bool {
+    read_setting("print_counterexample_if_model_is_present")
 }
 
 /// When enabled, prints the hash of a verification request (the hash is used
