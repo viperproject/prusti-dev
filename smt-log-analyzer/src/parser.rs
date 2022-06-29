@@ -13,6 +13,8 @@ pub(crate) enum EventKind {
     InstDiscovered,
     Instance,
     Unrecognized,
+    AttachMeaning,
+    MkVar,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -46,12 +48,7 @@ impl<'a> Parser<'a> {
     fn error(&self, kind: ErrorKind) -> Error {
         Error {
             kind,
-            line: self
-                .next
-                .into_iter()
-                .chain(self.cursor.clone())
-                .map(|(_, c)| c)
-                .collect(),
+            line: self.remaining(),
         }
     }
 
@@ -96,6 +93,15 @@ impl<'a> Parser<'a> {
         &self.line[start..end]
     }
 
+    pub(crate) fn remaining(&self) -> String {
+        self.next
+            .into_iter()
+            .chain(self.cursor.clone())
+            .map(|(_, c)| c)
+            .filter(|c| *c != '\n')
+            .collect()
+    }
+
     pub(crate) fn try_consume(&mut self, arg: char) -> bool {
         self.try_consume_predicate(|c| c == arg)
     }
@@ -126,13 +132,16 @@ impl<'a> Parser<'a> {
                 "push" => EventKind::Push,
                 "mk-quant" => EventKind::MkQuant,
                 "mk-app" => EventKind::MkApp,
+                "mk-var" => EventKind::MkVar,
                 "new-match" => EventKind::NewMatch,
                 "inst-discovered" => EventKind::InstDiscovered,
                 "instance" => EventKind::Instance,
-                "tool-version" | "attach-var-names" | "attach-meaning" | "mk-var" | "mk-proof"
-                | "attach-enode" | "end-of-instance" | "mk-lambda" | "begin-check" | "assign"
-                | "eq-expl" | "decide-and-or" | "resolve-lit" | "resolve-process" | "conflict"
-                | "eof" => EventKind::Unrecognized,
+                "attach-meaning" => EventKind::AttachMeaning,
+                "tool-version" | "attach-var-names" | "mk-proof" | "attach-enode"
+                | "end-of-instance" | "mk-lambda" | "begin-check" | "assign" | "eq-expl"
+                | "decide-and-or" | "resolve-lit" | "resolve-process" | "conflict" | "eof" => {
+                    EventKind::Unrecognized
+                }
                 x => unimplemented!("got: {:?}", x),
             };
             self.consume(']')?;

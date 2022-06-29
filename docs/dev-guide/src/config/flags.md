@@ -66,6 +66,8 @@
 | [`SMT_QI_EAGER_THRESHOLD`](#smt_qi_eager_threshold) | `u64` | `1000` |
 | [`SMT_SOLVER_PATH`](#smt_solver_path) | `Option<String>` | `env::var("Z3_EXE")` |
 | [`SMT_SOLVER_WRAPPER_PATH`](#smt_solver_wrapper_path) | `Option<String>` | `None` |
+| [`SMT_UNIQUE_TRIGGERS_BOUND`](#smt_unique_triggers_bound) | `Option<u64>` | `None` |
+| [`SMT_UNIQUE_TRIGGERS_BOUND_TOTAL`](#smt_unique_triggers_bound_total) | `Option<u64>` | `None` |
 | [`UNSAFE_CORE_PROOF`](#unsafe_core_proof) | `bool` | `false` |
 | [`USE_MORE_COMPLETE_EXHALE`](#use_more_complete_exhale) | `bool` | `true` |
 | [`USE_SMT_WRAPPER`](#use_smt_wrapper) | `bool` | `false` |
@@ -391,6 +393,18 @@ Path to Z3.
 A path to `prusti-smt-solver`.
 
 **Note:** `prusti-rustc` sets this option.
+
+## `SMT_UNIQUE_TRIGGERS_BOUND`
+
+If not `None`, checks that the number of unique triggers used for each quantifier reported by the SMT wrapper is smaller than the specified bound.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+
+## `SMT_UNIQUE_TRIGGERS_BOUND_TOTAL`
+
+If not `None`, checks that the total number of unique triggers reported by the SMT wrapper is smaller than the specified bound.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `UNSAFE_CORE_PROOF`
 

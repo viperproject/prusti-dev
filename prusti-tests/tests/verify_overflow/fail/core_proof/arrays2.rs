@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Puse_smt_wrapper=true -Psmt_quantifier_instantiations_bound_global=10000 -Psmt_quantifier_instantiations_bound_trace=2000 -Psmt_quantifier_instantiations_bound_trace_kind=700 -Psmt_quantifier_instantiations_bound_global_kind=700
+// compile-flags: -Punsafe_core_proof=true -Puse_smt_wrapper=true -Psmt_quantifier_instantiations_bound_global=10000 -Psmt_quantifier_instantiations_bound_trace=8000 -Psmt_quantifier_instantiations_bound_trace_kind=1000 -Psmt_quantifier_instantiations_bound_global_kind=800 -Psmt_unique_triggers_bound=10000
 
 use prusti_contracts::*;
 
