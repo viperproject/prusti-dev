@@ -5,10 +5,19 @@ use crate::{
     parser::TheoryKind,
     types::{Level, QuantifierId, TermId, BUILTIN_QUANTIFIER_ID},
 };
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Write,
+};
 
 pub(crate) struct Quantifier {
     name: String,
+}
+
+pub(crate) enum Term {
+    FunctionApplication { name: String, args: Vec<TermId> },
+    Variable { index: u32 },
+    AttachMeaning { ident: String, value: String },
 }
 
 #[derive(Debug)]
@@ -76,6 +85,7 @@ struct LargestPop {
 #[derive(Default)]
 pub(crate) struct State {
     quantifiers: HashMap<QuantifierId, Quantifier>,
+    terms: HashMap<TermId, Term>,
     /// The currently matched quantifiers (via [new-match]) at a given level.
     quantifiers_matched_events: HashMap<QuantifierId, Vec<QuantifierMatchedEvent>>,
     /// The currently discovered quantifiers (via [inst-discovered]) at a given level.
@@ -106,6 +116,8 @@ pub(crate) struct State {
     trace: Vec<BasicBlockVisitedEvent>,
     largest_pop: LargestPop,
     current_active_scopes_count: Level,
+    traced_quantifier: Option<QuantifierId>,
+    traced_quantifier_triggers: Option<String>,
 }
 
 impl State {
@@ -194,6 +206,7 @@ impl State {
         quantifier_id: QuantifierId,
         term_id: TermId,
     ) -> Result<(), Error> {
+        self.trace_quantifier_trigger(quantifier_id, term_id)?;
         self.unique_quantifier_triggers
             .get_mut(&quantifier_id)
             .unwrap()
@@ -219,6 +232,35 @@ impl State {
         Ok(())
     }
 
+    fn trace_quantifier_trigger(
+        &mut self,
+        quantifier_id: QuantifierId,
+        term_id: TermId,
+    ) -> Result<(), Error> {
+        if let Some(traced_quantifier_id) = self.traced_quantifier {
+            if !self.unique_quantifier_triggers[&quantifier_id].contains(&term_id)
+                && traced_quantifier_id == quantifier_id
+            {
+                let mut buf = self.traced_quantifier_triggers.take().unwrap();
+                write!(buf, "{},", term_id).unwrap();
+                self.render_term(term_id, &mut buf, 30).unwrap();
+                writeln!(buf).unwrap();
+                self.traced_quantifier_triggers = Some(buf);
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn mark_quantifier_for_tracing(&mut self, quantifier: Option<QuantifierId>) {
+        assert!(self.traced_quantifier.is_none());
+        self.traced_quantifier = quantifier;
+        if let Some(quantifier) = quantifier {
+            let mut buf = String::new();
+            writeln!(buf, "{},", quantifier).unwrap();
+            self.traced_quantifier_triggers = Some(buf);
+        }
+    }
+
     pub(crate) fn register_instance(&mut self) -> Result<(), Error> {
         self.total_quantifiers_instance_counters += 1;
         let events = &mut self.quantifiers_instance_events;
@@ -232,6 +274,30 @@ impl State {
             self.current_active_scopes_count,
         ));
         Ok(())
+    }
+
+    pub(crate) fn register_term_function_application(
+        &mut self,
+        term_id: TermId,
+        name: String,
+        args: Vec<TermId>,
+    ) {
+        self.terms
+            .insert(term_id, Term::FunctionApplication { name, args });
+    }
+
+    pub(crate) fn register_term_bound_variable(&mut self, term_id: TermId, index: u32) {
+        self.terms.insert(term_id, Term::Variable { index });
+    }
+
+    pub(crate) fn register_term_attach_meaning(
+        &mut self,
+        term_id: TermId,
+        ident: String,
+        value: String,
+    ) {
+        self.terms
+            .insert(term_id, Term::AttachMeaning { ident, value });
     }
 
     pub(crate) fn active_scopes_count(&self) -> Level {
@@ -345,6 +411,36 @@ impl State {
         self.pop_scopes(self.current_active_scopes_count);
     }
 
+    fn render_term(&self, term_id: TermId, f: &mut impl Write, depth: u16) -> std::fmt::Result {
+        if depth == 0 {
+            write!(f, "…")?;
+        } else if let Some(term) = self.terms.get(&term_id) {
+            match term {
+                Term::FunctionApplication { name, args } => {
+                    if args.is_empty() {
+                        write!(f, "{}", name)?;
+                    } else {
+                        write!(f, "({}", name)?;
+                        for arg in args {
+                            write!(f, " ")?;
+                            self.render_term(*arg, f, depth - 1)?;
+                        }
+                        write!(f, ")")?;
+                    }
+                }
+                Term::Variable { index } => {
+                    write!(f, "var({})", index)?;
+                }
+                Term::AttachMeaning { ident, value } => {
+                    write!(f, "( {} {} )", ident, value)?;
+                }
+            }
+        } else {
+            write!(f, "n/a")?;
+        }
+        Ok(())
+    }
+
     fn quantifier_matches_counts(&self) -> Vec<(usize, QuantifierId)> {
         let mut counts: Vec<_> = self
             .max_quantifier_matched_event_counters
@@ -419,6 +515,30 @@ impl State {
                     .unwrap();
             }
         }
+
+        // { This seems to be useless and is very slow.
+        //     // The unique triggers per quantifier.
+        //     let mut writer =
+        //         Writer::from_path(format!("{}.unique-trigger-terms.csv", input_file)).unwrap();
+        //     writer
+        //         .write_record(&["Quantifier ID", "Quantifier Name", "Term Id", "Trigger"])
+        //         .unwrap();
+        //     let mut term = String::new();
+        //     for (quantifier_id, triggers) in &self.unique_quantifier_triggers {
+        //         for trigger in triggers {
+        //             term.clear();
+        //             self.render_term(*trigger, &mut term, 10).unwrap();
+        //             writer
+        //                 .write_record(&[
+        //                     &quantifier_id.to_string(),
+        //                     &self.quantifiers[&quantifier_id].name,
+        //                     &trigger.to_string(),
+        //                     &term,
+        //                 ])
+        //                 .unwrap();
+        //         }
+        //     }
+        // }
 
         {
             // The quantifiers that were matched multiple times with the same
@@ -540,6 +660,19 @@ impl State {
                     .unwrap();
             }
         }
+
+        if let Some(quantifier_id) = self.traced_quantifier {
+            let mut file = std::fs::File::create(format!(
+                "{}.quantifier-{}-triggers.csv",
+                input_file, quantifier_id
+            ))
+            .unwrap();
+            std::io::Write::write_all(
+                &mut file,
+                self.traced_quantifier_triggers.as_ref().unwrap().as_bytes(),
+            )
+            .unwrap();
+        }
     }
 
     fn check_bounds_explanatory_quantifier_name(&self, quantifier_id: QuantifierId) -> String {
@@ -554,6 +687,7 @@ impl State {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn check_bounds(
         &self,
         input_file: &str,
@@ -561,6 +695,8 @@ impl State {
         quantifier_instantiations_bound_global_kind: Option<u64>,
         quantifier_instantiations_bound_trace: Option<u64>,
         quantifier_instantiations_bound_trace_kind: Option<u64>,
+        unique_triggers_bound: Option<u64>,
+        unique_triggers_bound_total: Option<u64>,
     ) {
         if quantifier_instantiations_bound_trace.is_none()
             && quantifier_instantiations_bound_trace_kind.is_none()
@@ -594,7 +730,7 @@ impl State {
                     violating_quantifiers.push(format!(
                         "Quantifier {} (id={}) instantiated {} times in trace and in total (allowed: {})",
                         self.check_bounds_explanatory_quantifier_name(quantifier_id), quantifier_id, counter, bound,
-                    ))
+                    ));
                 }
             }
         }
@@ -613,6 +749,42 @@ impl State {
                 input_file,
                 sum,
                 bound
+            );
+        }
+        let mut total_unique_triggers_count = 0;
+        let mut violating_quantifiers = Vec::new();
+        for (&quantifier_id, triggers) in &self.unique_quantifier_triggers {
+            if quantifier_id == BUILTIN_QUANTIFIER_ID && quantifier_instantiations_ignore_builtin {
+                continue;
+            }
+            let count = triggers.len();
+            total_unique_triggers_count += count;
+            if let Some(bound) = unique_triggers_bound {
+                if count > bound.try_into().unwrap() {
+                    violating_quantifiers.push(format!(
+                        "Quantifier {} (id={}) has {} unique triggers (allowed: {})",
+                        self.check_bounds_explanatory_quantifier_name(quantifier_id),
+                        quantifier_id,
+                        count,
+                        bound,
+                    ));
+                }
+            }
+        }
+        assert!(
+            violating_quantifiers.is_empty(),
+            "the number of allowed unique triggers (in {}) were \
+            exceeded by the following quantifiers:\n{}",
+            input_file,
+            violating_quantifiers.join("\n")
+        );
+        if let Some(bound) = unique_triggers_bound_total {
+            assert!(
+                total_unique_triggers_count <= bound.try_into().unwrap(),
+                "the number of unique triggers ({}) exceeded the allowed bound ({}) in {}",
+                total_unique_triggers_count,
+                bound,
+                input_file
             );
         }
     }
