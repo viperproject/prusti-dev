@@ -182,10 +182,16 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
             let model_entry = self.silicon_counterexample.model.entries.get(snapshot_var);
             let entry = self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, false);
             entries.push((entry, span.clone()));
-            if config::counterexample_model(){
-                //needs to e changed
-                let entry = self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, true);
-                entries.push((entry, span.clone()));
+            if config::print_counterexample_if_model_is_present() {
+                if let Some(ModelEntry::DomainValue(domain, var)) = model_entry{
+                    match translated_domains.cached_domains.get(&(domain.clone(), var.clone())){
+                        Some(_) => (),
+                        None => {
+                            let entry_wo_model = self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, true);
+                            entries.push((entry_wo_model, span.clone()));
+                        },
+                    }
+                }
             }
         }        
         entries
@@ -464,6 +470,13 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         to_model: String, 
         model_id: LocalDefId,
     )->Entry{
+        if let Some(ModelEntry::DomainValue(domain, var)) = model_entry{
+            debug!("print cache: {:?}", translated_domains.cached_domains);
+            if let Some(entry) = translated_domains.cached_domains.get(&(domain.clone(), var.clone())){
+                debug!("found in cache");
+                return entry.clone();
+            }
+        }
         debug!("typ has model");
         debug!("to model name: {:?}", to_model);
         let domain_name_wo_snap = domain_name.trim_start_matches("Snap");
@@ -485,7 +498,12 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     debug!("model found: {:?}", sil_model);
                     let model_typ = self.tcx.type_of(model_id);
                     debug!("typ: {:?}", model_typ);
-                    return self.translate_snapshot_entry(sil_model.as_ref(), Some(model_typ), translated_domains, false);
+                    let entry = self.translate_snapshot_entry(sil_model.as_ref(), Some(model_typ), translated_domains, false);
+                    if let Some(ModelEntry::DomainValue(domain, var)) = sil_model{//save in cache
+                        debug!("save in cache");
+                        translated_domains.cached_domains.insert((domain.clone(), var.clone()), entry.clone());
+                    }
+                    return entry
                 }
             } 
         }
