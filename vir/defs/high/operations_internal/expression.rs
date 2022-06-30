@@ -124,6 +124,21 @@ impl Expression {
         }
         None
     }
+
+    pub fn is_deref_of_lifetime(&self, searched_lifetime: &ty::LifetimeConst) -> bool {
+        if let Some(parent) = self.get_parent_ref() {
+            if self.is_deref() {
+                if let Type::Reference(ty::Reference { lifetime, .. }) = parent.get_type() {
+                    return searched_lifetime == lifetime
+                        || parent.is_deref_of_lifetime(searched_lifetime);
+                }
+            }
+            parent.is_deref_of_lifetime(searched_lifetime)
+        } else {
+            false
+        }
+    }
+
     /// Check whether the place is a dereference of a reference and if that is
     /// the case, return its base.
     pub fn get_dereference_base(&self) -> Option<&Expression> {

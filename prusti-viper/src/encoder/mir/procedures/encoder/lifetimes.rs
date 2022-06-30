@@ -120,11 +120,11 @@ pub(super) trait LifetimesEncoder<'tcx> {
         location: mir::Location,
         new_original_lifetimes: &BTreeSet<String>,
     ) -> SpannedEncodingResult<()>;
-    fn encode_dead_variable(
+    fn encode_dead_lifetime(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
-        variable: vir_high::Local,
+        lifetime: vir_high::ty::LifetimeConst,
     ) -> SpannedEncodingResult<()>;
     fn encode_lft_assert_subset(
         &mut self,
@@ -696,13 +696,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                         ErrorCtxt::LifetimeEncoding,
                         vir_high::Statement::dead_inclusion_no_pos(encoded_target, encoded_value),
                     )?);
-                    if let Some(mir_local) = self.procedure.get_var_of_lifetime(&lifetime[..]) {
-                        let local = self.encode_local(mir_local)?;
-                        // FIXME: A workaround until Dead is fixed.
-                        if !self.points_to_reborrow.contains(&local) {
-                            self.encode_dead_variable(block_builder, location, local)?;
-                        }
-                    }
+                    self.encode_dead_lifetime(
+                        block_builder,
+                        location,
+                        vir_high::ty::LifetimeConst::new(lifetime.clone()),
+                    )?;
                     self.derived_lifetimes_yet_to_kill.remove(&lifetime);
                     break;
                 }
@@ -711,16 +709,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         Ok(())
     }
 
-    fn encode_dead_variable(
+    fn encode_dead_lifetime(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
         location: mir::Location,
-        variable: vir_high::Local,
+        lifetime: vir_high::ty::LifetimeConst,
     ) -> SpannedEncodingResult<()> {
         block_builder.add_statement(self.set_statement_error(
             location,
             ErrorCtxt::LifetimeEncoding,
-            vir_high::Statement::dead_no_pos(variable.into()),
+            vir_high::Statement::dead_lifetime_no_pos(lifetime),
         )?);
         Ok(())
     }
