@@ -239,6 +239,15 @@
 <span id="232">232</span>
 <span id="233">233</span>
 <span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#3-7">ErrorKind</a>},
     <span class="ident">types</span>::{<a class="ident" href="../../src/smt_log_analyzer/types.rs.html#6">Fingerprint</a>, <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#1">Id</a>, <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#4">TermId</a>},
@@ -254,6 +263,8 @@
     <span class="ident">InstDiscovered</span>,
     <span class="ident">Instance</span>,
     <span class="ident">Unrecognized</span>,
+    <span class="ident">AttachMeaning</span>,
+    <span class="ident">MkVar</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>, <span class="ident">Debug</span>)]</span>
@@ -278,48 +289,43 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_line</span>(<span class="ident">line</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#38">line</a>,
+            <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#40">line</a>,
             <span class="ident">next</span>: <span class="prelude-val">None</span>,
-            <span class="ident">cursor</span>: <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#38">line</a>.<span class="ident">char_indices</span>(),
+            <span class="ident">cursor</span>: <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#40">line</a>.<span class="ident">char_indices</span>(),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#3-7">ErrorKind</a>) -&gt; <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a> {
         <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a> {
-            <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#46">kind</a>,
-            <span class="ident">line</span>: <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#46">self</a>
-                .<span class="ident">next</span>
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#46">self</a>.<span class="ident">cursor</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">c</span>)<span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#53">c</a>)
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#48">kind</a>,
+            <span class="ident">line</span>: <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#48">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#96">remaining</a>(),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">peek_with_position</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)<span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#58">self</a>.<span class="ident">next</span>.<span class="ident">is_none</span>() {
-            <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#58">self</a>.<span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#58">self</a>.<span class="ident">cursor</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#55">self</a>.<span class="ident">next</span>.<span class="ident">is_none</span>() {
+            <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#55">self</a>.<span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#55">self</a>.<span class="ident">cursor</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
         }
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#58">self</a>.<span class="ident">next</span>
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#55">self</a>.<span class="ident">next</span>
     }
 
     <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#65">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#58">peek_with_position</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">c</span>)<span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#66">c</a>)
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#62">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#55">peek_with_position</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">c</span>)<span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#63">c</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">advance_cursor</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="macro">assert!</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#69">self</a>.<span class="ident">next</span>.<span class="ident">is_some</span>());
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#69">self</a>.<span class="ident">next</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="macro">assert!</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#66">self</a>.<span class="ident">next</span>.<span class="ident">is_some</span>());
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#66">self</a>.<span class="ident">next</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     }
 
     <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#74">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#58">peek_with_position</a>().<span class="ident">unwrap</span>().<span class="number">0</span>
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#71">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#55">peek_with_position</a>().<span class="ident">unwrap</span>().<span class="number">0</span>
     }
 
     <span class="kw">fn</span> <span class="ident">try_consume_predicate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#78">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#65">peek</a>() {
-            <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#78">predicate</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#79">c</a>) {
-                <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#78">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#69">advance_cursor</a>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#75">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#62">peek</a>() {
+            <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#75">predicate</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#76">c</a>) {
+                <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#75">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#66">advance_cursor</a>();
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
         }
@@ -331,146 +337,158 @@
         <span class="ident">F</span>: <span class="ident">Fn</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>,
     {
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#88">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#74">position</a>();
-        <span class="kw">while</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#88">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#78">try_consume_predicate</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#88">predicate</a>) {}
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#88">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#74">position</a>();
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/smt_log_analyzer/parser.rs.html#88">self</a>.<span class="ident">line</span>[<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#93">start</a>..<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#95">end</a>]
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#85">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#71">position</a>();
+        <span class="kw">while</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#85">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#75">try_consume_predicate</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#85">predicate</a>) {}
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#85">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#71">position</a>();
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/smt_log_analyzer/parser.rs.html#85">self</a>.<span class="ident">line</span>[<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#90">start</a>..<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#92">end</a>]
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#96">self</a>.<span class="ident">next</span>
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#96">self</a>.<span class="ident">cursor</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">c</span>)<span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#100">c</a>)
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#101">c</a> <span class="op">!</span><span class="op">=</span> <span class="string">&#39;\n&#39;</span>)
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#99">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#78">try_consume_predicate</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#100">c</a> <span class="op">==</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#99">arg</a>)
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#105">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#75">try_consume_predicate</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#106">c</a> <span class="op">==</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#105">arg</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#103">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#99">try_consume</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#103">arg</a>) {
+        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#109">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#105">try_consume</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#109">arg</a>) {
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#103">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#46">error</a>(<a class="ident" href="../../src/smt_log_analyzer/error.rs.html#4">ErrorKind::ConsumeFailed</a>))
+            <span class="prelude-val">Err</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#109">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#48">error</a>(<a class="ident" href="../../src/smt_log_analyzer/error.rs.html#4">ErrorKind::ConsumeFailed</a>))
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">skip_whitespace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#111">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#65">peek</a>() {
-            <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#112">c</a>.<span class="ident">is_whitespace</span>() {
-                <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#111">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#69">advance_cursor</a>();
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#117">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#62">peek</a>() {
+            <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#118">c</a>.<span class="ident">is_whitespace</span>() {
+                <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#117">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#66">advance_cursor</a>();
             } <span class="kw">else</span> {
                 <span class="kw">break</span>;
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_event_kind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#7-16">EventKind</a>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#121">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#99">try_consume</a>(<span class="string">&#39;[&#39;</span>) {
-            <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#121">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#88-91">consume_while_predicate</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#123">c</a>.<span class="ident">is_alphabetic</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#123">c</a> <span class="op">==</span> <span class="string">&#39;-&#39;</span>);
-            <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#123">kind</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_event_kind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#7-18">EventKind</a>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
+        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#127">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#105">try_consume</a>(<span class="string">&#39;[&#39;</span>) {
+            <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#127">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#85-88">consume_while_predicate</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#129">c</a>.<span class="ident">is_alphabetic</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#129">c</a> <span class="op">==</span> <span class="string">&#39;-&#39;</span>);
+            <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#129">kind</a> {
                 <span class="string">&quot;pop&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#8">EventKind::Pop</a>,
                 <span class="string">&quot;push&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#9">EventKind::Push</a>,
                 <span class="string">&quot;mk-quant&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#10">EventKind::MkQuant</a>,
                 <span class="string">&quot;mk-app&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#11">EventKind::MkApp</a>,
+                <span class="string">&quot;mk-var&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#17">EventKind::MkVar</a>,
                 <span class="string">&quot;new-match&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#12">EventKind::NewMatch</a>,
                 <span class="string">&quot;inst-discovered&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#13">EventKind::InstDiscovered</a>,
                 <span class="string">&quot;instance&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#14">EventKind::Instance</a>,
-                <span class="string">&quot;tool-version&quot;</span> <span class="op">|</span> <span class="string">&quot;attach-var-names&quot;</span> <span class="op">|</span> <span class="string">&quot;attach-meaning&quot;</span> <span class="op">|</span> <span class="string">&quot;mk-var&quot;</span> <span class="op">|</span> <span class="string">&quot;mk-proof&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;attach-enode&quot;</span> <span class="op">|</span> <span class="string">&quot;end-of-instance&quot;</span> <span class="op">|</span> <span class="string">&quot;mk-lambda&quot;</span> <span class="op">|</span> <span class="string">&quot;begin-check&quot;</span> <span class="op">|</span> <span class="string">&quot;assign&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;eq-expl&quot;</span> <span class="op">|</span> <span class="string">&quot;decide-and-or&quot;</span> <span class="op">|</span> <span class="string">&quot;resolve-lit&quot;</span> <span class="op">|</span> <span class="string">&quot;resolve-process&quot;</span> <span class="op">|</span> <span class="string">&quot;conflict&quot;</span>
-                <span class="op">|</span> <span class="string">&quot;eof&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#15">EventKind::Unrecognized</a>,
-                <span class="ident">x</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;got: {:?}&quot;</span>, <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#136">x</a>),
+                <span class="string">&quot;attach-meaning&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#16">EventKind::AttachMeaning</a>,
+                <span class="string">&quot;tool-version&quot;</span> <span class="op">|</span> <span class="string">&quot;attach-var-names&quot;</span> <span class="op">|</span> <span class="string">&quot;mk-proof&quot;</span> <span class="op">|</span> <span class="string">&quot;attach-enode&quot;</span>
+                <span class="op">|</span> <span class="string">&quot;end-of-instance&quot;</span> <span class="op">|</span> <span class="string">&quot;mk-lambda&quot;</span> <span class="op">|</span> <span class="string">&quot;begin-check&quot;</span> <span class="op">|</span> <span class="string">&quot;assign&quot;</span> <span class="op">|</span> <span class="string">&quot;eq-expl&quot;</span>
+                <span class="op">|</span> <span class="string">&quot;decide-and-or&quot;</span> <span class="op">|</span> <span class="string">&quot;resolve-lit&quot;</span> <span class="op">|</span> <span class="string">&quot;resolve-process&quot;</span> <span class="op">|</span> <span class="string">&quot;conflict&quot;</span> <span class="op">|</span> <span class="string">&quot;eof&quot;</span> =&gt; {
+                    <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#15">EventKind::Unrecognized</a>
+                }
+                <span class="ident">x</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;got: {:?}&quot;</span>, <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#145">x</a>),
             };
-            <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#121">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#103">consume</a>(<span class="string">&#39;]&#39;</span>)<span class="question-mark">?</span>;
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#124">kind</a>);
+            <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#127">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#109">consume</a>(<span class="string">&#39;]&#39;</span>)<span class="question-mark">?</span>;
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#130">kind</a>);
         }
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#15">EventKind::Unrecognized</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_theory</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#19-24">TheoryKind</a>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#144">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#111">skip_whitespace</a>();
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#144">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#88-91">consume_while_predicate</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#146">c</a>.<span class="ident">is_alphabetic</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#146">c</a> <span class="op">==</span> <span class="string">&#39;-&#39;</span>);
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#146">kind</a> {
-            <span class="string">&quot;basic&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#21">TheoryKind::Basic</a>,
-            <span class="string">&quot;arith&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#20">TheoryKind::Arith</a>,
-            <span class="string">&quot;datatype&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#22">TheoryKind::Datatype</a>,
-            <span class="string">&quot;user-sort&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#23">TheoryKind::UserSort</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_theory</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#21-26">TheoryKind</a>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#153">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#117">skip_whitespace</a>();
+        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#153">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#85-88">consume_while_predicate</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#155">c</a>.<span class="ident">is_alphabetic</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#155">c</a> <span class="op">==</span> <span class="string">&#39;-&#39;</span>);
+        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#155">kind</a> {
+            <span class="string">&quot;basic&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#23">TheoryKind::Basic</a>,
+            <span class="string">&quot;arith&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#22">TheoryKind::Arith</a>,
+            <span class="string">&quot;datatype&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#24">TheoryKind::Datatype</a>,
+            <span class="string">&quot;user-sort&quot;</span> =&gt; <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#25">TheoryKind::UserSort</a>,
             <span class="kw">_</span> =&gt; {
-                <span class="macro">eprintln!</span>(<span class="string">&quot;kind: {:?}&quot;</span>, <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#146">kind</a>);
-                <span class="macro">eprintln!</span>(<span class="string">&quot;self; {:?}&quot;</span>, <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#144">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#46">error</a>(<a class="ident" href="../../src/smt_log_analyzer/error.rs.html#4">ErrorKind::ConsumeFailed</a>));
-                <span class="macro">unimplemented!</span>(<span class="string">&quot;got line: {:?}&quot;</span>, <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#144">self</a>.<span class="ident">line</span>)
+                <span class="macro">eprintln!</span>(<span class="string">&quot;kind: {:?}&quot;</span>, <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#155">kind</a>);
+                <span class="macro">eprintln!</span>(<span class="string">&quot;self; {:?}&quot;</span>, <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#153">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#48">error</a>(<a class="ident" href="../../src/smt_log_analyzer/error.rs.html#4">ErrorKind::ConsumeFailed</a>));
+                <span class="macro">unimplemented!</span>(<span class="string">&quot;got line: {:?}&quot;</span>, <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#153">self</a>.<span class="ident">line</span>)
             }
         };
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#144">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#103">consume</a>(<span class="string">&#39;#&#39;</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#147">kind</a>)
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#153">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#109">consume</a>(<span class="string">&#39;#&#39;</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#156">kind</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_parse_id</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#1">Id</a><span class="op">&gt;</span>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#162">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#111">skip_whitespace</a>();
-        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#162">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#99">try_consume</a>(<span class="string">&#39;#&#39;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#162">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#226">parse_number</a>()<span class="question-mark">?</span>))
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#171">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#117">skip_whitespace</a>();
+        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#171">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#105">try_consume</a>(<span class="string">&#39;#&#39;</span>) {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#171">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#235">parse_number</a>()<span class="question-mark">?</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_id</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#1">Id</a>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#171">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#162">try_parse_id</a>()<span class="question-mark">?</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#172">id</a>)
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#180">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">try_parse_id</a>()<span class="question-mark">?</span> {
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#181">id</a>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#171">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#46">error</a>(<a class="ident" href="../../src/smt_log_analyzer/error.rs.html#5">ErrorKind::ParseIdFailed</a>))
+            <span class="prelude-val">Err</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#180">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#48">error</a>(<a class="ident" href="../../src/smt_log_analyzer/error.rs.html#5">ErrorKind::ParseIdFailed</a>))
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_parse_quant_term</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#26-29">QuantTerm</a><span class="op">&gt;</span>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#179">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#111">skip_whitespace</a>();
-        <span class="kw">let</span> <span class="ident">quant_term</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#179">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#99">try_consume</a>(<span class="string">&#39;(&#39;</span>) {
-            <span class="kw">let</span> <span class="ident">original</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#179">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">parse_id</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">matched</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#179">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">parse_id</a>()<span class="question-mark">?</span>;
-            <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#179">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#103">consume</a>(<span class="string">&#39;)&#39;</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#182">original</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#183">matched</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_parse_quant_term</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#28-31">QuantTerm</a><span class="op">&gt;</span>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#188">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#117">skip_whitespace</a>();
+        <span class="kw">let</span> <span class="ident">quant_term</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#188">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#105">try_consume</a>(<span class="string">&#39;(&#39;</span>) {
+            <span class="kw">let</span> <span class="ident">original</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#188">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#180">parse_id</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">matched</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#188">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#180">parse_id</a>()<span class="question-mark">?</span>;
+            <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#188">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#109">consume</a>(<span class="string">&#39;)&#39;</span>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#191">original</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#192">matched</a> {
                 <span class="comment">// An optimization.</span>
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#28">QuantTerm::Pair</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#182">original</a>, <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#183">matched</a>))
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#30">QuantTerm::Pair</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#191">original</a>, <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#192">matched</a>))
             } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#27">QuantTerm::Single</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#183">matched</a>))
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#29">QuantTerm::Single</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#192">matched</a>))
             }
         } <span class="kw">else</span> {
-            <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#179">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#162">try_parse_id</a>()<span class="question-mark">?</span>.<span class="ident">map</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#27">QuantTerm::Single</a>)
+            <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#188">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">try_parse_id</a>()<span class="question-mark">?</span>.<span class="ident">map</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#29">QuantTerm::Single</a>)
         };
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#181">quant_term</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#190">quant_term</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#197">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#111">skip_whitespace</a>();
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#206">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#117">skip_whitespace</a>();
         <span class="kw">fn</span> <span class="ident">is_valid_name</span>(<span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#199">c</a>.<span class="ident">is_alphanumeric</span>() <span class="op">|</span><span class="op">|</span> <span class="string">&quot;$.&lt;&gt;=!%@-[]_&quot;</span>.<span class="ident">contains</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#199">c</a>)
+            <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#208">c</a>.<span class="ident">is_alphanumeric</span>() <span class="op">|</span><span class="op">|</span> <span class="string">&quot;$.&lt;&gt;=!%@-[]_&quot;</span>.<span class="ident">contains</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#208">c</a>)
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#197">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#88-91">consume_while_predicate</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#199">is_valid_name</a>))
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#206">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#85-88">consume_while_predicate</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#208">is_valid_name</a>))
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check_eof</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#205">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#111">skip_whitespace</a>();
-        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#205">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#65">peek</a>().<span class="ident">is_none</span>() {
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#214">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#117">skip_whitespace</a>();
+        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#214">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#62">peek</a>().<span class="ident">is_none</span>() {
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#205">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#46">error</a>(<a class="ident" href="../../src/smt_log_analyzer/error.rs.html#6">ErrorKind::EofCheckFailed</a>))
+            <span class="prelude-val">Err</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#214">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#48">error</a>(<a class="ident" href="../../src/smt_log_analyzer/error.rs.html#6">ErrorKind::EofCheckFailed</a>))
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_hex_number</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#6">Fingerprint</a>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#214">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#111">skip_whitespace</a>();
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#214">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#103">consume</a>(<span class="string">&#39;0&#39;</span>)<span class="question-mark">?</span>;
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#223">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#117">skip_whitespace</a>();
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#223">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#109">consume</a>(<span class="string">&#39;0&#39;</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">number</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#214">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#99">try_consume</a>(<span class="string">&#39;x&#39;</span>) {
-            <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#217">number</a> <span class="op">=</span>
-                <span class="ident">u64::from_str_radix</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#214">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#88-91">consume_while_predicate</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#220">c</a>.<span class="ident">is_ascii_hexdigit</span>()), <span class="number">16</span>)
+        <span class="kw">if</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#223">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#105">try_consume</a>(<span class="string">&#39;x&#39;</span>) {
+            <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#226">number</a> <span class="op">=</span>
+                <span class="ident">u64::from_str_radix</span>(<a class="self" href="../../src/smt_log_analyzer/parser.rs.html#223">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#85-88">consume_while_predicate</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#229">c</a>.<span class="ident">is_ascii_hexdigit</span>()), <span class="number">16</span>)
                     .<span class="ident">unwrap</span>();
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#217">number</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#226">number</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_number</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#226">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#111">skip_whitespace</a>();
-        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#226">self</a>
-            .<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#88-91">consume_while_predicate</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#229">c</a>.<span class="ident">is_ascii_hexdigit</span>())
+        <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#235">self</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#117">skip_whitespace</a>();
+        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <a class="self" href="../../src/smt_log_analyzer/parser.rs.html#235">self</a>
+            .<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#85-88">consume_while_predicate</a>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#238">c</a>.<span class="ident">is_ascii_hexdigit</span>())
             .<span class="ident">parse</span>()
             .<span class="ident">unwrap</span>();
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#228">number</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#237">number</a>)
     }
 }
 </code></pre></div>

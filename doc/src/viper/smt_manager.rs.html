@@ -142,6 +142,16 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../futures_util/future/future/trait.FutureExt.html">futures::FutureExt</a>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>,
@@ -151,13 +161,15 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SmtManager</span> {
-    <span class="ident">connection</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/smt_manager.rs.html#19-23">Connection</a><span class="op">&gt;</span>,
+    <span class="ident">connection</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/viper/smt_manager.rs.html#21-25">Connection</a><span class="op">&gt;</span>,
     <span class="ident">preserve_trace_files</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">write_smt_statistics</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">quantifier_instantiations_ignore_builtin</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">quantifier_instantiations_bound_global_kind</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
     <span class="ident">quantifier_instantiations_bound_trace</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
     <span class="ident">quantifier_instantiations_bound_trace_kind</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
+    <span class="ident">unique_triggers_bound</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
+    <span class="ident">unique_triggers_bound_total</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">struct</span> <span class="ident">Connection</span> {
@@ -166,7 +178,8 @@
     <span class="ident">port</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#9-17">SmtManager</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#9-19">SmtManager</a> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">log_path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
         <span class="ident">preserve_trace_files</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -175,8 +188,10 @@
         <span class="ident">quantifier_instantiations_bound_global_kind</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
         <span class="ident">quantifier_instantiations_bound_trace</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
         <span class="ident">quantifier_instantiations_bound_trace_kind</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
+        <span class="ident">unique_triggers_bound</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
+        <span class="ident">unique_triggers_bound_total</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
     ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">log_path</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/fn.canonicalize.html">std::fs::canonicalize</a>(<a class="ident" href="../../src/viper/smt_manager.rs.html#27">log_path</a>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">log_path</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/fn.canonicalize.html">std::fs::canonicalize</a>(<a class="ident" href="../../src/viper/smt_manager.rs.html#30">log_path</a>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> (<span class="ident">termination_sender</span>, <span class="ident">termination_receiver</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
         <span class="kw">let</span> (<span class="ident">port_sender</span>, <span class="ident">port_receiver</span>) <span class="op">=</span> <span class="ident">std::sync::mpsc::channel</span>();
         <span class="kw">let</span> <span class="ident">smt_listener</span> <span class="op">=</span> <span class="ident">thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
@@ -185,98 +200,103 @@
                 .<span class="ident">enable_all</span>()
                 .<span class="ident">build</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;failed to construct Tokio runtime&quot;</span>);
-            <a class="ident" href="../../src/viper/smt_manager.rs.html#39">runtime</a>.<span class="ident">block_on</span>(<span class="kw">async</span> {
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#44">runtime</a>.<span class="ident">block_on</span>(<span class="kw">async</span> {
                 <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">TcpListener::bind</span>(<span class="string">&quot;127.0.0.1:0&quot;</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#45">listener</a>.<span class="ident">local_addr</span>().<span class="ident">unwrap</span>();
-                <a class="ident" href="../../src/viper/smt_manager.rs.html#37">port_sender</a>.<span class="ident">send</span>(<a class="ident" href="../../src/viper/smt_manager.rs.html#46">address</a>.<span class="ident">port</span>()).<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#50">listener</a>.<span class="ident">local_addr</span>().<span class="ident">unwrap</span>();
+                <a class="ident" href="../../src/viper/smt_manager.rs.html#42">port_sender</a>.<span class="ident">send</span>(<a class="ident" href="../../src/viper/smt_manager.rs.html#51">address</a>.<span class="ident">port</span>()).<span class="ident">unwrap</span>();
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">termination_receiver</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#36">termination_receiver</a>.<a class="ident" href="../../futures_util/future/future/trait.FutureExt.html">fuse</a>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">termination_receiver</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#41">termination_receiver</a>.<a class="ident" href="../../futures_util/future/future/trait.FutureExt.html">fuse</a>();
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">counter</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trace_files</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
                 <span class="kw">loop</span> {
-                    <span class="kw">let</span> <span class="ident">accept</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#45">listener</a>.<span class="ident">accept</span>().<a class="ident" href="../../futures_util/future/future/trait.FutureExt.html">fuse</a>();
+                    <span class="kw">let</span> <span class="ident">accept</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#50">listener</a>.<span class="ident">accept</span>().<a class="ident" href="../../futures_util/future/future/trait.FutureExt.html">fuse</a>();
                     <span class="macro">futures::pin_mut!</span>(<span class="ident">accept</span>);
                     <span class="macro">futures::select!</span> {
-                        <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#57-77">termination_receiver</a> =&gt; {
-                            <a class="ident" href="../../src/viper/smt_manager.rs.html#58">value</a>.<span class="ident">unwrap</span>();
+                        <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#62-82">termination_receiver</a> =&gt; {
+                            <a class="ident" href="../../src/viper/smt_manager.rs.html#63">value</a>.<span class="ident">unwrap</span>();
                             <span class="kw">break</span>;
                         }
-                        <span class="ident">socket</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#57-77">accept</a> =&gt; {
-                            <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">socket</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#62">socket</a>.<span class="ident">unwrap</span>();
-                            <span class="kw">let</span> <span class="ident">log_file</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#35">log_path</a>.<span class="ident">join</span>(<span class="macro">format!</span>(<span class="string">&quot;wrapper_{}.log&quot;</span>, <a class="ident" href="../../src/viper/smt_manager.rs.html#51">counter</a>));
-                            <span class="kw">let</span> <span class="ident">trace_file</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#35">log_path</a>.<span class="ident">join</span>(<span class="macro">format!</span>(<span class="string">&quot;trace{}.log&quot;</span>, <a class="ident" href="../../src/viper/smt_manager.rs.html#51">counter</a>));
-                            <span class="kw">let</span> <span class="ident">log_file</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#64">log_file</a>.<span class="ident">into_os_string</span>().<span class="ident">into_string</span>().<span class="ident">unwrap</span>();
-                            <span class="kw">let</span> <span class="ident">trace_file</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#65">trace_file</a>.<span class="ident">into_os_string</span>().<span class="ident">into_string</span>().<span class="ident">unwrap</span>();
-                            <a class="ident" href="../../src/viper/smt_manager.rs.html#63">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">write_all</a>(<a class="ident" href="../../src/viper/smt_manager.rs.html#66">log_file</a>.<span class="ident">as_bytes</span>()).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                            <a class="ident" href="../../src/viper/smt_manager.rs.html#63">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">write_all</a>(<span class="string">b&quot;\n&quot;</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                            <a class="ident" href="../../src/viper/smt_manager.rs.html#63">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">write_all</a>(<a class="ident" href="../../src/viper/smt_manager.rs.html#67">trace_file</a>.<span class="ident">as_bytes</span>()).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                            <a class="ident" href="../../src/viper/smt_manager.rs.html#63">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">write_all</a>(<span class="string">b&quot;\n&quot;</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                            <a class="ident" href="../../src/viper/smt_manager.rs.html#52">trace_files</a>.<span class="ident">push</span>(<a class="ident" href="../../src/viper/smt_manager.rs.html#67">trace_file</a>);
-                            <a class="ident" href="../../src/viper/smt_manager.rs.html#63">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">flush</a>().<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                            <a class="ident" href="../../src/viper/smt_manager.rs.html#63">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">shutdown</a>().<span class="kw">await</span>.<span class="ident">unwrap</span>();
-                            <a class="ident" href="../../src/viper/smt_manager.rs.html#51">counter</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        <span class="ident">socket</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#62-82">accept</a> =&gt; {
+                            <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">socket</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#67">socket</a>.<span class="ident">unwrap</span>();
+                            <span class="kw">let</span> <span class="ident">log_file</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#40">log_path</a>.<span class="ident">join</span>(<span class="macro">format!</span>(<span class="string">&quot;wrapper_{}.log&quot;</span>, <a class="ident" href="../../src/viper/smt_manager.rs.html#56">counter</a>));
+                            <span class="kw">let</span> <span class="ident">trace_file</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#40">log_path</a>.<span class="ident">join</span>(<span class="macro">format!</span>(<span class="string">&quot;trace{}.log&quot;</span>, <a class="ident" href="../../src/viper/smt_manager.rs.html#56">counter</a>));
+                            <span class="kw">let</span> <span class="ident">log_file</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#69">log_file</a>.<span class="ident">into_os_string</span>().<span class="ident">into_string</span>().<span class="ident">unwrap</span>();
+                            <span class="kw">let</span> <span class="ident">trace_file</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#70">trace_file</a>.<span class="ident">into_os_string</span>().<span class="ident">into_string</span>().<span class="ident">unwrap</span>();
+                            <a class="ident" href="../../src/viper/smt_manager.rs.html#68">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">write_all</a>(<a class="ident" href="../../src/viper/smt_manager.rs.html#71">log_file</a>.<span class="ident">as_bytes</span>()).<span class="kw">await</span>.<span class="ident">unwrap</span>();
+                            <a class="ident" href="../../src/viper/smt_manager.rs.html#68">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">write_all</a>(<span class="string">b&quot;\n&quot;</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
+                            <a class="ident" href="../../src/viper/smt_manager.rs.html#68">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">write_all</a>(<a class="ident" href="../../src/viper/smt_manager.rs.html#72">trace_file</a>.<span class="ident">as_bytes</span>()).<span class="kw">await</span>.<span class="ident">unwrap</span>();
+                            <a class="ident" href="../../src/viper/smt_manager.rs.html#68">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">write_all</a>(<span class="string">b&quot;\n&quot;</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
+                            <a class="ident" href="../../src/viper/smt_manager.rs.html#57">trace_files</a>.<span class="ident">push</span>(<a class="ident" href="../../src/viper/smt_manager.rs.html#72">trace_file</a>);
+                            <a class="ident" href="../../src/viper/smt_manager.rs.html#68">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">flush</a>().<span class="kw">await</span>.<span class="ident">unwrap</span>();
+                            <a class="ident" href="../../src/viper/smt_manager.rs.html#68">socket</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">shutdown</a>().<span class="kw">await</span>.<span class="ident">unwrap</span>();
+                            <a class="ident" href="../../src/viper/smt_manager.rs.html#56">counter</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                         }
                     }
                 }
-                <a class="ident" href="../../src/viper/smt_manager.rs.html#52">trace_files</a>
+                <a class="ident" href="../../src/viper/smt_manager.rs.html#57">trace_files</a>
             })
         });
-        <span class="kw">let</span> <span class="ident">connection</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#19-23">Connection</a> {
-            <a class="ident" href="../../src/viper/smt_manager.rs.html#38">smt_listener</a>,
-            <span class="ident">termination_shot</span>: <a class="ident" href="../../src/viper/smt_manager.rs.html#36">termination_sender</a>,
-            <span class="ident">port</span>: <a class="ident" href="../../src/viper/smt_manager.rs.html#37">port_receiver</a>.<span class="ident">recv</span>().<span class="ident">unwrap</span>(),
+        <span class="kw">let</span> <span class="ident">connection</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#21-25">Connection</a> {
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#43">smt_listener</a>,
+            <span class="ident">termination_shot</span>: <a class="ident" href="../../src/viper/smt_manager.rs.html#41">termination_sender</a>,
+            <span class="ident">port</span>: <a class="ident" href="../../src/viper/smt_manager.rs.html#42">port_receiver</a>.<span class="ident">recv</span>().<span class="ident">unwrap</span>(),
         };
         <span class="self">Self</span> {
-            <span class="ident">connection</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/viper/smt_manager.rs.html#82">connection</a>),
-            <a class="ident" href="../../src/viper/smt_manager.rs.html#28">preserve_trace_files</a>,
-            <a class="ident" href="../../src/viper/smt_manager.rs.html#29">write_smt_statistics</a>,
-            <a class="ident" href="../../src/viper/smt_manager.rs.html#30">quantifier_instantiations_ignore_builtin</a>,
-            <a class="ident" href="../../src/viper/smt_manager.rs.html#31">quantifier_instantiations_bound_global_kind</a>,
-            <a class="ident" href="../../src/viper/smt_manager.rs.html#32">quantifier_instantiations_bound_trace</a>,
-            <a class="ident" href="../../src/viper/smt_manager.rs.html#33">quantifier_instantiations_bound_trace_kind</a>,
+            <span class="ident">connection</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/viper/smt_manager.rs.html#87">connection</a>),
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#31">preserve_trace_files</a>,
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#32">write_smt_statistics</a>,
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#33">quantifier_instantiations_ignore_builtin</a>,
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#34">quantifier_instantiations_bound_global_kind</a>,
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#35">quantifier_instantiations_bound_trace</a>,
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#36">quantifier_instantiations_bound_trace_kind</a>,
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#37">unique_triggers_bound</a>,
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#38">unique_triggers_bound_total</a>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">port</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {
-        <a class="self" href="../../src/viper/smt_manager.rs.html#98">self</a>.<span class="ident">connection</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">port</span>
+        <a class="self" href="../../src/viper/smt_manager.rs.html#105">self</a>.<span class="ident">connection</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">port</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop_and_check</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">connection</span>) <span class="op">=</span> <a class="self" href="../../src/viper/smt_manager.rs.html#102">self</a>.<span class="ident">connection</span>.<span class="ident">take</span>() {
-            <a class="ident" href="../../src/viper/smt_manager.rs.html#103">connection</a>.<span class="ident">termination_shot</span>.<span class="ident">send</span>(()).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">trace_files</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#103">connection</a>.<span class="ident">smt_listener</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>();
-            <span class="kw">for</span> <span class="ident">trace_file</span> <span class="kw">in</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#105">trace_files</a> {
-                <span class="kw">let</span> <span class="ident">trace_file</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<a class="ident" href="../../src/viper/smt_manager.rs.html#106">trace_file</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">connection</span>) <span class="op">=</span> <a class="self" href="../../src/viper/smt_manager.rs.html#109">self</a>.<span class="ident">connection</span>.<span class="ident">take</span>() {
+            <a class="ident" href="../../src/viper/smt_manager.rs.html#110">connection</a>.<span class="ident">termination_shot</span>.<span class="ident">send</span>(()).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">trace_files</span> <span class="op">=</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#110">connection</a>.<span class="ident">smt_listener</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>();
+            <span class="kw">for</span> <span class="ident">trace_file</span> <span class="kw">in</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#112">trace_files</a> {
+                <span class="kw">let</span> <span class="ident">trace_file</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<a class="ident" href="../../src/viper/smt_manager.rs.html#113">trace_file</a>);
                 <span class="comment">// Since Silicon kills the SMT solver, there is no guarantee</span>
                 <span class="comment">// that the scopes will be fully popped.</span>
                 <span class="kw">let</span> <span class="ident">expected_scopes_count</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                 <span class="kw">let</span> <span class="ident">settings</span> <span class="op">=</span> <span class="ident">smt_log_analyzer::Settings</span> {
-                    <span class="ident">write_statistics</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#102">self</a>.<span class="ident">write_smt_statistics</span>,
-                    <span class="ident">quantifier_instantiations_ignore_builtin</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#102">self</a>
+                    <span class="ident">write_statistics</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#109">self</a>.<span class="ident">write_smt_statistics</span>,
+                    <span class="ident">quantifier_instantiations_ignore_builtin</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#109">self</a>
                         .<span class="ident">quantifier_instantiations_ignore_builtin</span>,
-                    <span class="ident">quantifier_instantiations_bound_global_kind</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#102">self</a>
+                    <span class="ident">quantifier_instantiations_bound_global_kind</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#109">self</a>
                         .<span class="ident">quantifier_instantiations_bound_global_kind</span>,
-                    <span class="ident">quantifier_instantiations_bound_trace</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#102">self</a>
+                    <span class="ident">quantifier_instantiations_bound_trace</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#109">self</a>
                         .<span class="ident">quantifier_instantiations_bound_trace</span>,
-                    <span class="ident">quantifier_instantiations_bound_trace_kind</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#102">self</a>
+                    <span class="ident">quantifier_instantiations_bound_trace_kind</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#109">self</a>
                         .<span class="ident">quantifier_instantiations_bound_trace_kind</span>,
-                    <span class="ident">check_active_scopes_count</span>: <a class="ident" href="../../src/viper/smt_manager.rs.html#110">expected_scopes_count</a>,
+                    <span class="ident">unique_triggers_bound</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#109">self</a>.<span class="ident">unique_triggers_bound</span>,
+                    <span class="ident">unique_triggers_bound_total</span>: <a class="self" href="../../src/viper/smt_manager.rs.html#109">self</a>.<span class="ident">unique_triggers_bound_total</span>,
+                    <span class="ident">check_active_scopes_count</span>: <a class="ident" href="../../src/viper/smt_manager.rs.html#117">expected_scopes_count</a>,
                     <span class="ident">pop_scopes_by_one</span>: <span class="bool-val">false</span>,
+                    <span class="ident">trace_quantifier_triggers</span>: <span class="prelude-val">None</span>,
                 };
-                <span class="ident">smt_log_analyzer::analyze</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/smt_manager.rs.html#107">trace_file</a>, <a class="ident" href="../../src/viper/smt_manager.rs.html#111">settings</a>).<span class="ident">unwrap</span>();
-                <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/viper/smt_manager.rs.html#102">self</a>.<span class="ident">preserve_trace_files</span> {
-                    <span class="ident">std::fs::remove_file</span>(<a class="ident" href="../../src/viper/smt_manager.rs.html#107">trace_file</a>).<span class="ident">unwrap</span>();
+                <span class="ident">smt_log_analyzer::analyze</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/viper/smt_manager.rs.html#114">trace_file</a>, <a class="ident" href="../../src/viper/smt_manager.rs.html#118">settings</a>).<span class="ident">unwrap</span>();
+                <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/viper/smt_manager.rs.html#109">self</a>.<span class="ident">preserve_trace_files</span> {
+                    <span class="ident">std::fs::remove_file</span>(<a class="ident" href="../../src/viper/smt_manager.rs.html#114">trace_file</a>).<span class="ident">unwrap</span>();
                 }
             }
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#9-17">SmtManager</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/viper/smt_manager.rs.html#9-19">SmtManager</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="macro">assert!</span>(<a class="self" href="../../src/viper/smt_manager.rs.html#134">self</a>.<span class="ident">connection</span>.<span class="ident">is_none</span>(), <span class="string">&quot;`stop_and_check` was not called&quot;</span>);
+        <span class="macro">assert!</span>(<a class="self" href="../../src/viper/smt_manager.rs.html#144">self</a>.<span class="ident">connection</span>.<span class="ident">is_none</span>(), <span class="string">&quot;`stop_and_check` was not called&quot;</span>);
     }
 }
 </code></pre></div>

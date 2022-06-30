@@ -166,23 +166,53 @@
 <span id="159">159</span>
 <span id="160">160</span>
 <span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">deny</span>(<span class="ident">unused_must_use</span>)]</span>
 
 <span class="doccomment">//! The Z3 log format is documented</span>
 <span class="doccomment">//! [here](https://github.com/viperproject/axiom-profiler/blob/master/LogDocumentation.pdf).</span>
 
 <span class="kw">use</span> <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">error::Error</a>;
-<span class="kw">use</span> <span class="ident">parser</span>::{<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#7-16">EventKind</a>, <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#31-35">Parser</a>, <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#26-29">QuantTerm</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#77-109">state::State</a>;
+<span class="kw">use</span> <span class="ident">parser</span>::{<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#7-18">EventKind</a>, <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#33-37">Parser</a>, <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#28-31">QuantTerm</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#86-121">state::State</a>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>,
     <span class="ident">io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/buffered/bufreader/struct.BufReader.html">BufReader</a>},
 };
-<span class="kw">use</span> <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#3">types::BUILTIN_QUANTIFIER_ID</a>;
+<span class="kw">use</span> <span class="ident">types</span>::{<a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a>, <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>};
 
 <span class="kw">mod</span> <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#1-19">error</a>;
-<span class="kw">mod</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#1-234">parser</a>;
-<span class="kw">mod</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#1-619">state</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#1-243">parser</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#1-791">state</a>;
 <span class="kw">mod</span> <a class="ident" href="../../src/smt_log_analyzer/types.rs.html#1-6">types</a>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Settings</span> {
@@ -191,85 +221,110 @@
     <span class="kw">pub</span> <span class="ident">quantifier_instantiations_bound_global_kind</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">quantifier_instantiations_bound_trace</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">quantifier_instantiations_bound_trace_kind</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">unique_triggers_bound</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">unique_triggers_bound_total</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">check_active_scopes_count</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">pop_scopes_by_one</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="doccomment">/// If Some, dumps all triggers that match the specified quantifier.</span>
+    <span class="kw">pub</span> <span class="ident">trace_quantifier_triggers</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/smt_log_analyzer/types.rs.html#2">QuantifierId</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">process_line</span>(<span class="ident">settings</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#20-28">Settings</a>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#77-109">State</a>, <span class="ident">line</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::from_line</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">line</a>);
-    <span class="kw">match</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#121">parse_event_kind</a>()<span class="question-mark">?</span> {
+<span class="kw">fn</span> <span class="ident">process_line</span>(<span class="ident">settings</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#20-32">Settings</a>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/state.rs.html#86-121">State</a>, <span class="ident">line</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/smt_log_analyzer/error.rs.html#10-13">Error</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::from_line</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">line</a>);
+    <span class="kw">match</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#127">parse_event_kind</a>()<span class="question-mark">?</span> {
         <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#8">EventKind::Pop</a> =&gt; {
-            <span class="kw">let</span> <span class="ident">scopes_to_pop</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#226">parse_number</a>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">active_scopes_count</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#226">parse_number</a>()<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#205">check_eof</a>()<span class="question-mark">?</span>;
-            <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#237">active_scopes_count</a>(), <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">active_scopes_count</a>);
-            <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">settings</a>.<span class="ident">pop_scopes_by_one</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scopes_to_pop</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">scopes_to_pop</a>;
-                <span class="kw">while</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#39">scopes_to_pop</a> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#245">pop_scopes</a>(<span class="number">1</span>);
-                    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#39">scopes_to_pop</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="kw">let</span> <span class="ident">scopes_to_pop</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#235">parse_number</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">active_scopes_count</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#235">parse_number</a>()<span class="question-mark">?</span>;
+            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#214">check_eof</a>()<span class="question-mark">?</span>;
+            <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#303">active_scopes_count</a>(), <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#39">active_scopes_count</a>);
+            <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">settings</a>.<span class="ident">pop_scopes_by_one</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scopes_to_pop</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#38">scopes_to_pop</a>;
+                <span class="kw">while</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#43">scopes_to_pop</a> <span class="op">&gt;</span> <span class="number">0</span> {
+                    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#311">pop_scopes</a>(<span class="number">1</span>);
+                    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#43">scopes_to_pop</a> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 }
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#245">pop_scopes</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">scopes_to_pop</a>);
+                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#311">pop_scopes</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#38">scopes_to_pop</a>);
             }
         }
         <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#9">EventKind::Push</a> =&gt; {
-            <span class="kw">let</span> <span class="ident">active_scopes_count</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#226">parse_number</a>()<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#205">check_eof</a>()<span class="question-mark">?</span>;
-            <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#237">active_scopes_count</a>(), <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#49">active_scopes_count</a>);
-            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#241">push_scope</a>();
+            <span class="kw">let</span> <span class="ident">active_scopes_count</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#235">parse_number</a>()<span class="question-mark">?</span>;
+            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#214">check_eof</a>()<span class="question-mark">?</span>;
+            <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#303">active_scopes_count</a>(), <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#53">active_scopes_count</a>);
+            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#307">push_scope</a>();
         }
         <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#11">EventKind::MkApp</a> =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_term_id</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#162">try_parse_id</a>()<span class="question-mark">?</span> {
-                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#197">parse_name</a>()<span class="question-mark">?</span>;
-                <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#56">ident</a>.<span class="ident">starts_with</span>(<span class="string">&quot;basic_block_marker&quot;</span>) {
-                    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#112">register_label</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#56">ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">term_id</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">try_parse_id</a>()<span class="question-mark">?</span> {
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#206">parse_name</a>()<span class="question-mark">?</span>;
+                <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#60">ident</a>.<span class="ident">starts_with</span>(<span class="string">&quot;basic_block_marker&quot;</span>) {
+                    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#124">register_label</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#60">ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                } <span class="kw">else</span> {
+                    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#60">ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+                    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">try_parse_id</a>()<span class="question-mark">?</span> {
+                        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#65">args</a>.<span class="ident">push</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#66">arg</a>);
+                    }
+                    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#279-284">register_term_function_application</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#59">term_id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#64">name</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#65">args</a>);
                 }
             }
         }
+        <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#17">EventKind::MkVar</a> =&gt; {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">term_id</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">try_parse_id</a>()<span class="question-mark">?</span> {
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#235">parse_number</a>()<span class="question-mark">?</span>;
+                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#289">register_term_bound_variable</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#74">term_id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#75">index</a>);
+            }
+        }
+        <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#16">EventKind::AttachMeaning</a> =&gt; {
+            <span class="kw">let</span> <span class="ident">term_id</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#180">parse_id</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#206">parse_name</a>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#81">ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#117">skip_whitespace</a>();
+            <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#96">remaining</a>();
+            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#293-298">register_term_attach_meaning</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#80">term_id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#82">ident</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#84">remaining</a>);
+        }
         <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#10">EventKind::MkQuant</a> =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">id</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">parse_id</a>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">id</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#180">parse_id</a>() {
                 <span class="comment">// We are ignoring the builtin quantifiers that have non-numeric</span>
                 <span class="comment">// ids such as datatype#6</span>
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#197">parse_name</a>()<span class="question-mark">?</span>;
-                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#119">register_quantifier</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#63">id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#66">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#206">parse_name</a>()<span class="question-mark">?</span>;
+                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#131">register_quantifier</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#88">id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#91">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
             }
         }
         <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#12">EventKind::NewMatch</a> =&gt; {
-            <span class="kw">let</span> <span class="ident">fingerprint</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#214">parse_hex_number</a>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#71">fingerprint</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">let</span> <span class="ident">fingerprint</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#223">parse_hex_number</a>()<span class="question-mark">?</span>;
+            <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#96">fingerprint</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="comment">// Built-in quantifiers have fingerprint 0; ignore them.</span>
-                <span class="kw">let</span> <span class="ident">quantifier_id</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">parse_id</a>()<span class="question-mark">?</span>;
-                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#135-138">register_matched_quantifier</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#74">quantifier_id</a>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">_trigger_id</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">parse_id</a>()<span class="question-mark">?</span>;
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_variable_instantiation</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#162">try_parse_id</a>()<span class="question-mark">?</span> {}
-                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#103">consume</a>(<span class="string">&#39;;&#39;</span>)<span class="question-mark">?</span>;
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matched_term</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#179">try_parse_quant_term</a>()<span class="question-mark">?</span> {
-                    <span class="kw">match</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#79">matched_term</a> {
-                        <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#27">QuantTerm::Single</a>(<span class="ident">matched</span>) =&gt; {
-                            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#192-196">register_matched_trigger_term</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#74">quantifier_id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#81">matched</a>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">quantifier_id</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#180">parse_id</a>()<span class="question-mark">?</span>;
+                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#147-150">register_matched_quantifier</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#99">quantifier_id</a>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">_trigger_id</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#180">parse_id</a>()<span class="question-mark">?</span>;
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_variable_instantiation</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#171">try_parse_id</a>()<span class="question-mark">?</span> {}
+                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#109">consume</a>(<span class="string">&#39;;&#39;</span>)<span class="question-mark">?</span>;
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matched_term</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#188">try_parse_quant_term</a>()<span class="question-mark">?</span> {
+                    <span class="kw">match</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#104">matched_term</a> {
+                        <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#29">QuantTerm::Single</a>(<span class="ident">matched</span>) =&gt; {
+                            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#204-208">register_matched_trigger_term</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#99">quantifier_id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#106">matched</a>)<span class="question-mark">?</span>;
                         }
-                        <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#28">QuantTerm::Pair</a>(<span class="ident">original</span>, <span class="ident">matched</span>) =&gt; {
-                            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#192-196">register_matched_trigger_term</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#74">quantifier_id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#84">original</a>)<span class="question-mark">?</span>;
-                            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#192-196">register_matched_trigger_term</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#74">quantifier_id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#84">matched</a>)<span class="question-mark">?</span>;
+                        <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#30">QuantTerm::Pair</a>(<span class="ident">original</span>, <span class="ident">matched</span>) =&gt; {
+                            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#204-208">register_matched_trigger_term</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#99">quantifier_id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#109">original</a>)<span class="question-mark">?</span>;
+                            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#204-208">register_matched_trigger_term</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#99">quantifier_id</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#109">matched</a>)<span class="question-mark">?</span>;
                         }
                     }
                 }
-                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#205">check_eof</a>()<span class="question-mark">?</span>;
+                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#214">check_eof</a>()<span class="question-mark">?</span>;
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#135-138">register_matched_quantifier</a>(<a class="ident" href="../../src/smt_log_analyzer/types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>)<span class="question-mark">?</span>;
+                <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#147-150">register_matched_quantifier</a>(<a class="ident" href="../../src/smt_log_analyzer/types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>)<span class="question-mark">?</span>;
             }
         }
         <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#13">EventKind::InstDiscovered</a> =&gt; {
-            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#197">parse_name</a>()<span class="question-mark">?</span>;
-            <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#96">name</a>, <span class="string">&quot;theory-solving&quot;</span>);
-            <span class="kw">let</span> <span class="ident">fingerprint</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#214">parse_hex_number</a>()<span class="question-mark">?</span>;
-            <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#98">fingerprint</a>, <span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">theory</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#31">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#144">parse_theory</a>()<span class="question-mark">?</span>;
-            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#168-171">register_inst_discovered</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#100">theory</a>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#206">parse_name</a>()<span class="question-mark">?</span>;
+            <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#121">name</a>, <span class="string">&quot;theory-solving&quot;</span>);
+            <span class="kw">let</span> <span class="ident">fingerprint</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#223">parse_hex_number</a>()<span class="question-mark">?</span>;
+            <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#123">fingerprint</a>, <span class="number">0</span>);
+            <span class="kw">let</span> <span class="ident">theory</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#35">parser</a>.<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#153">parse_theory</a>()<span class="question-mark">?</span>;
+            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#180-183">register_inst_discovered</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#125">theory</a>)<span class="question-mark">?</span>;
         }
         <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#14">EventKind::Instance</a> =&gt; {
-            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#222">register_instance</a>()<span class="question-mark">?</span>;
+            <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#264">register_instance</a>()<span class="question-mark">?</span>;
         }
         <a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#15">EventKind::Unrecognized</a> =&gt; {}
     }
@@ -278,52 +333,57 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">analyze</span>(
     <span class="ident">z3_trace_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>,
-    <span class="ident">settings</span>: <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#20-28">Settings</a>,
+    <span class="ident">settings</span>: <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#20-32">Settings</a>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span> {
     <span class="comment">// TODO: Collect the quantifier definitions from the smt file.</span>
 
-    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::open</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#112">z3_trace_path</a>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#117">file</a>);
+    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::open</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#137">z3_trace_path</a>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#142">file</a>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::default</span>();
 
     <span class="comment">// Builtin quantifiers have fingerprint 0.</span>
-    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#120">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#119">register_quantifier</a>(<a class="ident" href="../../src/smt_log_analyzer/types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>, <span class="string">&quot;builtin quantifier&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#131">register_quantifier</a>(<a class="ident" href="../../src/smt_log_analyzer/types.rs.html#3">BUILTIN_QUANTIFIER_ID</a>, <span class="string">&quot;builtin quantifier&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
     <span class="comment">// Theories.</span>
-    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#120">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#159">register_theory</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#20">parser::TheoryKind::Arith</a>);
-    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#120">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#159">register_theory</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#21">parser::TheoryKind::Basic</a>);
-    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#120">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#159">register_theory</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#22">parser::TheoryKind::Datatype</a>);
-    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#120">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#159">register_theory</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#23">parser::TheoryKind::UserSort</a>);
+    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#171">register_theory</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#22">parser::TheoryKind::Arith</a>);
+    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#171">register_theory</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#23">parser::TheoryKind::Basic</a>);
+    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#171">register_theory</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#24">parser::TheoryKind::Datatype</a>);
+    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#171">register_theory</a>(<a class="ident" href="../../src/smt_log_analyzer/parser.rs.html#25">parser::TheoryKind::UserSort</a>);
+
+    <span class="comment">// Tracing triggers.</span>
+    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#254">mark_quantifier_for_tracing</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.<span class="ident">trace_quantifier_triggers</span>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">String::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_line</span> <span class="op">=</span> <span class="ident">String::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line_number</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="macro">assert!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#118">reader</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">read_line</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#132">prev_line</a>)<span class="question-mark">?</span> <span class="op">&gt;</span> <span class="number">0</span>);
-    <span class="kw">while</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#118">reader</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">read_line</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#131">line</a>)<span class="question-mark">?</span> <span class="op">&gt;</span> <span class="number">0</span> {
+    <span class="macro">assert!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#143">reader</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">read_line</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#160">prev_line</a>)<span class="question-mark">?</span> <span class="op">&gt;</span> <span class="number">0</span>);
+    <span class="kw">while</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#143">reader</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">read_line</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#159">line</a>)<span class="question-mark">?</span> <span class="op">&gt;</span> <span class="number">0</span> {
         <span class="comment">// We use this `prev_line` to avoid processing the last line, which is</span>
         <span class="comment">// very likely to be invalid because Silicon kills Z3.</span>
-        <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#131">line</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#132">prev_line</a>);
-        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#133">line_number</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#30">process_line</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#113">settings</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#120">state</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#131">line</a>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Error {} on line {}&quot;</span>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#141">error</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#133">line_number</a>));
-        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#131">line</a>.<span class="ident">clear</span>();
+        <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#159">line</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#160">prev_line</a>);
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#161">line_number</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#34">process_line</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#159">line</a>)
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Error {} on line {}&quot;</span>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#169">error</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#161">line_number</a>));
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#159">line</a>.<span class="ident">clear</span>();
     }
-    <span class="kw">let</span> <span class="ident">scopes_left</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#120">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#237">active_scopes_count</a>();
-    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#120">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#344">pop_all_scopes</a>();
-    <span class="kw">let</span> <span class="ident">input_file</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#112">z3_trace_path</a>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
-    <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#113">settings</a>.<span class="ident">write_statistics</span> {
-        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#120">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#358">write_statistics</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#146">input_file</a>);
+    <span class="kw">let</span> <span class="ident">scopes_left</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#303">active_scopes_count</a>();
+    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#410">pop_all_scopes</a>();
+    <span class="kw">let</span> <span class="ident">input_file</span> <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#137">z3_trace_path</a>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
+    <span class="kw">if</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.<span class="ident">write_statistics</span> {
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#454">write_statistics</a>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#174">input_file</a>);
     }
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expected_scopes_count</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#113">settings</a>.<span class="ident">check_active_scopes_count</span> {
-        <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#144">scopes_left</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#150">expected_scopes_count</a>);
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expected_scopes_count</span>) <span class="op">=</span> <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.<span class="ident">check_active_scopes_count</span> {
+        <span class="macro">assert_eq!</span>(<a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#172">scopes_left</a>, <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#178">expected_scopes_count</a>);
     }
-    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#120">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#557-564">check_bounds</a>(
-        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#146">input_file</a>,
-        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#113">settings</a>.<span class="ident">quantifier_instantiations_ignore_builtin</span>,
-        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#113">settings</a>.<span class="ident">quantifier_instantiations_bound_global_kind</span>,
-        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#113">settings</a>.<span class="ident">quantifier_instantiations_bound_trace</span>,
-        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#113">settings</a>.<span class="ident">quantifier_instantiations_bound_trace_kind</span>,
+    <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#145">state</a>.<a class="ident" href="../../src/smt_log_analyzer/state.rs.html#691-700">check_bounds</a>(
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#174">input_file</a>,
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.<span class="ident">quantifier_instantiations_ignore_builtin</span>,
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.<span class="ident">quantifier_instantiations_bound_global_kind</span>,
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.<span class="ident">quantifier_instantiations_bound_trace</span>,
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.<span class="ident">quantifier_instantiations_bound_trace_kind</span>,
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.<span class="ident">unique_triggers_bound</span>,
+        <a class="ident" href="../../src/smt_log_analyzer/lib.rs.html#138">settings</a>.<span class="ident">unique_triggers_bound_total</span>,
     );
     <span class="prelude-val">Ok</span>(())
 }
