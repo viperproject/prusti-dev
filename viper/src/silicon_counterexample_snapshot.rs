@@ -3,11 +3,12 @@
 use rustc_hash::FxHashMap;
 
 use jni::{objects::JObject, JNIEnv};
-use jni_utils::JniUtils;
+use crate::jni_utils::JniUtils;
 use viper_sys::wrappers::{scala, viper::silicon};
+use log::{debug};
 
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct SiliconCounterexample {
 
     pub model: Model,
@@ -26,12 +27,12 @@ impl SiliconCounterexample {
 }
 
 // Model Definitions
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Model {
     pub entries: FxHashMap<String, ModelEntry>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum ModelEntry {
     LitInt(String),
     LitFloat(String),
@@ -47,23 +48,23 @@ pub enum ModelEntry {
     UnprocessedModel, // do not use these at all
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Functions{
     pub entries: FxHashMap<String, FunctionEntry>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct FunctionEntry{
     pub options: Vec<(Vec<Option<ModelEntry>>,Option<ModelEntry>)>,
     pub default: Option<ModelEntry>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Domains{
     pub entries: FxHashMap<String, DomainEntry>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct DomainEntry{
     pub functions: Functions,
 }

@@ -1,5 +1,5 @@
 use prusti_interface::data::ProcedureDefId;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::errors::MultiSpan;
 use crate::encoder::Encoder;
 use vir_crate::low::{self as vir_low};
 use super::interface::MirProcedureMappingInterface;
