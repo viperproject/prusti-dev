@@ -1,15 +1,15 @@
-use rustc_hir::{
+use prusti_rustc_interface::hir::{
     def_id::DefId,
     intravisit::{self, Visitor},
 };
-use rustc_middle::{hir::map::Map};
-use rustc_span::Span;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::middle::{hir::map::Map};
+use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::errors::MultiSpan;
 
 use crate::{environment::Environment, PrustiError};
 use std::collections::HashMap;
 use prusti_specs::ExternSpecKind;
-use rustc_middle::ty::subst::SubstsRef;
+use prusti_rustc_interface::middle::ty::subst::SubstsRef;
 use std::cmp::{Eq, PartialEq};
 
 pub enum ExternSpecResolverError {
@@ -117,10 +117,10 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
     pub fn add_extern_fn(
         &mut self,
         fn_kind: intravisit::FnKind<'tcx>,
-        fn_decl: &'tcx rustc_hir::FnDecl,
-        body_id: rustc_hir::BodyId,
+        fn_decl: &'tcx prusti_rustc_interface::hir::FnDecl,
+        body_id: prusti_rustc_interface::hir::BodyId,
         span: Span,
-        id: rustc_hir::hir_id::HirId,
+        id: prusti_rustc_interface::hir::hir_id::HirId,
         extern_spec_kind: ExternSpecKind,
     ) {
         let mut visitor = ExternSpecVisitor {
@@ -264,24 +264,24 @@ struct ExternSpecVisitor<'v, 'tcx: 'v> {
 
 impl<'v, 'tcx: 'v> Visitor<'tcx> for ExternSpecVisitor<'v, 'tcx> {
     type Map = Map<'tcx>;
-    type NestedFilter = rustc_middle::hir::nested_filter::All;
+    type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.env.tcx().hir()
     }
 
-    fn visit_expr(&mut self, ex: &'tcx rustc_hir::Expr<'tcx>) {
+    fn visit_expr(&mut self, ex: &'tcx prusti_rustc_interface::hir::Expr<'tcx>) {
         if self.spec_found.is_some() {
             return;
         }
-        if let rustc_hir::ExprKind::Call(callee_expr, _arguments) = ex.kind {
-            if let rustc_hir::ExprKind::Path(ref qself) = callee_expr.kind {
+        if let prusti_rustc_interface::hir::ExprKind::Call(callee_expr, _arguments) = ex.kind {
+            if let prusti_rustc_interface::hir::ExprKind::Path(ref qself) = callee_expr.kind {
                 let tyck_res = self
                     .env.tcx()
                     .typeck(callee_expr.hir_id.owner);
                 let substs = tyck_res.node_substs(callee_expr.hir_id);
                 let res = tyck_res.qpath_res(qself, callee_expr.hir_id);
-                if let rustc_hir::def::Res::Def(_, def_id) = res {
+                if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = res {
                     self.spec_found = Some((def_id, substs, ex.span));
                     return;
                 }

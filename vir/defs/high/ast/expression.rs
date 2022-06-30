@@ -234,6 +234,7 @@ pub enum BuiltinFunc {
     LifetimeIntersect,
     EmptyMap,
     UpdateMap,
+    MapContains,
     LookupMap,
     MapLen,
     EmptySeq,
@@ -243,6 +244,7 @@ pub enum BuiltinFunc {
     SeqLen,
     NewInt,
     Index,
+    Len,
 }
 
 #[display(fmt = "__builtin__{}({})", function, "display::cjoin(arguments)")]

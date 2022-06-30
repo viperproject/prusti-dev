@@ -23,12 +23,15 @@ impl Positioned for Statement {
             Self::NewLft(statement) => statement.position(),
             Self::EndLft(statement) => statement.position(),
             Self::Dead(statement) => statement.position(),
+            Self::DeadInclusion(statement) => statement.position(),
             Self::LifetimeTake(statement) => statement.position(),
             Self::LifetimeReturn(statement) => statement.position(),
+            Self::ObtainMutRef(statement) => statement.position(),
             Self::OpenMutRef(statement) => statement.position(),
             Self::OpenFracRef(statement) => statement.position(),
             Self::CloseMutRef(statement) => statement.position(),
             Self::CloseFracRef(statement) => statement.position(),
+            Self::BorShorten(statement) => statement.position(),
         }
     }
 }
@@ -147,6 +150,12 @@ impl Positioned for Dead {
     }
 }
 
+impl Positioned for DeadInclusion {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
 impl Positioned for LifetimeTake {
     fn position(&self) -> Position {
         self.position
@@ -154,6 +163,12 @@ impl Positioned for LifetimeTake {
 }
 
 impl Positioned for LifetimeReturn {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for ObtainMutRef {
     fn position(&self) -> Position {
         self.position
     }
@@ -178,6 +193,12 @@ impl Positioned for CloseMutRef {
 }
 
 impl Positioned for CloseFracRef {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for BorShorten {
     fn position(&self) -> Position {
         self.position
     }

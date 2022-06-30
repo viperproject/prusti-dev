@@ -1,7 +1,7 @@
 use super::{AllInputFacts, LocationTable, Point, RichLocation};
 use crate::environment::mir_body::patch::MirPatch;
+use prusti_rustc_interface::middle::mir;
 use rustc_hash::FxHashMap;
-use rustc_middle::mir;
 
 /// FIXME: Currently, this function patches only `borrowck_input_facts.cfg_edge`.
 /// It probably should also patch other facts. For example, added drop flag

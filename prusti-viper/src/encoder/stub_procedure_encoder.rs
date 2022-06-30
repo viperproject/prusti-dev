@@ -12,8 +12,8 @@ use vir_crate::polymorphic::{self as vir, Successor};
 use prusti_common::config;
 use prusti_interface::environment::Procedure;
 use prusti_common::report::log;
-use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
+use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::middle::mir;
 use ::log::trace;
 
 

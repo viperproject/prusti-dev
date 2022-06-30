@@ -36,12 +36,15 @@ pub enum Statement {
     NewLft(NewLft),
     EndLft(EndLft),
     Dead(Dead),
+    DeadInclusion(DeadInclusion),
     LifetimeTake(LifetimeTake),
     LifetimeReturn(LifetimeReturn),
+    ObtainMutRef(ObtainMutRef),
     OpenMutRef(OpenMutRef),
     OpenFracRef(OpenFracRef),
     CloseMutRef(CloseMutRef),
     CloseFracRef(CloseFracRef),
+    BorShorten(BorShorten),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -297,6 +300,13 @@ pub struct Dead {
     pub position: Position,
 }
 
+#[display(fmt = "dead_inclusion({}, {})", target, value)]
+pub struct DeadInclusion {
+    pub target: VariableDecl,
+    pub value: VariableDecl,
+    pub position: Position,
+}
+
 #[display(
     fmt = "{} := lifetime_take({}, {})",
     target,
@@ -320,6 +330,13 @@ pub struct LifetimeReturn {
     pub target: VariableDecl,
     pub value: Vec<VariableDecl>,
     pub lifetime_token_permission: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "obtain_mut_ref({}, {})", place, lifetime)]
+pub struct ObtainMutRef {
+    pub place: Expression,
+    pub lifetime: LifetimeConst,
     pub position: Position,
 }
 
@@ -380,5 +397,20 @@ pub struct CloseFracRef {
     pub place: Expression,
     /// The permission amount that we get for accessing `Owned`.
     pub predicate_permission_amount: VariableDecl,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "bor_shorten({}, {}, {}, rd({}))",
+    lifetime,
+    old_lifetime,
+    value,
+    lifetime_token_permission
+)]
+pub struct BorShorten {
+    pub lifetime: LifetimeConst,
+    pub old_lifetime: LifetimeConst,
+    pub value: Expression,
+    pub lifetime_token_permission: Expression,
     pub position: Position,
 }

@@ -1,50 +1,50 @@
 // compile-flags: -Punsafe_core_proof=true
 
-use prusti_contracts::*;
+#![allow(unused)]
 
+use prusti_contracts::*;
 type Map = prusti_contracts::Map<u32, u32>;
 
-#[requires(_val)]
-fn requires_true(_val: bool) {}
-
-#[pure]
-#[trusted]
-fn empty() -> (u32, u32) {
-    (2, 2)
+fn should_fail() {
+    prusti_assert!(false); //~ ERROR: the asserted expression might not hold
 }
 
-#[requires(Map::empty() == Map::empty())]
-fn test1() {}
-
-#[requires(empty() == empty())]
-fn test2() {}
-
-fn checks_preconditions() {
-    test1();
+fn trivial_pass1() {
+    prusti_assert!(Map::empty() == Map::empty());
 }
 
-#[ensures(Map::empty().insert(0, 0) == Map::empty().insert(0, 1))] //~ ERROR: postcondition might not hold.
-fn should_fail() {}
+fn trivial_pass2() {
+    prusti_assert!(Map::empty().insert(0, 1) == Map::empty().insert(0, 1));
+}
 
-#[ensures(Map::empty().insert(0, 0) == Map::empty().insert(0, 0))]
-fn should_pass1() {}
+fn trivial_fail() {
+    prusti_assert!(Map::empty().insert(0, 0) == Map::empty()); //~ ERROR: the asserted expression might not hold
+}
 
-#[ensures(Map::empty().insert(0, 0).insert(1, 1) == Map::empty().insert(1, 1).insert(0, 0))]
-fn should_pass2() {}
+#[requires(k1 != k2)]
+fn commutativity(k1: u32, v1: u32, k2: u32, v2: u32) {
+    prusti_assert!(map![k1 => v1, k2 => v2] == map![k2 => v2, k1 => v1]);
+}
 
-#[ensures(Map::empty().len() == Int::new(0))]
-#[ensures(Map::empty().insert(1, 2).len() == Int::new(1))]
-fn map_len() {}
+fn map_len(m1: Map, k: u32, v: u32) {
+    prusti_assert!(Map::empty().len() == Int::new(0));
+    prusti_assert!(map![0 => 0].len() == Int::new(1));
 
-#[ensures(Map::empty().insert(1, 2).len() == Int::new(2))]  //~ ERROR: postcondition might not hold.
-fn map_len2() {}
+    prusti_assert!(
+        m1.insert(k, v).len() == m1.len() || m1.insert(k, v).len() == m1.len() + Int::new(1)
+    );
 
-#[ensures(Map::empty().insert(0, 1).lookup(0) == 1)]
-#[ensures(Map::empty().insert(0, 1).insert(0, 2).lookup(0) == 2)]
-fn map_lookup() {}
+    prusti_assert!(Map::empty().insert(0, 0).len() == Int::new(2)); //~ ERROR: the asserted expression might not hold
+}
+
+fn map_lookup(m: Map, k: u32, v1: u32, v2: u32) {
+    prusti_assert!(m.insert(k, v1).insert(k, v2)[k] == v2);
+    prusti_assert!(m.insert(k, v1)[k] == v1);
+    prusti_assert!(m[k] == m[k]) //~ ERROR:
+}
 
 fn map_construction() {
-    let map = Map::empty();
+    let map1 = Map::empty();
 }
 
 fn main() {}

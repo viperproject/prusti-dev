@@ -105,6 +105,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         let return_type = match &ty {
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
+            vir_mid::Type::Pointer(_) => self.address_type()?,
             x => unimplemented!("{:?}", x),
         };
         let domain_name = self.encode_snapshot_domain_name(ty)?;

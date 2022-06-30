@@ -1,12 +1,6 @@
-extern crate env_logger;
-extern crate error_chain;
-#[macro_use]
-extern crate lazy_static;
-extern crate viper;
-
 use viper::*;
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref VIPER: Viper = Viper::new();
 }
 
@@ -48,7 +42,8 @@ fn sequential_verifier_initialization() {
 
         let program = ast.program(&[], &[], &[], &[], &[method]);
 
-        let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+        let mut verifier =
+            verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
         let verification_result = verifier.verify(program);
 

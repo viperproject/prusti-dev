@@ -21,10 +21,12 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
 
-use rustc_hir as hir;
-use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::{mir, ty, ty::subst::SubstsRef};
-use rustc_span::Span;
+use prusti_rustc_interface::{
+    hir,
+    hir::def_id::{DefId, LocalDefId},
+    middle::{mir, ty, ty::subst::SubstsRef},
+    span::Span,
+};
 
 use vir_crate::{
     common::identifier::WithIdentifier,
@@ -101,7 +103,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let span = encoder.get_spec_span(proc_def_id);
 
         // TODO: move this to a signatures module
-        use crate::rustc_middle::ty::subst::Subst;
+        use prusti_rustc_interface::middle::ty::subst::Subst;
         let sig = ty::EarlyBinder(encoder.env().tcx().fn_sig(proc_def_id))
             .subst(encoder.env().tcx(), substs);
         let sig = encoder
@@ -549,7 +551,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mut formal_args = vec![];
         for local_idx in 0..self.sig.skip_binder().inputs().len() {
             let local_ty = self.sig.input(local_idx);
-            let local = rustc_middle::mir::Local::from_usize(local_idx + 1);
+            let local = prusti_rustc_interface::middle::mir::Local::from_usize(local_idx + 1);
             let var_name = format!("{:?}", local);
             let var_span = self.get_local_span(local);
 

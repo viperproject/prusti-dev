@@ -99,6 +99,22 @@ jobs:
           rustup component add rustfmt
           python ./x.py fmt-check-all
 
+  # Check that we depend on the compiler only through SMIR.
+  smir-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # deep clone, to allow us to use git merge-base
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Check and report illegal extern crate.
+        run: |
+          python ./x.py check-smir
+
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
   purification-tests:

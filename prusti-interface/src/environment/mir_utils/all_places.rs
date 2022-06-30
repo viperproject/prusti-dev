@@ -1,6 +1,6 @@
-use rustc_index::vec::Idx;
-use rustc_middle::mir;
-use rustc_middle::ty;
+use prusti_rustc_interface::index::vec::Idx;
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::middle::ty;
 
 pub trait AllPlaces<'tcx> {
     /// Returns all places that are below the given local variable. Right now, this only handles
