@@ -15,8 +15,8 @@ use prusti_interface::{
     },
     PrustiError,
 };
+use prusti_rustc_interface::hir::def_id::DefId;
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::DefId;
 
 /// Defines the context for which we perform refinement.
 /// It can be thought of as the variants of [SpecQuery] for which we can perform refinement.

@@ -9,9 +9,11 @@ use crate::{
     mir_utils::get_blocked_place, AnalysisError, PointwiseState,
 };
 use log::{error, trace};
-use rustc_borrowck::{consumers::RichLocation, BodyWithBorrowckFacts};
-use rustc_data_structures::fx::FxHashMap;
-use rustc_middle::{mir, ty::TyCtxt};
+use prusti_rustc_interface::{
+    borrowck::{consumers::RichLocation, BodyWithBorrowckFacts},
+    data_structures::fx::FxHashMap,
+    middle::{mir, ty::TyCtxt},
+};
 
 pub struct MaybeBorrowedAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
@@ -98,7 +100,7 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
 
         // Set state_after_block
         for (block, block_data) in body.basic_blocks().iter_enumerated() {
-            for &successor in block_data.terminator().successors() {
+            for successor in block_data.terminator().successors() {
                 let state = analysis_state
                     .lookup_before(mir::Location {
                         block: successor,

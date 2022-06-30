@@ -10,8 +10,8 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
+use prusti_rustc_interface::middle::ty::subst::SubstsRef;
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_middle::ty::subst::SubstsRef;
 
 use prusti_interface::specs::typed::ProcedureSpecificationKind;
 use std::cell::RefCell;

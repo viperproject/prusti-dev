@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::{ast::*, cfg::method::*, to_string::ToString};
+use log::{debug, trace};
 use std::fmt::Debug;
 
 pub trait CheckNoOpAction {

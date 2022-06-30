@@ -25,10 +25,12 @@ use crate::encoder::{
 use log::{debug, trace};
 use prusti_common::vir_high_local;
 use prusti_interface::environment::mir_utils::SliceOrArrayRef;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{mir, ty, ty::subst::SubstsRef},
+    span::Span,
+};
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty, ty::subst::SubstsRef};
-use rustc_span::Span;
 use vir_crate::{
     common::{
         expression::{BinaryOperationHelpers, UnaryOperationHelpers},
@@ -232,13 +234,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
-            mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
-            | mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, place)
-            | mir::Rvalue::Ref(_, mir::BorrowKind::Shared, place) => {
-                let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
+            &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
+            | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, place)
+            | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, place) => {
+                let encoded_place = self.encoder.encode_place_high(self.mir, place, None)?;
                 let ty = self
                     .encoder
-                    .encode_type_of_place_high(self.mir, *place)
+                    .encode_type_of_place_high(self.mir, place)
                     .with_span(span)?;
                 let pure_lifetime = vir_high::ty::LifetimeConst::erased();
                 let encoded_ref = vir_high::Expression::addr_of_no_pos(
@@ -291,8 +293,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     span,
                 ));
             }
-            mir::Rvalue::Len(place) => {
-                let arg = self.encoder.encode_place_high(self.mir, *place, None)?;
+            &mir::Rvalue::Len(place) => {
+                let arg = self.encoder.encode_place_high(self.mir, place, None)?;
                 let expr = self.encoder.encode_len_call(arg).with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
@@ -300,7 +302,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let encoded_operand = self.encode_operand(operand, span)?;
                 let len: usize = self
                     .encoder
-                    .const_eval_intlike(times.val())
+                    .const_eval_intlike(mir::ConstantKind::Ty(*times))
                     .with_span(span)?
                     .to_u64()
                     .unwrap()
@@ -413,7 +415,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
     fn apply_call_terminator(
         &self,
         args: &[mir::Operand<'tcx>],
-        destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
+        destination: mir::Place<'tcx>,
+        target: &Option<mir::BasicBlock>,
         ty: ty::Ty<'tcx>,
         states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         span: Span,
@@ -425,11 +428,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             // compose substitutions
             // TODO(tymap): do we need this?
-            use crate::rustc_middle::ty::subst::Subst;
+            use prusti_rustc_interface::middle::ty::subst::Subst;
             let substs = ty::EarlyBinder(*call_substs).subst(self.encoder.env().tcx(), self.substs);
 
-            let state = if let Some((lhs_place, target_block)) = destination {
-                let encoded_lhs = self.encode_place(*lhs_place).with_span(span)?;
+            let state = if let Some(target_block) = target {
+                let encoded_lhs = self.encode_place(destination).with_span(span)?;
                 let encoded_args: Vec<_> = args
                     .iter()
                     .map(|arg| self.encode_operand(arg, span))
@@ -513,7 +516,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         target_block: &mir::BasicBlock,
         states: &FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         encoded_lhs: vir_high::Expression,
-        args: &[rustc_middle::mir::Operand<'tcx>],
+        args: &[prusti_rustc_interface::middle::mir::Operand<'tcx>],
         encoded_args: &[vir_high::Expression],
         span: Span,
         substs: SubstsRef<'tcx>,
@@ -553,6 +556,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 "len" => (MapLen, Type::int(Int::Unbounded)),
                 "lookup" => (LookupMap, val_type),
                 "delete" => unimplemented!(),
+                "contains" => (MapContains, Type::bool()),
                 _ => unreachable!("no further Map functions"),
             });
         } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {
@@ -572,9 +576,62 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Int::") {
             assert!(type_arguments.is_empty());
             return match proc_name {
-                "new" => builtin((NewInt, Type::Int(vir_high::ty::Int::Unbounded))),
+                "new" => builtin((NewInt, Type::Int(Int::Unbounded))),
                 _ => unreachable!("no further int functions"),
             };
+        }
+
+        // replace all the operations on Ints
+        if let Some(
+            Type::Int(Int::Unbounded)
+            | Type::Reference(Reference {
+                target_type: box Type::Int(Int::Unbounded),
+                ..
+            }),
+        ) = encoded_args.first().map(vir_high::Expression::get_type)
+        {
+            let std = proc_name.strip_prefix("std::");
+            let core = proc_name.strip_prefix("core::");
+            let op_name = std.or(core).and_then(|name| {
+                name.strip_prefix("ops::")
+                    .or_else(|| name.strip_prefix("cmp::PartialOrd::"))
+                    .or_else(|| name.strip_prefix("cmp::PartialEq::"))
+            });
+
+            if let Some(op_name) = op_name {
+                use vir_high::BinaryOpKind::*;
+                let ops = [
+                    ("Add::add", Add),
+                    ("Sub::sub", Sub),
+                    ("Mul::mul", Mul),
+                    ("Div::div", Div),
+                    ("Rem::rem", Mod),
+                    ("lt", LtCmp),
+                    ("le", LeCmp),
+                    ("gt", GtCmp),
+                    ("ge", GeCmp),
+                    ("eq", EqCmp),
+                    ("ne", NeCmp),
+                ];
+
+                // replace binary ops
+                for (fun, op_kind) in ops {
+                    if op_name == fun {
+                        return subst_with(vir_high::Expression::binary_op_no_pos(
+                            op_kind,
+                            encoded_args[0].clone(),
+                            encoded_args[1].clone(),
+                        ));
+                    }
+                }
+
+                // replace negation
+                if op_name == "Neg::neg" {
+                    return subst_with(vir_high::Expression::minus(encoded_args[0].clone()));
+                }
+
+                unreachable!("Didn't expect function {:?} on Int.", proc_name);
+            }
         }
 
         match proc_name {
@@ -626,15 +683,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             | "std::ops::Index::index"
             | "core::ops::Index::index" => {
                 assert_eq!(encoded_args.len(), 2);
-                self.encode_call_index(
-                    *target_block,
-                    states.clone(),
-                    encoded_lhs,
-                    encoded_args[0].clone(),
-                    encoded_args[1].clone(),
-                    span,
-                )
-                .map(Some)
+                match encoded_args[0].get_type() {
+                    Type::Reference(Reference {
+                        target_type: box Type::Map(_),
+                        ..
+                    }) => {
+                        let ref_type = encoded_lhs.get_type().clone();
+                        builtin((LookupMap, ref_type))
+                    }
+                    Type::Reference(Reference {
+                        target_type: box Type::Sequence(_),
+                        ..
+                    }) => {
+                        let ref_type = encoded_lhs.get_type().clone();
+                        builtin((LookupSeq, ref_type))
+                    }
+                    _ => self
+                        .encode_call_index(
+                            *target_block,
+                            states.clone(),
+                            encoded_lhs,
+                            encoded_args[0].clone(),
+                            encoded_args[1].clone(),
+                            span,
+                        )
+                        .map(Some),
+                }
             }
 
             // Prusti-specific syntax
@@ -774,7 +848,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         terminator: &mir::Terminator<'tcx>,
         states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
-        use rustc_middle::mir::TerminatorKind;
+        use prusti_rustc_interface::middle::mir::TerminatorKind;
         let span = terminator.source_info.span;
         let state = match &terminator.kind {
             TerminatorKind::Unreachable => {
@@ -845,9 +919,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             TerminatorKind::Call {
                 args,
                 destination,
+                target,
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 ..
-            } => self.apply_call_terminator(args, destination, literal.ty(), states, span)?,
+            } => {
+                self.apply_call_terminator(args, *destination, target, literal.ty(), states, span)?
+            }
 
             TerminatorKind::Call { .. } => {
                 return Err(SpannedEncodingError::unsupported(

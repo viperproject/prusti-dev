@@ -25,7 +25,7 @@ use viper::{self, PersistentCache, Viper};
 use prusti_interface::specs::typed;
 use ::log::{info, debug, error};
 use prusti_server::{VerificationRequest, PrustiClient, process_verification_request, spawn_server_thread};
-use rustc_span::DUMMY_SP;
+use prusti_rustc_interface::span::DUMMY_SP;
 use prusti_server::tokio::runtime::Builder;
 
 // /// A verifier builder is an object that lives entire program's

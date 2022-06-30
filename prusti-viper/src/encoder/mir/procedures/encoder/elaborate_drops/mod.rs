@@ -14,8 +14,7 @@ use prusti_interface::environment::{
     },
     Procedure,
 };
-use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
+use prusti_rustc_interface::{hir::def_id::DefId, middle::mir};
 
 mod mir_dataflow;
 pub(super) mod mir_transform;

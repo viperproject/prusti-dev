@@ -95,6 +95,33 @@ impl Type {
             Vec::new()
         }
     }
+    pub fn contains_type_variables(&self) -> bool {
+        match self {
+            Self::Sequence(Sequence { element_type })
+            | Self::Array(Array { element_type, .. })
+            | Self::Slice(Slice { element_type }) => element_type.is_type_var(),
+            Self::Reference(Reference { target_type, .. })
+            | Self::Pointer(Pointer { target_type, .. }) => target_type.is_type_var(),
+            Self::Map(ty) => ty.key_type.is_type_var() || ty.val_type.is_type_var(),
+            Self::TypeVar(_) => true,
+            Self::Tuple(Tuple { arguments })
+            | Self::Struct(Struct { arguments, .. })
+            | Self::Enum(Enum { arguments, .. })
+            | Self::Union(Union { arguments, .. })
+            | Self::Projection(Projection { arguments, .. }) => {
+                arguments.iter().any(|arg| arg.is_type_var())
+            }
+            Self::Closure(_) => {
+                unimplemented!();
+            }
+            Self::FunctionDef(_) => {
+                unimplemented!();
+            }
+            Self::Unsupported(_) => true,
+            Self::Trusted(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl AsRef<str> for VariantIndex {

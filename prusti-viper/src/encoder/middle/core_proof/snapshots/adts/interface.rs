@@ -72,10 +72,13 @@ pub(in super::super::super) trait SnapshotAdtsInterface {
         domain_name: &str,
         parameters: Vec<vir_low::VariableDecl>,
     ) -> SpannedEncodingResult<()>;
+    /// If `use_main_constructor_destructors` is `true`, then uses destructors
+    /// with `variant_name == ""`.
     fn register_alternative_constructor(
         &mut self,
         domain_name: &str,
         variant_name: &str,
+        use_main_constructor_destructors: bool,
         parameters: Vec<vir_low::VariableDecl>,
     ) -> SpannedEncodingResult<()>;
     fn register_enum_variant_constructor(
@@ -171,11 +174,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotAdtsInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         domain_name: &str,
         variant_name: &str,
+        use_main_constructor_destructors: bool,
         parameters: Vec<vir_low::VariableDecl>,
     ) -> SpannedEncodingResult<()> {
         self.adt_register_variant_constructor(
             domain_name,
             variant_name,
+            use_main_constructor_destructors,
             parameters,
             false,
             None::<fn(&_, &_) -> SpannedEncodingResult<(vir_low::Expression, vir_low::Expression)>>,
@@ -207,6 +212,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotAdtsInterface for Lowerer<'p, 'v, 'tcx> {
         self.adt_register_variant_constructor(
             domain_name,
             variant_name,
+            false,
             vars! { value: {parameter_type}},
             true,
             Some(valid_call_with_discriminant),

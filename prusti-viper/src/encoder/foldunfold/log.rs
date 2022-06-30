@@ -83,7 +83,9 @@ impl EventLog {
         let mut dropped_permissions = Vec::new();
         for curr_block_index in relevant_path {
             if let Some(actions) = self.prejoin_actions.get(curr_block_index) {
-                for action in actions.read().unwrap().iter() {
+                let actions_read = actions.read().unwrap();
+                let actions_iter = actions_read.iter();
+                for action in actions_iter {
                     if let Action::Drop(perm, missing_perm) = action {
                         if dag.in_borrowed_places(missing_perm.get_place()) {
                             dropped_permissions.push(perm.clone());
