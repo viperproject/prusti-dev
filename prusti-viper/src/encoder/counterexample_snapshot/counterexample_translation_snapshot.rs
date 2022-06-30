@@ -1,5 +1,5 @@
 use rustc_hash::{FxHashMap};
-use rustc_span::source_map::Spanned;
+use prusti_rustc_interface::span::source_map::Spanned;
 use super::{VarMappingInterface, VarMapping};
 //use super::DiscriminantsStateInterface;
 use crate::encoder::errors::PositionManager;
@@ -16,18 +16,13 @@ use crate::encoder::Encoder;
 use crate::encoder::places::{Local, LocalVariableManager};
 use super::counterexample_snapshot2::*;
 
-use rustc_middle::mir::{self, VarDebugInfo};
-use rustc_errors::MultiSpan;
-use rustc_middle::ty::{self, Ty, TyCtxt};
+use prusti_rustc_interface::middle::mir::{self, VarDebugInfo};
+use prusti_rustc_interface::errors::MultiSpan;
+use prusti_rustc_interface::middle::ty::{self, Ty, TyCtxt};
 use std::iter;
-use rustc_hir::def_id::LocalDefId;
-use rustc_hir::ExprKind;
-use rustc_hir::StmtKind;
-use rustc_hir::Expr;
-use rustc_hir::Block;
-use rustc_ast::LitKind;
-use rustc_hir::QPath;
-use rustc_hir::Path;
+use prusti_rustc_interface::hir::def_id::LocalDefId;
+use prusti_rustc_interface::hir::{ExprKind, StmtKind, Expr, Block, QPath, Path};
+use prusti_rustc_interface::ast::LitKind;
 use prusti_common::config;
 
 

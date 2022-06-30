@@ -14,9 +14,6 @@ use crate::{
     verification_result::{VerificationError, VerificationResult},
 };
 use jni::{objects::JObject, JNIEnv};
-use jni_utils::JniUtils;
-//use silicon_counterexample_snapshot::SiliconCounterexample;
-use silicon_counterexample::SiliconCounterexample;
 use log::{debug, error, info};
 use std::path::PathBuf;
 use viper_sys::wrappers::{scala, viper::*};

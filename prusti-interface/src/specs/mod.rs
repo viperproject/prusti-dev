@@ -3,6 +3,7 @@ use prusti_rustc_interface::errors::MultiSpan;
 use prusti_rustc_interface::hir::intravisit;
 use prusti_rustc_interface::middle::{hir::map::Map, ty::TyCtxt};
 use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::hir::FnRetTy;
 
 use crate::{
     environment::Environment,
@@ -481,10 +482,10 @@ fn get_type_id_from_impl_node(node: prusti_rustc_interface::hir::Node) -> Option
     None
 }
 
-fn get_type_id_from_ty_node(node: rustc_hir::Node) -> Option<DefId> {
-    if let rustc_hir::Node::Ty(ty) = node {
-        if let rustc_hir::TyKind::Path(rustc_hir::QPath::Resolved(_, path)) = ty.kind{
-            if let rustc_hir::def::Res::Def(_, def_id) = path.res {
+fn get_type_id_from_ty_node(node: prusti_rustc_interface::hir::Node) -> Option<DefId> {
+    if let prusti_rustc_interface::hir::Node::Ty(ty) = node {
+        if let prusti_rustc_interface::hir::TyKind::Path(prusti_rustc_interface::hir::QPath::Resolved(_, path)) = ty.kind{
+            if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = path.res {
                 return Some(def_id);
             }
         }

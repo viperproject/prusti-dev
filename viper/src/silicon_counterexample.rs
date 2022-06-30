@@ -5,6 +5,7 @@ use rustc_hash::FxHashMap;
 use crate::jni_utils::JniUtils;
 use jni::{objects::JObject, JNIEnv};
 use viper_sys::wrappers::{scala, viper::silicon};
+use log::{debug};
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct SiliconCounterexample {
@@ -78,23 +79,23 @@ pub enum ModelEntry {
     UnprocessedModel, // do not use these at all
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Functions{
     pub entries: FxHashMap<String, FunctionEntry>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct FunctionEntry{
     pub options: Vec<(Vec<Option<ModelEntry>>,Option<ModelEntry>)>,
     pub default: Option<ModelEntry>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Domains{
     pub entries: FxHashMap<String, DomainEntry>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct DomainEntry{
     pub functions: Functions,
 }

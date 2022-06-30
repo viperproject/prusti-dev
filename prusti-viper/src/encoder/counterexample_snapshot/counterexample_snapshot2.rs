@@ -1,5 +1,5 @@
 use std::fmt;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::errors::MultiSpan;
 use prusti_interface::PrustiError;
 use log::{info};
 
