@@ -1,18 +1,11 @@
-use syn::{punctuated::Punctuated, parse::Parser, Expr, Token, Pat, PatLit, ExprLit, Lit, Fields, parse_quote_spanned, Variant, Ident, Generics};
+use syn::{punctuated::Punctuated, parse::Parser, Expr, Token, Pat, PatLit, ExprLit, Lit, Fields, parse_quote_spanned, Ident, Generics};
 use log::{error};
-use proc_macro2::{Span, TokenStream, TokenTree, Punct};
+use proc_macro2::{Span, TokenStream};
 use quote::{quote_spanned, ToTokens};
 use super::rewriter::AstRewriter;
-use std::convert::TryInto;
-use syn::spanned::Spanned;
 use itertools::Itertools;
-
-use crate::{
-    common::{merge_generics, RewritableReceiver, SelfTypeRewriter},
-    predicate::{is_predicate_macro, ParsedPredicate},
-    specifications::preparser::{parse_ghost_constraint, parse_prusti, NestedSpec}, type_model,
-};
-
+use crate::type_model;
+use syn::spanned::Spanned;
 
 
 pub fn rewrite_struct(attrs: TokenStream, item_struct: syn::ItemStruct) -> syn::Result<TokenStream> {
@@ -184,7 +177,6 @@ fn rewrite_internal_enum(attr: TokenStream, item_enum: syn::ItemEnum) -> TypeCou
         return Err(TypeCounterexampleError::WrongNumberOfArguemnts(item_span));
     }
     let mut spec_items:Vec<syn::ItemFn> = vec![]; 
-    let callsite_span = Span::call_site();
     let enum_name = item_enum.ident.clone();
     let mut rewriter = AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
@@ -212,7 +204,7 @@ fn rewrite_internal_enum(attr: TokenStream, item_enum: syn::ItemEnum) -> TypeCou
             error!("print length: {:?}", len);
             let (first_arg, args) = process_attr(&attrs, len)?;
                 match &variant.fields{
-                    Fields::Named(fields_named) => {
+                    Fields::Named(_) => {
                         let mut args2: Punctuated<Pat, Token![,]> = attrs.into_iter().skip(1).unique().collect::<Punctuated<Pat, Token![,]>>();
                         if !args2.empty_or_trailing(){
                             args2.push_punct(<syn::Token![,]>::default());

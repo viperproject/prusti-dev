@@ -21,7 +21,6 @@ use crate::{
         UserAnnotatedTypeParam, UserAnnotatedTypeParamParser, UserAnnotatedTypeParamParserError,
     }, print_counterexample,
 };
-use log::error;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use syn::{parse_quote, punctuated::Punctuated, spanned::Spanned, Pat, Token};
