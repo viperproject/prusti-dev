@@ -14,6 +14,8 @@ pub struct SmtManager {
     quantifier_instantiations_bound_global_kind: Option<u64>,
     quantifier_instantiations_bound_trace: Option<u64>,
     quantifier_instantiations_bound_trace_kind: Option<u64>,
+    unique_triggers_bound: Option<u64>,
+    unique_triggers_bound_total: Option<u64>,
 }
 
 struct Connection {
@@ -23,6 +25,7 @@ struct Connection {
 }
 
 impl SmtManager {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         log_path: PathBuf,
         preserve_trace_files: bool,
@@ -31,6 +34,8 @@ impl SmtManager {
         quantifier_instantiations_bound_global_kind: Option<u64>,
         quantifier_instantiations_bound_trace: Option<u64>,
         quantifier_instantiations_bound_trace_kind: Option<u64>,
+        unique_triggers_bound: Option<u64>,
+        unique_triggers_bound_total: Option<u64>,
     ) -> Self {
         let log_path = std::fs::canonicalize(log_path).unwrap();
         let (termination_sender, termination_receiver) = oneshot::channel();
@@ -92,6 +97,8 @@ impl SmtManager {
             quantifier_instantiations_bound_global_kind,
             quantifier_instantiations_bound_trace,
             quantifier_instantiations_bound_trace_kind,
+            unique_triggers_bound,
+            unique_triggers_bound_total,
         }
     }
 
@@ -118,8 +125,11 @@ impl SmtManager {
                         .quantifier_instantiations_bound_trace,
                     quantifier_instantiations_bound_trace_kind: self
                         .quantifier_instantiations_bound_trace_kind,
+                    unique_triggers_bound: self.unique_triggers_bound,
+                    unique_triggers_bound_total: self.unique_triggers_bound_total,
                     check_active_scopes_count: expected_scopes_count,
                     pop_scopes_by_one: false,
+                    trace_quantifier_triggers: None,
                 };
                 smt_log_analyzer::analyze(&trace_file, settings).unwrap();
                 if !self.preserve_trace_files {

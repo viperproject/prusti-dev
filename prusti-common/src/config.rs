@@ -134,6 +134,8 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_global_kind", None).unwrap();
         settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace", None).unwrap();
         settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace_kind", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_unique_triggers_bound", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_unique_triggers_bound_total", None).unwrap();
 
         // Flags for debugging performance.
         settings.set_default("preserve_smt_trace_files", false).unwrap();
@@ -695,6 +697,16 @@ pub fn smt_quantifier_instantiations_bound_trace() -> Option<u64> {
 /// regressions and matching loops.
 pub fn smt_quantifier_instantiations_bound_trace_kind() -> Option<u64> {
     read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_trace_kind")
+}
+
+/// Limit how many unique triggers per quantifier Z3 can instantiate.
+pub fn smt_unique_triggers_bound() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_unique_triggers_bound")
+}
+
+/// Limit how many unique triggers in total Z3 can instantiate.
+pub fn smt_unique_triggers_bound_total() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_unique_triggers_bound_total")
 }
 
 /// Preserve the Z3 trace files. Since the files can be huge, they are by
