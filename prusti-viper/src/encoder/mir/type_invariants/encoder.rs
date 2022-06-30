@@ -11,8 +11,10 @@ use crate::encoder::{
 };
 use prusti_common::{vir_expr, vir_local};
 use prusti_interface::specs::typed;
-use rustc_middle::ty::{self, layout::IntegerExt};
-use rustc_target::abi::Integer;
+use prusti_rustc_interface::{
+    middle::ty::{self, layout::IntegerExt},
+    target::abi::Integer,
+};
 use vir_crate::polymorphic::{self as vir, ExprIterator};
 
 pub(super) fn needs_invariant_func(ty: ty::Ty<'_>) -> bool {
@@ -144,7 +146,9 @@ pub(super) fn encode_invariant_def<'p, 'v: 'p, 'tcx: 'v>(
                     let discriminant_raw = adt_def
                         .discriminant_for_variant(
                             tcx,
-                            rustc_target::abi::VariantIdx::from_usize(variant_idx),
+                            prusti_rustc_interface::target::abi::VariantIdx::from_usize(
+                                variant_idx,
+                            ),
                         )
                         .val;
                     let size = ty::tls::with(|tcx| {

@@ -5,9 +5,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{abstract_interpretation::AbstractState, mir_utils::*, AnalysisError};
-use rustc_data_structures::fx::FxHashSet;
-use rustc_middle::{mir, ty::TyCtxt};
-use rustc_span::def_id::DefId;
+use prusti_rustc_interface::{
+    data_structures::fx::FxHashSet,
+    middle::{mir, ty::TyCtxt},
+    span::def_id::DefId,
+};
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use std::{collections::BTreeSet, fmt, mem};
 
@@ -257,7 +259,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 // get the same state
                 new_state.apply_operand_effect(discr, move_out_copy_types);
 
-                for &bb in terminator.successors() {
+                for bb in terminator.successors() {
                     res_vec.push((bb, new_state.clone()));
                 }
             }
@@ -294,6 +296,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                 ref func,
                 ref args,
                 destination,
+                target,
                 cleanup,
                 ..
             } => {
@@ -301,8 +304,8 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
                     new_state.apply_operand_effect(arg, move_out_copy_types);
                 }
                 new_state.apply_operand_effect(func, move_out_copy_types);
-                if let Some((place, bb)) = destination {
-                    new_state.set_place_initialised(place);
+                if let Some(bb) = target {
+                    new_state.set_place_initialised(destination);
                     res_vec.push((bb, new_state));
                 }
 
@@ -345,7 +348,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyInitializedState<'mir, 'tcx> {
             }
 
             _ => {
-                for &bb in terminator.successors() {
+                for bb in terminator.successors() {
                     // no operation -> no change of state
                     res_vec.push((bb, self.clone()));
                 }

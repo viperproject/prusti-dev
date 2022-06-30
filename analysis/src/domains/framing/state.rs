@@ -8,7 +8,7 @@ use crate::{
     domains::DefinitelyAccessibleState,
     mir_utils::{is_prefix, Place},
 };
-use rustc_data_structures::fx::FxHashSet;
+use prusti_rustc_interface::data_structures::fx::FxHashSet;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::fmt;
 

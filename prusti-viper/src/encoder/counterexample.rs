@@ -1,5 +1,5 @@
 use std::fmt;
-use rustc_span::Span;
+use prusti_rustc_interface::span::Span;
 use prusti_interface::PrustiError;
 
 /// Counterexample information for a single variable.

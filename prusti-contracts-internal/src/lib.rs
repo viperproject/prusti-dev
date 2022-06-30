@@ -1,5 +1,3 @@
-extern crate proc_macro;
-
 use proc_macro::TokenStream;
 use prusti_specs::{rewrite_prusti_attributes, SpecAttributeKind};
 

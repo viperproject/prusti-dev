@@ -10,13 +10,15 @@ use crate::{
     mir_utils::{get_blocked_place, remove_place_from_set},
     PointwiseState,
 };
-use rustc_borrowck::BodyWithBorrowckFacts;
-use rustc_middle::{
-    mir,
-    mir::visit::{NonMutatingUseContext, PlaceContext, Visitor},
-    ty::TyCtxt,
+use prusti_rustc_interface::{
+    borrowck::BodyWithBorrowckFacts,
+    middle::{
+        mir,
+        mir::visit::{NonMutatingUseContext, PlaceContext, Visitor},
+        ty::TyCtxt,
+    },
+    span::def_id::DefId,
 };
-use rustc_span::def_id::DefId;
 
 pub struct FramingAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,

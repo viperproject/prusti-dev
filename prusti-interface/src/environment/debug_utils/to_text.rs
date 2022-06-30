@@ -28,19 +28,19 @@ impl ToText for String {
     }
 }
 
-impl ToText for rustc_middle::mir::Local {
+impl ToText for prusti_rustc_interface::middle::mir::Local {
     fn to_text(&self) -> String {
         format!("{:?}", self)
     }
 }
 
-impl ToText for rustc_middle::ty::RegionVid {
+impl ToText for prusti_rustc_interface::middle::ty::RegionVid {
     fn to_text(&self) -> String {
         format!("lft_{}", self.index())
     }
 }
 
-impl ToText for Vec<rustc_middle::ty::RegionVid> {
+impl ToText for Vec<prusti_rustc_interface::middle::ty::RegionVid> {
     fn to_text(&self) -> String {
         let mut strings: Vec<_> = self.iter().map(ToText::to_text).collect();
         strings.sort();
@@ -48,7 +48,12 @@ impl ToText for Vec<rustc_middle::ty::RegionVid> {
     }
 }
 
-impl ToText for Vec<(rustc_middle::ty::RegionVid, rustc_middle::ty::RegionVid)> {
+impl ToText
+    for Vec<(
+        prusti_rustc_interface::middle::ty::RegionVid,
+        prusti_rustc_interface::middle::ty::RegionVid,
+    )>
+{
     fn to_text(&self) -> String {
         let mut strings: Vec<_> = self
             .iter()
@@ -59,14 +64,19 @@ impl ToText for Vec<(rustc_middle::ty::RegionVid, rustc_middle::ty::RegionVid)> 
     }
 }
 
-impl ToText for BTreeSet<rustc_middle::ty::RegionVid> {
+impl ToText for BTreeSet<prusti_rustc_interface::middle::ty::RegionVid> {
     fn to_text(&self) -> String {
         let strings: Vec<_> = self.iter().map(|r| r.to_text()).collect();
         strings.join(" ∪ ")
     }
 }
 
-impl ToText for BTreeMap<rustc_middle::ty::RegionVid, BTreeSet<rustc_middle::ty::RegionVid>> {
+impl ToText
+    for BTreeMap<
+        prusti_rustc_interface::middle::ty::RegionVid,
+        BTreeSet<prusti_rustc_interface::middle::ty::RegionVid>,
+    >
+{
     fn to_text(&self) -> String {
         let strings: Vec<_> = self
             .iter()
@@ -105,7 +115,7 @@ pub(in super::super) fn loan_set_to_text(
 
 pub fn loan_containment_to_text(
     loans: &BTreeMap<
-        rustc_middle::ty::RegionVid,
+        prusti_rustc_interface::middle::ty::RegionVid,
         BTreeSet<crate::environment::borrowck::facts::Loan>,
     >,
 ) -> String {
@@ -116,57 +126,59 @@ pub fn loan_containment_to_text(
     strings.join(", ")
 }
 
-impl ToText for rustc_middle::mir::BasicBlock {
+impl ToText for prusti_rustc_interface::middle::mir::BasicBlock {
     fn to_text(&self) -> String {
         format!("{:?}", self)
     }
 }
 
-impl ToText for rustc_middle::mir::Location {
+impl ToText for prusti_rustc_interface::middle::mir::Location {
     fn to_text(&self) -> String {
         format!("{:?}", self)
     }
 }
 
-impl<'tcx> ToText for rustc_middle::mir::Statement<'tcx> {
+impl<'tcx> ToText for prusti_rustc_interface::middle::mir::Statement<'tcx> {
     fn to_text(&self) -> String {
         escape_html(format!("{:?}", self))
     }
 }
 
-impl<'tcx> ToText for rustc_middle::mir::Terminator<'tcx> {
+impl<'tcx> ToText for prusti_rustc_interface::middle::mir::Terminator<'tcx> {
     fn to_text(&self) -> String {
         escape_html(format!("{:?}", self.kind))
     }
 }
 
-impl<'tcx> ToText for rustc_middle::ty::Ty<'tcx> {
+impl<'tcx> ToText for prusti_rustc_interface::middle::ty::Ty<'tcx> {
     fn to_text(&self) -> String {
         escape_html(format!("{:?}", self))
     }
 }
 
-impl<'tcx> ToText for rustc_middle::ty::Region<'tcx> {
+impl<'tcx> ToText for prusti_rustc_interface::middle::ty::Region<'tcx> {
     fn to_text(&self) -> String {
         match self.kind() {
-            rustc_middle::ty::ReEarlyBound(reg) => {
+            prusti_rustc_interface::middle::ty::ReEarlyBound(reg) => {
                 format!("lft_early_bound_{}", reg.index)
             }
-            rustc_middle::ty::ReLateBound(debruijn, bound_reg) => {
+            prusti_rustc_interface::middle::ty::ReLateBound(debruijn, bound_reg) => {
                 format!("lft_late_{}_{}", debruijn.index(), bound_reg.var.index())
             }
-            rustc_middle::ty::ReFree(_) => {
+            prusti_rustc_interface::middle::ty::ReFree(_) => {
                 unimplemented!("ReFree: {}", format!("{}", self));
             }
-            rustc_middle::ty::ReStatic => String::from("lft_static"),
-            rustc_middle::ty::ReVar(region_vid) => format!("lft_{}", region_vid.index()),
-            rustc_middle::ty::RePlaceholder(_) => {
+            prusti_rustc_interface::middle::ty::ReStatic => String::from("lft_static"),
+            prusti_rustc_interface::middle::ty::ReVar(region_vid) => {
+                format!("lft_{}", region_vid.index())
+            }
+            prusti_rustc_interface::middle::ty::RePlaceholder(_) => {
                 unimplemented!("RePlaceholder: {}", format!("{}", self));
             }
-            rustc_middle::ty::ReEmpty(_) => {
+            prusti_rustc_interface::middle::ty::ReEmpty(_) => {
                 unimplemented!("ReEmpty: {}", format!("{}", self));
             }
-            rustc_middle::ty::ReErased => String::from("lft_erased"),
+            prusti_rustc_interface::middle::ty::ReErased => String::from("lft_erased"),
         }
     }
 }

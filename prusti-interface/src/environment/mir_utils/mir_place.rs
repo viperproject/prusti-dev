@@ -1,4 +1,4 @@
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct MirPlace<'tcx> {

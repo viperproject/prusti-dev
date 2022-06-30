@@ -9,6 +9,7 @@ use crate::vir::polymorphic_vir::{
     cfg::CfgMethod,
     utils::{walk_functions, walk_methods},
 };
+use log::debug;
 use std::collections::{HashMap, HashSet};
 
 fn collect_info_from_methods_and_functions(

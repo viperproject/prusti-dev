@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::mir_utils::Place;
-use rustc_data_structures::fx::FxHashSet;
+use prusti_rustc_interface::data_structures::fx::FxHashSet;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
 #[derive(Clone, Default, Eq, PartialEq)]

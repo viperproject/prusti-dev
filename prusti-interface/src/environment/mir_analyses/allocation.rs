@@ -21,8 +21,7 @@ use analysis::{
     domains::DefinitelyAllocatedAnalysis,
 };
 use prusti_common::Stopwatch;
-use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
+use prusti_rustc_interface::{hir::def_id::DefId, middle::mir};
 
 /// The result of the definitely allocated analysis.
 pub type DefinitelyAllocatedAnalysisResult = AnalysisResult<LocalSet>;

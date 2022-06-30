@@ -7,6 +7,7 @@
 //! Inliner of pure functions.
 
 use crate::vir::polymorphic_vir::{ast, cfg};
+use log::trace;
 use std::{collections::HashMap, mem};
 
 /// Convert functions whose body does not depend on arguments such as

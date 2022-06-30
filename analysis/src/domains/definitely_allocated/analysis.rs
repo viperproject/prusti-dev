@@ -8,9 +8,7 @@ use crate::{
     abstract_interpretation::{AnalysisResult, FixpointEngine},
     domains::DefinitelyAllocatedState,
 };
-use rustc_data_structures::fx::FxHashSet;
-use rustc_middle::mir;
-use rustc_span::def_id::DefId;
+use prusti_rustc_interface::{data_structures::fx::FxHashSet, middle::mir, span::def_id::DefId};
 
 pub struct DefinitelyAllocatedAnalysis<'mir, 'tcx: 'mir> {
     def_id: DefId,

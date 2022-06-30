@@ -9,12 +9,10 @@ use prusti_interface::data::ProcedureDefId;
 use crate::encoder::Encoder;
 use crate::encoder::places::{Local, LocalVariableManager};
 use crate::encoder::counterexample::*;
-
-use rustc_middle::mir::{self, VarDebugInfo};
-use rustc_middle::ty::{self, Ty, TyCtxt};
+use prusti_rustc_interface::middle::mir::{self, VarDebugInfo};
+use prusti_rustc_interface::middle::ty::{self, Ty, TyCtxt};
+use prusti_rustc_interface::span::Span;
 use std::iter;
-use rustc_span::Span;
-
 
 
 /*

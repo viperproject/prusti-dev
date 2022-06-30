@@ -1,8 +1,10 @@
 use crate::encoder::{errors::EncodingResult, mir::types::MirTypeEncoderInterface};
 
-use rustc_hir::def_id::DefId;
-use rustc_middle::ty::{self, subst::SubstsRef};
-use rustc_span::symbol::Symbol;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::ty::{self, subst::SubstsRef},
+    span::symbol::Symbol,
+};
 use vir_crate::high::{self as vir_high};
 
 pub(crate) trait MirGenericsEncoderInterface<'tcx> {
@@ -58,7 +60,13 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
             .collect::<Result<Vec<_>, _>>()?)
     }
     fn encode_param(&self, name: Symbol, index: u32) -> vir_high::ty::TypeVar {
-        let identifier = format!("{}${}", name.as_str(), index);
+        let sanitized_name = name
+            .as_str()
+            .replace(' ', "_")
+            .replace('>', "_gt_")
+            .replace('<', "_lt_")
+            .replace('=', "_eq_");
+        let identifier = format!("{}${}", sanitized_name, index);
         vir_high::ty::TypeVar::generic_type(identifier)
     }
 }

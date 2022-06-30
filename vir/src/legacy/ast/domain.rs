@@ -7,7 +7,7 @@
 use crate::{common::identifier::WithIdentifier, legacy::ast::*};
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct Domain {
     pub name: String,
     pub functions: Vec<DomainFunc>,
@@ -49,7 +49,7 @@ impl fmt::Display for Domain {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct DomainFunc {
     pub name: String,
     pub formal_args: Vec<LocalVar>,
@@ -89,7 +89,7 @@ impl WithIdentifier for DomainFunc {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct DomainAxiom {
     pub name: String,
     pub expr: Expr,

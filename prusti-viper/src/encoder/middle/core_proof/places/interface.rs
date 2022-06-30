@@ -8,7 +8,7 @@ use crate::encoder::{
         type_layouts::TypeLayoutsInterface,
     },
 };
-use rustc_data_structures::stable_set::FxHashSet;
+use prusti_rustc_interface::data_structures::stable_set::FxHashSet;
 use vir_crate::{
     common::{expression::QuantifierHelpers, identifier::WithIdentifier},
     low::{self as vir_low, macros::var_decls},

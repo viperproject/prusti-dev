@@ -6,9 +6,9 @@
 
 
 
-use polonius_engine::FactTypes;
-use rustc_borrowck::consumers::{RustcFacts, LocationTable, RichLocation};
-use rustc_middle::mir;
+use prusti_rustc_interface::polonius_engine::FactTypes;
+use prusti_rustc_interface::borrowck::consumers::{RustcFacts, LocationTable, RichLocation};
+use prusti_rustc_interface::middle::mir;
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -18,8 +18,8 @@ pub type PointIndex = <RustcFacts as FactTypes>::Point;
 pub type Variable = <RustcFacts as FactTypes>::Variable;
 pub type Path = <RustcFacts as FactTypes>::Path;
 
-pub type AllInputFacts = rustc_borrowck::consumers::PoloniusInput;
-pub type AllOutputFacts = rustc_borrowck::consumers::PoloniusOutput;
+pub type AllInputFacts = prusti_rustc_interface::borrowck::consumers::PoloniusInput;
+pub type AllOutputFacts = prusti_rustc_interface::borrowck::consumers::PoloniusOutput;
 
 trait LocationTableExt {
     fn to_mir_location(self, point: PointIndex) -> mir::Location;

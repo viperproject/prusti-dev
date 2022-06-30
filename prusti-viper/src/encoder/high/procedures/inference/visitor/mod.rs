@@ -10,8 +10,8 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_common::config;
+use prusti_rustc_interface::hir::def_id::DefId;
 use rustc_hash::FxHashSet;
-use rustc_hir::def_id::DefId;
 use std::collections::{btree_map::Entry, BTreeMap};
 use vir_crate::{
     common::{display::cjoin, position::Positioned},
@@ -156,7 +156,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         }
         let successor_blocks = self.current_successors()?;
         assert!(
-            !successor_blocks.is_empty() || state.is_empty(),
+            !successor_blocks.is_empty() || state.contains_only_leakable(),
             "some predicates are leaked"
         );
         if config::dump_debug_info() {
