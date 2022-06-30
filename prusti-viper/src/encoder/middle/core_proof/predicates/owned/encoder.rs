@@ -428,6 +428,14 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 Default::default(),
             )?;
             let field_ty = &field.ty;
+            if !self
+                .unfolded_owned_non_aliased_predicates
+                .contains(field_ty)
+            {
+                // TODO: Optimization: This variant is never unfolded,
+                // encode it as abstract predicate.
+                self.encode_owned_non_aliased(field_ty)?;
+            }
             if let vir_mid::Type::Reference(_) = field_ty {
                 let lifetime =
                     vir_low::VariableDecl::new(format!("lft_field_{}", i), ty!(Lifetime));
