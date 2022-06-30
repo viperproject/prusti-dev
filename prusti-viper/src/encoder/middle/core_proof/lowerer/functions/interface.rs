@@ -5,7 +5,7 @@ use crate::encoder::{
         function_gas::FunctionGasInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{
-            IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot, SnapshotValidityInterface,
+            IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
         },
         types::TypesInterface,
     },
@@ -16,6 +16,10 @@ use vir_crate::{
     low::{self as vir_low},
     middle as vir_mid,
 };
+use log::info;
+use prusti_common::config;
+use crate::encoder::high::types::HighTypeEncoderInterface;
+
 
 #[derive(Default)]
 pub(in super::super) struct FunctionsLowererState {
@@ -59,6 +63,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             }
             use vir_low::macros::*;
             let return_type = function_decl.return_type.to_snapshot(self)?;
+            let mut model_call: vir_low::Expression = true.into();
+            let gas_amount2 = self.function_gas_constant(2)?;
+            if config::counterexample(){
+                //m_PrustiVecWrapperi32ToModel_67bf3082853847e28b9942b97fb78b1a$$model$trusted$m_VecWrapper$I32$$           
+                info!("function name: {}", function_name);
+                if function_name.contains("ToModel") {
+                    info!("to model function");
+                    let type_decl = self.encoder.get_type_decl_mid(&function_decl.return_type)?;
+                    if let vir_mid::TypeDecl::Struct(vir_mid::type_decl::Struct{name, fields}) = type_decl {
+                        
+                        let call = vir_low::Expression::domain_function_call(
+                            "Functions",
+                            function_name.clone(),
+                            parameters
+                                .iter()
+                                .map(|parameter| parameter.clone().into())
+                                .chain(std::iter::once(gas_amount2))
+                                .collect(),
+                            return_type.clone(),
+                        );
+                        for field in fields{
+                            let destructor = 
+                                self.obtain_struct_field_snapshot(&function_decl.return_type, &field, call.clone(), Default::default())?;
+                            //destructors.push(destructor.clone());
+                            let const_typ = field.ty.to_snapshot(self)?;//self.encoder.get_type_decl_mid(&field.ty)?;
+                            info!("const typ: {:?}", const_typ);
+                            
+                            let destructor_2 = 
+                            self.obtain_constant_value(&field.ty, destructor, Default::default())?;
+                            let dummy_function = format!("dummy_model${}", &const_typ);
+                            let argument: vir_low::Expression = var! { __result: {vir_low::Type::int()} }.into(); 
+                            self.create_domain_func_app(
+                                "Functions",
+                                dummy_function.clone(),
+                                vec![argument],
+                                vir_low::Type::Bool,
+                                Default::default(),
+                            )?;
+                            let model_call_2 = vir_low::Expression::domain_function_call(
+                                "Functions",
+                                dummy_function.clone(),
+                                vec![destructor_2.clone()],
+                                vir_low::Type::Bool,
+                            );
+                            model_call = model_call_2
+                        }
+                    }
+                }
+            }
             let result: vir_low::Expression = var! { __result: {return_type.clone()} }.into();
             let result_validity = self
                 .encode_snapshot_valid_call_for_type(result.clone(), &function_decl.return_type)?;
@@ -123,7 +176,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     expr! {
                         ([pres.into_iter().conjoin()] ==>
                             ([body] && [posts_expression])) &&
-                        ([call] == [call_without_gas_level])
+                        ([call] == [call_without_gas_level]) &&
+                        ([model_call])
                     },
                 );
                 let axiom = vir_low::DomainAxiomDecl {
