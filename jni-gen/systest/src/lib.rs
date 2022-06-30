@@ -1,5 +1,3 @@
-extern crate jni;
-
 #[path = "../gen/mod.rs"]
 pub mod wrappers;
 

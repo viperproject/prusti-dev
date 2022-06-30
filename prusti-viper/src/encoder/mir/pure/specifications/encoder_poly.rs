@@ -16,11 +16,13 @@ use crate::encoder::{
     Encoder,
 };
 use prusti_common::config;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::{
+    errors::MultiSpan,
+    hir::def_id::DefId,
+    middle::{ty, ty::subst::SubstsRef},
+    span::Span,
+};
 use rustc_hash::FxHashSet;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{ty, ty::subst::SubstsRef};
-use rustc_span::Span;
 use vir_crate::polymorphic::ExprIterator;
 
 // TODO: this variant (poly) should not need to exist, eventually should be

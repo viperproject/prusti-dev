@@ -172,7 +172,8 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::TypeDecl::Float(_)
             | vir_mid::TypeDecl::Reference(_)
             | vir_mid::TypeDecl::Pointer(_)
-            | vir_mid::TypeDecl::Sequence(_) => {
+            | vir_mid::TypeDecl::Sequence(_)
+            | vir_mid::TypeDecl::Map(_) => {
                 self.walk_primitive(ty, &parameters, lowerer)?;
             }
             // vir_mid::TypeDecl::TypeVar(TypeVar) => {},

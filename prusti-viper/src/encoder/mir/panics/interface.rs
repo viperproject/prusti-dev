@@ -1,6 +1,6 @@
 use crate::encoder::errors::{PanicCause, SpannedEncodingResult};
 use log::debug;
-use rustc_span::Span;
+use prusti_rustc_interface::span::Span;
 
 pub(crate) trait MirPanicsEncoderInterface<'tcx> {
     fn encode_panic_cause(&self, span: Span) -> SpannedEncodingResult<PanicCause>;

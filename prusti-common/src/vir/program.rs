@@ -1,7 +1,7 @@
 use super::low_to_viper::{ToViper, Context};
 use viper::{self, AstFactory};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Hash)]
 pub enum Program {
     Legacy(vir::legacy::Program),
     Low(vir::low::Program),

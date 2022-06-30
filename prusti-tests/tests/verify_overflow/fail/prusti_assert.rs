@@ -60,7 +60,7 @@ fn assume2() {
 }
 
 fn arg_assumption(x: i32, y: i32) {
-    prusti_assume!(x > 0 && x < 100);
+    prusti_assume!(x == 4); // Try to avoid non-linear arithmetic.
     prusti_assume!(y > -100 && y < 100);
 
     let z = x * y;

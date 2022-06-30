@@ -6,8 +6,8 @@
 
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
-use rustc_span::source_map::SourceMap;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::span::source_map::SourceMap;
+use prusti_rustc_interface::errors::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
 use log::{debug, trace};
@@ -605,6 +605,27 @@ impl<'tcx> ErrorManager<'tcx> {
             ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason)) => {
                 PrustiError::unsupported(
                     format!("an unsupported Rust feature might be reachable: {}.", reason),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:seq.index.length", ErrorCtxt::Panic(PanicCause::Assert)) => {
+                PrustiError::verification(
+                    "the sequence index may be out of bounds".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:seq.index.negative", ErrorCtxt::Panic(PanicCause::Assert)) => {
+                PrustiError::verification(
+                    "the sequence index may be negative".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:map.key.contains", _) => {
+                PrustiError::verification(
+                    "the key might not be in the map".to_string(),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }

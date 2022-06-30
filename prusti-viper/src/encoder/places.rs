@@ -4,9 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_middle::mir;
-use rustc_middle::ty::Ty;
-use rustc_index::vec::{Idx, IndexVec};
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::middle::ty::Ty;
+use prusti_rustc_interface::index::vec::{Idx, IndexVec};
 use std::{iter};
 
 /// A local variable used as an abstraction over both real Rust MIR local
@@ -96,7 +96,7 @@ impl<'tcx> LocalVariableManager<'tcx> {
 }
 
 /// This place is a generalisation of mir::Place.
-#[derive(Debug, Eq, PartialEq, Hash, Clone)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Place<'tcx> {
     /// A place that is a MIR place.
     NormalPlace(mir::Place<'tcx>),
@@ -120,7 +120,7 @@ impl<'a, 'tcx: 'a> From<&'a mir::Place<'tcx>> for Place<'tcx> {
 
 impl<'tcx> Place<'tcx> {
     pub fn is_root(&self, local: Local) -> bool {
-        // fn check_if_root(place: &mir::Place, local: Local) -> bool {
+        // fn check_if_root(place: mir::Place, local: Local) -> bool {
         //     match place {
         //         mir::Place::Local(root) => local.index() == root.index(),
         //         mir::Place::Projection(box mir::Projection { ref base, .. }) => {

@@ -4,11 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-extern crate env_logger;
-extern crate error_chain;
-extern crate jni_gen;
-extern crate tempdir;
-
 use error_chain::ChainedError;
 use jni_gen::*;
 use std::{env, fs, fs::File, io::copy, path::Path};
