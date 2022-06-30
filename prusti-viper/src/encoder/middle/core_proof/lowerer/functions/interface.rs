@@ -71,7 +71,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 if function_name.contains("ToModel") {
                     info!("to model function");
                     let type_decl = self.encoder.get_type_decl_mid(&function_decl.return_type)?;
-                    if let vir_mid::TypeDecl::Struct(vir_mid::type_decl::Struct{name, fields}) = type_decl {
+                    if let vir_mid::TypeDecl::Struct(vir_mid::type_decl::Struct{name: _, fields}) = type_decl {
                         
                         let call = vir_low::Expression::domain_function_call(
                             "Functions",

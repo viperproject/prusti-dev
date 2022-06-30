@@ -21,14 +21,12 @@ mod type_model;
 mod user_provided_type_params;
 mod print_counterexample;
 
-use syn::{punctuated::Punctuated, parse::Parser, Expr, Token, Pat, PatLit, ExprLit, Lit, token::Token, Fields};
-use log::{error};
-use proc_macro2::{Span, TokenStream, TokenTree, Punct};
+
+use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote_spanned, ToTokens};
 use rewriter::AstRewriter;
 use std::convert::TryInto;
 use syn::spanned::Spanned;
-use itertools::Itertools;
 
 use crate::{
     common::{merge_generics, RewritableReceiver, SelfTypeRewriter},
@@ -631,7 +629,6 @@ pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStre
     //TODO check for multiple print_counterexample, it should be allowed only once, should be fine
     
     let _ = env_logger::try_init();
-    let tokens_clone= tokens.clone();
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     
     match item {

@@ -9,7 +9,6 @@ use std::{
     collections::HashMap,
     fmt::{Debug, Display, Formatter},
 };
-use rustc_middle::ty::Ty;
 
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]

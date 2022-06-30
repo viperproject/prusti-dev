@@ -1,8 +1,7 @@
 use std::fmt;
 use rustc_errors::MultiSpan;
 use prusti_interface::PrustiError;
-use rustc_hir::def_id::{DefId, LocalDefId};
-use log::{debug, info};
+use log::{info};
 
 /// Counterexample information for a single variable.
 #[derive(Debug)]
