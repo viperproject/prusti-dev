@@ -326,7 +326,7 @@ pub struct Pledge {
 
 /// A specification, such as preconditions or a `#[pure]` annotation.
 /// Contains information about the refinement of these specifications.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SpecificationItem<T> {
     /// Represents an empty specification, i.e. when the user has not defined the property
     Empty,
