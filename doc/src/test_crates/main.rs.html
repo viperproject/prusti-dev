@@ -331,6 +331,8 @@
 <span id="325">325</span>
 <span id="326">326</span>
 <span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -497,12 +499,14 @@
     };
 
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Crate a new workspace...&quot;</span>);
+    <span class="comment">// `Error: Compat { error: SandboxImagePullFailed(ExecutionFailed(ExitStatus(unix_wait_status(256)))) }` if</span>
+    <span class="comment">// docker daemon isn&#39;t running</span>
     <span class="kw">let</span> <span class="ident">workspace</span> <span class="op">=</span> <span class="ident">WorkspaceBuilder::new</span>(<span class="ident">workspace_path</span>, <span class="string">&quot;prusti-test-crates&quot;</span>).<span class="ident">init</span>()<span class="question-mark">?</span>;
 
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Install the toolchain...&quot;</span>);
     <span class="kw">let</span> <span class="ident">rust_toolchain</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#83">get_rust_toolchain</a>();
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;toolchain: {}&quot;</span>, <span class="ident">rust_toolchain</span>.<span class="ident">channel</span>);
-    <span class="kw">let</span> <span class="ident">toolchain</span> <span class="op">=</span> <span class="ident">Toolchain::dist</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#170">rust_toolchain</a>.<span class="ident">channel</span>);
+    <span class="kw">let</span> <span class="ident">toolchain</span> <span class="op">=</span> <span class="ident">Toolchain::dist</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#172">rust_toolchain</a>.<span class="ident">channel</span>);
     <span class="ident">toolchain</span>.<span class="ident">install</span>(<span class="kw-2">&amp;</span><span class="ident">workspace</span>)<span class="question-mark">?</span>;
     <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">rust_toolchain</span>.<span class="ident">components</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[]).<span class="ident">iter</span>() {
         <span class="kw">if</span> <span class="ident">component</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;rustfmt&quot;</span> {
@@ -517,8 +521,8 @@
             .<span class="ident">deserialize</span>()
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CrateRecord</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">record</span><span class="op">|</span> <a class="ident" href="../../src/test_crates/main.rs.html#187">record</a>.<span class="ident">name</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#136">args</a>.<span class="ident">filter_crate_name</span>))
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">record</span><span class="op">|</span> (<span class="ident">Crate::crates_io</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#188">record</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#188">record</a>.<span class="ident">version</span>), <a class="ident" href="../../src/test_crates/main.rs.html#188">record</a>.<span class="ident">test_kind</span>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">record</span><span class="op">|</span> <a class="ident" href="../../src/test_crates/main.rs.html#189">record</a>.<span class="ident">name</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#136">args</a>.<span class="ident">filter_crate_name</span>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">record</span><span class="op">|</span> (<span class="ident">Crate::crates_io</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#190">record</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#190">record</a>.<span class="ident">version</span>), <a class="ident" href="../../src/test_crates/main.rs.html#190">record</a>.<span class="ident">test_kind</span>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
     <span class="comment">// List of crates that don&#39;t compile with the standard compiler.</span>
