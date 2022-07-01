@@ -32,8 +32,8 @@ pub fn generate_constructor(
         let constructor =
             env.get_object_array_element(constructors.into_inner(), constructor_index)?;
 
-        let constructor_signature =
-            java_str_to_string(&env.get_string(
+        let constructor_signature = java_str_to_string(
+            &env.get_string(
                 env.call_static_method(
                     "org/objectweb/asm/Type",
                     "getConstructorDescriptor",
@@ -42,7 +42,8 @@ pub fn generate_constructor(
                 )?
                 .l()?
                 .into(),
-            )?)?;
+            )?,
+        )?;
 
         indexed_constructors.insert(constructor_signature, constructor);
     }
