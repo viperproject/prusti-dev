@@ -3,8 +3,10 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
+        lifetimes::*,
         references::ReferencesInterface,
-        snapshots::{SnapshotDomainsInterface, SnapshotValuesInterface},
+        snapshots::{IntoSnapshot, SnapshotDomainsInterface, SnapshotValuesInterface},
+        types::TypesInterface,
     },
 };
 use vir_crate::{
@@ -233,6 +235,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             vir_mid::Type::MFloat64 => unimplemented!(),
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
+            vir_mid::Type::MPerm => vir_low::Type::Perm,
             _ => unimplemented!("constant: {:?}", constant),
         };
         let argument = vir_low::Expression::Constant(vir_low::expression::Constant {
@@ -246,6 +249,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 | vir_mid::Type::MInt
                 | vir_mid::Type::MFloat32
                 | vir_mid::Type::MFloat64
+                | vir_mid::Type::MPerm
         );
         if is_already_math_type || (constant.ty == vir_mid::Type::Bool && expect_math_bool) {
             Ok(argument)
@@ -312,6 +316,47 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         op: &vir_mid::BinaryOp,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        // FIXME: Binary Operations with MPerm should not be handled manually as special cases
+        //   They are difficult because binary operations with MPerm and Integer values are allowed.
+        //   Also some of them translate tot PermBinaryOp.
+        if let box vir_mid::Expression::Local(local) = &op.left {
+            if let box vir_mid::Expression::Constant(constant) = &op.right {
+                if let vir_mid::Type::MPerm = local.get_type() {
+                    if let vir_mid::Type::MPerm = constant.get_type() {
+                        if op.op_kind == vir_mid::BinaryOpKind::Div {
+                            let left_snapshot =
+                                self.expression_to_snapshot(lowerer, &op.left, false)?;
+                            let value =
+                                self.constant_value_to_snapshot(lowerer, &constant.value)?;
+                            let right_snapshot =
+                                vir_low::Expression::constant_no_pos(value, vir_low::ty::Type::Int);
+                            return Ok(vir_low::Expression::perm_binary_op(
+                                vir_low::ast::expression::PermBinaryOpKind::Div,
+                                left_snapshot,
+                                right_snapshot,
+                                op.position,
+                            ));
+                        } else if op.op_kind == vir_mid::BinaryOpKind::GtCmp
+                            || op.op_kind == vir_mid::BinaryOpKind::LtCmp
+                        {
+                            let left_snapshot =
+                                self.expression_to_snapshot(lowerer, &op.left, false)?;
+                            let right_snapshot =
+                                self.expression_to_snapshot(lowerer, &op.right, false)?;
+                            let arg_type = op.left.get_type();
+                            assert_eq!(arg_type, op.right.get_type());
+                            return Ok(vir_low::Expression::binary_op(
+                                op.op_kind.to_snapshot(lowerer)?,
+                                left_snapshot,
+                                right_snapshot,
+                                op.position,
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+
         let expect_math_bool_args = expect_math_bool
             && matches!(
                 op.op_kind,
@@ -411,13 +456,26 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             .collect::<Result<Vec<_>, _>>()?;
         let mut args =
             self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
+        if !app.arguments.is_empty() {
+            let first_arg_type = app.arguments[0].get_type();
+            if first_arg_type.is_reference() {
+                // The first argument is a reference, dereference it.
+                args[0] = lowerer.reference_target_current_snapshot(
+                    first_arg_type,
+                    args[0].clone(),
+                    app.position,
+                )?;
+            }
+        }
+        lowerer.ensure_type_definition(&app.return_type)?;
 
         let map = |low_kind| {
             let map_ty = vir_low::Type::map(ty_args[0].clone(), ty_args[1].clone());
+            let args = args.clone();
             Ok(vir_low::Expression::map_op(
                 map_ty,
                 low_kind,
-                args.clone(),
+                args,
                 app.position,
             ))
         };
@@ -426,16 +484,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             Ok(vir_low::Expression::container_op(
                 low_kind,
                 args[0].clone(),
-                if args.len() > 1 {
-                    args[1].clone()
-                } else {
-                    // this is only necessary because containerop takes two arguments any time, but length only has one argument
-                    // constructing a dummy value
-                    vir_low::Expression::constant_no_pos(
-                        vir_low::expression::ConstantValue::Bool(false),
-                        vir_low::ty::Type::Bool,
-                    )
-                },
+                args.get(1).cloned().unwrap_or_else(|| false.into()),
                 app.position,
             ))
         };
@@ -443,19 +492,88 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         match app.function {
             BuiltinFunc::EmptyMap => map(MapOpKind::Empty),
             BuiltinFunc::UpdateMap => map(MapOpKind::Update),
-            BuiltinFunc::LookupMap => map(MapOpKind::Lookup),
+            BuiltinFunc::LookupMap => {
+                let value = map(MapOpKind::Lookup)?;
+                if app.return_type.is_reference() {
+                    lowerer.shared_non_alloc_reference_snapshot_constructor(
+                        &app.return_type,
+                        value,
+                        app.position,
+                    )
+                } else {
+                    Ok(value)
+                }
+            }
             BuiltinFunc::MapLen => {
                 let value = map(MapOpKind::Len)?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
-            BuiltinFunc::LookupSeq => seq(ContainerOpKind::SeqIndex),
+            BuiltinFunc::MapContains => {
+                let m = map(MapOpKind::Contains)?;
+                let m = lowerer.construct_constant_snapshot(app.get_type(), m, app.position)?;
+                self.ensure_bool_expression(lowerer, app.get_type(), m, expect_math_bool)
+            }
+            BuiltinFunc::LookupSeq => {
+                use vir_low::operations::ty::Typed;
+                assert!(
+                    args[0].get_type().is_seq(),
+                    "Expected Sequence type, got {:?}",
+                    args[0].get_type()
+                );
+                let value = vir_low::Expression::container_op(
+                    ContainerOpKind::SeqIndex,
+                    args[0].clone(),
+                    lowerer.obtain_constant_value(
+                        app.arguments[1].get_type(),
+                        args[1].clone(),
+                        args[1].position(),
+                    )?,
+                    app.position,
+                );
+                if app.return_type.is_reference() {
+                    lowerer.shared_non_alloc_reference_snapshot_constructor(
+                        &app.return_type,
+                        value,
+                        app.position,
+                    )
+                } else {
+                    Ok(value)
+                }
+            }
             BuiltinFunc::ConcatSeq => seq(ContainerOpKind::SeqConcat),
             BuiltinFunc::SeqLen => {
                 let value = seq(ContainerOpKind::SeqLen)?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
+            BuiltinFunc::LifetimeIncluded => {
+                assert_eq!(args.len(), 2);
+                lowerer.encode_lifetime_included()?;
+                Ok(vir_low::Expression::domain_function_call(
+                    "Lifetime",
+                    "included",
+                    args,
+                    vir_low::ty::Type::Bool,
+                ))
+            }
+            BuiltinFunc::LifetimeIntersect => {
+                assert!(!args.is_empty());
+                let intersect_expr = if args.len() >= 2 {
+                    lowerer.encode_lifetime_intersect(args.len())?;
+                    vir_low::Expression::domain_function_call(
+                        "Lifetime",
+                        format!("intersect${}", args.len()),
+                        args,
+                        vir_low::ty::Type::Domain(vir_low::ty::Domain {
+                            name: "Lifetime".to_string(),
+                        }),
+                    )
+                } else {
+                    args.get(0).unwrap().clone()
+                };
+                Ok(intersect_expr)
+            }
             BuiltinFunc::EmptySeq | BuiltinFunc::SingleSeq => Ok(vir_low::Expression::seq(
-                ty_args[0].clone(),
+                vir_low::Type::seq(ty_args[0].clone()),
                 args,
                 app.position,
             )),
@@ -469,6 +587,27 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 )?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
+            BuiltinFunc::Index => {
+                assert_eq!(args.len(), 2);
+                // FIXME: Remove duplication with LookupSeq.
+                let index = lowerer.obtain_constant_value(
+                    app.arguments[1].get_type(),
+                    args[1].clone(),
+                    app.position,
+                )?;
+                Ok(vir_low::Expression::container_op(
+                    ContainerOpKind::SeqIndex,
+                    args[0].clone(),
+                    index,
+                    app.position,
+                ))
+            }
+            BuiltinFunc::Len => {
+                assert_eq!(args.len(), 1);
+                // FIXME: Remove duplication with SeqLen.
+                let value = seq(ContainerOpKind::SeqLen)?;
+                lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
+            }
         }
     }
 
@@ -477,6 +616,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Type> {
+        lowerer.ensure_type_definition(ty)?;
         // This ensures that the domain is included into the program.
         lowerer.encode_snapshot_domain_type(ty)
     }

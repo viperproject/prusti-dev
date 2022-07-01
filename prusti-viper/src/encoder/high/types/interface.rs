@@ -5,9 +5,8 @@ use crate::encoder::{
 };
 #[rustfmt::skip]
 use prusti_common::{config, report::log};
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::{errors::MultiSpan, middle::ty};
 use rustc_hash::FxHashMap;
-use rustc_middle::ty;
 use std::cell::RefCell;
 use vir_crate::{
     high as vir_high,
@@ -259,6 +258,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
             | vir_mid::TypeDecl::TypeVar(_)
+            | vir_mid::TypeDecl::Trusted(_)
             | vir_mid::TypeDecl::Reference(_)
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)

@@ -1,7 +1,9 @@
 use crate::encoder::{
     errors::SpannedEncodingResult, high::procedures::HighProcedureEncoderInterface,
+    mir::specifications::SpecificationsInterface,
 };
-use rustc_hir::def_id::DefId;
+use log::debug;
+use prusti_rustc_interface::hir::def_id::DefId;
 use vir_crate::low::{self as vir_low};
 
 #[derive(Default)]
@@ -16,6 +18,13 @@ pub(crate) trait MidCoreProofEncoderInterface<'tcx> {
 
 impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn encode_lifetimes_core_proof(&mut self, proc_def_id: DefId) -> SpannedEncodingResult<()> {
+        if self.is_trusted(proc_def_id, None) {
+            debug!(
+                "Trusted procedure will not be encoded or verified: {:?}",
+                proc_def_id
+            );
+            return Ok(());
+        }
         let procedure = self.encode_procedure_core_proof(proc_def_id)?;
         let super::lowerer::LoweringResult {
             procedure,

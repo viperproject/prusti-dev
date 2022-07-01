@@ -6,8 +6,8 @@
 
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
-use rustc_span::source_map::SourceMap;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::span::source_map::SourceMap;
+use prusti_rustc_interface::errors::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
 use log::{debug, trace};
@@ -73,6 +73,9 @@ pub enum ErrorCtxt {
     AssertTerminator(String),
     /// A Viper `assert false` in the context of a bounds check
     BoundsCheckAssert,
+    /// A Viper `assert false` in the context of a hardcoded bounds check (e.g. when we hardcode a `index`)
+    /// TODO: remove this in favor of extern_spec for e.g. the stdlib `fn index(...)`
+    SliceRangeBoundsCheckAssert(String),
     /// A Viper `assert false` that encodes an `abort` Rust terminator
     AbortTerminator,
     /// A Viper `assert false` that encodes an `unreachable` Rust terminator
@@ -136,6 +139,10 @@ pub enum ErrorCtxt {
     LifetimeTake,
     /// Failed to encode LifetimeReturn
     LifetimeReturn,
+    /// An error when inhaling lifetimes
+    LifetimeInhale,
+    /// An error when exhaling lifetimes
+    LifetimeExhale,
     /// Failed to encode OpenMutRef
     OpenMutRef,
     /// Failed to encode OpenFracRef
@@ -146,6 +153,11 @@ pub enum ErrorCtxt {
     CloseFracRef,
     /// Failed to set an active variant of an union.
     SetEnumVariant,
+    /// A user assumption raised an error
+    Assumption,
+    /// The state that fold-unfold algorithm deduced as unreachable, is actually
+    /// reachable.
+    UnreachableFoldingState,
 }
 
 /// The error manager
@@ -418,6 +430,13 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).push_primary_span(opt_cause_span)
             }
 
+            ("assert.failed:assertion.false", ErrorCtxt::DropCall) => {
+                PrustiError::verification(
+                    "the drop handler was called.",
+                    error_span
+                ).push_primary_span(opt_cause_span)
+            }
+
             ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => {
                 PrustiError::verification(
                     "precondition of pure function call might not hold.",
@@ -575,9 +594,38 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
+            ("assert.failed:assertion.false", ErrorCtxt::SliceRangeBoundsCheckAssert(s)) |
+            ("application.precondition:assertion.false", ErrorCtxt::SliceRangeBoundsCheckAssert(s)) => {
+                PrustiError::verification(
+                    s,
+                    error_span,
+                ).set_failing_assertion(opt_cause_span)
+            }
+
             ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason)) => {
                 PrustiError::unsupported(
                     format!("an unsupported Rust feature might be reachable: {}.", reason),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:seq.index.length", ErrorCtxt::Panic(PanicCause::Assert)) => {
+                PrustiError::verification(
+                    "the sequence index may be out of bounds".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:seq.index.negative", ErrorCtxt::Panic(PanicCause::Assert)) => {
+                PrustiError::verification(
+                    "the sequence index may be negative".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:map.key.contains", _) => {
+                PrustiError::verification(
+                    "the key might not be in the map".to_string(),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }

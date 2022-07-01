@@ -7,7 +7,7 @@
 use crate::{common::identifier::WithIdentifier, legacy::ast::*};
 use std::{collections::HashMap, fmt};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct Function {
     pub name: String,
     pub formal_args: Vec<LocalVar>,

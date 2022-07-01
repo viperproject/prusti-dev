@@ -1,5 +1,3 @@
-extern crate proc_macro;
-
 use proc_macro::TokenStream;
 use prusti_specs::{rewrite_prusti_attributes, SpecAttributeKind};
 
@@ -41,6 +39,16 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     prusti_specs::body_invariant(tokens.into()).into()
+}
+
+#[proc_macro]
+pub fn prusti_assert(tokens: TokenStream) -> TokenStream {
+    prusti_specs::prusti_assertion(tokens.into()).into()
+}
+
+#[proc_macro]
+pub fn prusti_assume(tokens: TokenStream) -> TokenStream {
+    prusti_specs::prusti_assume(tokens.into()).into()
 }
 
 #[proc_macro]

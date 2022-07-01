@@ -20,4 +20,13 @@ impl<'v, 'tcx> ToMiddlePredicateLowerer for crate::encoder::Encoder<'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_mid::Expression> {
         expression.to_middle_expression(self)
     }
+
+    fn to_middle_predicate_lifetime_const(
+        &self,
+        lifetime_const: vir_high::ty::LifetimeConst,
+    ) -> SpannedEncodingResult<vir_mid::ty::LifetimeConst> {
+        Ok(vir_mid::ty::LifetimeConst {
+            name: lifetime_const.name,
+        })
+    }
 }

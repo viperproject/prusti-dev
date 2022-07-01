@@ -60,6 +60,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotDomainsInterface for Lowerer<'p, 'v, 'tcx> {
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Type> {
         match ty {
+            vir_mid::Type::MBool => Ok(vir_low::Type::Bool),
+            vir_mid::Type::MInt => Ok(vir_low::Type::Int),
             vir_mid::Type::MPerm => Ok(vir_low::Type::Perm),
             vir_mid::Type::Sequence(seq) => {
                 let enc_elem = self.encode_snapshot_domain_type(&seq.element_type)?;
@@ -70,6 +72,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotDomainsInterface for Lowerer<'p, 'v, 'tcx> {
                 let enc_val = self.encode_snapshot_domain_type(&map.val_type)?;
 
                 Ok(vir_low::Type::map(enc_key, enc_val))
+            }
+            vir_mid::Type::Array(array) => {
+                let enc_elem = self.encode_snapshot_domain_type(&array.element_type)?;
+                Ok(vir_low::Type::seq(enc_elem))
             }
             _ => {
                 let domain_name = self.encode_snapshot_domain_name(ty)?;

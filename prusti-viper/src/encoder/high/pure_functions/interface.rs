@@ -9,6 +9,7 @@ use vir_crate::{
 };
 
 pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
+    // TODO: Replace all these functions with BuiltinFuncApp.
     fn encode_discriminant_call(
         &self,
         adt: vir_high::Expression,
@@ -76,12 +77,12 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         container: vir_high::Expression,
         index: vir_high::Expression,
     ) -> EncodingResult<vir_high::Expression> {
-        // FIXME: Should use encode_builtin_function_use.
-        let name = "lookup_pure";
+        // TODO: Consider if instead of a builtin function, we should have a
+        // dedicated variant on the expression.
         let element_type = extract_container_element_type(&container)?;
         let return_type = element_type.clone();
-        Ok(vir_high::Expression::function_call(
-            name,
+        Ok(vir_high::Expression::builtin_func_app_no_pos(
+            vir_high::BuiltinFunc::Index,
             vec![element_type.clone()],
             vec![container, index],
             return_type,
@@ -116,12 +117,10 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         &self,
         container: vir_high::Expression,
     ) -> EncodingResult<vir_high::Expression> {
-        // FIXME: Should use encode_builtin_function_use.
-        let name = "len";
         let element_type = extract_container_element_type(&container)?;
         let return_type = vir_high::Type::Int(vir_high::ty::Int::Usize);
-        Ok(vir_high::Expression::function_call(
-            name,
+        Ok(vir_high::Expression::builtin_func_app_no_pos(
+            vir_high::BuiltinFunc::Len,
             vec![element_type.clone()],
             vec![container],
             return_type,

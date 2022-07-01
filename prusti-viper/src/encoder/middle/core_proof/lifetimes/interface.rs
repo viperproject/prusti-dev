@@ -40,6 +40,7 @@ pub(in super::super) trait LifetimesInterface {
     ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
     fn encode_lifetime_intersect(&mut self, lft_count: usize) -> SpannedEncodingResult<()>;
     fn encode_lifetime_included(&mut self) -> SpannedEncodingResult<()>;
+    fn encode_lifetime_included_in_itself_axiom(&mut self) -> SpannedEncodingResult<()>;
     fn encode_lifetime_included_intersect_axiom(
         &mut self,
         lft_count: usize,
@@ -62,10 +63,6 @@ pub(in super::super) trait LifetimesInterface {
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
-    fn extract_lifetime_variables_from_definition(
-        &mut self,
-        type_decl: &vir_mid::TypeDecl,
-    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
@@ -73,6 +70,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         expressions: &mut VecDeque<vir_low::Expression>,
     ) -> vir_low::Expression {
+        assert!(!expressions.is_empty());
         if expressions.len() == 1 {
             return expressions.pop_front().unwrap();
         }
@@ -125,7 +123,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             self.lifetimes_state
                 .encoded_lifetime_intersect
                 .insert(lft_count);
-
+            self.encode_lifetime_included()?;
+            self.encode_lifetime_included_intersect_axiom(lft_count)?;
             let return_type = self.domain_type("Lifetime")?;
             let arguments = self.create_lifetime_expressions(lft_count).unwrap();
             self.create_domain_func_app(
@@ -148,12 +147,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             let arguments: Vec<vir_low::Expression> = vec![lft_1.into(), lft_2.into()];
             self.create_domain_func_app(
                 "Lifetime",
-                "included$",
+                "included",
                 arguments,
                 vir_low::ty::Type::Bool,
                 Default::default(),
             )?;
+            self.encode_lifetime_included_in_itself_axiom()?;
         }
+        Ok(())
+    }
+
+    fn encode_lifetime_included_in_itself_axiom(&mut self) -> SpannedEncodingResult<()> {
+        use vir_low::macros::*;
+        var_decls!(lft: Lifetime);
+        let quantifier_body = self.create_domain_func_app(
+            "Lifetime",
+            "included",
+            vec![lft.clone().into(), lft.clone().into()],
+            vir_low::ty::Type::Bool,
+            Default::default(),
+        )?;
+        let axiom = vir_low::DomainAxiomDecl {
+            name: "included_in_itself$".to_string(),
+            body: QuantifierHelpers::forall(vec![lft], vec![], quantifier_body),
+        };
+        self.declare_axiom("Lifetime", axiom)?;
         Ok(())
     }
 
@@ -203,7 +221,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             for i in 1..(lft_count + 1) {
                 trigger_expressions.push(self.create_domain_func_app(
                     "Lifetime",
-                    "included$",
+                    "included",
                     arguments.get_mut(i - 1).unwrap().clone(),
                     vir_low::ty::Type::Bool,
                     Default::default(),
@@ -294,19 +312,5 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             .into_iter()
             .map(|lifetime| lifetime.into())
             .collect())
-    }
-
-    fn extract_lifetime_variables_from_definition(
-        &mut self,
-        type_decl: &vir_mid::TypeDecl,
-    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>> {
-        let lifetimes = match type_decl {
-            vir_mid::TypeDecl::Reference(_) => {
-                use vir_low::macros::*;
-                vec![var!(lifetime: Lifetime)]
-            }
-            _ => Vec::new(),
-        };
-        Ok(lifetimes)
     }
 }

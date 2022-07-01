@@ -24,6 +24,15 @@ trait DomainsLowererInterfacePrivate {
         &mut self,
         domain_name: String,
     ) -> SpannedEncodingResult<&mut vir_low::DomainDecl>;
+    fn create_domain_func_app_custom(
+        &mut self,
+        domain_name: String,
+        function_name: String,
+        arguments: Vec<vir_low::Expression>,
+        return_type: vir_low::Type,
+        is_unique: bool,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterfacePrivate for Lowerer<'p, 'v, 'tcx> {
@@ -37,6 +46,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterfacePrivate for Lowerer<'p, 'v, 't
             .entry(domain_name.clone())
             .or_insert_with(|| vir_low::DomainDecl::new(domain_name, Vec::new(), Vec::new()));
         Ok(domain)
+    }
+
+    fn create_domain_func_app_custom(
+        &mut self,
+        domain_name: String,
+        function_name: String,
+        arguments: Vec<vir_low::Expression>,
+        return_type: vir_low::Type,
+        is_unique: bool,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let parameters = self.create_parameters(&arguments);
+        self.declare_domain_function(
+            &domain_name,
+            std::borrow::Cow::Borrowed(&function_name),
+            is_unique,
+            std::borrow::Cow::Borrowed(&parameters),
+            std::borrow::Cow::Borrowed(&return_type),
+        )?;
+        Ok(vir_low::Expression::domain_func_app(
+            domain_name,
+            function_name,
+            arguments,
+            parameters,
+            return_type,
+            position,
+        ))
     }
 }
 
@@ -57,10 +93,19 @@ pub(in super::super::super) trait DomainsLowererInterface {
         &mut self,
         domain_name: &str,
         function_name: std::borrow::Cow<'_, String>,
+        is_unique: bool,
         parameters: std::borrow::Cow<'_, Vec<vir_low::VariableDecl>>,
         return_type: std::borrow::Cow<'_, vir_low::Type>,
     ) -> SpannedEncodingResult<()>;
     fn create_domain_func_app(
+        &mut self,
+        domain_name: impl ToString,
+        function_name: impl ToString,
+        arguments: Vec<vir_low::Expression>,
+        return_type: vir_low::Type,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn create_unique_domain_func_app(
         &mut self,
         domain_name: impl ToString,
         function_name: impl ToString,
@@ -82,6 +127,14 @@ pub(in super::super::super) trait DomainsLowererInterface {
         base: vir_low::Expression,
         base_type: &vir_mid::Type,
         variant: &vir_mid::ty::VariantIndex,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
+    fn encode_index_access_function_app(
+        &mut self,
+        domain_name: &str,
+        base: vir_low::Expression,
+        base_type: &vir_mid::Type,
+        index: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
 }
@@ -126,12 +179,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         domain_name: &str,
         function_name: std::borrow::Cow<'_, String>,
+        is_unique: bool,
         parameters: std::borrow::Cow<'_, Vec<vir_low::VariableDecl>>,
         return_type: std::borrow::Cow<'_, vir_low::Type>,
     ) -> SpannedEncodingResult<()> {
         if !self.domains_state.functions.contains(&*function_name) {
             let domain_function = vir_low::DomainFunctionDecl {
                 name: function_name.to_string(),
+                is_unique,
                 parameters: parameters.into_owned(),
                 return_type: return_type.into_owned(),
             };
@@ -148,23 +203,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterface for Lowerer<'p, 'v, 'tcx> {
         return_type: vir_low::Type,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let domain_name = domain_name.to_string();
-        let function_name = function_name.to_string();
-        let parameters = self.create_parameters(&arguments);
-        self.declare_domain_function(
-            &domain_name,
-            std::borrow::Cow::Borrowed(&function_name),
-            std::borrow::Cow::Borrowed(&parameters),
-            std::borrow::Cow::Borrowed(&return_type),
-        )?;
-        Ok(vir_low::Expression::domain_func_app(
-            domain_name,
-            function_name,
+        self.create_domain_func_app_custom(
+            domain_name.to_string(),
+            function_name.to_string(),
             arguments,
-            parameters,
             return_type,
+            false,
             position,
-        ))
+        )
+    }
+    fn create_unique_domain_func_app(
+        &mut self,
+        domain_name: impl ToString,
+        function_name: impl ToString,
+        arguments: Vec<vir_low::Expression>,
+        return_type: vir_low::Type,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.create_domain_func_app_custom(
+            domain_name.to_string(),
+            function_name.to_string(),
+            arguments,
+            return_type,
+            true,
+            position,
+        )
     }
     fn encode_field_access_function_app(
         &mut self,
@@ -208,6 +271,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterface for Lowerer<'p, 'v, 'tcx> {
                 variant.index
             ),
             vec![base],
+            return_type,
+            position,
+        )
+    }
+    fn encode_index_access_function_app(
+        &mut self,
+        domain_name: &str,
+        base: vir_low::Expression,
+        base_type: &vir_mid::Type,
+        index: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
+        let base_type_identifier = base_type.get_identifier();
+        let return_type = self.domain_type(domain_name)?;
+        self.create_domain_func_app(
+            domain_name,
+            format!(
+                "index_{}$${}",
+                domain_name.to_lowercase(),
+                base_type_identifier,
+            ),
+            vec![base, index],
             return_type,
             position,
         )

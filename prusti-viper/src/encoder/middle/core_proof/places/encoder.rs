@@ -25,7 +25,7 @@ impl PlaceExpressionDomainEncoder for PlaceEncoder {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let function_name = format!("{}$place", local.variable.name);
         let return_type = lowerer.place_type()?;
-        let place_root = lowerer.create_domain_func_app(
+        let place_root = lowerer.create_unique_domain_func_app(
             "Place",
             function_name,
             vec![],
@@ -43,5 +43,13 @@ impl PlaceExpressionDomainEncoder for PlaceEncoder {
         arg: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         lowerer.encode_deref_place(arg, deref.position)
+    }
+
+    fn encode_array_index_axioms(
+        &mut self,
+        ty: &vir_mid::Type,
+        lowerer: &mut Lowerer,
+    ) -> SpannedEncodingResult<()> {
+        lowerer.encode_place_array_index_axioms(ty)
     }
 }

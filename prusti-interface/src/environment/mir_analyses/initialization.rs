@@ -22,9 +22,11 @@ use analysis::{
     domains::DefinitelyInitializedAnalysis,
 };
 use prusti_common::Stopwatch;
-use rustc_data_structures::fx::FxHashMap;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty::TyCtxt};
+use prusti_rustc_interface::{
+    data_structures::fx::FxHashMap,
+    hir::def_id::DefId,
+    middle::{mir, ty::TyCtxt},
+};
 
 pub struct AnalysisResult<T> {
     /// The state before the basic block.

@@ -3,6 +3,7 @@ use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingResult},
     mir::{errors::ErrorInterface, types::MirTypeEncoderInterface},
 };
+use prusti_rustc_interface::errors::MultiSpan;
 use vir_crate::{
     common::position::Positioned,
     high::{self as vir_high, operations::ty::Typed},
@@ -67,7 +68,18 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
                     (ExpandedPermissionKind::Same, variant_place),
                 ]
             }
-            vir_high::TypeDecl::Array(_) => unimplemented!("ty: {}", ty),
+            vir_high::TypeDecl::Array(decl) => {
+                // TODO: Instead of a concrete index use a wildcard that would match any index.
+                let index = place.get_index(guiding_place);
+                let index_place = vir_high::Expression::builtin_func_app(
+                    vir_high::BuiltinFunc::Index,
+                    vec![decl.element_type.clone()],
+                    vec![place.clone(), index.clone()],
+                    decl.element_type,
+                    place.position(),
+                );
+                vec![(ExpandedPermissionKind::Same, index_place)]
+            }
             vir_high::TypeDecl::Reference(decl) => {
                 let deref_place =
                     vir_high::Expression::deref(place.clone(), decl.target_type, place.position());
@@ -78,10 +90,11 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
             vir_high::TypeDecl::Never => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),
+            vir_high::TypeDecl::Trusted(_) => unimplemented!("ty: {}", ty),
         };
         Ok(expansion)
     }
-    fn get_span(&mut self, position: vir_high::Position) -> Option<rustc_errors::MultiSpan> {
+    fn get_span(&mut self, position: vir_high::Position) -> Option<MultiSpan> {
         self.encoder
             .error_manager()
             .position_manager()

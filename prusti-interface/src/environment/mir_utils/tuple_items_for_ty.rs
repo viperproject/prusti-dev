@@ -1,4 +1,4 @@
-use rustc_middle::ty;
+use prusti_rustc_interface::middle::ty;
 
 pub trait TupleItemsForTy<'tcx> {
     /// Tries to interpret the given `mir::Ty` as a tuple type. If this succeeds, it returns the
@@ -15,4 +15,3 @@ impl<'tcx> TupleItemsForTy<'tcx> for ty::Ty<'tcx> {
         }
     }
 }
-

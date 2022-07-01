@@ -1,6 +1,4 @@
 #![no_std]
-extern crate proc_macro;
-
 use proc_macro::TokenStream;
 
 #[proc_macro_attribute]
@@ -40,6 +38,16 @@ pub fn trusted(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn body_invariant(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[proc_macro]
+pub fn prusti_assert(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[proc_macro]
+pub fn prusti_assume(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 

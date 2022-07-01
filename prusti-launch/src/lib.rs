@@ -221,3 +221,63 @@ pub fn sigint_handler() {
         .spawn()
         .expect("Error killing process tree.");
 }
+
+pub fn set_environment_settings(
+    cmd: &mut Command,
+    current_executable_dir: &Path,
+    java_home: &Path,
+) {
+    set_smt_solver_path_setting(cmd, current_executable_dir);
+    set_smt_solver_wrapper_path_setting(cmd, current_executable_dir);
+    set_boogie_path_setting(cmd);
+    set_viper_home_setting(cmd, current_executable_dir);
+    set_java_home_setting(cmd, java_home)
+}
+
+pub fn set_smt_solver_path_setting(cmd: &mut Command, current_executable_dir: &Path) {
+    let z3_exe = if let Ok(path) = env::var("Z3_EXE") {
+        path.into()
+    } else if let Some(path) = find_z3_exe(current_executable_dir) {
+        path
+    } else {
+        panic!(
+            "Could not find the Z3 executable. \
+            Please set the Z3_EXE environment variable, which should contain the path of a \
+            Z3 executable."
+        );
+    };
+    cmd.env("PRUSTI_SMT_SOLVER_PATH", z3_exe);
+}
+
+pub fn set_smt_solver_wrapper_path_setting(cmd: &mut Command, current_executable_dir: &Path) {
+    let mut prusti_smt_wrapper_path = current_executable_dir.join("prusti-smt-solver");
+    if cfg!(windows) {
+        prusti_smt_wrapper_path.set_extension("exe");
+    }
+    cmd.env("PRUSTI_SMT_SOLVER_WRAPPER_PATH", prusti_smt_wrapper_path);
+}
+
+pub fn set_boogie_path_setting(cmd: &mut Command) {
+    if let Ok(path) = env::var("BOOGIE_EXE") {
+        cmd.env("PRUSTI_BOOGIE_PATH", path);
+    }
+}
+
+pub fn set_viper_home_setting(cmd: &mut Command, current_executable_dir: &Path) {
+    let viper_home = if let Ok(path) = env::var("VIPER_HOME") {
+        path.into()
+    } else if let Some(viper_home) = find_viper_home(current_executable_dir) {
+        viper_home
+    } else {
+        panic!(
+            "Could not find the Viper home. \
+            Please set the VIPER_HOME environment variable, which should contain the path of \
+            the folder that contains all Viper JAR files."
+        );
+    };
+    cmd.env("PRUSTI_VIPER_HOME", viper_home);
+}
+
+pub fn set_java_home_setting(cmd: &mut Command, java_home: &Path) {
+    cmd.env("PRUSTI_JAVA_HOME", java_home);
+}

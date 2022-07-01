@@ -8,7 +8,8 @@
 pub mod commandline;
 
 use self::commandline::CommandLine;
-use config_crate::{Config, Environment, File};
+use ::config::{Config, Environment, File};
+use log::warn;
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -59,7 +60,7 @@ impl Optimizations {
     }
 }
 
-lazy_static! {
+lazy_static::lazy_static! {
     // Is this RwLock<..> necessary?
     static ref SETTINGS: RwLock<Config> = RwLock::new({
         let mut settings = Config::default();
@@ -67,6 +68,13 @@ lazy_static! {
         // 1. Default values
         settings.set_default("be_rustc", false).unwrap();
         settings.set_default("viper_backend", "Silicon").unwrap();
+        settings.set_default::<Option<String>>("smt_solver_path", env::var("Z3_EXE").ok()).unwrap();
+        settings.set_default::<Option<String>>("smt_solver_wrapper_path", None).unwrap();
+        settings.set_default::<Option<String>>("boogie_path", env::var("BOOGIE_EXE").ok()).unwrap();
+        settings.set_default::<Option<String>>("viper_home", None).unwrap();
+        settings.set_default::<Option<String>>("java_home", None).unwrap();
+
+        settings.set_default::<Option<u32>>("check_timeout", None).unwrap();
         settings.set_default("check_foldunfold_state", false).unwrap();
         settings.set_default("check_overflows", true).unwrap();
         settings.set_default("check_panics", true).unwrap();
@@ -89,6 +97,7 @@ lazy_static! {
         settings.set_default::<Vec<String>>("extra_verifier_args", vec![]).unwrap();
         settings.set_default("quiet", false).unwrap();
         settings.set_default("assert_timeout", 10_000).unwrap();
+        settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
@@ -101,11 +110,12 @@ lazy_static! {
         settings.set_default("intern_names", true).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();
         // settings.set_default("enable_manual_axiomatization", false).unwrap();
-        settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
         settings.set_default("only_memory_safety", false).unwrap();
+        settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
+        settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -115,6 +125,22 @@ lazy_static! {
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
         settings.set_default("enable_ghost_constraints", false).unwrap();
+
+        // Flags for testing.
+        settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
+        settings.set_default("use_smt_wrapper", false).unwrap();
+        settings.set_default("smt_quantifier_instantiations_ignore_builtin", true).unwrap();
+        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_global", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_global_kind", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace_kind", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_unique_triggers_bound", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_unique_triggers_bound_total", None).unwrap();
+
+        // Flags for debugging performance.
+        settings.set_default("preserve_smt_trace_files", false).unwrap();
+        settings.set_default("write_smt_statistics", false).unwrap();
+        settings.set_default("log_smt_wrapper_interaction", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("disable_name_mangling", false).unwrap();
@@ -133,6 +159,7 @@ lazy_static! {
         allowed_keys.insert("log_style".to_string());
         allowed_keys.insert("rustc_log_args".to_string());
         allowed_keys.insert("rustc_log_env".to_string());
+        allowed_keys.insert("original_smt_solver_path".to_string());
 
         // 2. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
         settings.merge(
@@ -194,7 +221,11 @@ pub fn get_filtered_args() -> Vec<String> {
 
 /// Generate a dump of the settings
 pub fn dump() -> String {
-    format!("{:#?}", SETTINGS.read().unwrap())
+    let settings = SETTINGS.read().unwrap();
+    let map = config::Source::collect(&*settings).unwrap();
+    let mut pairs: Vec<_> = map.iter().map(|(key, value)| format!("{}={:#?}", key, value)).collect();
+    pairs.sort();
+    pairs.join("\n\n")
 }
 
 fn read_optional_setting<T>(name: &'static str) -> Option<T>
@@ -238,6 +269,41 @@ pub fn viper_backend() -> String {
         .to_lowercase()
         .trim()
         .to_string()
+}
+
+/// The path to the SMT solver to use. `prusti-rustc` is expected to set this
+/// configuration flag to the correct path to Z3.
+pub fn smt_solver_path() -> String {
+    read_setting::<Option<String>>("smt_solver_path")
+        .expect("please set the smt_solver_path configuration flag")
+}
+
+/// The path to the SMT solver wrapper. `prusti-rustc` is expected to set this
+/// configuration flag to the correct path.
+pub fn smt_solver_wrapper_path() -> String {
+    read_setting::<Option<String>>("smt_solver_wrapper_path")
+        .expect("please set the smt_solver_wrapper_path configuration flag")
+}
+
+/// The path to the Boogie executable. `prusti-rustc` is expected to set this
+/// configuration flag to the correct path.
+pub fn boogie_path() -> Option<String> {
+    read_setting::<Option<String>>("boogie_path")
+}
+
+/// The path to the Viper JARs. `prusti-rustc` is expected to set this
+/// configuration flag to the correct path.
+pub fn viper_home() -> String {
+    read_setting::<Option<String>>("viper_home")
+        .expect("please set the viper_home configuration flag")
+
+}
+
+/// The path to the Viper JARs. `prusti-rustc` is expected to set this
+/// configuration flag to the correct path.
+pub fn java_home() -> String {
+    read_setting::<Option<String>>("java_home")
+        .expect("please set the java_home configuration flag")
 }
 
 /// When enabled, Prusti will check for an absence of `panic!`s.
@@ -357,6 +423,20 @@ pub fn quiet() -> bool {
 /// argument `--assertTimeout`.
 pub fn assert_timeout() -> u64 {
     read_setting("assert_timeout")
+}
+
+/// Set `qi.eager_threshold` value to the given one.
+pub fn smt_qi_eager_threshold() -> u64 {
+    read_setting("smt_qi_eager_threshold")
+}
+
+/// Maximum time (in milliseconds) for the verifier to spend on checks.
+/// Set to None uses the verifier's default value. Maps to the verifier command-line
+/// argument `--checkTimeout`.
+///
+/// For more information see https://github.com/viperproject/silicon/blob/4c70514379f89e7ec6f96588290ade32518f0527/src/main/scala/Config.scala#L203
+pub fn check_timeout() -> Option<u32> {
+    read_setting("check_timeout")
 }
 
 /// When enabled, a more complete `exhale` version is used in the verifier.
@@ -540,11 +620,123 @@ pub fn verification_deadline() -> Option<u64> {
     })
 }
 
+/// Instead of using Z3 directly, use our SMT wrapper that tracks important
+/// statistics. This must be set to `true` to use any of the
+/// `smt_quantifier_instantiations_bound_*`.
+pub fn use_smt_wrapper() -> bool {
+    read_setting("use_smt_wrapper")
+}
+
+fn read_smt_wrapper_dependent_bool(name: &'static str) -> bool
+{
+    let value = read_setting(name);
+    if value {
+        assert!(use_smt_wrapper(), "use_smt_wrapper must be true to use {}", name);
+    }
+    value
+}
+
+fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64>
+{
+    let value: Option<u64> = read_setting(name);
+    if value.is_some() {
+        assert!(use_smt_wrapper(), "use_smt_wrapper must be true to use {}", name);
+    }
+    value
+}
+
+/// Whether the built-in quantifiers should be ignored when comparing bounds.
+pub fn smt_quantifier_instantiations_ignore_builtin() -> bool {
+    read_setting("smt_quantifier_instantiations_ignore_builtin")
+}
+
+/// Limit how many quantifier instantiations Z3 can make while verifying the
+/// program. This bound is for the total number of quantifier instantiations
+/// made on a single thread **without** taking into account `push`/`pop`.
+///
+/// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
+/// This flag is intended to be used for tests that aim to catch performance
+/// regressions and matching loops.
+pub fn smt_quantifier_instantiations_bound_global() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_global")
+}
+
+/// Limit how many quantifier instantiations Z3 can make while verifying the
+/// program. This bound is for the total number of quantifier instantiations
+/// made by a single quantifier on a single thread **without** taking into
+/// account `push`/`pop`.
+///
+/// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
+/// This flag is intended to be used for tests that aim to catch performance
+/// regressions and matching loops.
+pub fn smt_quantifier_instantiations_bound_global_kind() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_global_kind")
+}
+
+/// Limit how many quantifier instantiations Z3 can make while verifying the
+/// program. This bound is for the total number of quantifier instantiations on
+/// a specific trace (in other words, it is a version of
+/// `smt_quantifier_instantiations_bound_global` that takes into account `push`
+/// and `pop`.)
+///
+/// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
+/// This flag is intended to be used for tests that aim to catch performance
+/// regressions and matching loops.
+pub fn smt_quantifier_instantiations_bound_trace() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_trace")
+}
+
+/// Limit how many quantifier instantiations Z3 can make while verifying the
+/// program. This bound is for the number of quantifier instantiations on a
+/// specific trace per quantifier (in other words, it is a version of
+/// `smt_quantifier_instantiations_bound_trace` that takes computes the
+/// instantiations for each quantifier separately.)
+///
+/// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
+/// This flag is intended to be used for tests that aim to catch performance
+/// regressions and matching loops.
+pub fn smt_quantifier_instantiations_bound_trace_kind() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_trace_kind")
+}
+
+/// Limit how many unique triggers per quantifier Z3 can instantiate.
+pub fn smt_unique_triggers_bound() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_unique_triggers_bound")
+}
+
+/// Limit how many unique triggers in total Z3 can instantiate.
+pub fn smt_unique_triggers_bound_total() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_unique_triggers_bound_total")
+}
+
+/// Preserve the Z3 trace files. Since the files can be huge, they are by
+/// default deleted once the required checks are made.
+pub fn preserve_smt_trace_files() -> bool {
+    read_smt_wrapper_dependent_bool("preserve_smt_trace_files")
+}
+
+/// Write the statistics colllected by the SMT wrapper into CSV files.
+pub fn write_smt_statistics() -> bool {
+    read_smt_wrapper_dependent_bool("write_smt_statistics")
+}
+
+/// Log communication of Silicon with Z3.
+pub fn log_smt_wrapper_interaction() -> bool {
+    read_smt_wrapper_dependent_bool("log_smt_wrapper_interaction")
+}
+
 /// When enabled, the new core proof is used, suitable for unsafe code
 ///
 /// **Note:** This option is currently very incomplete.
 pub fn unsafe_core_proof() -> bool {
     read_setting("unsafe_core_proof")
+}
+
+/// When enabled, replaces calls to the drop function with `assert false`.
+///
+/// **Note:** This option is used only for testing.
+pub fn check_no_drops() -> bool {
+    read_setting("check_no_drops")
 }
 
 /// When enabled, only the core proof is verified.
@@ -564,6 +756,11 @@ pub fn only_memory_safety() -> bool {
 /// then setting this flag to `false` may help.
 pub fn use_new_encoder() -> bool {
     read_setting("use_new_encoder")
+}
+
+/// How many parallel verifiers Silicon should use.
+pub fn number_of_parallel_verifiers() -> Option<u8> {
+    read_setting("number_of_parallel_verifiers")
 }
 
 /// The given basic blocks will be replaced with `assume false`.

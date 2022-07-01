@@ -10,12 +10,13 @@ use prusti_interface::{
     environment::Environment,
     specs::typed::{
         DefSpecificationMap, LoopSpecification, ProcedureSpecification, ProcedureSpecificationKind,
-        ProcedureSpecificationKindError, Refinable, SpecificationItem, TypeSpecification,
+        ProcedureSpecificationKindError, PrustiAssertion, PrustiAssumption, Refinable,
+        SpecificationItem, TypeSpecification,
     },
     PrustiError,
 };
+use prusti_rustc_interface::hir::def_id::DefId;
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::DefId;
 
 /// Defines the context for which we perform refinement.
 /// It can be thought of as the variants of [SpecQuery] for which we can perform refinement.
@@ -77,6 +78,16 @@ impl<'tcx> Specifications<'tcx> {
     pub(super) fn get_type_spec(&self, def_id: &DefId) -> Option<&TypeSpecification> {
         trace!("Get type specs of {:?}", def_id);
         self.user_typed_specs.get_type_spec(def_id)
+    }
+
+    pub(super) fn get_assertion(&self, def_id: &DefId) -> Option<&PrustiAssertion> {
+        trace!("Get assertion specs of {:?}", def_id);
+        self.user_typed_specs.get_assertion(def_id)
+    }
+
+    pub(super) fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
+        trace!("Get assumption specs of {:?}", def_id);
+        self.user_typed_specs.get_assumption(def_id)
     }
 
     pub(super) fn get_and_refine_proc_spec<'a, 'env: 'a>(

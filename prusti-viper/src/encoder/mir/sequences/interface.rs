@@ -4,8 +4,8 @@ use crate::encoder::{
     high::builtin_functions::HighBuiltinFunctionEncoderInterface, Encoder,
 };
 use prusti_common::vir_local;
+use prusti_rustc_interface::middle::ty;
 use rustc_hash::FxHashMap;
-use rustc_middle::ty;
 use std::cell::RefCell;
 use vir_crate::polymorphic as vir;
 

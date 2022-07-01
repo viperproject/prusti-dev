@@ -99,7 +99,7 @@ pub(in super::super) trait AdtsInterface {
         &mut self,
         domain_name: &str,
         parameters: Vec<vir_low::VariableDecl>,
-        generate_top_down_injectivity_axiom: bool,
+        generate_injectivity_axioms: bool,
         top_down_injectivity_guard: Option<F>,
     ) -> SpannedEncodingResult<()>
     where
@@ -114,12 +114,18 @@ pub(in super::super) trait AdtsInterface {
     /// and its result is used to guard the injectivity property. This is
     /// intended to be used by the snapshot encoder to supply call to the
     /// validity function.
+    ///
+    /// If `use_main_constructor_destructors` is true, do not generate
+    /// destructors and for injectivity axioms use destructors with
+    /// `variant_name==""`. This assumes that this variant's parameters are a
+    /// subset of the main constructor's parameters.
     fn adt_register_variant_constructor<F>(
         &mut self,
         domain_name: &str,
         variant_name: &str,
+        use_main_constructor_destructors: bool,
         parameters: Vec<vir_low::VariableDecl>,
-        generate_top_down_injectivity_axiom: bool,
+        generate_injectivity_axioms: bool,
         top_down_injectivity_guard: Option<F>,
     ) -> SpannedEncodingResult<()>
     where
@@ -181,7 +187,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         domain_name: &str,
         parameters: Vec<vir_low::VariableDecl>,
-        generate_top_down_injectivity_axiom: bool,
+        generate_injectivity_axioms: bool,
         top_down_injectivity_guard: Option<F>,
     ) -> SpannedEncodingResult<()>
     where
@@ -198,8 +204,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         self.adt_register_variant_constructor(
             domain_name,
             "",
+            false,
             parameters,
-            generate_top_down_injectivity_axiom,
+            generate_injectivity_axioms,
             top_down_injectivity_guard,
         )
     }
@@ -207,8 +214,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         domain_name: &str,
         variant_name: &str,
+        use_main_constructor_destructors: bool,
         parameters: Vec<vir_low::VariableDecl>,
-        generate_top_down_injectivity_axiom: bool,
+        generate_injectivity_axioms: bool,
         top_down_injectivity_guard: Option<F>,
     ) -> SpannedEncodingResult<()>
     where
@@ -224,11 +232,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         )));
         let ty = vir_low::Type::domain(domain_name.to_string());
 
+        let destructor_variant_name = if use_main_constructor_destructors {
+            ""
+        } else {
+            variant_name
+        };
+
         // Constructor.
         let constructor_name = self.adt_constructor_variant_name(domain_name, variant_name)?;
         self.declare_domain_function(
             domain_name,
             Cow::Borrowed(&constructor_name),
+            false,
             Cow::Borrowed(&parameters),
             Cow::Borrowed(&ty),
         )?;
@@ -236,11 +251,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         // Destructors.
         let value = vir_low::VariableDecl::new("value", ty.clone());
         for parameter in &parameters {
-            let destructor_name =
-                self.adt_destructor_variant_name(domain_name, variant_name, &parameter.name)?;
+            let destructor_name = self.adt_destructor_variant_name(
+                domain_name,
+                destructor_variant_name,
+                &parameter.name,
+            )?;
             self.declare_domain_function(
                 domain_name,
                 Cow::Owned(destructor_name),
+                false,
                 Cow::Owned(vec![value.clone()]),
                 Cow::Borrowed(&parameter.ty),
             )?;
@@ -252,45 +271,48 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
             return Ok(());
         }
 
-        use vir_low::macros::*;
-        // Bottom-up injectivity axiom.
-        {
-            let mut triggers = Vec::new();
-            let mut conjuncts = Vec::new();
-            let constructor_call = self.adt_constructor_variant_call(
-                domain_name,
-                variant_name,
-                parameters
-                    .iter()
-                    .map(|argument| argument.clone().into())
-                    .collect(),
-            )?;
-            for parameter in &parameters {
-                let destructor_call = self.adt_destructor_variant_call(
+        if generate_injectivity_axioms {
+            // We do not generate injectivity axioms for alternative
+            // constructors (that would be unsound).
+
+            use vir_low::macros::*;
+            // Bottom-up injectivity axiom.
+            {
+                let mut triggers = Vec::new();
+                let mut conjuncts = Vec::new();
+                let constructor_call = self.adt_constructor_variant_call(
                     domain_name,
                     variant_name,
-                    &parameter.name,
-                    parameter.ty.clone(),
-                    constructor_call.clone(),
+                    parameters
+                        .iter()
+                        .map(|argument| argument.clone().into())
+                        .collect(),
                 )?;
-                triggers.push(vir_low::Trigger::new(vec![destructor_call.clone()]));
-                conjuncts.push(expr! { [destructor_call] == parameter });
+                for parameter in &parameters {
+                    let destructor_call = self.adt_destructor_variant_call(
+                        domain_name,
+                        variant_name,
+                        &parameter.name,
+                        parameter.ty.clone(),
+                        constructor_call.clone(),
+                    )?;
+                    triggers.push(vir_low::Trigger::new(vec![constructor_call.clone()]));
+                    conjuncts.push(expr! { [destructor_call] == parameter });
+                }
+                let body = vir_low::Expression::forall(
+                    parameters.clone(),
+                    triggers,
+                    conjuncts.into_iter().conjoin(),
+                );
+                let axiom = vir_low::DomainAxiomDecl {
+                    name: format!("{}$bottom_up_injectivity_axiom", constructor_name),
+                    body,
+                };
+                self.declare_axiom(domain_name, axiom)?;
             }
-            let body = vir_low::Expression::forall(
-                parameters.clone(),
-                triggers,
-                conjuncts.into_iter().conjoin(),
-            );
-            let axiom = vir_low::DomainAxiomDecl {
-                name: format!("{}$bottom_up_injectivity_axiom", constructor_name),
-                body,
-            };
-            self.declare_axiom(domain_name, axiom)?;
-        }
 
-        // Top-down injectivity axiom. We do not generate top-down injectivity
-        // axioms for alternative constructors.
-        if generate_top_down_injectivity_axiom {
+            // Top-down injectivity axiom.
+
             var_decls! { value: {ty} };
             let (trigger_guard, guard) = if let Some(guard_constructor) = top_down_injectivity_guard
             {
@@ -304,7 +326,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
             for parameter in &parameters {
                 let destructor_call = self.adt_destructor_variant_call(
                     domain_name,
-                    variant_name,
+                    destructor_variant_name,
                     &parameter.name,
                     parameter.ty.clone(),
                     value.clone().into(),
@@ -334,7 +356,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
             };
             self.declare_axiom(domain_name, axiom)?;
         } else {
-            assert!(top_down_injectivity_guard.is_none(), "top-down injectivity guard is Some while generate_top_down_injectivity_axiom is true");
+            assert!(
+                top_down_injectivity_guard.is_none(),
+                "top-down injectivity guard is Some while generate_injectivity_axioms is true"
+            );
         }
 
         Ok(())

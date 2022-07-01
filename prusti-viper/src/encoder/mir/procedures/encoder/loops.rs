@@ -6,7 +6,7 @@ use crate::encoder::{
         specifications::SpecificationsInterface, type_layouts::MirTypeLayoutsEncoderInterface,
     },
 };
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 use vir_crate::high::{self as vir_high};
 
 impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
@@ -74,13 +74,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
         for place in written_places.into_iter().chain(mutably_borrowed_places) {
             if initialized_places.contains_prefix_of(place) {
                 maybe_modified_places.push(vir_high::Predicate::owned_non_aliased_no_pos(
-                    self.encoder.encode_place_high(self.mir, place)?,
+                    self.encoder.encode_place_high(self.mir, place, None)?,
                 ));
             } else if allocated_locals.contains_prefix_of(place) {
                 let mir_type = place.ty(self.mir, self.encoder.env().tcx()).ty;
                 let size = self.encoder.encode_type_size_expression(mir_type)?;
                 maybe_modified_places.push(vir_high::Predicate::memory_block_stack_no_pos(
-                    self.encoder.encode_place_high(self.mir, place)?,
+                    self.encoder.encode_place_high(self.mir, place, None)?,
                     size,
                 ));
             }
