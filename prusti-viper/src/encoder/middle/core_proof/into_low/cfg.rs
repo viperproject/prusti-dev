@@ -580,34 +580,76 @@ impl IntoLow for vir_mid::Statement {
                     statement.position,
                 )])
             }
-            Self::Dead(statement) => {
+            Self::DeadReference(statement) => {
+                // let ty = statement.target.get_parent_ref().unwrap().get_type();
                 let ty = statement.target.get_type();
+                let (lifetime, uniqueness) = statement.target.get_dereference_kind().unwrap();
+                let lifetime = lowerer.encode_lifetime_const_into_variable(lifetime)?;
+                let place = lowerer.encode_expression_as_place(&statement.target)?;
+                let address = lowerer.extract_root_address(&statement.target)?;
+                let current_snapshot = statement.target.to_procedure_snapshot(lowerer)?;
+                let lifetimes = lowerer
+                    .extract_lifetime_variables(ty)?
+                    .into_iter()
+                    .map(|lifetime| lifetime.into());
                 let mut statements = Vec::new();
-                if let vir_mid::Type::Reference(vir_mid::ty::Reference {
-                    uniqueness: vir_mid::ty::Uniqueness::Unique,
-                    box target_type,
-                    ..
-                }) = ty
-                {
-                    let target_type = target_type.clone();
-                    let lifetimes = lowerer.extract_lifetime_variables(ty)?;
-                    for lifetime in lifetimes {
-                        let low_statement = vir_low::Statement::assert(
-                            expr! { (acc(DeadLifetimeToken(lifetime))) },
-                            statement.position,
-                        );
-                        statements.push(low_statement);
+                // TODO: These should be method calls.
+                match uniqueness {
+                    vir_mid::ty::Uniqueness::Unique => {
+                        let final_snapshot =
+                            statement.target.to_procedure_final_snapshot(lowerer)?;
+                        statements.push(stmtp! {
+                            statement.position =>
+                            exhale (acc(UniqueRef<ty>(
+                                lifetime, [place], [address], [current_snapshot.clone()], [final_snapshot.clone()];
+                                lifetimes)))
+                        });
+                        statements.push(stmtp! {
+                            statement.position =>
+                            assume ([current_snapshot] == [final_snapshot])
+                        });
                     }
-                    let place = statement.target.deref(target_type, statement.position);
-                    let current_snapshot = place.to_procedure_snapshot(lowerer)?;
-                    let final_snapshot = place.to_procedure_final_snapshot(lowerer)?;
-                    let low_statement = vir_low::Statement::assume(
-                        expr! { [current_snapshot] == [final_snapshot] },
-                        statement.position,
-                    );
-                    statements.push(low_statement);
+                    vir_mid::ty::Uniqueness::Shared => {
+                        statements.push(stmtp! {
+                            statement.position =>
+                            exhale (acc(FracRef<ty>(
+                                lifetime, [place], [address], [current_snapshot];
+                                lifetimes)))
+                        });
+                    }
                 }
                 Ok(statements)
+            }
+            Self::DeadLifetime(_) => {
+                // TODO: Implement.
+                // let ty = statement.target.get_type();
+                // lowerer.encode_dead_lifetime_method(ty)?;
+                // let place = lowerer.encode_expression_as_place(&statement.target)?;
+                // let address = lowerer.extract_root_address(&statement.target)?;
+                // let snapshot = statement.target.to_procedure_snapshot(lowerer)?;
+                // let mut arguments = lowerer.extract_non_type_arguments_from_type(ty)?;
+                // let lifetimes = lowerer.extract_lifetime_arguments_from_type(ty)?;
+                // // arguments.extend(
+                // //     lifetimes
+                // //         .iter()
+                // //         .map(|x| x.clone().into())
+                // // );
+                // arguments.extend(
+                //     statement.dead_lifetimes_before.iter().map(|&b| b.into())
+                // );
+                // arguments.extend(
+                //     statement.dead_lifetimes_after.iter().map(|&b| b.into())
+                // );
+                // let statements = vec![stmtp! { statement.position =>
+                //     call dead_lifetime<ty>(
+                //         [place],
+                //         [address],
+                //         [snapshot];
+                //         arguments
+                //     )
+                // }];
+                // Ok(statements)
+                Ok(Vec::new())
             }
             Self::DeadInclusion(statement) => {
                 lowerer.encode_dead_inclusion_method()?;

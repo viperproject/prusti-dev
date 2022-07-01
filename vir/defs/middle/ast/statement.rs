@@ -35,7 +35,8 @@ pub enum Statement {
     Assign(Assign),
     NewLft(NewLft),
     EndLft(EndLft),
-    Dead(Dead),
+    DeadReference(DeadReference),
+    DeadLifetime(DeadLifetime),
     DeadInclusion(DeadInclusion),
     LifetimeTake(LifetimeTake),
     LifetimeReturn(LifetimeReturn),
@@ -294,9 +295,24 @@ pub struct EndLft {
     pub position: Position,
 }
 
-#[display(fmt = "dead({})", target)]
-pub struct Dead {
+#[display(fmt = "dead-reference({})", target)]
+pub struct DeadReference {
     pub target: Expression,
+    pub condition: Option<BlockMarkerCondition>,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "dead-lifetime({}, before={}, after={})",
+    target,
+    "display::cjoin(dead_lifetimes_before)",
+    "display::cjoin(dead_lifetimes_after)"
+)]
+pub struct DeadLifetime {
+    pub target: Expression,
+    pub dead_lifetimes_before: Vec<bool>,
+    pub dead_lifetimes_after: Vec<bool>,
+    pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
 

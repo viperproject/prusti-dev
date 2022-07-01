@@ -91,7 +91,7 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::EndLft(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
-            vir_high::Statement::Dead(statement) => {
+            vir_high::Statement::DeadLifetime(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::DeadInclusion(statement) => {
@@ -613,14 +613,14 @@ impl CollectPermissionChanges for vir_high::EndLft {
     }
 }
 
-impl CollectPermissionChanges for vir_high::Dead {
+impl CollectPermissionChanges for vir_high::DeadLifetime {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
         _consumed_permissions: &mut Vec<Permission>,
         _produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
-        Ok(())
+        unreachable!("DeadLifetime is special cased in the caller");
     }
 }
 

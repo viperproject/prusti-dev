@@ -27,7 +27,8 @@ impl Positioned for Statement {
             Self::Consume(statement) => statement.position(),
             Self::NewLft(statement) => statement.position(),
             Self::EndLft(statement) => statement.position(),
-            Self::Dead(statement) => statement.position(),
+            Self::DeadReference(statement) => statement.position(),
+            Self::DeadLifetime(statement) => statement.position(),
             Self::DeadInclusion(statement) => statement.position(),
             Self::LifetimeTake(statement) => statement.position(),
             Self::LifetimeReturn(statement) => statement.position(),
@@ -179,7 +180,13 @@ impl Positioned for EndLft {
     }
 }
 
-impl Positioned for Dead {
+impl Positioned for DeadReference {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for DeadLifetime {
     fn position(&self) -> Position {
         self.position
     }

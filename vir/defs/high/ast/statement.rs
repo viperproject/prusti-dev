@@ -33,7 +33,7 @@ pub enum Statement {
     SetUnionVariant(SetUnionVariant),
     NewLft(NewLft),
     EndLft(EndLft),
-    Dead(Dead),
+    DeadLifetime(DeadLifetime),
     DeadInclusion(DeadInclusion),
     LifetimeTake(LifetimeTake),
     LifetimeReturn(LifetimeReturn),
@@ -242,9 +242,9 @@ pub struct EndLft {
     pub position: Position,
 }
 
-#[display(fmt = "dead({})", target)]
-pub struct Dead {
-    pub target: Expression,
+#[display(fmt = "dead-lifetime({})", lifetime)]
+pub struct DeadLifetime {
+    pub lifetime: LifetimeConst,
     pub position: Position,
 }
 
