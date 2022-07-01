@@ -69,6 +69,7 @@ RUSTFMT_PATHS = [
     'prusti-interface/src/environment/mir_sets/mod.rs',
     'prusti-interface/src/environment/mir_body/mod.rs',
     'prusti-interface/src/environment/debug_utils/mod.rs',
+    'prusti-interface/src/environment/mir_utils/mod.rs',
     'prusti-tests/tests/verify_partial/**/*.rs',
     'prusti-viper/src/encoder/foldunfold/mod.rs',
     'prusti-viper/src/encoder/mir/mod.rs',

@@ -64,14 +64,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 .encode_snapshot_valid_call_for_type(result.clone(), &function_decl.return_type)?;
             posts.push(result_validity);
             let gas_amount = self.function_gas_constant(2)?;
-            let function =
-                vir_low::FunctionDecl::new(
-                    caller_function_name,
-                    parameters.clone(),
-                    return_type.clone(),
-                    pres.clone(),
-                    posts.clone(),
-                    Some(self.create_domain_func_app(
+            let function = vir_low::FunctionDecl::new(
+                caller_function_name,
+                parameters.clone(),
+                return_type.clone(),
+                pres.clone(),
+                posts.clone(),
+                Some(
+                    self.create_domain_func_app(
                         "Functions",
                         function_name.clone(),
                         parameters
@@ -81,8 +81,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             .collect(),
                         return_type.clone(),
                         Default::default(),
-                    )?),
-                );
+                    )?,
+                ),
+            );
             self.functions_state
                 .functions
                 .insert(function_name.clone(), function);
