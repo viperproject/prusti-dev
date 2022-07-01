@@ -157,7 +157,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
     fn visit_adt_variant(
         &mut self,
         adt: ty::AdtDef<'tcx>,
-        idx: rustc_target::abi::VariantIdx,
+        idx: prusti_rustc_interface::target::abi::VariantIdx,
         variant: &ty::VariantDef,
         substs: ty::subst::SubstsRef<'tcx>,
     ) -> Result<(), Self::Error> {
