@@ -1171,6 +1171,10 @@ pub(in super::super) trait BuiltinMethodsInterface {
         &mut self,
         ty_with_lifetime: &vir_mid::Type,
     ) -> SpannedEncodingResult<()>;
+    // fn encode_dead_lifetime_method(
+    //     &mut self,
+    //     ty_with_lifetime: &vir_mid::Type,
+    // ) -> SpannedEncodingResult<()>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
@@ -3215,4 +3219,50 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+
+    // TODO: Implement.
+    // fn encode_dead_lifetime_method(
+    //     &mut self,
+    //     ty_with_lifetime: &vir_mid::Type,
+    // ) -> SpannedEncodingResult<()> {
+    //     let ty: &mut vir_mid::Type = &mut ty_with_lifetime.clone();
+    //     ty.erase_lifetime();
+    //     if !self
+    //         .builtin_methods_state
+    //         .encoded_dead_lifetime_methods
+    //         .contains(ty)
+    //     {
+    //         self.builtin_methods_state
+    //             .encoded_dead_lifetime_methods
+    //             .insert(ty.clone());
+    //         use vir_low::macros::*;
+    //         var_decls! {
+    //             place: Place,
+    //             address: Address,
+    //             snapshot: {ty.to_snapshot(self)?}
+    //         }
+    //         let lifetimes = self.extract_lifetime_arguments_from_type(ty)?;
+    //         let mut parameters = vec![
+    //             place,
+    //             address,
+    //             snapshot
+    //         ];
+    //         let lifetimes_count = lifetimes.len();
+    //         parameters.extend(lifetimes);
+    //         parameters.extend((0..lifetimes_count).map(|index| vir_low::VariableDecl::new(format!("lifetime_before_{}", index), vir_low::Type::Bool)));
+    //         parameters.extend((0..lifetimes_count).map(|index| vir_low::VariableDecl::new(format!("lifetime_after_{}", index), vir_low::Type::Bool)));
+    //         let pres = Vec::new();
+    //         let posts = Vec::new();
+    //         let method = vir_low::MethodDecl::new(
+    //             method_name! { dead_lifetime<ty> },
+    //             parameters,
+    //             vec![],
+    //             pres,
+    //             posts,
+    //             None,
+    //         );
+    //         self.declare_method(method)?;
+    //     }
+    //     Ok(())
+    // }
 }
