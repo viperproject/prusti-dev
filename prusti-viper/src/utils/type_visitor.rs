@@ -135,7 +135,7 @@ pub trait TypeVisitor<'tcx>: Sized {
     fn visit_adt_variant(
         &mut self,
         adt: AdtDef<'tcx>,
-        idx: rustc_target::abi::VariantIdx,
+        idx: prusti_rustc_interface::target::abi::VariantIdx,
         variant: &VariantDef,
         substs: SubstsRef<'tcx>,
     )  -> Result<(), Self::Error> {
