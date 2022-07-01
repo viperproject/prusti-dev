@@ -22,9 +22,9 @@ use prusti_interface::specs::typed;
 use prusti_interface::PrustiError;
 use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
-use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
-use rustc_middle::ty;
+use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::middle::ty;
 use std::cell::{Cell, RefCell, RefMut, Ref};
 use rustc_hash::FxHashMap;
 use std::io::Write;
@@ -273,29 +273,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Extract scalar value, invoking const evaluation if necessary.
     pub fn const_eval_intlike(
         &self,
-        value: ty::ConstKind<'tcx>,
+        value: mir::ConstantKind<'tcx>,
     ) -> EncodingResult<mir::interpret::Scalar> {
         let opt_scalar_value = match value {
-            ty::ConstKind::Value(ref const_value) => {
-                const_value.try_to_scalar()
+            mir::ConstantKind::Ty(value) => match value.kind() {
+                ty::ConstKind::Value(ref const_value) => {
+                    const_value.try_to_scalar()
+                }
+                ty::ConstKind::Unevaluated(ct) => {
+                    let tcx = self.env().tcx();
+                    let param_env = tcx.param_env(ct.def.did);
+                    tcx.const_eval_resolve(param_env, ct, None)
+                        .ok()
+                        .and_then(|const_value| const_value.try_to_scalar())
+                }
+                _ => unimplemented!("{:?}", value),
             }
-            ty::ConstKind::Unevaluated(ct) => {
-                let tcx = self.env().tcx();
-                let param_env = tcx.param_env(ct.def.did);
-                tcx.const_eval_resolve(param_env, ct, None)
-                    .ok()
-                    .and_then(|const_value| const_value.try_to_scalar())
-            }
-            _ => unimplemented!("{:?}", value),
+            mir::ConstantKind::Val(val, _) => val.try_to_scalar(),
         };
-
-        if let Some(v) = opt_scalar_value {
-            Ok(v)
-        } else {
-            Err(EncodingError::unsupported(
-                format!("unsupported constant value: {:?}", value)
-            ))
-        }
+        opt_scalar_value.ok_or_else(|| EncodingError::unsupported(format!("unsupported constant value: {:?}", value)))
     }
 
     /// Encodes a value in a field if the base expression is a reference or
@@ -573,7 +569,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_const_expr(
         &self,
         ty: ty::Ty<'tcx>,
-        value: ty::ConstKind<'tcx>
+        value: mir::ConstantKind<'tcx>
     ) -> EncodingResult<vir::Expr> {
         trace!("encode_const_expr {:?}", value);
         let scalar_value = self.const_eval_intlike(value)?;

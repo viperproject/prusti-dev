@@ -9,11 +9,13 @@ use crate::{
     utils::type_visitor::{self, TypeVisitor},
 };
 use log::trace;
-use rustc_hir::{self as hir, Mutability};
-use rustc_index::vec::Idx;
-use rustc_middle::{
-    mir,
-    ty::{self, Ty, TyCtxt, TyKind},
+use prusti_rustc_interface::{
+    hir::{self as hir, Mutability},
+    index::vec::Idx,
+    middle::{
+        mir,
+        ty::{self, Ty, TyCtxt, TyKind},
+    },
 };
 use std::fmt;
 
