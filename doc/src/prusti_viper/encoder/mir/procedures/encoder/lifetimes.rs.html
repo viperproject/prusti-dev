@@ -1158,8 +1158,6 @@
 <span id="1152">1152</span>
 <span id="1153">1153</span>
 <span id="1154">1154</span>
-<span id="1155">1155</span>
-<span id="1156">1156</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <span class="ident">errors</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-161">ErrorCtxt</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
     <span class="ident">mir</span>::{
@@ -1282,11 +1280,11 @@
         <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
         <span class="ident">new_original_lifetimes</span>: <span class="kw-2">&amp;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">encode_dead_variable</span>(
+    <span class="kw">fn</span> <span class="ident">encode_dead_lifetime</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">block_builder</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
         <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        <span class="ident">variable</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>,
+        <span class="ident">lifetime</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">encode_lft_assert_subset</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
@@ -1858,13 +1856,11 @@
                         <span class="ident">ErrorCtxt::LifetimeEncoding</span>,
                         <span class="ident">vir_high::Statement::dead_inclusion_no_pos</span>(<span class="ident">encoded_target</span>, <span class="ident">encoded_value</span>),
                     )<span class="question-mark">?</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mir_local</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">procedure</span>.<span class="ident">get_var_of_lifetime</span>(<span class="kw-2">&amp;</span><span class="ident">lifetime</span>[..]) {
-                        <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_local</span>(<span class="ident">mir_local</span>)<span class="question-mark">?</span>;
-                        <span class="comment">// FIXME: A workaround until Dead is fixed.</span>
-                        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">points_to_reborrow</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">local</span>) {
-                            <span class="self">self</span>.<span class="ident">encode_dead_variable</span>(<span class="ident">block_builder</span>, <span class="ident">location</span>, <span class="ident">local</span>)<span class="question-mark">?</span>;
-                        }
-                    }
+                    <span class="self">self</span>.<span class="ident">encode_dead_lifetime</span>(
+                        <span class="ident">block_builder</span>,
+                        <span class="ident">location</span>,
+                        <span class="ident">vir_high::ty::LifetimeConst::new</span>(<span class="ident">lifetime</span>.<span class="ident">clone</span>()),
+                    )<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">derived_lifetimes_yet_to_kill</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">lifetime</span>);
                     <span class="kw">break</span>;
                 }
@@ -1873,16 +1869,16 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_dead_variable</span>(
+    <span class="kw">fn</span> <span class="ident">encode_dead_lifetime</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">block_builder</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
         <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>,
-        <span class="ident">variable</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/struct.Local.html">vir_high::Local</a>,
+        <span class="ident">lifetime</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#716">block_builder</a>.<span class="ident">add_statement</span>(<span class="self">self</span>.<span class="ident">set_statement_error</span>(
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#714">block_builder</a>.<span class="ident">add_statement</span>(<span class="self">self</span>.<span class="ident">set_statement_error</span>(
             <span class="ident">location</span>,
             <span class="ident">ErrorCtxt::LifetimeEncoding</span>,
-            <span class="ident">vir_high::Statement::dead_no_pos</span>(<span class="ident">variable</span>.<span class="ident">into</span>()),
+            <span class="ident">vir_high::Statement::dead_lifetime_no_pos</span>(<span class="ident">lifetime</span>),
         )<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(())
     }
@@ -1916,7 +1912,7 @@
             <span class="ident">ErrorCtxt::LifetimeEncoding</span>,
             <span class="self">self</span>.<span class="ident">def_id</span>,
         )<span class="question-mark">?</span>;
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#730">block_builder</a>.<span class="ident">add_statement</span>(<span class="self">self</span>.<span class="ident">set_statement_error</span>(
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#728">block_builder</a>.<span class="ident">add_statement</span>(<span class="self">self</span>.<span class="ident">set_statement_error</span>(
             <span class="ident">location</span>,
             <span class="ident">ErrorCtxt::LifetimeEncoding</span>,
             <span class="ident">assert_statement</span>,
@@ -1929,7 +1925,7 @@
         <span class="ident">variable_name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_high::VariableDecl</a><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">vir_high::VariableDecl::new</span>(
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#767">variable_name</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#765">variable_name</a>,
             <span class="ident">vir_high::Type::Lifetime</span>,
         ))
     }
@@ -1953,7 +1949,7 @@
                 }
             }
         }
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#783">derived_lifetimes_return</a>
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#781">derived_lifetimes_return</a>
     }
 
     <span class="doccomment">/// A lifetime can be taken if:</span>
@@ -1975,7 +1971,7 @@
                 }
             }
         }
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#805">derived_lifetimes_take</a>
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#803">derived_lifetimes_take</a>
     }
 
     <span class="kw">fn</span> <span class="ident">lifetimes_to_end</span>(
@@ -1983,10 +1979,10 @@
         <span class="ident">old_original_lifetimes</span>: <span class="kw-2">&amp;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
         <span class="ident">new_original_lifetimes</span>: <span class="kw-2">&amp;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#821">old_original_lifetimes</a>
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#819">old_original_lifetimes</a>
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#822">new_original_lifetimes</a>.<span class="ident">contains</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#827">x</a>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#820">new_original_lifetimes</a>.<span class="ident">contains</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#825">x</a>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 
@@ -1995,22 +1991,22 @@
         <span class="ident">old_original_lifetimes</span>: <span class="kw-2">&amp;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
         <span class="ident">new_original_lifetimes</span>: <span class="kw-2">&amp;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#834">new_original_lifetimes</a>
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#832">new_original_lifetimes</a>
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#833">old_original_lifetimes</a>.<span class="ident">contains</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#839">x</a>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#831">old_original_lifetimes</a>.<span class="ident">contains</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#837">x</a>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 
     <span class="kw">fn</span> <span class="ident">lifetime_token_fractional_permission</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">denominator</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a> {
         <span class="kw">let</span> <span class="ident">denominator_expr</span> <span class="op">=</span> <span class="ident">vir_high::Expression::constant_no_pos</span>(
-            <span class="ident">vir_high::expression::ConstantValue::BigInt</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#843">denominator</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+            <span class="ident">vir_high::expression::ConstantValue::BigInt</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#841">denominator</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
             <span class="ident">vir_high::ty::Type::MPerm</span>,
         );
         <span class="ident">vir_high::Expression::binary_op_no_pos</span>(
             <span class="ident">vir_high::BinaryOpKind::Div</span>,
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#843">self</a>.<span class="ident">lifetime_token_permission</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">unwrap</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#844">denominator_expr</a>,
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#841">self</a>.<span class="ident">lifetime_token_permission</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">unwrap</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#842">denominator_expr</a>,
         )
     }
 
@@ -2018,12 +2014,12 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">first_bb</span>, <span class="kw">_</span>) <span class="op">=</span>
-            <span class="ident">prusti_rustc_interface::middle::mir::traversal::reverse_postorder</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#856">self</a>.<span class="ident">mir</span>)
+            <span class="ident">prusti_rustc_interface::middle::mir::traversal::reverse_postorder</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#854">self</a>.<span class="ident">mir</span>)
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
                 .<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">first_location</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#858">first_bb</a>,
+            <span class="ident">block</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#856">first_bb</a>,
             <span class="ident">statement_index</span>: <span class="number">0</span>,
         };
 
@@ -2033,7 +2029,7 @@
         <span class="comment">// Make sure the lifetime_token_permissino is &gt; none and &lt; write</span>
         <span class="kw">let</span> <span class="ident">none_permission</span> <span class="op">=</span> <span class="ident">vir_high::Expression::none_permission</span>();
         <span class="kw">let</span> <span class="ident">full_permission</span> <span class="op">=</span> <span class="ident">vir_high::Expression::full_permission</span>();
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#868">preconditions</a>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">set_statement_error_ctxt</span>(
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#866">preconditions</a>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">set_statement_error_ctxt</span>(
             <span class="ident">vir_high::Statement::assume_no_pos</span>(<span class="ident">vir_high::Expression::binary_op_no_pos</span>(
                 <span class="ident">vir_high::BinaryOpKind::GtCmp</span>,
                 <span class="self">self</span>.<span class="ident">lifetime_token_permission</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>().<span class="ident">into</span>(),
@@ -2043,7 +2039,7 @@
             <span class="ident">ErrorCtxt::LifetimeInhale</span>,
             <span class="self">self</span>.<span class="ident">def_id</span>,
         )<span class="question-mark">?</span>);
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#868">preconditions</a>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">set_statement_error_ctxt</span>(
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#866">preconditions</a>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">set_statement_error_ctxt</span>(
             <span class="ident">vir_high::Statement::assume_no_pos</span>(<span class="ident">vir_high::Expression::binary_op_no_pos</span>(
                 <span class="ident">vir_high::BinaryOpKind::LtCmp</span>,
                 <span class="self">self</span>.<span class="ident">lifetime_token_permission</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>().<span class="ident">into</span>(),
@@ -2078,7 +2074,7 @@
 
         <span class="comment">// Precondition: Assume opaque lifetime conditions</span>
         <span class="kw">let</span> <span class="ident">opaque_conditions</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#856">self</a>.<span class="ident">lifetimes</span>.<span class="ident">get_opaque_lifetimes_with_inclusions_names</span>();
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#854">self</a>.<span class="ident">lifetimes</span>.<span class="ident">get_opaque_lifetimes_with_inclusions_names</span>();
         <span class="kw">for</span> (<span class="ident">lifetime</span>, <span class="ident">condition</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">opaque_conditions</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">vir_high::Expression</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="kw">for</span> <span class="ident">lifetime_cond</span> <span class="kw">in</span> <span class="ident">condition</span> {
@@ -2121,15 +2117,15 @@
         }
 
         <span class="comment">// Precondition: LifetimeTake for subset lifetimes</span>
-        <span class="kw">let</span> <span class="ident">lifetime_subsets</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)<span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#856">self</a>
+        <span class="kw">let</span> <span class="ident">lifetime_subsets</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)<span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#854">self</a>
             .<span class="ident">lifetimes</span>
-            .<span class="ident">get_subset_base_at_start</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#863">first_location</a>)
+            .<span class="ident">get_subset_base_at_start</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#861">first_location</a>)
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">r1</span>, <span class="ident">r2</span>)<span class="op">|</span> (<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#966">r1</a>.<a class="ident" href="../../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#966">r2</a>.<a class="ident" href="../../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>()))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">r1</span>, <span class="ident">r2</span>)<span class="op">|</span> (<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#964">r1</a>.<a class="ident" href="../../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#964">r2</a>.<a class="ident" href="../../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>()))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> <span class="ident">identical_lifetimes</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#856">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#165-169">identical_lifetimes_map</a>(
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#918">opaque_conditions</a>.<span class="ident">keys</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#962">lifetime_subsets</a>,
+        <span class="kw">let</span> <span class="ident">identical_lifetimes</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#854">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#165-169">identical_lifetimes_map</a>(
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#916">opaque_conditions</a>.<span class="ident">keys</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#960">lifetime_subsets</a>,
         );
         <span class="kw">for</span> (<span class="ident">new_lifetime</span>, <span class="ident">existing_lifetime</span>) <span class="kw">in</span> <span class="ident">identical_lifetimes</span> {
             <span class="kw">let</span> <span class="ident">encoded_target</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_lft_variable</span>(<span class="ident">new_lifetime</span>)<span class="question-mark">?</span>;
@@ -2146,7 +2142,7 @@
             )<span class="question-mark">?</span>;
             <span class="ident">preconditions</span>.<span class="ident">push</span>(<span class="ident">statement</span>);
         }
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#868">preconditions</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#906">postconditions</a>))
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#866">preconditions</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#904">postconditions</a>))
     }
 
     <span class="kw">fn</span> <span class="ident">lifetime_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expression</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
@@ -2157,9 +2153,9 @@
                     <span class="ident">ty</span>: <span class="ident">vir_high::ty::Type::Reference</span>(<a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.Reference.html">vir_high::ty::Reference</a> { <span class="ident">lifetime</span>, .. }),
                 },
             ..
-        }) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#990">expression</a>
+        }) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#988">expression</a>
         {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#995">lifetime</a>.<span class="ident">name</span>);
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#993">lifetime</a>.<span class="ident">name</span>);
         }
         <span class="prelude-val">None</span>
     }
@@ -2169,12 +2165,12 @@
         <span class="ident">existing_lifetimes</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
         <span class="ident">relations</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)<span class="op">&gt;</span>,
     ) -&gt; <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">unique_lifetimes</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1008">relations</a>
+        <span class="kw">let</span> <span class="ident">unique_lifetimes</span>: <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1006">relations</a>
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<span class="op">|</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="op">|</span> [<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1012">x</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1012">y</a>])
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<span class="op">|</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="op">|</span> [<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1010">x</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1010">y</a>])
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1010">unique_lifetimes</a>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1008">unique_lifetimes</a>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lft_enumarate</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lft_enumarate_rev</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
 
@@ -2184,14 +2180,14 @@
         }
 
         <span class="kw">let</span> <span class="ident">graph</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">Graph::new</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1015">n</a>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">Graph::new</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1013">n</a>);
             <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">relations</span> {
                 <span class="ident">g</span>.<span class="ident">add_edge</span>(
                     <span class="kw-2">*</span><span class="ident">lft_enumarate</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">k</span>[..]).<span class="ident">unwrap</span>(),
                     <span class="kw-2">*</span><span class="ident">lft_enumarate</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>[..]).<span class="ident">unwrap</span>(),
                 );
             }
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1025">g</a>
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1023">g</a>
         };
 
         <span class="comment">// compute strongly connected components</span>
@@ -2230,16 +2226,16 @@
                 }
             }
         }
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1048">identical_lifetimes_map</a>
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1046">identical_lifetimes_map</a>
     }
 
     <span class="kw">fn</span> <span class="ident">opaque_lifetimes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1074">self</a>
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1072">self</a>
             .<span class="ident">lifetimes</span>
             .<span class="ident">get_opaque_lifetimes_with_inclusions_names</span>()
             .<span class="ident">keys</span>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a> {
-                <span class="ident">name</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1079">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                <span class="ident">name</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1077">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             })
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
     }
@@ -2249,14 +2245,14 @@
         <span class="ident">lifetime_const</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
         <span class="ident">permission_amount</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1086">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#57-63">set_statement_error_ctxt</a>(
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1084">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#57-63">set_statement_error_ctxt</a>(
             <span class="ident">vir_high::Statement::inhale_no_pos</span>(<span class="ident">vir_high::Predicate::lifetime_token_no_pos</span>(
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1087">lifetime_const</a>,
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1088">permission_amount</a>,
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1085">lifetime_const</a>,
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1086">permission_amount</a>,
             )),
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1086">self</a>.<span class="ident">mir</span>.<span class="ident">span</span>,
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1084">self</a>.<span class="ident">mir</span>.<span class="ident">span</span>,
             <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#143">ErrorCtxt::LifetimeInhale</a>,
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1086">self</a>.<span class="ident">def_id</span>,
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1084">self</a>.<span class="ident">def_id</span>,
         )
     }
 
@@ -2285,14 +2281,14 @@
         <span class="ident">lifetime_const</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
         <span class="ident">permission_amount</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1122">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#57-63">set_statement_error_ctxt</a>(
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1120">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#57-63">set_statement_error_ctxt</a>(
             <span class="ident">vir_high::Statement::exhale_no_pos</span>(<span class="ident">vir_high::Predicate::lifetime_token_no_pos</span>(
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1123">lifetime_const</a>,
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1124">permission_amount</a>,
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1121">lifetime_const</a>,
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1122">permission_amount</a>,
             )),
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1122">self</a>.<span class="ident">mir</span>.<span class="ident">span</span>,
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1120">self</a>.<span class="ident">mir</span>.<span class="ident">span</span>,
             <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#145">ErrorCtxt::LifetimeExhale</a>,
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1122">self</a>.<span class="ident">def_id</span>,
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/lifetimes.rs.html#1120">self</a>.<span class="ident">def_id</span>,
         )
     }
 

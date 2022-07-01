@@ -929,6 +929,48 @@
 <span id="923">923</span>
 <span id="924">924</span>
 <span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/mod.rs.html#6-12"><span class="kw">super</span>::IntoLow</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
@@ -936,7 +978,7 @@
     <span class="ident">middle::core_proof</span>::{
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/addresses/interface.rs.html#17-48">addresses::AddressesInterface</a>,
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/block_markers/interface.rs.html#11-20">block_markers::BlockMarkersInterface</a>,
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/builtin_methods/interface.rs.html#1123-1174">builtin_methods::BuiltinMethodsInterface</a>,
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/builtin_methods/interface.rs.html#1123-1178">builtin_methods::BuiltinMethodsInterface</a>,
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lifetimes/interface.rs.html#30-66">lifetimes::LifetimesInterface</a>,
         <span class="ident">lowerer</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#63-79">Lowerer</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/variables/interface.rs.html#21-31">VariablesLowererInterface</a>},
         <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#24-57">places::PlacesInterface</a>,
@@ -1511,34 +1553,76 @@
                     <span class="ident">statement</span>.<span class="ident">position</span>,
                 )])
             }
-            <span class="ident"><span class="self">Self</span>::Dead</span>(<span class="ident">statement</span>) =&gt; {
+            <span class="ident"><span class="self">Self</span>::DeadReference</span>(<span class="ident">statement</span>) =&gt; {
+                <span class="comment">// let ty = statement.target.get_parent_ref().unwrap().get_type();</span>
                 <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#583">statement</a>.<span class="ident">target</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let</span> (<span class="ident">lifetime</span>, <span class="ident">uniqueness</span>) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#583">statement</a>.<span class="ident">target</span>.<span class="ident">get_dereference_kind</span>().<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="ident">lifetime</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_lifetime_const_into_variable</span>(<span class="ident">lifetime</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_expression_as_place</span>(<span class="kw-2">&amp;</span><span class="ident">statement</span>.<span class="ident">target</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">extract_root_address</span>(<span class="kw-2">&amp;</span><span class="ident">statement</span>.<span class="ident">target</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">current_snapshot</span> <span class="op">=</span> <span class="ident">statement</span>.<span class="ident">target</span>.<span class="ident">to_procedure_snapshot</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">lifetimes</span> <span class="op">=</span> <span class="ident">lowerer</span>
+                    .<span class="ident">extract_lifetime_variables</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">lifetime</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#594">lifetime</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir_mid::Type::Reference</span>(<a class="ident" href="../../../../../../vir/gen/middle/ast/ty/struct.Reference.html">vir_mid::ty::Reference</a> {
-                    <span class="ident">uniqueness</span>: <span class="ident">vir_mid::ty::Uniqueness::Unique</span>,
-                    <span class="kw">box</span> <span class="ident">target_type</span>,
-                    ..
-                }) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#584">ty</a>
-                {
-                    <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#588">target_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                    <span class="kw">let</span> <span class="ident">lifetimes</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">extract_lifetime_variables</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
-                    <span class="kw">for</span> <span class="ident">lifetime</span> <span class="kw">in</span> <span class="ident">lifetimes</span> {
-                        <span class="kw">let</span> <span class="ident">low_statement</span> <span class="op">=</span> <span class="ident">vir_low::Statement::assert</span>(
-                            <span class="macro">expr!</span> { (<span class="ident">acc</span>(<span class="ident">DeadLifetimeToken</span>(<span class="ident">lifetime</span>))) },
-                            <span class="ident">statement</span>.<span class="ident">position</span>,
-                        );
-                        <span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">low_statement</span>);
+                <span class="comment">// TODO: These should be method calls.</span>
+                <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#586">uniqueness</a> {
+                    <span class="ident">vir_mid::ty::Uniqueness::Unique</span> =&gt; {
+                        <span class="kw">let</span> <span class="ident">final_snapshot</span> <span class="op">=</span>
+                            <span class="ident">statement</span>.<span class="ident">target</span>.<span class="ident">to_procedure_final_snapshot</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>;
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#595">statements</a>.<span class="ident">push</span>(<a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp!</a> {
+                            <span class="ident">statement</span>.<span class="ident">position</span> =&gt;
+                            <span class="ident">exhale</span> (<span class="ident">acc</span>(<span class="ident">UniqueRef</span><span class="op">&lt;</span><span class="ident">ty</span><span class="op">&gt;</span>(
+                                <span class="ident">lifetime</span>, [<span class="ident">place</span>], [<span class="ident">address</span>], [<span class="ident">current_snapshot</span>.<span class="ident">clone</span>()], [<span class="ident">final_snapshot</span>.<span class="ident">clone</span>()];
+                                <span class="ident">lifetimes</span>)))
+                        });
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#595">statements</a>.<span class="ident">push</span>(<a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp!</a> {
+                            <span class="ident">statement</span>.<span class="ident">position</span> =&gt;
+                            <span class="ident">assume</span> ([<span class="ident">current_snapshot</span>] <span class="op">==</span> [<span class="ident">final_snapshot</span>])
+                        });
                     }
-                    <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#583">statement</a>.<span class="ident">target</span>.<span class="ident">deref</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#592">target_type</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#583">statement</a>.<span class="ident">position</span>);
-                    <span class="kw">let</span> <span class="ident">current_snapshot</span> <span class="op">=</span> <span class="ident">place</span>.<span class="ident">to_procedure_snapshot</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">final_snapshot</span> <span class="op">=</span> <span class="ident">place</span>.<span class="ident">to_procedure_final_snapshot</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">low_statement</span> <span class="op">=</span> <span class="ident">vir_low::Statement::assume</span>(
-                        <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr!</a> { [<span class="ident">current_snapshot</span>] <span class="op">==</span> [<span class="ident">final_snapshot</span>] },
-                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#583">statement</a>.<span class="ident">position</span>,
-                    );
-                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#585">statements</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#604">low_statement</a>);
+                    <span class="ident">vir_mid::ty::Uniqueness::Shared</span> =&gt; {
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#595">statements</a>.<span class="ident">push</span>(<a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp!</a> {
+                            <span class="ident">statement</span>.<span class="ident">position</span> =&gt;
+                            <span class="ident">exhale</span> (<span class="ident">acc</span>(<span class="ident">FracRef</span><span class="op">&lt;</span><span class="ident">ty</span><span class="op">&gt;</span>(
+                                <span class="ident">lifetime</span>, [<span class="ident">place</span>], [<span class="ident">address</span>], [<span class="ident">current_snapshot</span>];
+                                <span class="ident">lifetimes</span>)))
+                        });
+                    }
                 }
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#585">statements</a>)
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#595">statements</a>)
+            }
+            <span class="ident"><span class="self">Self</span>::DeadLifetime</span>(<span class="kw">_</span>) =&gt; {
+                <span class="comment">// TODO: Implement.</span>
+                <span class="comment">// let ty = statement.target.get_type();</span>
+                <span class="comment">// lowerer.encode_dead_lifetime_method(ty)?;</span>
+                <span class="comment">// let place = lowerer.encode_expression_as_place(&amp;statement.target)?;</span>
+                <span class="comment">// let address = lowerer.extract_root_address(&amp;statement.target)?;</span>
+                <span class="comment">// let snapshot = statement.target.to_procedure_snapshot(lowerer)?;</span>
+                <span class="comment">// let mut arguments = lowerer.extract_non_type_arguments_from_type(ty)?;</span>
+                <span class="comment">// let lifetimes = lowerer.extract_lifetime_arguments_from_type(ty)?;</span>
+                <span class="comment">// // arguments.extend(</span>
+                <span class="comment">// //     lifetimes</span>
+                <span class="comment">// //         .iter()</span>
+                <span class="comment">// //         .map(|x| x.clone().into())</span>
+                <span class="comment">// // );</span>
+                <span class="comment">// arguments.extend(</span>
+                <span class="comment">//     statement.dead_lifetimes_before.iter().map(|&amp;b| b.into())</span>
+                <span class="comment">// );</span>
+                <span class="comment">// arguments.extend(</span>
+                <span class="comment">//     statement.dead_lifetimes_after.iter().map(|&amp;b| b.into())</span>
+                <span class="comment">// );</span>
+                <span class="comment">// let statements = vec![stmtp! { statement.position =&gt;</span>
+                <span class="comment">//     call dead_lifetime&lt;ty&gt;(</span>
+                <span class="comment">//         [place],</span>
+                <span class="comment">//         [address],</span>
+                <span class="comment">//         [snapshot];</span>
+                <span class="comment">//         arguments</span>
+                <span class="comment">//     )</span>
+                <span class="comment">// }];</span>
+                <span class="comment">// Ok(statements)</span>
+                <span class="prelude-val">Ok</span>(<span class="ident">Vec::new</span>())
             }
             <span class="ident"><span class="self">Self</span>::DeadInclusion</span>(<span class="ident">statement</span>) =&gt; {
                 <span class="ident">lowerer</span>.<span class="ident">encode_dead_inclusion_method</span>()<span class="question-mark">?</span>;
@@ -1567,7 +1651,7 @@
                         <span class="ident">value</span>,
                         <span class="ident">statement</span>.<span class="ident">position</span>,
                     )];
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#633">statements</a>)
+                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#675">statements</a>)
                 } <span class="kw">else</span> {
                     <span class="ident">lowerer</span>.<span class="ident">encode_lft_tok_sep_take_method</span>(<span class="ident">statement</span>.<span class="ident">value</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
@@ -1579,7 +1663,7 @@
                     <span class="kw">let</span> <span class="ident">perm_amount</span> <span class="op">=</span> <span class="ident">statement</span>
                         .<span class="ident">lifetime_token_permission</span>
                         .<span class="ident">to_procedure_snapshot</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>;
-                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#642">arguments</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#648">perm_amount</a>);
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#684">arguments</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#690">perm_amount</a>);
                     <span class="kw">let</span> <span class="ident">statements</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">Statement::method_call</span>(
                         <span class="macro">format!</span>(<span class="string">&quot;lft_tok_sep_take${}&quot;</span>, <span class="ident">statement</span>.<span class="ident">value</span>.<span class="ident">len</span>()),
                         <span class="ident">arguments</span>.<span class="ident">clone</span>(),
@@ -1588,7 +1672,7 @@
                             .<span class="ident">into</span>()],
                         <span class="ident">statement</span>.<span class="ident">position</span>,
                     )];
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#652">statements</a>)
+                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#694">statements</a>)
                 }
             }
             <span class="ident"><span class="self">Self</span>::LifetimeReturn</span>(<span class="ident">statement</span>) =&gt; {
@@ -1606,7 +1690,7 @@
                     <span class="kw">let</span> <span class="ident">perm_amount</span> <span class="op">=</span> <span class="ident">statement</span>
                         .<span class="ident">lifetime_token_permission</span>
                         .<span class="ident">to_procedure_snapshot</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>;
-                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#666">arguments</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#675">perm_amount</a>);
+                    <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#708">arguments</a>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#717">perm_amount</a>);
                     <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">Statement::method_call</span>(
                         <span class="macro">format!</span>(<span class="string">&quot;lft_tok_sep_return${}&quot;</span>, <span class="ident">statement</span>.<span class="ident">value</span>.<span class="ident">len</span>()),
                         <span class="ident">arguments</span>,
@@ -1618,7 +1702,7 @@
                 }
             }
             <span class="ident"><span class="self">Self</span>::OpenFracRef</span>(<span class="ident">statement</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#689">statement</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#731">statement</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <span class="ident">lowerer</span>.<span class="ident">encode_open_frac_bor_atomic_method</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">lifetime</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_lifetime_const_into_variable</span>(<span class="ident">statement</span>.<span class="ident">lifetime</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">perm_amount</span> <span class="op">=</span> <span class="ident">statement</span>
@@ -1645,7 +1729,7 @@
                 )])
             }
             <span class="ident"><span class="self">Self</span>::CloseFracRef</span>(<span class="ident">statement</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#716">statement</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#758">statement</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <span class="kw">let</span> <span class="ident">lifetime</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_lifetime_const_into_variable</span>(<span class="ident">statement</span>.<span class="ident">lifetime</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">perm_amount</span> <span class="op">=</span> <span class="ident">statement</span>
                     .<span class="ident">lifetime_token_permission</span>
@@ -1673,7 +1757,7 @@
                 <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]) <span class="comment">// NOTE: nothing to do, we only want the fold_unfold</span>
             }
             <span class="ident"><span class="self">Self</span>::OpenMutRef</span>(<span class="ident">statement</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#744">statement</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#786">statement</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <span class="ident">lowerer</span>.<span class="ident">encode_open_close_mut_ref_methods</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">lifetime</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_lifetime_const_into_variable</span>(<span class="ident">statement</span>.<span class="ident">lifetime</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">perm_amount</span> <span class="op">=</span> <span class="ident">statement</span>
@@ -1693,10 +1777,10 @@
                         [<span class="ident">final_snapshot</span>]
                     )
                 }];
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#755">statements</a>)
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#797">statements</a>)
             }
             <span class="ident"><span class="self">Self</span>::CloseMutRef</span>(<span class="ident">statement</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#767">statement</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#809">statement</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <span class="ident">lowerer</span>.<span class="ident">encode_open_close_mut_ref_methods</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">lifetime</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_lifetime_const_into_variable</span>(<span class="ident">statement</span>.<span class="ident">lifetime</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">perm_amount</span> <span class="op">=</span> <span class="ident">statement</span>
@@ -1716,10 +1800,10 @@
                         [<span class="ident">final_snapshot</span>]
                     )
                 }];
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#778">statements</a>)
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#820">statements</a>)
             }
             <span class="ident"><span class="self">Self</span>::BorShorten</span>(<span class="ident">statement</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#790">statement</a>.<span class="ident">value</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#832">statement</a>.<span class="ident">value</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <span class="ident">lowerer</span>.<span class="ident">encode_bor_shorten_method</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">perm_amount</span> <span class="op">=</span> <span class="ident">statement</span>
                     .<span class="ident">lifetime_token_permission</span>
@@ -1768,19 +1852,19 @@
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../../../../../vir/low/macros/index.html">vir_low::macros</a>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <a class="ident" href="../../../../../../vir/gen/middle/ast/predicate/enum.Predicate.html">vir_mid::Predicate</a>;
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#835">self</a> {
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#877">self</a> {
             <span class="ident">Predicate::LifetimeToken</span>(<span class="ident">predicate</span>) =&gt; {
                 <span class="ident">lowerer</span>.<span class="ident">encode_lifetime_token_predicate</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">lifetime</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_lifetime_const_into_variable</span>(<span class="ident">predicate</span>.<span class="ident">lifetime</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">permission</span> <span class="op">=</span> <span class="ident">predicate</span>.<span class="ident">permission</span>.<span class="ident">to_procedure_snapshot</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>;
                 <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr!</a> { <span class="ident">acc</span>(<span class="ident">LifetimeToken</span>([<span class="ident">lifetime</span>.<span class="ident">into</span>()]), [<span class="ident">permission</span>])}
-                    .<span class="ident">set_default_position</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#841">predicate</a>.<span class="ident">position</span>)
+                    .<span class="ident">set_default_position</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#883">predicate</a>.<span class="ident">position</span>)
             }
             <span class="ident">Predicate::MemoryBlockStack</span>(<span class="ident">predicate</span>) =&gt; {
                 <span class="ident">lowerer</span>.<span class="ident">encode_memory_block_predicate</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_expression_as_place_address</span>(<span class="kw-2">&amp;</span><span class="ident">predicate</span>.<span class="ident">place</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">predicate</span>.<span class="ident">size</span>.<span class="ident">to_procedure_snapshot</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>;
-                <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr!</a> { <span class="ident">acc</span>(<span class="ident">MemoryBlock</span>([<span class="ident">place</span>], [<span class="ident">size</span>]))}.<span class="ident">set_default_position</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#848">predicate</a>.<span class="ident">position</span>)
+                <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr!</a> { <span class="ident">acc</span>(<span class="ident">MemoryBlock</span>([<span class="ident">place</span>], [<span class="ident">size</span>]))}.<span class="ident">set_default_position</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#890">predicate</a>.<span class="ident">position</span>)
             }
             <span class="ident">Predicate::MemoryBlockStackDrop</span>(<span class="ident">predicate</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_expression_as_place_address</span>(<span class="kw-2">&amp;</span><span class="ident">predicate</span>.<span class="ident">place</span>)<span class="question-mark">?</span>;
@@ -1797,12 +1881,12 @@
                 <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_expression_as_place</span>(<span class="kw-2">&amp;</span><span class="ident">predicate</span>.<span class="ident">place</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">extract_root_address</span>(<span class="kw-2">&amp;</span><span class="ident">predicate</span>.<span class="ident">place</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">snapshot</span> <span class="op">=</span> <span class="ident">predicate</span>.<span class="ident">place</span>.<span class="ident">to_procedure_snapshot</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#865">predicate</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#907">predicate</a>.<span class="ident">place</span>.<a class="ident" href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <span class="kw">let</span> <span class="ident">valid</span> <span class="op">=</span> <span class="ident">lowerer</span>.<span class="ident">encode_snapshot_valid_call_for_type</span>(<span class="ident">snapshot</span>.<span class="ident">clone</span>(), <span class="ident">ty</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">lifetimes</span> <span class="op">=</span> <span class="ident">lowerer</span>
                     .<span class="ident">extract_lifetime_variables</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>
                     .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">lifetime</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#874">lifetime</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">lifetime</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#916">lifetime</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                 <a class="macro" href="../../../../../../vir/vir/low/macros/macro.exprp.html">exprp!</a> {
                     <span class="ident">predicate</span>.<span class="ident">position</span> =&gt;
                     (<span class="ident">acc</span>(<span class="ident">OwnedNonAliased</span><span class="op">&lt;</span><span class="ident">ty</span><span class="op">&gt;</span>([<span class="ident">place</span>], [<span class="ident">address</span>], [<span class="ident">snapshot</span>]; <span class="ident">lifetimes</span>))) <span class="op">&amp;&amp;</span>
@@ -1810,7 +1894,7 @@
                 }
             }
         };
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#840">result</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#882">result</a>)
     }
 }
 
@@ -1820,7 +1904,7 @@
         <span class="self">self</span>,
         <span class="ident">_lowerer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Lowerer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../vir/gen/low/cfg/procedure/struct.Label.html">vir_low::Label</a> { <span class="ident">name</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#889">self</a>.<span class="ident">name</span> })
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../vir/gen/low/cfg/procedure/struct.Label.html">vir_low::Label</a> { <span class="ident">name</span>: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#931">self</a>.<span class="ident">name</span> })
     }
 }
 
@@ -1830,7 +1914,7 @@
         <span class="self">self</span>,
         <span class="ident">lowerer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Lowerer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#899">self</a> {
+        <span class="kw">match</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#941">self</a> {
             <span class="ident">vir_mid::Successor::Exit</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">vir_low::Successor::Return</span>),
             <span class="ident">vir_mid::Successor::Goto</span>(<span class="ident">target</span>) =&gt; {
                 <span class="prelude-val">Ok</span>(<span class="ident">vir_low::Successor::Goto</span>(<span class="ident">target</span>.<span class="ident">into_low</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>))
@@ -1841,7 +1925,7 @@
                     <span class="kw">let</span> <span class="ident">test_low</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">to_procedure_bool_expression</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>;
                     <span class="ident">new_targets</span>.<span class="ident">push</span>((<span class="ident">test_low</span>, <span class="ident">target</span>.<span class="ident">into_low</span>(<span class="ident">lowerer</span>)<span class="question-mark">?</span>))
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">vir_low::Successor::GotoSwitch</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#908">new_targets</a>))
+                <span class="prelude-val">Ok</span>(<span class="ident">vir_low::Successor::GotoSwitch</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/into_low/cfg.rs.html#950">new_targets</a>))
             }
             <span class="ident">vir_mid::Successor::NonDetChoice</span>(<span class="ident">first</span>, <span class="ident">second</span>) =&gt; {
                 <span class="kw">use</span> <a class="ident" href="../../../../../../vir/low/macros/index.html">vir_low::macros</a>::<span class="kw-2">*</span>;
